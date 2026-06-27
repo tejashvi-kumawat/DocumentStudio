@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Document Studio
+Comment=Offline PDF workspace
+Exec=document_studio %U
+Icon=com.documentstudio.document_studio
+Terminal=false
+Type=Application
+Categories=Office;Graphics;
+MimeType=application/pdf;
+StartupWMClass=com.documentstudio.document_studio
+Keywords=PDF;Document;Offline;

@@ -1,0 +1,78 @@
+# Flatpak manifest — Document Studio (Flathub-oriented)
+#
+# App ID: com.documentstudio.document_studio
+# Binary: document_studio (Flutter Linux ELF under lib/document-studio/)
+#
+# Strategy: ship the EXISTING packaged AppDir from dist/linux (includes
+# bundled engines: qpdf, tesseract, etc.). Do not rebuild Flutter here.
+#
+# Domain note: Flathub requires a reverse-DNS id. This id matches the installed
+# app (linux/CMakeLists.txt APPLICATION_ID). If you do not control
+# documentstudio.com, Flathub may reject or require verification — do not invent
+# a new id that breaks the installed app.
+#
+# License note: application code is LicenseRef-proprietary (see LICENSE).
+# Bundled engines keep their own licenses (THIRD_PARTY_NOTICES.md).
+#
+# Sandboxed flathub-build only allows sources inside this directory. Before
+# building, stage the AppDir next to this manifest (do not commit AppDir):
+#   cp -al dist/linux/DocumentStudio.AppDir linux/packaging/flatpak/AppDir
+#   # or: ln -s ../../../dist/linux/DocumentStudio.AppDir AppDir  (may fail sandbox)
+#
+# Local build (use $HOME — avoid /tmp EDQUOT):
+#   mkdir -p "$HOME/.cache/ds-flatpak" && cd "$HOME/.cache/ds-flatpak"
+#   flatpak run --command=flathub-build org.flatpak.Builder --install \
+#     /absolute/path/to/linux/packaging/flatpak/com.documentstudio.document_studio.yml
+#
+# Flathub: replace the local dir source with a tagged release URL + sha256 once
+# CI publishes a linux artifact. Open the PR yourself against flathub/flathub
+# base branch new-pr (do not use gh from this machine).
+
+app-id: com.documentstudio.document_studio
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: document_studio
+finish-args:
+  # Display
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  # User documents (PDF tools). Prefer portals; avoid --filesystem=home
+  # (flathub finish-args-home-filesystem-access).
+  - --filesystem=xdg-documents
+  - --filesystem=xdg-download
+  # Optional language-pack downloads (user-initiated)
+  - --share=network
+  # PKCS#11 / smart-card (device access only; /usr and /etc binds are reserved
+  # by Flatpak and rejected by the linter)
+  - --device=all
+
+modules:
+  - name: document-studio
+    buildsystem: simple
+    build-commands:
+      - install -d /app/bin /app/lib /app/share/applications /app/share/icons /app/share/metainfo
+      # Existing AppDir usr/ tree (binary + engines + icons)
+      - cp -a AppDir/usr/. /app/
+      # Desktop + Icon must match app-id for Flatpak exports
+      - install -Dm644 com.documentstudio.document_studio.desktop /app/share/applications/com.documentstudio.document_studio.desktop
+      - install -Dm644 com.documentstudio.document_studio.metainfo.xml /app/share/metainfo/com.documentstudio.document_studio.metainfo.xml
+      # Wrapper sets LD_LIBRARY_PATH / PATH / TESSDATA like AppRun
+      - install -Dm755 document_studio-wrapper.sh /app/bin/document_studio
+      # Sanity: real ELF must exist after copy
+      - test -x /app/lib/document-studio/document_studio
+      - test -x /app/bin/document_studio
+    sources:
+      # Staged from dist/linux/DocumentStudio.AppDir (engines included).
+      # For Flathub, swap to type: archive + url + sha256 of a release tarball.
+      - type: dir
+        path: AppDir
+        dest: AppDir
+      - type: file
+        path: com.documentstudio.document_studio.desktop
+      - type: file
+        path: com.documentstudio.document_studio.metainfo.xml
+      - type: file
+        path: document_studio-wrapper.sh

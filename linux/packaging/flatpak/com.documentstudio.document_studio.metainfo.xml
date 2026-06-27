@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AppStream MetaInfo for Document Studio (Linux Flatpak).
+  project_license: LicenseRef-proprietary — see repository LICENSE
+  (All Rights Reserved for Document Studio's own code). Bundled engines keep
+  their own licenses; see THIRD_PARTY_NOTICES.md and docs/LICENSES.md.
+-->
+<component type="desktop-application">
+  <id>com.documentstudio.document_studio</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <name>Document Studio</name>
+  <summary>Offline PDF workspace</summary>
+  <description>
+    <p>
+      Document Studio is an offline, privacy-first PDF workspace for Linux.
+      Files are opened and processed on your computer. There is no account,
+      no advertisements, and no cloud upload of your documents for viewing,
+      editing, OCR, signing, or conversion.
+    </p>
+    <p>
+      Use it to view and search PDFs, organize pages (merge, split, rotate,
+      reorder), add markup and links, fill and sign forms, compress files,
+      and run on-device OCR when language data is available. Passwords and
+      signature credentials stay on the device.
+    </p>
+    <p>
+      This Flatpak build includes desktop engines such as qpdf, Tesseract,
+      and LibreOffice for local compression, OCR, and office-to-PDF
+      conversion on your machine. Optional OCR language packs may be
+      downloaded at your request; that downloads model files only and does
+      not upload the document you are working on.
+    </p>
+    <p>
+      Document Studio application code is proprietary
+      (LicenseRef-proprietary; All Rights Reserved — see the project
+      LICENSE). Bundled engines and libraries keep their own licenses
+      (THIRD_PARTY_NOTICES.md).
+    </p>
+  </description>
+  <developer id="com.documentstudio">
+    <name>Document Studio</name>
+  </developer>
+  <launchable type="desktop-id">com.documentstudio.document_studio.desktop</launchable>
+  <url type="homepage">https://github.com/tejashvi-kumawat/DocumentStudio</url>
+  <url type="bugtracker">https://github.com/tejashvi-kumawat/DocumentStudio/issues</url>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Office</category>
+    <category>Graphics</category>
+  </categories>
+  <provides>
+    <binary>document_studio</binary>
+  </provides>
+  <releases>
+    <release version="1.0.3" date="2026-09-28"/>
+  </releases>
+</component>

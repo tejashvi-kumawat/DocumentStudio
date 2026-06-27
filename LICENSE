@@ -1,0 +1,43 @@
+LicenseRef-proprietary
+
+Copyright (c) 2026 Document Studio. All Rights Reserved.
+
+Document Studio (the "Software") is proprietary software. Ownership of the
+Software remains with Document Studio. This license does not sell the Software
+or grant rights in Document Studio's trademarks.
+
+GRANT OF USE
+Subject to these terms, you may install and use the Software on devices you
+own or control, for lawful personal or internal business purposes.
+
+RESTRICTIONS
+You may not: (a) redistribute, sublicense, rent, lease, or sell the Software
+except as expressly allowed by a written distribution agreement with Document
+Studio; (b) reverse engineer, decompile, or disassemble the Software except to
+the extent applicable law forbids this restriction; (c) remove copyright or
+proprietary notices; or (d) use the Software to infringe others' rights.
+
+YOUR DOCUMENTS
+You are responsible for having all rights needed to open, edit, convert, sign,
+or otherwise process any file with the Software. Document Studio does not claim
+ownership of your documents.
+
+THIRD-PARTY COMPONENTS
+Bundled or separately licensed engines and libraries (including but not limited
+to Flutter, PDFium, qpdf, Tesseract, LibreOffice, and related components) remain
+under their own licenses. See THIRD_PARTY_NOTICES.md and docs/LICENSES.md.
+Those licenses are not changed by this file.
+
+NO WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NON-INFRINGEMENT.
+
+LIMITATION OF LIABILITY
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, DOCUMENT STUDIO AND ITS CONTRIBUTORS
+ARE NOT LIABLE FOR ANY DAMAGES ARISING FROM USE OF THE SOFTWARE, INCLUDING
+LOSS OF DATA, CORRUPTION OR LOSS OF DOCUMENTS, BUSINESS INTERRUPTION, OR
+INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGES. YOU SHOULD KEEP YOUR OWN BACKUPS.
+
+Contact for licensing questions: [your email]
