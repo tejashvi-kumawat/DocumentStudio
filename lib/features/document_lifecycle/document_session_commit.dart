@@ -35,6 +35,7 @@ Future<LocalFileRef?> commitBytesToSession({
   bool quiet = true,
   bool debounce = false,
   bool silent = false,
+  void Function()? beforeTabSync,
 }) async {
   if (debounce) {
     documentSessionAutosave.bindCommit(
@@ -91,6 +92,7 @@ Future<LocalFileRef?> commitBytesToSession({
       suggestedName: suggestedName ?? session.file.displayName,
     );
     if (saved == null) return null;
+    beforeTabSync?.call();
     tabs.syncActiveTabFromSession();
     if (context.mounted && !silent) {
       showDocumentSaveResultActions(
@@ -104,6 +106,7 @@ Future<LocalFileRef?> commitBytesToSession({
     return saved;
   }
 
+  beforeTabSync?.call();
   tabs.syncActiveTabFromSession();
   if (context.mounted && !silent) {
     if (quiet) {

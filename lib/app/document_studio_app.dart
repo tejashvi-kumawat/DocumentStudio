@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:document_studio/app/first_launch_splash.dart';
 import 'package:document_studio/app/keyboard/app_shortcuts.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/app/router/app_router.dart';
+import 'package:document_studio/core/desktop/pdf_default_app_prompt.dart';
 import 'package:document_studio/core/logging/app_log.dart';
 import 'package:document_studio/design_system/adaptive/ds_adaptive.dart';
 import 'package:document_studio/design_system/ds_theme.dart';
@@ -35,6 +38,15 @@ class _DocumentStudioAppState extends ConsumerState<DocumentStudioApp> {
       ),
     );
     Future.microtask(() => ref.read(themeModeProvider.notifier).load());
+    unawaited(
+      offerLinuxPdfDefaultPrompt(
+        navigatorContext: () => rootNavigatorKey.currentContext,
+        waitBeforePrompt:
+            FirstLaunchSplashTiming.displayUntilFade +
+            FirstLaunchSplashTiming.fadeOut +
+            const Duration(milliseconds: 80),
+      ),
+    );
   }
 
   @override
@@ -89,10 +101,7 @@ class _DocumentStudioAppState extends ConsumerState<DocumentStudioApp> {
           final view = View.maybeOf(context);
           final fromView = view == null
               ? EdgeInsets.zero
-              : EdgeInsets.fromViewPadding(
-                  view.padding,
-                  view.devicePixelRatio,
-                );
+              : EdgeInsets.fromViewPadding(view.padding, view.devicePixelRatio);
           double maxInset(double a, double b, double c) =>
               a > b ? (a > c ? a : c) : (b > c ? b : c);
           final merged = mq.copyWith(

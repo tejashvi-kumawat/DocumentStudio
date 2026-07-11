@@ -50,6 +50,7 @@
     <category>Graphics</category>
   </categories>
   <provides>
+    <mediatype>application/pdf</mediatype>
     <binary>document_studio</binary>
   </provides>
   <releases>

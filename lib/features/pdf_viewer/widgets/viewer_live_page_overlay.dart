@@ -26,6 +26,7 @@ List<Widget> buildViewerLiveToolOverlays({
   double pageWidthPt = 612,
   double pageHeightPt = 792,
   PdfViewerController? controller,
+  String? signDocumentPath,
 }) {
   final overlays = <Widget>[];
   // Watermark / header & footer / page-number previews: always mounted and
@@ -50,6 +51,7 @@ List<Widget> buildViewerLiveToolOverlays({
       child: LiveMarkupPageHost(
         session: session,
         controller: controller,
+        signDocumentPath: signDocumentPath,
         geom: LivePageGeom(
           pageNumber: pageNumber,
           pagePx: pageSize,
@@ -119,6 +121,7 @@ List<Widget> buildViewerLivePageOverlays({
   required ViewerLiveToolSession session,
   bool showRulers = false,
   PdfViewerController? controller,
+  String? signDocumentPath,
 }) {
   return buildViewerLiveToolOverlays(
     session: session,
@@ -128,6 +131,7 @@ List<Widget> buildViewerLivePageOverlays({
     pageWidthPt: page.width,
     pageHeightPt: page.height,
     controller: controller,
+    signDocumentPath: signDocumentPath,
   );
 }
 

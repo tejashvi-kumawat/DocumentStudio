@@ -9,6 +9,7 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/features/document_lifecycle/document_session_commit.dart';
+import 'package:document_studio/features/form_sign/sign_placement_bridge.dart';
 import 'package:document_studio/features/form_sign/digital_id_dialogs.dart';
 import 'package:document_studio/features/form_sign/digital_id_list.dart';
 import 'package:document_studio/features/form_sign/sign_sheet.dart';
@@ -477,8 +478,33 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
         session: session,
         bytes: out,
         successMessage: 'Signed by $_signerName.',
+        beforeTabSync: () {
+          // The appearance stays on the page overlay. Reloading here
+          // reopens the PDF and jumps back to page 1.
+          SignOwnRevisions.mark(session.file.path, session.revision);
+        },
       );
       if (!mounted) return;
+      final field = widget.target.field;
+      final page = field?.pageIndex1Based ?? widget.target.page1Based;
+      final rect = field != null
+          ? Rect.fromLTRB(
+              field.normLeft,
+              field.normTop,
+              field.normRight,
+              field.normBottom,
+            )
+          : Rect.fromLTWH(
+              widget.target.left,
+              widget.target.top,
+              widget.target.width,
+              widget.target.height,
+            );
+      ref.read(signPlacementControllerProvider).rememberBurnedAppearance(
+            png: appearance,
+            page1Based: page,
+            rectNorm: rect,
+          );
       Navigator.of(context).pop(const DigitalSignResult(committed: true));
     } on PdfEncryptedException {
       _fail('This PDF is password-encrypted. Remove the password (Protect → '
