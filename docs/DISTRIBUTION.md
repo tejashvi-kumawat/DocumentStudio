@@ -93,18 +93,26 @@ No Microsoft Store packaging. Attach both files to a GitHub Release.
 
 ## 4. Linux direct download (.deb + AppImage)
 
-On Linux (this machine or Ubuntu CI):
+Install for the current user (qpdf and tesseract already inside the app; LibreOffice stays the system `soffice`):
 
 ```bash
-make linux-deb        # flutter build linux --release + scripts/linux/package_deb.sh
-make linux-appimage   # same + scripts/linux/package_appimage.sh
+bash scripts/linux/install_local.sh
+```
+
+qpdf lands at `~/.local/lib/document-studio/engines/qpdf`. See **[ENGINES.md](ENGINES.md)**.
+
+To build a `.deb` / AppImage (this machine or Ubuntu CI), after `flutter build linux --release`:
+
+```bash
+bash scripts/linux/package_deb.sh
+bash scripts/linux/package_appimage.sh
 ```
 
 Artifacts: `dist/linux/document-studio_<ver>_<arch>.deb` and AppImage (or AppDir tarball if `appimagetool` is missing).
 
 **Flathub (optional, later):** free if you have a public GitHub repo; submit a Flatpak manifest when you want distro-store discoverability. Not required for v1 — ship `.deb` + AppImage on GitHub Releases first.
 
-**Engines:** `.deb` and AppImage must include `engines/` (qpdf, tesseract+tessdata, LibreOffice, signing tools, ffmpeg). See **[ENGINES.md](ENGINES.md)** for the tool × platform matrix and download URLs. Packaging scripts re-run `scripts/bundle_linux_engines.sh` and refuse to ship without qpdf.
+**Engines:** `.deb` and AppImage must include `engines/` (qpdf, tesseract+tessdata, signing tools, ffmpeg). LibreOffice is the system `soffice`, not a bundled download. See **[ENGINES.md](ENGINES.md)**. Packaging refuses to ship without qpdf and tesseract.
 
 ---
 

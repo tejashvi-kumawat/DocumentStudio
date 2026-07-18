@@ -18,8 +18,6 @@ import 'package:document_studio/features/page_management/pdf_password_prompt.dar
 import 'package:document_studio/features/pdf_viewer/document_tabs_controller.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_document_tab_bar.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_acrobat_shell.dart';
-import 'package:document_studio/features/pdf_viewer/pdf_viewer_all_tools_rail.dart';
-import 'package:document_studio/features/pdf_viewer/viewer_tool_embed.dart';
 import 'package:document_studio/features/pdf_viewer/document_properties_dialog.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_link_handler.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_ocr_find_highlight.dart';
@@ -1847,29 +1845,9 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                   }
                   final showMarkup =
                       !signActive && !_presentationMode && !_readMode;
-                  final wideTools =
-                      MediaQuery.sizeOf(context).width >=
-                      kPdfViewerAcrobatToolsRailBreakpoint;
-                  final layersOpen =
-                      !_presentationMode &&
-                      !_readMode &&
-                      wideLayout &&
-                      _annotationsPanelEnabled &&
-                      _controller != null;
-                  var markupRightInset = 8.0;
-                  if (layersOpen) markupRightInset += 280;
-                  if (showMarkup && wideTools && _toolsRailEnabled) {
-                    final paneWidth = _activeViewerTool != null
-                        // ignore: invalid_use_of_visible_for_testing_member
-                        ? ViewerToolPanelChrome.panelWidth
-                        // ignore: invalid_use_of_visible_for_testing_member
-                        : PdfViewerAllToolsRail.railWidth;
-                    markupRightInset += paneWidth + 1;
-                  }
-                  final markupBottomInset =
-                      !wideTools && _activeViewerTool != null && showMarkup
-                      ? PdfViewerAcrobatShellState.phoneToolPanelHeight + 8
-                      : 8.0;
+                  // On the page itself, so it stays left of the Tools rail
+                  // and under the tool row. Hidden while the tools sheet
+                  // covers the page.
                   final showMarkupBar = showMarkup && !toolsCover;
                   return Scaffold(
                     appBar:
@@ -2040,6 +2018,14 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                           },
                                       onReorderPages: _reorderViewerPages,
                                       onPageAction: _onThumbnailPageAction,
+                                      canvasOverlay: showMarkupBar
+                                          ? PdfViewerMarkupPalette(
+                                              enabled:
+                                                  _controller?.isReady ?? false,
+                                              markup: _markup,
+                                              onSelect: _armPageMarkup,
+                                            )
+                                          : null,
                                       onControllerReady: _onControllerReady,
                                       onOpenContextMenu: _presentationMode
                                           ? null
@@ -2063,14 +2049,6 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                             )
                                           : null,
                                     ),
-                                    if (showMarkupBar)
-                                      PdfViewerMarkupPalette(
-                                        enabled: _controller?.isReady ?? false,
-                                        markup: _markup,
-                                        onSelect: _armPageMarkup,
-                                        pageRightInset: markupRightInset,
-                                        pageBottomInset: markupBottomInset,
-                                      ),
                                   ],
                                 ),
                               ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:document_studio/core/desktop/qpdf_engine_fetch.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/compression/compress_route.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class SecurityQpdfUnavailablePanel extends StatelessWidget {
+class SecurityQpdfUnavailablePanel extends StatefulWidget {
   const SecurityQpdfUnavailablePanel({
     super.key,
     required this.onRecheck,
@@ -26,18 +27,52 @@ class SecurityQpdfUnavailablePanel extends StatelessWidget {
           'device; crop/resize and some advanced tools still need desktop.';
     }
     return 'This feature needs the bundled qpdf engine under engines/. '
-        'Rebuild the desktop installer so engines/ includes qpdf, then retry.';
+        'Reinstall Document Studio, or download qpdf once into app storage.';
+  }
+
+  @override
+  State<SecurityQpdfUnavailablePanel> createState() =>
+      _SecurityQpdfUnavailablePanelState();
+}
+
+class _SecurityQpdfUnavailablePanelState
+    extends State<SecurityQpdfUnavailablePanel> {
+  var _downloading = false;
+  String? _downloadError;
+
+  bool get _mobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  Future<void> _download() async {
+    setState(() {
+      _downloading = true;
+      _downloadError = null;
+    });
+    try {
+      await const QpdfEngineFetch().fetchOnce();
+      if (!mounted) return;
+      widget.onRecheck();
+    } catch (e) {
+      if (!mounted) return;
+      final text = e.toString();
+      const prefix = 'Bad state: ';
+      setState(() {
+        _downloadError =
+            text.startsWith(prefix) ? text.substring(prefix.length) : text;
+      });
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+    final busy = widget.busy || _downloading;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isMobile ? 'Desktop-only feature' : 'PDF engine unavailable',
+          _mobile ? 'Desktop-only feature' : 'PDF engine unavailable',
           style: theme.textTheme.labelLarge?.copyWith(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -45,13 +80,23 @@ class SecurityQpdfUnavailablePanel extends StatelessWidget {
         ),
         const SizedBox(height: DsSpacing.xs),
         Text(
-          unavailableMessage,
+          SecurityQpdfUnavailablePanel.unavailableMessage,
           style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
         ),
-        if (!isMobile)
+        if (!_mobile)
           TextButton(
-            onPressed: busy ? null : onRecheck,
+            onPressed: busy ? null : widget.onRecheck,
             child: const Text('Check again'),
+          ),
+        if (!_mobile)
+          TextButton(
+            onPressed: busy ? null : _download,
+            child: Text(_downloading ? 'Downloading qpdf…' : 'Download qpdf'),
+          ),
+        if (_downloadError != null)
+          Text(
+            _downloadError!,
+            style: theme.textTheme.bodySmall,
           ),
       ],
     );

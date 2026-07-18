@@ -1,9 +1,8 @@
-# Build an AppImage from the Flutter Linux Release bundle.
-# Prefers appimagetool when available; otherwise writes an AppDir tarball.
+#!/usr/bin/env bash
+# Build an AppImage (or AppDir tarball) from the Linux bundle.
+# Does not delete unrelated files already in dist/linux.
 #
-# Usage:
-#   scripts/linux/package_appimage.sh
-#   scripts/linux/package_appimage.sh /path/to/bundle
+#   bash scripts/linux/package_appimage.sh
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+exec bash "$ROOT/scripts/package_linux_appimage.sh" "$@"

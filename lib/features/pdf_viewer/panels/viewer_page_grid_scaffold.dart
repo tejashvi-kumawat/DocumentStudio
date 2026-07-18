@@ -2,10 +2,9 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:flutter/material.dart';
 
-/// Phone column for these tools: narrow window, or Android even when wide.
+/// Phone column for these tools when the window is compact (&lt; 600).
 bool viewerPageToolPhoneLayout(BuildContext context) {
-  return MediaQuery.sizeOf(context).width < DsSpacing.breakpointCompact ||
-      Theme.of(context).platform == TargetPlatform.android;
+  return MediaQuery.sizeOf(context).width < DsSpacing.breakpointCompact;
 }
 
 /// Fills the width: 2 columns on a phone, 3 when wider, more on desktop.

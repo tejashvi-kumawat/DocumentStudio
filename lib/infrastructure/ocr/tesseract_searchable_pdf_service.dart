@@ -113,8 +113,8 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
     );
     var missing = env.readinessError(language);
     if (missing == null && !await isQpdfCliAvailable()) {
-      missing = 'PDF engine not found: qpdf is missing from engines/ and '
-          'PATH. Run scripts/bundle_linux_engines.sh or install qpdf.';
+      missing = 'PDF engine not found: qpdf is not in the app engines folder. '
+          'Download it once from Settings, or reinstall Document Studio.';
     }
     final codes = [
       for (final part in language.split('+'))

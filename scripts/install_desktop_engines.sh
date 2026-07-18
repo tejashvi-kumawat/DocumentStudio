@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Install desktop CLI engines used by Document Studio (Linux apt).
+# Optional dev fallback: install system qpdf and tesseract with apt.
+# A normal install does not need this. Use scripts/linux/install_local.sh,
+# which copies qpdf and tesseract into the app's engines directory.
 set -euo pipefail
 
 if ! command -v apt-get >/dev/null 2>&1; then

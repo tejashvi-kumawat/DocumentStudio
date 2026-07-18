@@ -28,6 +28,9 @@ Future<void> bootstrap() async {
   if (!debugDesktopEngineExtraRoots.contains(supportEngines)) {
     debugDesktopEngineExtraRoots = [...debugDesktopEngineExtraRoots, supportEngines];
   }
+  if (!debugQpdfExtraSearchRoots.contains(supportEngines)) {
+    debugQpdfExtraSearchRoots = [...debugQpdfExtraSearchRoots, supportEngines];
+  }
   // pdfrx's own cache inside the box (also skips a platform-channel lookup).
   Pdfrx.cacheDirectoryPath ??= p.join(storage.pages.path, 'pdfrx');
   // Align qpdf package lookup with the shared desktop engine resolver

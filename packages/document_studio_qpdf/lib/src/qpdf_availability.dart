@@ -9,12 +9,36 @@ bool? _qpdfAvailableCached;
 /// Override for tests (absolute path or `qpdf`).
 String? debugQpdfExecutableOverride;
 
+/// Extra engine directories searched before PATH (app-support `engines/`).
+List<String> debugQpdfExtraSearchRoots = <String>[];
+
+String _qpdfRunningExecutable(String? executablePath) {
+  if (executablePath != null && executablePath.isNotEmpty) {
+    return p.normalize(File(executablePath).absolute.path);
+  }
+  if (Platform.isLinux) {
+    try {
+      final self = File('/proc/self/exe').resolveSymbolicLinksSync();
+      if (self.isNotEmpty) return p.normalize(self);
+    } catch (_) {}
+  }
+  try {
+    return p.normalize(
+      File(Platform.resolvedExecutable).resolveSymbolicLinksSync(),
+    );
+  } catch (_) {
+    return p.normalize(File(Platform.resolvedExecutable).absolute.path);
+  }
+}
+
 /// Candidate locations for a bundled `qpdf` next to the running binary.
 ///
 /// Prefer `engines/qpdf` (wrapper that sets `LD_LIBRARY_PATH`) over
 /// `engines/bin/qpdf` (raw ELF that fails without the wrapper on Linux).
+/// These paths are checked before PATH, so a bundled binary wins over
+/// `/usr/bin/qpdf`.
 List<String> qpdfBundledCandidatePaths({String? executablePath}) {
-  final exe = executablePath ?? Platform.resolvedExecutable;
+  final exe = _qpdfRunningExecutable(executablePath);
   final dir = p.dirname(exe);
   final names = <String>['qpdf'];
   if (Platform.isWindows) {
@@ -30,6 +54,11 @@ List<String> qpdfBundledCandidatePaths({String? executablePath}) {
     p.join(dir, '..', 'Resources', 'engines'),
     p.join(dir, '..', 'Resources', 'engines', 'bin'),
   ];
+  for (final extra in debugQpdfExtraSearchRoots) {
+    if (extra.isEmpty) continue;
+    roots.add(extra);
+    roots.add(p.join(extra, 'bin'));
+  }
   final out = <String>[];
   final seen = <String>{};
   for (final root in roots) {
@@ -82,10 +111,17 @@ Future<bool> isQpdfCliPageBoxEditAvailable() async {
   return _pageBoxEditCached!;
 }
 
-/// Clears cached capability probes (tests).
-void resetQpdfCliCapabilityCacheForTests() {
+/// Drops the resolved-path cache so a newly fetched binary is visible.
+/// Keeps [debugQpdfExecutableOverride].
+void invalidateQpdfExecutableCache() {
   _pageBoxEditCached = null;
   _qpdfAvailableCached = null;
   _resolvedQpdfPath = null;
+}
+
+/// Clears cached capability probes (tests).
+void resetQpdfCliCapabilityCacheForTests() {
+  invalidateQpdfExecutableCache();
   debugQpdfExecutableOverride = null;
+  debugQpdfExtraSearchRoots = <String>[];
 }

@@ -1,17 +1,15 @@
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
-import 'package:document_studio/design_system/shell/ds_shell_page.dart';
 import 'package:flutter/material.dart';
 
-/// Acrobat options column. Desktop rails stay in this band; phone uses
-/// the full sheet width.
+/// Acrobat options column. Wide windows stay in this band; compact uses
+/// the full sheet width. Same on Android, Windows, and macOS.
 const double viewerAcrobatOptionsWidth = 380;
 
-/// Phone-style stacking: Android, or a column narrower than the options rail.
+/// Full-width stacking when the window or the column is compact (&lt; 600).
 bool viewerToolFormStacks(BuildContext context, [double? maxWidth]) {
-  if (dsUseCompactToolLayout(context)) return true;
-  if (maxWidth != null && maxWidth < 520) return true;
-  return false;
+  final width = maxWidth ?? MediaQuery.sizeOf(context).width;
+  return width < DsSpacing.breakpointCompact;
 }
 
 /// Scrollable Acrobat options: 16dp padding and a 48dp primary.
@@ -91,7 +89,9 @@ class ViewerToolFormScaffold extends StatelessWidget {
       child: LayoutBuilder(
       builder: (context, constraints) {
         final centered = _center(
-          compact: compact || constraints.maxWidth < 520,
+          compact: compact ||
+              (constraints.maxWidth.isFinite &&
+                  constraints.maxWidth < DsSpacing.breakpointCompact),
           padding: EdgeInsets.fromLTRB(pad, pad, pad, DsSpacing.sm),
           child: form,
         );
@@ -258,7 +258,10 @@ class _ApplyBar extends StatelessWidget {
               height: controlH,
               child: button,
             )
-          : Align(alignment: Alignment.centerRight, child: button);
+          : Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(height: controlH, child: button),
+            );
     } else if (compact) {
       actions = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

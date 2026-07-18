@@ -213,8 +213,8 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               padding: const EdgeInsets.only(top: DsSpacing.md),
               child: DsToolResultCard(
                 title: 'qpdf engine not found',
-                message: 'This tool needs qpdf. Install it (or use a desktop '
-                    'build that bundles it), then reopen this page.',
+                message: 'This tool needs the bundled qpdf engine. '
+                    'Download it once from Settings, or reinstall the desktop app.',
                 tone: DsResultTone.error,
               ),
             ),
