@@ -63,11 +63,10 @@ List<int> pdfApproachDecodeOrder({
   return [...visible, ...neighbors];
 }
 
-/// Pixels per PDF point for one page.
+/// Screen-quality pixels per PDF point for one page.
 ///
-/// While the view is moving, or the page is only a neighbor, this is the
-/// 400px preview. After motion settles, a page actually in the viewport is
-/// the screen scale capped at 1600px.
+/// Motion does not change this value. A moving preview is chosen separately
+/// and replaced by this scale once scrolling settles on a visible page.
 double pdfApproachScaleFor({
   required bool moving,
   required bool inViewport,
@@ -76,17 +75,11 @@ double pdfApproachScaleFor({
   required double zoom,
   required double devicePixelRatio,
 }) {
-  final settled = pdfViewerSettledRenderScale(
+  return pdfViewerSettledRenderScale(
     pageWidth: pageWidth,
     pageHeight: pageHeight,
     zoom: zoom,
     devicePixelRatio: devicePixelRatio,
-  );
-  if (!moving && inViewport) return settled;
-  return pdfViewerMovingPreviewScale(
-    pageWidth: pageWidth,
-    pageHeight: pageHeight,
-    settledScale: settled,
   );
 }
 
@@ -135,7 +128,10 @@ bool _primaryPast(List<Rect> layouts, Rect rect, Rect visible) {
 int _nearestPage(List<Rect> layouts, Offset point) {
   var best = 0;
   var bestDist = double.infinity;
-  final start = _firstPageThatMayIntersect(layouts, Rect.fromCircle(center: point, radius: 1));
+  final start = _firstPageThatMayIntersect(
+    layouts,
+    Rect.fromCircle(center: point, radius: 1),
+  );
   final from = math.max(0, start - 2);
   final to = math.min(layouts.length - 1, start + 2);
   for (var i = from; i <= to; i++) {

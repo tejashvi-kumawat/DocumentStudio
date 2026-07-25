@@ -4,7 +4,9 @@
 # engines/ directory so the running app does not depend on PATH.
 #
 # Usage:
+#   scripts/bundle_linux_engines.sh
 #   scripts/bundle_linux_engines.sh <bundle_dir>
+#   # no args fills .tools/linux-engines, which the .deb and CMake copy in
 #   # bundle_dir is typically build/linux/*/bundle
 #
 # Sources (first hit wins for qpdf):
@@ -18,11 +20,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE_DIR="${1:-}"
 if [[ -z "$BUNDLE_DIR" ]]; then
-  echo "usage: $0 <flutter_linux_bundle_dir>" >&2
-  exit 2
+  ENGINES="$ROOT/.tools/linux-engines"
+else
+  BUNDLE_DIR="$(cd "$BUNDLE_DIR" && pwd)"
+  ENGINES="$BUNDLE_DIR/engines"
 fi
-BUNDLE_DIR="$(cd "$BUNDLE_DIR" && pwd)"
-ENGINES="$BUNDLE_DIR/engines"
 mkdir -p "$ENGINES/bin" "$ENGINES/lib" "$ENGINES/tessdata"
 
 copy_file() {
@@ -503,8 +505,8 @@ WRAP
   if bundle_soffice_from_debs; then
     return 0
   fi
-  echo "LibreOffice (soffice) not available — Office convert will report engine missing."
-  return 0
+  echo "LibreOffice (soffice) not available — the .deb/.exe/.dmg cannot ship without it." >&2
+  return 1
 }
 
 bundle_ffmpeg_from_debs() {
@@ -817,7 +819,10 @@ bundle_tessdata_extras() {
 
 bundle_tesseract
 bundle_tessdata_extras
-bundle_soffice
+if ! bundle_soffice; then
+  echo "ERROR: LibreOffice was not bundled into $ENGINES" >&2
+  exit 1
+fi
 bundle_ffmpeg
 bundle_dsc_tools
 

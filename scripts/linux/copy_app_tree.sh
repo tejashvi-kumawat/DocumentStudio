@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copy a Flutter Linux bundle into an install prefix.
-# engines/ symlinks are materialized. LibreOffice is left out: the app uses
-# the system soffice when it is installed.
+# engines/ symlinks are materialized, including qpdf, tesseract, and
+# LibreOffice. The .deb ships those binaries. The user does not install them.
 #
 #   source scripts/linux/copy_app_tree.sh
 #   copy_app_tree "$SRC" "$DEST"
@@ -26,11 +26,11 @@ copy_app_tree() {
     cp -a "$item" "$dest/$base"
   done
   shopt -u nullglob
-  _copy_engines_without_libreoffice "$src/engines" "$dest/engines"
+  _copy_engines "$src/engines" "$dest/engines"
 }
 
 # Follow a symlink (debug builds point engines/ at .tools/linux-engines).
-_copy_engines_without_libreoffice() {
+_copy_engines() {
   local src="$1" dest="$2"
   if [[ -L "$src" ]]; then
     src="$(readlink -f "$src")"
@@ -41,16 +41,7 @@ _copy_engines_without_libreoffice() {
   fi
   rm -rf "$dest"
   mkdir -p "$dest"
-  local item base
-  shopt -s nullglob
-  for item in "$src"/*; do
-    base="$(basename "$item")"
-    case "$base" in
-      libreoffice|soffice) continue ;;
-    esac
-    cp -a "$item" "$dest/$base"
-  done
-  shopt -u nullglob
+  cp -a "$src"/. "$dest"/
 }
 
 require_bundled_engines() {
@@ -65,8 +56,9 @@ require_bundled_engines() {
     echo "Desktop OCR needs that binary inside the app, not a separate install." >&2
     return 1
   fi
-  if [[ -e "$app/engines/libreoffice" || -e "$app/engines/soffice" ]]; then
-    echo "LibreOffice was copied into $app/engines; the install should use system soffice." >&2
+  if [[ ! -x "$app/engines/soffice" && ! -d "$app/engines/libreoffice" && ! -d "$app/engines/LibreOffice.app" ]]; then
+    echo "LibreOffice was not copied into $app/engines." >&2
+    echo "Office conversion must ship inside the app. Run scripts/bundle_linux_engines.sh before packaging." >&2
     return 1
   fi
 }

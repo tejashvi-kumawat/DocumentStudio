@@ -311,10 +311,11 @@ if [[ ! -s "$ENGINES/tessdata/eng.traineddata" || ! -s "$ENGINES/tessdata/osd.tr
   missing+=("tessdata(eng/osd)")
 fi
 if ((${#missing[@]})); then
-  echo "WARNING: missing engines: ${missing[*]}" >&2
-else
-  echo "All expected engines present."
+  echo "ERROR: the .dmg is missing engines: ${missing[*]}" >&2
+  echo "qpdf, tesseract, and LibreOffice must be inside the app." >&2
+  exit 1
 fi
+echo "All expected engines present."
 ls -la "$ENGINES" "$ENGINES/bin" 2>/dev/null || true
 echo
 echo "Codesign (ad-hoc, no Apple ID):"

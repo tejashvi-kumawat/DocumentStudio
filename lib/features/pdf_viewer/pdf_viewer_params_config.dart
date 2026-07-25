@@ -12,17 +12,24 @@ import 'package:pdfrx/pdfrx.dart';
 
 /// Long edge of the bitmap drawn while a fling is still moving.
 ///
-/// A full sheet at screen size is what made each page take a noticeable
-/// slice of the PDFium worker, so the next scroll tick looked like it was
-/// waiting on that decode.
+/// This preview is replaced once the matrix has been still for
+/// [kPdfScrollSettleDelay]. It is not the scale a settled page keeps.
 const double kPdfMovingPreviewLongEdgePx = 400;
 
-/// Long edge cap once scrolling has settled. Screen pixels
+/// Long edge cap for one full-quality render. Screen pixels
 /// (zoom × device pixel ratio) are used when they are smaller.
 const double kPdfSettledRenderLongEdgePx = 1600;
 
-/// How long the matrix must stay still before the visible page is upgraded
-/// from the moving preview to screen resolution.
+/// A zoom-in must grow the needed scale by this much before an already
+/// screen-quality page is decoded again. Zooming out keeps the sharper bitmap.
+const double kPdfZoomRerenderFactor = 1.35;
+
+/// A held bitmap under this fraction of [pdfViewerSettledRenderScale] is still
+/// a preview. Stopping on the page decodes it once at screen quality.
+const double kPdfSettledScaleFloor = 0.9;
+
+/// How long the matrix must stay still before a visible page is decoded at
+/// full quality.
 const Duration kPdfScrollSettleDelay = Duration(milliseconds: 140);
 
 /// Extra band around the viewport, as a fraction of the viewport.
@@ -32,8 +39,9 @@ const Duration kPdfScrollSettleDelay = Duration(milliseconds: 140);
 /// the page just behind without pulling in the rest of the document.
 const double kPdfViewerNeighborCacheExtent = 0.5;
 
-/// Tracks whether the viewer matrix is still moving, and which pages already
-/// have a settled bitmap so a fling does not decode them again at preview size.
+/// Tracks which pages already have a bitmap so a small zoom change does not
+/// decode them again, and so a moving preview is replaced after the scroll
+/// settles.
 class PdfViewerRenderPace {
   bool _moving = false;
   Timer? _settleTimer;
@@ -67,9 +75,13 @@ class PdfViewerRenderPace {
 
   /// Pixels per PDF point for [pageNumber].
   ///
-  /// While moving, a page without a settled bitmap uses the 400px preview.
-  /// A page that already has a settled bitmap keeps it. After motion stops,
-  /// the page is requested at screen resolution capped at 1600px.
+  /// While the matrix is moving, a page that does not already have a
+  /// screen-quality bitmap is requested at the [kPdfMovingPreviewLongEdgePx]
+  /// preview. Once motion stops, a bitmap below [kPdfSettledScaleFloor] of
+  /// [pdfViewerSettledRenderScale] is requested once at that screen scale
+  /// (capped at [kPdfSettledRenderLongEdgePx]). Zooming out keeps a sharper
+  /// bitmap. A zoom-in smaller than [kPdfZoomRerenderFactor] keeps a bitmap
+  /// that is already near screen quality.
   double scaleFor({
     required int pageNumber,
     required double pageWidth,
@@ -77,24 +89,29 @@ class PdfViewerRenderPace {
     required double zoom,
     required double devicePixelRatio,
   }) {
-    final settled = pdfViewerSettledRenderScale(
+    final target = pdfViewerSettledRenderScale(
       pageWidth: pageWidth,
       pageHeight: pageHeight,
       zoom: zoom,
       devicePixelRatio: devicePixelRatio,
     );
-    final preview = pdfViewerMovingPreviewScale(
-      pageWidth: pageWidth,
-      pageHeight: pageHeight,
-      settledScale: settled,
-    );
-    if (!_moving) {
-      _settledScale[pageNumber] = settled;
-      return settled;
-    }
     final kept = _settledScale[pageNumber];
-    if (kept != null && (kept - settled).abs() < 0.02) return kept;
-    return preview;
+    if (_moving) {
+      final preview = pdfViewerMovingPreviewScale(
+        pageWidth: pageWidth,
+        pageHeight: pageHeight,
+        settledScale: target,
+      );
+      if (kept != null && kept + 0.02 >= preview) return kept;
+      _settledScale[pageNumber] = preview;
+      return preview;
+    }
+    if (kept != null &&
+        pdfViewerKeepsRenderedScale(held: kept, target: target)) {
+      return kept;
+    }
+    _settledScale[pageNumber] = target;
+    return target;
   }
 }
 
@@ -112,7 +129,10 @@ double pdfViewerSettledRenderScale({
   return math.min(screen, kPdfSettledRenderLongEdgePx / longPt);
 }
 
-/// Cheap scale used for a page that does not yet have a settled bitmap.
+/// Cheap scale used while the view is still moving.
+///
+/// Never sharper than [settledScale]. A settled page does not stay on this
+/// scale.
 double pdfViewerMovingPreviewScale({
   required double pageWidth,
   required double pageHeight,
@@ -121,6 +141,22 @@ double pdfViewerMovingPreviewScale({
   final longPt = math.max(pageWidth, pageHeight);
   if (longPt <= 1) return settledScale;
   return math.min(kPdfMovingPreviewLongEdgePx / longPt, settledScale);
+}
+
+/// Whether [held] is still the right bitmap for screen-quality [target].
+///
+/// A preview (under [kPdfSettledScaleFloor] of [target]) is not kept, so
+/// stopping on the page requests [target] without a zoom change. Zooming out
+/// keeps a sharper bitmap. A small zoom-in keeps a bitmap that is already
+/// near screen quality.
+bool pdfViewerKeepsRenderedScale({
+  required double held,
+  required double target,
+}) {
+  if (!(held > 0) || !(target > 0)) return false;
+  if (held + 0.02 >= target) return true;
+  if (held + 0.02 < target * kPdfSettledScaleFloor) return false;
+  return target < held * kPdfZoomRerenderFactor;
 }
 
 /// Shared [PdfViewerParams] for Document Studio (pdfrx 2.6+ sizing API).
@@ -143,8 +179,7 @@ PdfViewerParams buildPdfViewerParams({
   /// Presentation: single-tap advances to the next page.
   bool presentationAdvanceOnTap = false,
 
-  /// Motion flag for preview vs screen-resolution renders. Null treats the
-  /// view as settled.
+  /// Preview while scrolling, then one screen-quality decode after settle.
   PdfViewerRenderPace? renderPace,
 }) {
   final effectiveMode = immersiveSinglePage
@@ -158,8 +193,8 @@ PdfViewerParams buildPdfViewerParams({
     // pdfrx fills a page that has no bitmap yet with white. Page 1 of a
     // drawing set is often a blank white sheet, so that fill looked like
     // page 1 on every other page. Leave both of pdfrx's decodes off.
-    // [PdfApproachDecoder] paints a page number until that page's own
-    // pixels arrive, and never substitutes another page's bitmap.
+    // [PdfApproachDecoder] paints a flat fill until that page's own pixels
+    // arrive, and never substitutes another page's bitmap.
     behaviorControlParams: const PdfViewerBehaviorControlParams(
       loadPageDimensionsOnDemand: true,
       enableLowResolutionPagePreview: false,
@@ -168,7 +203,9 @@ PdfViewerParams buildPdfViewerParams({
     // One neighbor past the viewport, not another full screen of pages.
     verticalCacheExtent: kPdfViewerNeighborCacheExtent,
     horizontalCacheExtent: kPdfViewerNeighborCacheExtent,
-    onePassRenderingSizeThreshold: kPdfSettledRenderLongEdgePx,
+    // One decode at the requested size. A low threshold makes pdfrx paint a
+    // coarse image and then the real one.
+    onePassRenderingSizeThreshold: 100000,
     limitRenderingCache: true,
     sizeDelegateProvider: const PdfViewerSizeDelegateProviderLegacy(
       minScale: 0.5,

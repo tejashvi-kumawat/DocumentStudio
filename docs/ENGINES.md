@@ -27,25 +27,21 @@ Missing tools must surface a clear UI message (feature + why), not fail silently
 
 | Tool | Linux (.deb / AppImage) | Windows (.exe / zip) | macOS (.dmg) | Android (Play) |
 | --- | --- | --- | --- | --- |
-| qpdf | **Bundled** (`install_local.sh` → `engines/qpdf`, ahead of `/usr/bin`) | **Bundled** (mingw64 zip at build; `engines/qpdf.cmd` beside the exe) | **Bundled** (`Contents/MacOS/engines`, also `Contents/Resources/engines`) | **N/A** — Dart/PDFium. Do not install qpdf. |
-| tesseract + eng/osd | **Bundled** | **Bundled** (NSIS silent install + tessdata_fast) | **Bundled** (brew + tessdata_fast) | **N/A** — `BlockedOcrPort` message |
-| LibreOffice | **System `soffice`** (not copied by `install_local.sh`; older `dist/linux` artifacts may still contain a previous download) | **Bundled** when the Windows packager runs (skip with `DS_SKIP_LIBREOFFICE=1`) | **Bundled** when the macOS packager runs | **N/A** — convert on desktop |
+| qpdf | **Inside the .deb** (`engines/qpdf`) | **Inside the Setup.exe** (`engines/qpdf.cmd` beside the exe) | **Inside the .dmg** (`Contents/MacOS/engines`) | **N/A** — Dart/PDFium. Do not install qpdf. |
+| tesseract + eng/osd | **Inside the .deb** | **Inside the Setup.exe** | **Inside the .dmg** | **N/A** — on-device tessdata in the APK |
+| LibreOffice | **Inside the .deb** (`engines/soffice` + `engines/libreoffice`) | **Inside the Setup.exe** | **Inside the .dmg** (`engines/LibreOffice.app`) | **N/A** — convert on desktop |
 | pdfsig / NSS / openssl | **Bundled** (PATH or portable debs) | **Bundled** (poppler zip + OpenSSL Light + MSYS2 NSS) | **Bundled** via brew | **N/A** |
 | ffmpeg | **Bundled** | **Bundled** (gyan essentials zip or PATH) | **Bundled** via brew | Mobile uses platform camera APIs |
 
-## Linux install (this machine)
+## What the user installs
 
-One command. It does not rebuild `dist/linux` and it does not download LibreOffice.
+The person who downloads the app does not install qpdf, Tesseract, or LibreOffice. Those programs are already inside the package:
 
-```bash
-bash scripts/linux/install_local.sh
-```
+- Linux: `dist/linux/document-studio_<version>_amd64.deb` from `bash scripts/linux/package_deb.sh` (after `flutter build linux --release`). The script downloads the engines into the package and refuses to build the `.deb` if qpdf, tesseract, or LibreOffice is missing.
+- Windows: `dist/windows/DocumentStudio-<ver>-Setup.exe` from `scripts/windows/package_release.ps1`. The NSIS installer copies the `engines` folder next to the exe.
+- macOS: `dist/macos/DocumentStudio-<ver>-macos.dmg` from `bash scripts/macos/package_release.sh`. LibreOffice is `engines/LibreOffice.app` inside the app.
 
-qpdf is installed at `~/.local/lib/document-studio/engines/qpdf` (wrapper) and `engines/bin/qpdf`. The launcher `~/.local/bin/document-studio` puts `engines` on `PATH` before `/usr/bin`. Tesseract and `eng`/`osd` tessdata are copied the same way. pdfsig, certutil, pk12util, openssl, and ffmpeg are copied when they are already in the engine tree.
-
-**Not bundled:** LibreOffice. Office conversion uses the system `soffice` when that program is installed.
-
-A root `.deb` for later is `bash scripts/linux/package_deb.sh` (after `flutter build linux --release`). That package also refuses to ship without qpdf and tesseract, and its `/usr/bin/document_studio` wrapper prefers `engines/` over `/usr/bin`.
+`bash scripts/linux/install_local.sh` is only a developer shortcut on this machine. It is not the product install.
 
 ## Linux build machine
 

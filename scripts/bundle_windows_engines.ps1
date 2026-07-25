@@ -413,8 +413,7 @@ function Bundle-LibreOffice {
     }
     $msi = Get-CachedFile $url $msiName
     if (-not $msi) {
-      Write-Host "WARNING: LibreOffice MSI download failed."
-      return
+      throw "LibreOffice MSI download failed. The Setup.exe must contain LibreOffice."
     }
     $extract = Join-Path $cache "libreoffice_msi_extract"
     Write-Host "Extracting LibreOffice MSI (administrative install) into $extract …"
@@ -462,8 +461,7 @@ function Bundle-LibreOffice {
   }
 
   if (-not $prog -or -not (Test-Path (Join-Path $prog "soffice.exe"))) {
-    Write-Host "WARNING: LibreOffice soffice.exe not bundled."
-    return
+    throw "LibreOffice soffice.exe was not bundled. The Setup.exe must contain it."
   }
 
   @"
@@ -503,7 +501,7 @@ foreach ($name in $required) {
   if (-not $ok) { $missing += $name }
 }
 if ($missing.Count -gt 0) {
-  Write-Host "WARNING: missing engine wrappers/binaries: $($missing -join ', ')"
+  throw "The Windows package is missing engines: $($missing -join ', '). They must be inside the Setup.exe."
 } else {
   Write-Host "All expected engines present: $($required -join ', ')"
 }

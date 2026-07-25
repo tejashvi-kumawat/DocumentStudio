@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('moving preview is 400px and never sharper than the settled bitmap', () {
+  test('screen scale is capped at 1600px on the long edge', () {
     const wide = 2400.0;
     const tall = 1600.0;
     final settled = pdfViewerSettledRenderScale(
@@ -14,14 +14,6 @@ void main() {
       devicePixelRatio: 1,
     );
     expect(settled * wide, kPdfSettledRenderLongEdgePx);
-
-    final preview = pdfViewerMovingPreviewScale(
-      pageWidth: wide,
-      pageHeight: tall,
-      settledScale: settled,
-    );
-    expect(preview * wide, kPdfMovingPreviewLongEdgePx);
-    expect(preview, lessThan(settled));
   });
 
   test('settled scale follows the screen when that is under 1600px', () {
@@ -36,7 +28,47 @@ void main() {
     expect(settled * page, lessThan(kPdfSettledRenderLongEdgePx));
   });
 
-  test('a fling keeps a settled page and previews only a new one', () {
+  testWidgets(
+    'a page rendered small is requested at the 1600px cap once motion stops',
+    (tester) async {
+      final pace = PdfViewerRenderPace();
+      addTearDown(pace.dispose);
+
+      pace.noteMotion();
+      final preview = pace.scaleFor(
+        pageNumber: 3,
+        pageWidth: 2400,
+        pageHeight: 1600,
+        zoom: 1,
+        devicePixelRatio: 1,
+      );
+      expect(preview * 2400, kPdfMovingPreviewLongEdgePx);
+
+      await tester.pump(kPdfScrollSettleDelay);
+      expect(pace.isMoving, isFalse);
+
+      final settled = pace.scaleFor(
+        pageNumber: 3,
+        pageWidth: 2400,
+        pageHeight: 1600,
+        zoom: 1,
+        devicePixelRatio: 1,
+      );
+      expect(settled * 2400, kPdfSettledRenderLongEdgePx);
+      expect(
+        pace.scaleFor(
+          pageNumber: 3,
+          pageWidth: 2400,
+          pageHeight: 1600,
+          zoom: 1,
+          devicePixelRatio: 1,
+        ),
+        settled,
+      );
+    },
+  );
+
+  test('a 1.1 zoom does not throw away an already-sharp bitmap', () {
     final pace = PdfViewerRenderPace();
     addTearDown(pace.dispose);
 
@@ -50,31 +82,21 @@ void main() {
     expect(settled * 2400, kPdfSettledRenderLongEdgePx);
 
     pace.noteMotion();
-    expect(pace.isMoving, isTrue);
     expect(
       pace.scaleFor(
         pageNumber: 3,
         pageWidth: 2400,
         pageHeight: 1600,
-        zoom: 1,
+        zoom: 1.1,
         devicePixelRatio: 1,
       ),
       settled,
     );
-    final incoming = pace.scaleFor(
-      pageNumber: 4,
-      pageWidth: 2400,
-      pageHeight: 1600,
-      zoom: 1,
-      devicePixelRatio: 1,
-    );
-    expect(incoming * 2400, kPdfMovingPreviewLongEdgePx);
   });
 
   test('approaching window is the visible page plus one each side', () {
     final layouts = [
-      for (var i = 0; i < 10; i++)
-        Rect.fromLTWH(0, i * 1000, 800, 1000),
+      for (var i = 0; i < 10; i++) Rect.fromLTWH(0, i * 1000, 800, 1000),
     ];
     final onPage5 = pdfApproachPageWindow(
       layouts: layouts,
@@ -112,7 +134,7 @@ void main() {
     expect(kPdfThumbMaxDecodes, 2);
   });
 
-  test('only the settled visible page is upgraded to 1600px', () {
+  test('moving, settled, and neighbor pages share one full-quality scale', () {
     const wide = 2400.0;
     const tall = 1600.0;
     final moving = pdfApproachScaleFor(
@@ -123,8 +145,6 @@ void main() {
       zoom: 1,
       devicePixelRatio: 1,
     );
-    expect(moving * wide, kPdfMovingPreviewLongEdgePx);
-
     final settled = pdfApproachScaleFor(
       moving: false,
       inViewport: true,
@@ -133,8 +153,6 @@ void main() {
       zoom: 1,
       devicePixelRatio: 1,
     );
-    expect(settled * wide, kPdfSettledRenderLongEdgePx);
-
     final neighbor = pdfApproachScaleFor(
       moving: false,
       inViewport: false,
@@ -143,7 +161,9 @@ void main() {
       zoom: 1,
       devicePixelRatio: 1,
     );
-    expect(neighbor * wide, kPdfMovingPreviewLongEdgePx);
+    expect(moving, settled);
+    expect(neighbor, settled);
+    expect(settled * wide, kPdfSettledRenderLongEdgePx);
   });
 
   test('thumbnail strip offset follows the page index', () {

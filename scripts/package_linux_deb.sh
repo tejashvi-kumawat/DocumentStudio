@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a simple .deb from the Flutter Linux Release bundle.
+# Build a .deb that contains qpdf, tesseract, and LibreOffice inside the app.
 # Run on Linux after: flutter build linux --release
 #
 # Usage:
@@ -23,6 +23,14 @@ if [[ -z "${BUNDLE:-}" || ! -d "$BUNDLE" ]]; then
   exit 1
 fi
 BUNDLE="$(cd "$BUNDLE" && pwd)"
+
+echo "Filling engines (qpdf, tesseract, LibreOffice) before the .deb is built..."
+bash "$ROOT/scripts/bundle_linux_engines.sh"
+if [[ -d "$ROOT/.tools/linux-engines" ]]; then
+  rm -rf "$BUNDLE/engines"
+  mkdir -p "$BUNDLE/engines"
+  cp -a "$ROOT/.tools/linux-engines"/. "$BUNDLE/engines"/
+fi
 
 VERSION="$(grep -E '^version:' "$ROOT/pubspec.yaml" | head -1 | sed -E 's/version:[[:space:]]*([^+]+).*/\1/')"
 ARCH_RAW="$(uname -m)"

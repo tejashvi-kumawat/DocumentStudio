@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:document_studio/features/pdf_viewer/pdf_approach_pages.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -12,7 +13,10 @@ import 'package:pdfrx/pdfrx.dart';
 /// first sheet is blank white, that rectangle is indistinguishable from page
 /// 1, so a fast scroll looked like every sheet was page 1. This cache never
 /// stores one page's bitmap under another page's number. A page with no
-/// pixels yet is painted as a quiet page number.
+/// pixels yet is a flat fill of that page's size. While the scroll is moving,
+/// a page may show a small preview of its own pixels. About
+/// [kPdfScrollSettleDelay] after motion stops, each page still on screen is
+/// decoded once at screen quality and that image stays.
 class PdfApproachDecoder extends ChangeNotifier {
   PdfViewerController? _controller;
   final Map<int, _HeldBitmap> _held = {};
@@ -65,10 +69,7 @@ class PdfApproachDecoder extends ChangeNotifier {
   }
 
   /// False when the viewer has no layout yet, so the caller can retry.
-  bool sync({
-    required bool moving,
-    required double devicePixelRatio,
-  }) {
+  bool sync({required bool moving, required double devicePixelRatio}) {
     final controller = _controller;
     if (_disposed || controller == null || !controller.isReady) return false;
     final PdfPageLayout layout;
@@ -123,9 +124,8 @@ class PdfApproachDecoder extends ChangeNotifier {
         _cancelJob(pageNumber);
         continue;
       }
-      final job = _jobs[pageNumber];
-      if (job != null && (job.scale - wanted).abs() < 0.02) continue;
-      if (job != null) _cancelJob(pageNumber);
+      if (_jobCovers(pageNumber, wanted)) continue;
+      if (_jobs.containsKey(pageNumber)) _cancelJob(pageNumber);
       waiting.add(pageNumber);
     }
     _waiting = waiting;
@@ -143,9 +143,13 @@ class PdfApproachDecoder extends ChangeNotifier {
       if (pageNumber < 1 || pageNumber > controller.pages.length) continue;
       final page = controller.pages[pageNumber - 1];
       if (page.pageNumber != pageNumber) continue;
-      final wanted = _wantedScale(page, inViewport: _visible.contains(pageNumber));
+      final wanted = _wantedScale(
+        page,
+        inViewport: _visible.contains(pageNumber),
+      );
       final held = _held[pageNumber];
       if (held != null && held.scale + 0.02 >= wanted) continue;
+      if (_jobCovers(pageNumber, wanted)) continue;
       final token = page.createCancellationToken();
       final job = _DecodeJob(scale: wanted, token: token);
       _jobs[pageNumber] = job;
@@ -156,7 +160,6 @@ class PdfApproachDecoder extends ChangeNotifier {
 
   Future<void> _run(PdfPage page, int pageNumber, _DecodeJob job) async {
     PdfImage? rendered;
-    var landedScale = 0.0;
     try {
       final width = page.width * job.scale;
       final height = page.height * job.scale;
@@ -172,7 +175,9 @@ class PdfApproachDecoder extends ChangeNotifier {
       if (!identical(_jobs[pageNumber], job)) return;
       if (!_decode.contains(pageNumber)) return;
       final image = await rendered.createImage();
-      if (_disposed || job.token.isCanceled || !identical(_jobs[pageNumber], job)) {
+      if (_disposed ||
+          job.token.isCanceled ||
+          !identical(_jobs[pageNumber], job)) {
         image.dispose();
         return;
       }
@@ -182,23 +187,27 @@ class PdfApproachDecoder extends ChangeNotifier {
       }
       _held.remove(pageNumber)?.image.dispose();
       _held[pageNumber] = _HeldBitmap(image, job.scale);
-      landedScale = job.scale;
       _notify();
     } catch (_) {
-      // A failed decode stays a page-number placeholder.
+      // A failed decode stays a flat fill until the next request.
     } finally {
       rendered?.dispose();
       if (identical(_jobs[pageNumber], job)) _jobs.remove(pageNumber);
-      if (landedScale > 0 && !_disposed) {
-        _queueUpgrade(page, pageNumber, landedScale);
-      }
       _running = math.max(0, _running - 1);
       if (!_disposed) _pump();
     }
   }
 
-  double _scaleFor(PdfPage page, bool inViewport) {
-    return pdfApproachScaleFor(
+  /// Scale to decode for this page.
+  ///
+  /// While the view is moving, or the page is only a neighbor, this is a small
+  /// preview unless a sharper bitmap is already held. Once motion has stopped,
+  /// a page on screen whose bitmap is below [kPdfSettledScaleFloor] of the
+  /// screen target is decoded once at that full scale. Zooming out keeps the
+  /// sharper bitmap. A small zoom-in does not discard one that is already
+  /// near screen quality.
+  double _wantedScale(PdfPage page, {required bool inViewport}) {
+    final target = pdfApproachScaleFor(
       moving: _moving,
       inViewport: inViewport,
       pageWidth: page.width,
@@ -206,26 +215,29 @@ class PdfApproachDecoder extends ChangeNotifier {
       zoom: _zoom > 0 ? _zoom : 1,
       devicePixelRatio: _dpr,
     );
+    final held = _held[page.pageNumber]?.scale;
+    final preview = pdfViewerMovingPreviewScale(
+      pageWidth: page.width,
+      pageHeight: page.height,
+      settledScale: target,
+    );
+    if (_moving || !inViewport) {
+      if (held != null && held + 0.02 >= preview) return held;
+      return preview;
+    }
+    if (held != null &&
+        pdfViewerKeepsRenderedScale(held: held, target: target)) {
+      return held;
+    }
+    return target;
   }
 
-  /// First pixels are the 400px preview so a sheet appears before the
-  /// screen-resolution pass. A page that already has a bitmap keeps the
-  /// sharper target.
-  double _wantedScale(PdfPage page, {required bool inViewport}) {
-    final target = _scaleFor(page, inViewport);
-    if (_held[page.pageNumber] != null) return target;
-    final preview = _scaleFor(page, false);
-    return math.min(target, preview);
-  }
-
-  void _queueUpgrade(PdfPage page, int pageNumber, double landedScale) {
-    if (_moving || !_visible.contains(pageNumber)) return;
-    if (page.pageNumber != pageNumber) return;
-    final settled = _scaleFor(page, true);
-    if (landedScale + 0.02 >= settled) return;
-    if (_jobs.containsKey(pageNumber)) return;
-    if (_waiting.contains(pageNumber)) return;
-    _waiting = [pageNumber, ..._waiting];
+  /// True when a decode already running is at [wanted] or sharper.
+  bool _jobCovers(int pageNumber, double wanted) {
+    final job = _jobs[pageNumber];
+    if (job == null) return false;
+    if ((job.scale - wanted).abs() < 0.02) return true;
+    return job.scale + 0.02 >= wanted;
   }
 
   bool _sameWindow(
@@ -246,11 +258,7 @@ class PdfApproachDecoder extends ChangeNotifier {
   int _layoutMarkOf(List<Rect> layouts, Set<int> visiblePages) {
     if (layouts.isEmpty || visiblePages.isEmpty) return layouts.length;
     final rect = layouts[visiblePages.reduce(math.min) - 1];
-    return Object.hash(
-      layouts.length,
-      rect.width.round(),
-      rect.height.round(),
-    );
+    return Object.hash(layouts.length, rect.width.round(), rect.height.round());
   }
 
   bool _setSame(Set<int> a, Set<int> b) {
@@ -294,7 +302,9 @@ class PdfApproachDecoder extends ChangeNotifier {
     });
   }
 
-  /// Quiet sheet with this page's number. Not white, and not any bitmap.
+  /// This page's own pixels, or a flat fill of [rect] until they exist.
+  ///
+  /// No page number. Never another page's bitmap.
   void paintStandIn(ui.Canvas canvas, Rect rect, int pageNumber) {
     final image = imageFor(pageNumber);
     if (image != null) {
@@ -307,23 +317,6 @@ class PdfApproachDecoder extends ChangeNotifier {
       return;
     }
     canvas.drawRect(rect, Paint()..color = const Color(0xFFE8EEF4));
-    final fontSize = (rect.shortestSide * 0.08).clamp(14.0, 42.0);
-    final painter = TextPainter(
-      text: TextSpan(
-        text: '$pageNumber',
-        style: TextStyle(
-          color: const Color(0xFF64748B),
-          fontSize: fontSize,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: rect.width);
-    painter.paint(
-      canvas,
-      rect.center - Offset(painter.width / 2, painter.height / 2),
-    );
-    painter.dispose();
   }
 
   @override

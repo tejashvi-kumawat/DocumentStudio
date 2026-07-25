@@ -354,6 +354,8 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
   void _upgradeSettledPages() {
     if (!mounted || !_controller.isReady) return;
     _syncApproach(moving: false);
+    // Ask pdfrx for the settled scale. A zoom is not required.
+    _controller.invalidate();
   }
 
   void _syncApproach({required bool moving}) {
