@@ -28,69 +28,111 @@ void main() {
     expect(settled * page, lessThan(kPdfSettledRenderLongEdgePx));
   });
 
-  testWidgets(
-    'a page rendered small is requested at the 1600px cap once motion stops',
-    (tester) async {
-      final pace = PdfViewerRenderPace();
-      addTearDown(pace.dispose);
-
-      pace.noteMotion();
-      final preview = pace.scaleFor(
-        pageNumber: 3,
-        pageWidth: 2400,
-        pageHeight: 1600,
-        zoom: 1,
-        devicePixelRatio: 1,
-      );
-      expect(preview * 2400, kPdfMovingPreviewLongEdgePx);
-
-      await tester.pump(kPdfScrollSettleDelay);
-      expect(pace.isMoving, isFalse);
-
-      final settled = pace.scaleFor(
-        pageNumber: 3,
-        pageWidth: 2400,
-        pageHeight: 1600,
-        zoom: 1,
-        devicePixelRatio: 1,
-      );
-      expect(settled * 2400, kPdfSettledRenderLongEdgePx);
-      expect(
-        pace.scaleFor(
-          pageNumber: 3,
-          pageWidth: 2400,
-          pageHeight: 1600,
-          zoom: 1,
-          devicePixelRatio: 1,
-        ),
-        settled,
-      );
-    },
-  );
-
-  test('a 1.1 zoom does not throw away an already-sharp bitmap', () {
+  testWidgets('scrolling still requests the one screen scale', (tester) async {
     final pace = PdfViewerRenderPace();
     addTearDown(pace.dispose);
+    const wide = 2400.0;
+    const tall = 1600.0;
 
-    final settled = pace.scaleFor(
-      pageNumber: 3,
-      pageWidth: 2400,
+    double screen() => pace.scaleFor(
+      pageWidth: wide,
+      pageHeight: tall,
+      zoom: 1,
+      devicePixelRatio: 1,
+    );
+
+    final still = screen();
+    expect(still * wide, kPdfSettledRenderLongEdgePx);
+
+    pace.noteMotion();
+    expect(pace.isMoving, isTrue);
+    final moving = screen();
+    expect(moving, still);
+    expect(moving * wide, kPdfSettledRenderLongEdgePx);
+
+    await tester.pump(kPdfScrollSettleDelay);
+    expect(pace.isMoving, isFalse);
+    expect(screen(), still);
+    expect(
+      pdfApproachScaleFor(
+        moving: true,
+        inViewport: false,
+        pageWidth: wide,
+        pageHeight: tall,
+        zoom: 1,
+        devicePixelRatio: 1,
+      ),
+      still,
+    );
+  });
+
+  test('a small zoom-in keeps a screen-scale bitmap', () {
+    const page = 800.0;
+    final atFit = pdfViewerSettledRenderScale(
+      pageWidth: page,
+      pageHeight: page,
+      zoom: 1,
+      devicePixelRatio: 1,
+    );
+    final slight = pdfViewerSettledRenderScale(
+      pageWidth: page,
+      pageHeight: page,
+      zoom: 1.1,
+      devicePixelRatio: 1,
+    );
+    expect(atFit, 1);
+    expect(slight, 1.1);
+    expect(pdfViewerKeepsRenderedScale(held: atFit, target: slight), isTrue);
+  });
+
+  test('zooming out keeps a sharper bitmap', () {
+    const page = 800.0;
+    final sharp = pdfViewerSettledRenderScale(
+      pageWidth: page,
+      pageHeight: page,
+      zoom: 1.5,
+      devicePixelRatio: 1,
+    );
+    final smaller = pdfViewerSettledRenderScale(
+      pageWidth: page,
+      pageHeight: page,
+      zoom: 1,
+      devicePixelRatio: 1,
+    );
+    expect(sharp, greaterThan(smaller));
+    expect(pdfViewerKeepsRenderedScale(held: sharp, target: smaller), isTrue);
+  });
+
+  test('a zoom-in that would look soft asks for the new screen scale', () {
+    const page = 800.0;
+    final held = pdfViewerSettledRenderScale(
+      pageWidth: page,
+      pageHeight: page,
+      zoom: 1,
+      devicePixelRatio: 1,
+    );
+    final target = pdfViewerSettledRenderScale(
+      pageWidth: page,
+      pageHeight: page,
+      zoom: 2,
+      devicePixelRatio: 1,
+    );
+    expect(pdfViewerKeepsRenderedScale(held: held, target: target), isFalse);
+    expect(target, 2);
+    expect(target * page, kPdfSettledRenderLongEdgePx);
+  });
+
+  test('a bitmap below the screen scale is not kept', () {
+    const wide = 2400.0;
+    final screen = pdfViewerSettledRenderScale(
+      pageWidth: wide,
       pageHeight: 1600,
       zoom: 1,
       devicePixelRatio: 1,
     );
-    expect(settled * 2400, kPdfSettledRenderLongEdgePx);
-
-    pace.noteMotion();
     expect(
-      pace.scaleFor(
-        pageNumber: 3,
-        pageWidth: 2400,
-        pageHeight: 1600,
-        zoom: 1.1,
-        devicePixelRatio: 1,
-      ),
-      settled,
+      pdfViewerKeepsRenderedScale(held: 400 / wide, target: screen),
+      isFalse,
     );
   });
 
