@@ -5,7 +5,6 @@ import 'package:document_studio/core/storage/linux_document_portal.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/pdf_viewer/markup_display_document.dart';
-import 'package:document_studio/features/pdf_viewer/pdf_approach_decoder.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_thumbnail_sidebar.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_scroll_layout.dart';
@@ -86,17 +85,6 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
 
   late PdfViewerController _controller;
   final PdfViewerRenderPace _renderPace = PdfViewerRenderPace();
-  final PdfApproachDecoder _approach = PdfApproachDecoder();
-  late final PdfViewerPagePaintCallback _approachPaint = _paintApproachPage;
-  List<PdfViewerPagePaintCallback>? _combinedPaint;
-  List<PdfViewerPagePaintCallback>? _combinedPaintSource;
-  double _devicePixelRatio = 1;
-  bool _approachKicked = false;
-  bool _approachRetryQueued = false;
-  int _approachTries = 0;
-  double? _motionZoom;
-  double? _motionX;
-  double? _motionY;
 
   /// pdfrx [PdfViewerController.invalidate] notifies listeners synchronously;
   /// defer so param updates never run during [State.didUpdateWidget] / layout.
@@ -272,9 +260,6 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
   void initState() {
     super.initState();
     _controller = PdfViewerController();
-    _bindControllerMotion(_controller);
-    _approach.addListener(_onApproachPixels);
-    _renderPace.onSettled = _upgradeSettledPages;
     final identityHint = widget.viewerIdentityPath ?? widget.file.path;
     final loadHint = widget.file.path;
     // Sync path first (cache hit after shell await resolve). If still FUSE,
@@ -315,90 +300,8 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
     _notifyControllerReady();
   }
 
-  void _bindControllerMotion(PdfViewerController controller) {
-    _approach.attach(controller);
-    controller.addListener(_onViewerMotion);
-  }
-
-  void _unbindControllerMotion(PdfViewerController controller) {
-    controller.removeListener(_onViewerMotion);
-    _approach.detach(controller);
-  }
-
-  /// Scroll offset changes on the UI thread. This only marks which pages to
-  /// decode; it does not wait on a render, so the scroll position moves now.
-  void _onViewerMotion() {
-    final controller = _controller;
-    if (!controller.isReady) return;
-    final zoom = controller.currentZoom;
-    final matrix = controller.value;
-    final x = matrix.storage[12];
-    final y = matrix.storage[13];
-    final prevZoom = _motionZoom;
-    final prevX = _motionX;
-    final prevY = _motionY;
-    _motionZoom = zoom;
-    _motionX = x;
-    _motionY = y;
-    final first = prevZoom == null || prevX == null || prevY == null;
-    final moved = !first &&
-        ((zoom - prevZoom).abs() >= 0.001 ||
-            (x - prevX).abs() >= 0.5 ||
-            (y - prevY).abs() >= 0.5);
-    if (moved) _renderPace.noteMotion();
-    if (first || moved || _renderPace.isMoving) {
-      _syncApproach(moving: _renderPace.isMoving);
-    }
-  }
-
-  void _upgradeSettledPages() {
-    if (!mounted || !_controller.isReady) return;
-    _syncApproach(moving: false);
-    // Ask pdfrx for the settled scale. A zoom is not required.
-    _controller.invalidate();
-  }
-
-  void _syncApproach({required bool moving}) {
-    final ready = _approach.sync(
-      moving: moving,
-      devicePixelRatio: _devicePixelRatio,
-    );
-    if (ready) {
-      _approachTries = 0;
-      return;
-    }
-    if (_approachRetryQueued || _approachTries > 30) return;
-    _approachRetryQueued = true;
-    _approachTries++;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _approachRetryQueued = false;
-      if (!mounted) return;
-      _syncApproach(moving: _renderPace.isMoving);
-    });
-  }
-
-  void _onApproachPixels() {
-    if (!mounted || !_controller.isReady) return;
-    _controller.invalidate();
-  }
-
-  void _paintApproachPage(Canvas canvas, Rect pageRect, PdfPage page) {
-    _approach.paintStandIn(canvas, pageRect, page.pageNumber);
-  }
-
-  List<PdfViewerPagePaintCallback> _pagePaintCallbacks() {
-    final src = widget.pagePaintCallbacks;
-    final cached = _combinedPaint;
-    if (cached != null && identical(src, _combinedPaintSource)) return cached;
-    _combinedPaintSource = src;
-    return _combinedPaint = [_approachPaint, ...?src];
-  }
-
   @override
   void dispose() {
-    _approach.removeListener(_onApproachPixels);
-    _unbindControllerMotion(_controller);
-    _approach.dispose();
     _renderPace.dispose();
     registerPdfViewerSeamlessReload(_controller, null);
     _dropDocument();
@@ -439,15 +342,8 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
         password: widget.password,
       );
       _documentReady = true;
-      _unbindControllerMotion(_controller);
       _controller = PdfViewerController();
-      _bindControllerMotion(_controller);
       _renderPace.clear();
-      _approachKicked = false;
-      _approachTries = 0;
-      _motionZoom = null;
-      _motionX = null;
-      _motionY = null;
       _notifyControllerReady();
     } else if (loadPathChanged) {
       // Working-copy path change: keep State + ref key; retarget loader only.
@@ -479,14 +375,6 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
     return LayoutBuilder(
       builder: (context, constraints) {
         _onViewportHeightChanged(constraints.maxHeight);
-        _devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-        if (!_approachKicked) {
-          _approachKicked = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            _syncApproach(moving: _renderPace.isMoving);
-          });
-        }
         final showSidebar = shouldShowPdfThumbnailSidebar(
           viewportWidth: constraints.maxWidth,
           sidebarEnabled: widget.sidebarEnabled,
@@ -501,7 +389,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
           controller: _controller,
           params: buildPdfViewerParams(
             renderPace: _renderPace,
-            pagePaintCallbacks: _pagePaintCallbacks(),
+            pagePaintCallbacks: widget.pagePaintCallbacks,
             pageNavigationController: _controller,
             scrollLayoutMode: widget.scrollLayoutMode,
             viewportHeight: constraints.maxHeight,

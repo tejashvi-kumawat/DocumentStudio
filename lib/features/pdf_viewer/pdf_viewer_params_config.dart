@@ -10,9 +10,10 @@ import 'package:document_studio/features/pdf_viewer/pdf_viewer_scroll_layout.dar
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-/// Long edge cap for the one full-quality render. Screen pixels
-/// (zoom × device pixel ratio) are used when they are smaller.
-const double kPdfSettledRenderLongEdgePx = 1600;
+/// Long edge cap for the whole-page render. Screen pixels
+/// (zoom × device pixel ratio) are used when they are smaller. Past this,
+/// pdfrx renders only the visible region at real pixel size on top.
+const double kPdfSettledRenderLongEdgePx = 4096;
 
 /// A zoom-in must grow the needed scale by this much before an already
 /// screen-quality page is decoded again. Zooming out keeps the sharper bitmap.
@@ -144,21 +145,19 @@ PdfViewerParams buildPdfViewerParams({
     // Measure only pages that intersect the cache band. Never walk the
     // document for sizes on open or on a fling.
     //
-    // pdfrx fills a page that has no bitmap yet with white. Page 1 of a
-    // drawing set is often a blank white sheet, so that fill looked like
-    // page 1 on every other page. Leave both of pdfrx's decodes off.
-    // [PdfApproachDecoder] paints a flat fill until that page's own pixels
-    // arrive, and never substitutes another page's bitmap.
+    // A page is white until its one whole-page render at screen scale lands.
+    // pdfrx calls that render a "preview", but it is requested at
+    // [getPageRenderingScale], which is the full screen scale, so no coarse
+    // stage exists. Zoomed past [kPdfSettledRenderLongEdgePx], the visible
+    // region is rendered at real pixel size on top with no delay.
     behaviorControlParams: const PdfViewerBehaviorControlParams(
       loadPageDimensionsOnDemand: true,
-      enableLowResolutionPagePreview: false,
-      partialImageLoadingDelay: Duration(days: 1),
+      enableLowResolutionPagePreview: true,
+      partialImageLoadingDelay: Duration.zero,
     ),
     // One neighbor past the viewport, not another full screen of pages.
     verticalCacheExtent: kPdfViewerNeighborCacheExtent,
     horizontalCacheExtent: kPdfViewerNeighborCacheExtent,
-    // One decode at the requested size. A low threshold makes pdfrx paint a
-    // coarse image and then the real one.
     onePassRenderingSizeThreshold: 100000,
     limitRenderingCache: true,
     sizeDelegateProvider: const PdfViewerSizeDelegateProviderLegacy(
