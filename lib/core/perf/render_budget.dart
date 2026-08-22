@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
@@ -6,16 +7,17 @@ enum DeviceTier { low, mid, high }
 
 /// Device-adaptive limits for page rendering and caches.
 ///
-/// Detected once (CPU count + physical RAM where `/proc/meminfo` is readable,
-/// i.e. Linux and Android). Unknown RAM falls back to the CPU heuristic.
+/// Detected once from the CPU count and physical RAM (`/proc/meminfo` on
+/// Linux and Android, `sysctl hw.memsize` on macOS). Unknown RAM falls back to
+/// the CPU heuristic.
 class RenderBudget {
   const RenderBudget._({
     required this.tier,
     required this.totalRamBytes,
     required this.viewerImageCacheBytes,
-    required this.onePassRenderingScaleThreshold,
     required this.cacheExtent,
     required this.pageImageCachingDelay,
+    required this.limitPdfiumImageCache,
     required this.thumbnailMemoryBytes,
     required this.renderConcurrency,
   });
@@ -23,18 +25,19 @@ class RenderBudget {
   final DeviceTier tier;
   final int? totalRamBytes;
 
-  /// pdfrx page-image cache cap for one viewer.
+  /// pdfrx page-image cache cap for one viewer. Pages scrolled away from stay
+  /// decoded up to this size, so scrolling back shows them at once.
   final int viewerImageCacheBytes;
 
-  /// Above this scale pdfrx renders only the visible part of the page at full
-  /// resolution (whole-page bitmaps stay small on weak GPUs / low RAM).
-  final double onePassRenderingScaleThreshold;
-
-  /// Viewport multiples pre-rendered ahead of scrolling.
+  /// Viewport multiples pre-rendered around the visible area.
   final double cacheExtent;
 
-  /// Debounce before a page render starts; fast flings skip pages entirely.
+  /// Debounce before a cached page is re-rendered at a new zoom.
   final Duration pageImageCachingDelay;
+
+  /// Whether PDFium drops decoded page resources (images, fonts) after each
+  /// render. Keeping them makes a re-render at a new zoom much cheaper.
+  final bool limitPdfiumImageCache;
 
   /// In-memory decoded thumbnail cap (organize grid, previews).
   final int thumbnailMemoryBytes;
@@ -64,53 +67,61 @@ class RenderBudget {
       DeviceTier.low => RenderBudget._(
           tier: tier,
           totalRamBytes: ram,
-          viewerImageCacheBytes: 48 * _mb,
-          onePassRenderingScaleThreshold: 1.6,
+          viewerImageCacheBytes: 64 * _mb,
           cacheExtent: 0.5,
-          pageImageCachingDelay: const Duration(milliseconds: 60),
+          pageImageCachingDelay: const Duration(milliseconds: 40),
+          limitPdfiumImageCache: true,
           thumbnailMemoryBytes: 16 * _mb,
           renderConcurrency: 1,
         ),
       DeviceTier.mid => RenderBudget._(
           tier: tier,
           totalRamBytes: ram,
-          viewerImageCacheBytes: 100 * _mb,
-          onePassRenderingScaleThreshold: 200 / 72,
-          cacheExtent: 1.0,
-          pageImageCachingDelay: const Duration(milliseconds: 30),
+          viewerImageCacheBytes: 160 * _mb,
+          cacheExtent: 0.75,
+          pageImageCachingDelay: const Duration(milliseconds: 20),
+          limitPdfiumImageCache: false,
           thumbnailMemoryBytes: 32 * _mb,
           renderConcurrency: 2,
         ),
       DeviceTier.high => RenderBudget._(
           tier: tier,
           totalRamBytes: ram,
-          viewerImageCacheBytes: 192 * _mb,
-          onePassRenderingScaleThreshold: 200 / 72,
-          cacheExtent: 1.5,
-          pageImageCachingDelay: const Duration(milliseconds: 20),
+          // About 1/24 of RAM: 330 MB on 8 GB, 512 MB from 12 GB up.
+          viewerImageCacheBytes: ram == null
+              ? 256 * _mb
+              : (ram ~/ 24).clamp(256 * _mb, 512 * _mb),
+          cacheExtent: 1.0,
+          pageImageCachingDelay: const Duration(milliseconds: 12),
+          limitPdfiumImageCache: false,
           thumbnailMemoryBytes: 64 * _mb,
-          renderConcurrency: 2,
+          renderConcurrency: math.min(3, math.max(2, cpus ~/ 4)),
         ),
     };
     if (!kReleaseMode) {
       debugPrint(
         '[perf] render budget: ${tier.name} (cpus=$cpus, '
-        'ram=${gb?.toStringAsFixed(1) ?? '?'} GB)',
+        'ram=${gb?.toStringAsFixed(1) ?? '?'} GB, '
+        'page cache=${budget.viewerImageCacheBytes ~/ _mb} MB)',
       );
     }
     return budget;
   }
 
   static int? _readTotalRam() {
-    if (!(Platform.isLinux || Platform.isAndroid)) return null;
     try {
-      final line = File('/proc/meminfo')
-          .readAsLinesSync()
-          .firstWhere((l) => l.startsWith('MemTotal:'));
-      final kb = int.parse(line.replaceAll(RegExp(r'[^0-9]'), ''));
-      return kb * 1024;
-    } catch (_) {
-      return null;
-    }
+      if (Platform.isLinux || Platform.isAndroid) {
+        final line = File('/proc/meminfo')
+            .readAsLinesSync()
+            .firstWhere((l) => l.startsWith('MemTotal:'));
+        final kb = int.parse(line.replaceAll(RegExp(r'[^0-9]'), ''));
+        return kb * 1024;
+      }
+      if (Platform.isMacOS) {
+        final out = Process.runSync('/usr/sbin/sysctl', ['-n', 'hw.memsize']);
+        return int.tryParse('${out.stdout}'.trim());
+      }
+    } catch (_) {}
+    return null;
   }
 }
