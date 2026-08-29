@@ -17,7 +17,9 @@
 ; Not for Microsoft Store — GitHub Releases / website download only.
 
 #define MyAppName "Document Studio"
-#define MyAppVersion "1.0.0"
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.0"
+#endif
 #define MyAppPublisher "Document Studio"
 #define MyAppExeName "document_studio.exe"
 #define MyAppId "com.documentstudio.document_studio"
