@@ -31,6 +31,13 @@ pick_source() {
   return 1
 }
 
+if dpkg-query -W -f='${Status}' document-studio 2>/dev/null | grep -q 'install ok installed'; then
+  echo "WARNING: document-studio .deb is installed. Prefer:" >&2
+  echo "  sudo bash scripts/linux/uninstall_document_studio_deb.sh" >&2
+  echo "  sudo dpkg -i dist/linux/document-studio_*_amd64.deb" >&2
+  echo "install_local.sh adds a second menu entry under ~/.local." >&2
+fi
+
 SRC="$(pick_source || true)"
 if [[ -z "${SRC:-}" ]]; then
   echo "No Document Studio bundle with an engines/ directory was found." >&2
@@ -77,9 +84,10 @@ fi
 SYS_APP="/usr/lib/document-studio"
 SYS_BIN="/usr/bin/document_studio"
 if [[ -x "$SYS_APP/engines/qpdf" || -x "$SYS_APP/engines/bin/qpdf" ]]; then
-  if [[ -w "$SYS_BIN" || ! -e "$SYS_BIN" ]]; then
-    write_engine_launcher "$SYS_APP" "$SYS_BIN"
-    echo "Updated $SYS_BIN to prefer $SYS_APP/engines"
+  if [[ -w "$SYS_BIN" ]]; then
+    echo "WARNING: not modifying $SYS_BIN (owned by document-studio .deb)." >&2
+  elif [[ ! -e "$SYS_BIN" ]]; then
+    echo "WARNING: $SYS_BIN missing; install or upgrade the .deb instead of install_local.sh." >&2
   fi
 fi
 
