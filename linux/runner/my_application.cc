@@ -17,7 +17,7 @@ struct _MyApplication {
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
 // Icon theme / desktop Icon= name used for dock matching.
-static const gchar* kDesktopIconName = "document-studio";
+static const gchar* kDesktopIconName = "com.documentstudio.document_studio";
 
 // Resolve Document Studio icon next to the binary or from bundled assets.
 // Prefer the padded square app_icon for the dock; fall back to brand assets.
@@ -64,7 +64,7 @@ static void apply_default_icon() {
   }
   gtk_window_set_default_icon(pixbuf);
   g_object_unref(pixbuf);
-  // Also advertise the theme name so .desktop Icon=document-studio matches.
+  // Also advertise the theme name so .desktop Icon= matches.
   gtk_window_set_default_icon_name(kDesktopIconName);
 }
 
