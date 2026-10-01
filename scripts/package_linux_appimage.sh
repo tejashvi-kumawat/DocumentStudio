@@ -34,7 +34,7 @@ ln -sfr "$APPDIR/usr/lib/document-studio/document_studio" "$APPDIR/usr/bin/docum
 
 install -m644 "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" \
   "$APPDIR/usr/share/applications/com.documentstudio.document_studio.desktop"
-sed -i 's|^Exec=.*|Exec=document_studio|' \
+sed -i 's|^Exec=.*|Exec=document_studio %U|' \
   "$APPDIR/usr/share/applications/com.documentstudio.document_studio.desktop"
 cp -a "$ROOT/linux/packaging/icons/hicolor/." "$APPDIR/usr/share/icons/hicolor/"
 

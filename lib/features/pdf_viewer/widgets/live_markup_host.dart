@@ -34,10 +34,14 @@ class LiveMarkupPageHost extends StatefulWidget {
     required this.session,
     required this.geom,
     this.controller,
+    this.signDocumentPath,
   });
 
   final ViewerLiveToolSession session;
   final LivePageGeom geom;
+
+  /// Session source path. Signatures for another open document are not drawn.
+  final String? signDocumentPath;
 
   /// Wheel events over the overlay are forwarded here so scrolling still works.
   final PdfViewerController? controller;
@@ -102,36 +106,57 @@ class _LiveMarkupPageHostState extends State<LiveMarkupPageHost> {
     final live = widget.session;
     final g = widget.geom;
     final tool = live.toolId;
-    if (!liveMarkupHostHandles(tool) ||
-        !(g.pagePx.width > 1 && g.pagePx.height > 1)) {
+    if (!(g.pagePx.width > 1 && g.pagePx.height > 1)) {
       return const SizedBox.shrink();
     }
+    // SignPageLayer paints items while the sign tool is up. After Apply the
+    // tool can close; keep the burned image on the page without reopening
+    // the PDF.
+    final stamps = tool == ViewerToolId.visualSign
+        ? const SizedBox.shrink()
+        : SignPlacedStampLayer(
+            pageNumber: g.pageNumber,
+            pagePx: g.pagePx,
+            documentPath: widget.signDocumentPath,
+          );
+    if (!liveMarkupHostHandles(tool)) return stamps;
     live.notePageGeometry(g.pageNumber, g.pageWidthPt, g.pageHeightPt);
     final onActive = live.pageIndex1Based == g.pageNumber;
     final spans = live.spansPages || tool == ViewerToolId.fillForm;
-    if (!spans && !onActive) return const SizedBox.shrink();
+    if (!spans && !onActive) return stamps;
 
     final Widget layer = switch (tool) {
       ViewerToolId.ink => LiveInkLayer(session: live, geom: g),
       ViewerToolId.markupBurn => LiveMarkupLayer(session: live, geom: g),
       ViewerToolId.addLink => LiveLinkLayer(session: live, geom: g),
       ViewerToolId.placeImage => LivePlacementLayer(session: live, geom: g),
-      ViewerToolId.visualSign =>
-        SignPageLayer(geom: g, viewer: widget.controller),
+      ViewerToolId.visualSign => SignPageLayer(
+          geom: g,
+          viewer: widget.controller,
+          documentPath: widget.signDocumentPath,
+        ),
       ViewerToolId.editText => LiveTextLayer(session: live, geom: g),
       ViewerToolId.fillForm => LiveFormLayer(session: live, geom: g),
       _ => const SizedBox.shrink(),
     };
     final controller = widget.controller;
-    return Listener(
-      onPointerSignal: controller == null
-          ? null
-          : (e) {
-              if (e is PointerScrollEvent) controller.handlePointerSignalEvent(e);
-            },
-      child: RepaintBoundary(
-        child: KeyedSubtree(key: ValueKey(tool), child: layer),
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        stamps,
+        Listener(
+          onPointerSignal: controller == null
+              ? null
+              : (e) {
+                  if (e is PointerScrollEvent) {
+                    controller.handlePointerSignalEvent(e);
+                  }
+                },
+          child: RepaintBoundary(
+            child: KeyedSubtree(key: ValueKey(tool), child: layer),
+          ),
+        ),
+      ],
     );
   }
 }

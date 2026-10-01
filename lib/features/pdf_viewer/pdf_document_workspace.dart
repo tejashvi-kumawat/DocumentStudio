@@ -84,6 +84,10 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
   }
 
   late PdfViewerController _controller;
+  final PdfViewerRenderPace _renderPace = PdfViewerRenderPace();
+  double? _motionZoom;
+  double? _motionX;
+  double? _motionY;
 
   /// pdfrx [PdfViewerController.invalidate] notifies listeners synchronously;
   /// defer so param updates never run during [State.didUpdateWidget] / layout.
@@ -259,6 +263,8 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
   void initState() {
     super.initState();
     _controller = PdfViewerController();
+    _bindControllerMotion(_controller);
+    _renderPace.onSettled = _upgradeSettledPages;
     final identityHint = widget.viewerIdentityPath ?? widget.file.path;
     final loadHint = widget.file.path;
     // Sync path first (cache hit after shell await resolve). If still FUSE,
@@ -299,8 +305,48 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
     _notifyControllerReady();
   }
 
+  void _bindControllerMotion(PdfViewerController controller) {
+    controller.addListener(_onViewerMotion);
+  }
+
+  void _unbindControllerMotion(PdfViewerController controller) {
+    controller.removeListener(_onViewerMotion);
+  }
+
+  /// Scroll offset changes on the UI thread. This only marks that bitmaps
+  /// should stay cheap until the matrix stops; it does not wait on a render.
+  void _onViewerMotion() {
+    final controller = _controller;
+    if (!controller.isReady) return;
+    final zoom = controller.currentZoom;
+    final matrix = controller.value;
+    final x = matrix.storage[12];
+    final y = matrix.storage[13];
+    final prevZoom = _motionZoom;
+    final prevX = _motionX;
+    final prevY = _motionY;
+    _motionZoom = zoom;
+    _motionX = x;
+    _motionY = y;
+    if (prevZoom == null || prevX == null || prevY == null) return;
+    if ((zoom - prevZoom).abs() < 0.001 &&
+        (x - prevX).abs() < 0.5 &&
+        (y - prevY).abs() < 0.5) {
+      return;
+    }
+    _renderPace.noteMotion();
+  }
+
+  void _upgradeSettledPages() {
+    final controller = _controller;
+    if (!mounted || !controller.isReady) return;
+    controller.invalidate();
+  }
+
   @override
   void dispose() {
+    _unbindControllerMotion(_controller);
+    _renderPace.dispose();
     registerPdfViewerSeamlessReload(_controller, null);
     _dropDocument();
     _freezeFrame?.dispose();
@@ -340,7 +386,13 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
         password: widget.password,
       );
       _documentReady = true;
+      _unbindControllerMotion(_controller);
       _controller = PdfViewerController();
+      _bindControllerMotion(_controller);
+      _renderPace.clear();
+      _motionZoom = null;
+      _motionX = null;
+      _motionY = null;
       _notifyControllerReady();
     } else if (loadPathChanged) {
       // Working-copy path change: keep State + ref key; retarget loader only.
@@ -385,6 +437,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
           ),
           controller: _controller,
           params: buildPdfViewerParams(
+            renderPace: _renderPace,
             pagePaintCallbacks: widget.pagePaintCallbacks,
             pageNavigationController: _controller,
             scrollLayoutMode: widget.scrollLayoutMode,

@@ -91,6 +91,9 @@ class PdfViewerAcrobatShell extends StatefulWidget {
 }
 
 class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
+  /// Direct child of the rail row/column. A key here lets the thumbnail
+  /// and tools rails appear or disappear without disposing [PdfViewer].
+  static const _canvasSlot = ValueKey<String>('pdf_canvas_slot');
   PdfViewerController? _controller;
   String? _selectedBlockedToolId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -349,7 +352,7 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (showCompactPages) _buildCompactPagesStrip(controller),
-                Expanded(child: canvas),
+                Expanded(key: _canvasSlot, child: canvas),
                 if (showPhoneToolPanel) _buildPhoneToolPanel(),
               ],
             ),
@@ -389,6 +392,7 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                 VerticalDivider(width: 1, thickness: 1, color: dividerColor),
               ],
               Expanded(
+                key: _canvasSlot,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

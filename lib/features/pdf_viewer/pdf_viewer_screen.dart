@@ -142,6 +142,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   final Map<String, PdfViewerTabOpenSession> _openSessions = {};
   int? _lastSoftReloadRevision;
   String? _lastSoftReloadPath;
+  bool _signAdoptScheduled = false;
   PdfBackgroundOcrIndex? _backgroundOcr;
   bool _softReloadInFlight = false;
   String? _ocrIndexedPath;
@@ -404,8 +405,8 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   String _signPlacementStatusLabel(SignPlacementController c) {
     if (c.drawFieldMode) return 'Draw signature field';
     if (c.armed != null) return 'Drag to place “${c.armed!.label}”';
-    if (c.items.length > 1) {
-      return '${c.items.length} items · adjust then Done';
+    if (c.pendingCount > 1) {
+      return '${c.pendingCount} items · adjust then Done';
     }
     return 'Adjust signature';
   }
@@ -1174,6 +1175,9 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     if (c == null || !c.isReady) return;
     if (_softReloadInFlight) return;
     _softReloadInFlight = true;
+    // Burned stamps are in the bytes this reload reads. Drop the overlay
+    // so they are not drawn twice.
+    ref.read(signPlacementControllerProvider).dropBurnedItems();
     try {
       await softReloadPdfViewerDocument(
         c,
@@ -1733,10 +1737,23 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     // Track by source path so working-copy materialization (path change) still soft-reloads.
     final rev = active.session.revision;
     final identityPath = active.session.sourcePath;
+    if (widget.foreground && signPlacement.ownerPath != identityPath) {
+      if (signPlacement.ownerPath == null) {
+        signPlacement.attachDocument(identityPath);
+      } else if (!_signAdoptScheduled) {
+        _signAdoptScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _signAdoptScheduled = false;
+          if (!mounted || !widget.foreground) return;
+          ref.read(signPlacementControllerProvider).adoptDocument(identityPath);
+        });
+      }
+    }
     if (_lastSoftReloadPath == identityPath &&
         _lastSoftReloadRevision != rev &&
         (MarkupOwnRevisions.isOwn(active.file.path, rev) ||
-            PageLabelOwnRevisions.isOwn(active.file.path, rev))) {
+            PageLabelOwnRevisions.isOwn(active.file.path, rev) ||
+            SignOwnRevisions.isOwn(active.file.path, rev))) {
       // Markup saves only touch annotations the overlay already draws.
       _lastSoftReloadRevision = rev;
     } else if (_lastSoftReloadPath == identityPath &&
@@ -1945,16 +1962,16 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                       leftRailEnabled: pdfViewerSidebarVisible(
                                         presentationMode: _presentationMode,
                                         readMode: _readMode,
-                                        userSidebarEnabled:
-                                            _sidebarEnabled && !signActive,
+                                        // Keep the rails. Removing the leading
+                                        // row children disposes PdfViewer
+                                        // (page 1 again) and unmounts the sign
+                                        // panel, which used to wipe the stamp.
+                                        userSidebarEnabled: _sidebarEnabled,
                                       ),
                                       toolsRailEnabled: pdfViewerShowsToolsRail(
                                         presentationMode: _presentationMode,
                                         readMode: _readMode,
-                                        // Hide Edit/Pages/Protect/Tools panel while
-                                        // placing so drag/resize is not covered.
-                                        userToolsRailEnabled:
-                                            _toolsRailEnabled && !signActive,
+                                        userToolsRailEnabled: _toolsRailEnabled,
                                       ),
                                       activeToolPanel: _activeViewerTool,
                                       onCloseToolPanel: _closeActiveToolPanel,
@@ -2016,6 +2033,8 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                                   viewerRulersVisibleProvider,
                                                 ),
                                                 controller: _controller,
+                                                signDocumentPath:
+                                                    active.session.sourcePath,
                                               ),
                                             ];
                                           },

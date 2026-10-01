@@ -36,7 +36,8 @@ class SignPlaceable {
       sizePt.height > 0 ? sizePt.width / sizePt.height : 1.0;
 }
 
-/// An item placed on a page but not yet written into the PDF.
+/// An item placed on a page. [committed] items are already in the working
+/// copy and stay on screen as an overlay so the viewer does not reopen the PDF.
 @immutable
 class SignPlacedItem {
   const SignPlacedItem({
@@ -46,6 +47,7 @@ class SignPlacedItem {
     required this.page1Based,
     required this.rectNorm,
     this.rotationDegrees = 0,
+    this.committed = false,
   });
 
   final int id;
@@ -59,11 +61,16 @@ class SignPlacedItem {
   /// Clockwise rotation about the box center.
   final double rotationDegrees;
 
+  /// Written into the session working copy. Still drawn here so Apply does
+  /// not have to reload [PdfViewer].
+  final bool committed;
+
   SignPlacedItem copyWith({
     Uint8List? png,
     int? page1Based,
     Rect? rectNorm,
     double? rotationDegrees,
+    bool? committed,
   }) {
     return SignPlacedItem(
       id: id,
@@ -72,8 +79,19 @@ class SignPlacedItem {
       page1Based: page1Based ?? this.page1Based,
       rectNorm: rectNorm ?? this.rectNorm,
       rotationDegrees: rotationDegrees ?? this.rotationDegrees,
+      committed: committed ?? this.committed,
     );
   }
+}
+
+/// Revisions written by Sign / stamp Apply. The page overlay already shows
+/// those images, so the viewer must not soft-reload (that reopens the PDF).
+abstract final class SignOwnRevisions {
+  static final Map<String, int> _byPath = {};
+
+  static void mark(String path, int revision) => _byPath[path] = revision;
+
+  static bool isOwn(String path, int revision) => _byPath[path] == revision;
 }
 
 /// Short-lived highlight after "Show field".
@@ -90,6 +108,9 @@ class SignFieldFlash {
 class SignPlacementController extends ChangeNotifier {
   final List<SignPlacedItem> _items = [];
   int? _selectedId;
+
+  /// Source path these items belong to. Other open viewers must not paint them.
+  String? _ownerPath;
   SignPlaceable? _armed;
   int _seq = 0;
   bool _dragHover = false;
@@ -118,8 +139,42 @@ class SignPlacementController extends ChangeNotifier {
   /// Set by the panel: the user drew a new signature field.
   void Function(int page1Based, Rect rectNorm)? onFieldDrawn;
 
+  /// Images not yet written into the working copy.
+  List<SignPlacedItem> get pendingItems =>
+      [for (final i in _items) if (!i.committed) i];
+
+  bool get hasItems => pendingItems.isNotEmpty;
+  int get pendingCount => pendingItems.length;
+
+  /// Every image drawn on the page, including ones already burned.
   List<SignPlacedItem> get items => List.unmodifiable(_items);
-  bool get hasItems => _items.isNotEmpty;
+
+  /// Source path that owns [items]. Null until the foreground viewer claims it.
+  String? get ownerPath => _ownerPath;
+
+  /// Foreground viewer claims this session. Does not notify.
+  void attachDocument(String sourcePath) {
+    _ownerPath = sourcePath;
+  }
+
+  /// Drop placement when the foreground document changes.
+  void adoptDocument(String sourcePath) {
+    if (_ownerPath == sourcePath) return;
+    _ownerPath = sourcePath;
+    if (_items.isEmpty &&
+        _armed == null &&
+        !_drawFieldMode &&
+        _selectedId == null) {
+      return;
+    }
+    _items.clear();
+    _armed = null;
+    _drawFieldMode = false;
+    _selectedId = null;
+    _dragHover = false;
+    _libraryDrag = false;
+    notifyListeners();
+  }
   int? get selectedId => _selectedId;
   SignPlacedItem? get selected {
     for (final i in _items) {
@@ -144,7 +199,7 @@ class SignPlacementController extends ChangeNotifier {
   /// drawing a field, or with uncommitted placed items). Viewer chrome swaps
   /// to Cancel / Done and hides tool menus so drag is not stolen.
   bool get isPageInteractionActive =>
-      _armed != null || _drawFieldMode || _items.isNotEmpty;
+      _armed != null || _drawFieldMode || hasItems;
 
   Iterable<SignPlacedItem> itemsOnPage(int page) =>
       _items.where((i) => i.page1Based == page);
@@ -355,9 +410,61 @@ class SignPlacementController extends ChangeNotifier {
   }
 
   void clearItems() {
-    if (_items.isEmpty && _selectedId == null) return;
-    _items.clear();
+    final before = _items.length;
+    _items.removeWhere((i) => !i.committed);
+    if (_selectedId != null && !_items.any((i) => i.id == _selectedId)) {
+      _selectedId = null;
+    }
+    if (_items.length != before) notifyListeners();
+  }
+
+  /// Overlay images are now in the working copy. Keep drawing them.
+  void markBurned() {
+    var changed = false;
+    for (var i = 0; i < _items.length; i++) {
+      if (_items[i].committed) continue;
+      _items[i] = _items[i].copyWith(committed: true);
+      changed = true;
+    }
+    _armed = null;
     _selectedId = null;
+    if (changed) notifyListeners();
+  }
+
+  /// A real document reload is showing the burned bytes. Drop the overlay.
+  void dropBurnedItems() {
+    final before = _items.length;
+    _items.removeWhere((i) => i.committed);
+    if (_selectedId != null && !_items.any((i) => i.id == _selectedId)) {
+      _selectedId = null;
+    }
+    if (_items.length != before) notifyListeners();
+  }
+
+  /// Digital Sign appearance, already written to the working copy.
+  void rememberBurnedAppearance({
+    required Uint8List png,
+    required int page1Based,
+    required Rect rectNorm,
+  }) {
+    if (rectNorm.width < 0.002 || rectNorm.height < 0.002) return;
+    final id = ++_seq;
+    _items.add(
+      SignPlacedItem(
+        id: id,
+        source: SignPlaceable(
+          id: 'burned:$id',
+          kind: SignPlaceableKind.signature,
+          png: png,
+          sizePt: const Size(160, 48),
+          label: 'Signature',
+        ),
+        png: png,
+        page1Based: page1Based,
+        rectNorm: _clampRect(rectNorm),
+        committed: true,
+      ),
+    );
     notifyListeners();
   }
 
@@ -365,13 +472,14 @@ class SignPlacementController extends ChangeNotifier {
 
   /// Discards the current placement session (armed item, draft field, items).
   void cancelPageInteraction() {
+    final pending = _items.any((i) => !i.committed);
     final changed =
-        _armed != null || _drawFieldMode || _items.isNotEmpty || _selectedId != null;
+        _armed != null || _drawFieldMode || pending || _selectedId != null;
     _armed = null;
     _drawFieldMode = false;
     _dragHover = false;
     _libraryDrag = false;
-    _items.clear();
+    _items.removeWhere((i) => !i.committed);
     _selectedId = null;
     if (changed) notifyListeners();
   }
@@ -405,7 +513,9 @@ class SignPlacementController extends ChangeNotifier {
 
   /// Drops everything tied to the current panel session.
   void reset() {
-    _items.clear();
+    // Keep burned images. Closing the panel must not wipe a signature that
+    // is already in the working copy and still drawn on the page.
+    _items.removeWhere((i) => !i.committed);
     _selectedId = null;
     _armed = null;
     _dragHover = false;

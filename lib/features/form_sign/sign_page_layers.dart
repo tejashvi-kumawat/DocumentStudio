@@ -50,10 +50,18 @@ const _rotateKnobOffset = LiveSelectionPainter.rotateHandleOffset;
 /// Only claims pointer hits on its own objects (or the whole page while an
 /// item is armed / a field is being drawn), so the page still scrolls.
 class SignPageLayer extends ConsumerStatefulWidget {
-  const SignPageLayer({super.key, required this.geom, this.viewer});
+  const SignPageLayer({
+    super.key,
+    required this.geom,
+    this.viewer,
+    this.documentPath,
+  });
 
   final LivePageGeom geom;
   final PdfViewerController? viewer;
+
+  /// Session source path. Items owned by another document are not drawn.
+  final String? documentPath;
 
   @override
   ConsumerState<SignPageLayer> createState() => _SignPageLayerState();
@@ -577,6 +585,11 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
   }
 
   Widget _buildLayer(BuildContext context, SignPlacementController c) {
+    final owner = c.ownerPath;
+    final doc = widget.documentPath;
+    if (owner != null && doc != null && owner != doc) {
+      return const SizedBox.shrink();
+    }
     final items = c.itemsOnPage(_page).toList();
     final sel = c.selected;
     final selOnPage = sel != null && sel.page1Based == _page ? sel : null;
@@ -761,6 +774,54 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Burned signatures and stamps after the sign tool closes.
+///
+/// [SignPageLayer] paints them while the tool is active. This layer keeps
+/// the same pixels on the page so Apply does not reopen the PDF.
+class SignPlacedStampLayer extends ConsumerWidget {
+  const SignPlacedStampLayer({
+    super.key,
+    required this.pageNumber,
+    required this.pagePx,
+    this.documentPath,
+  });
+
+  final int pageNumber;
+  final Size pagePx;
+  final String? documentPath;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = ref.watch(signPlacementControllerProvider);
+    final owner = c.ownerPath;
+    final doc = documentPath;
+    if (owner != null && doc != null && owner != doc) {
+      return const SizedBox.shrink();
+    }
+    final items = c.itemsOnPage(pageNumber).toList();
+    if (items.isEmpty || pagePx.width < 1 || pagePx.height < 1) {
+      return const SizedBox.shrink();
+    }
+    return IgnorePointer(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          for (final i in items)
+            Positioned.fromRect(
+              rect: Rect.fromLTWH(
+                i.rectNorm.left * pagePx.width,
+                i.rectNorm.top * pagePx.height,
+                i.rectNorm.width * pagePx.width,
+                i.rectNorm.height * pagePx.height,
+              ),
+              child: _PlacedItemView(key: ValueKey(i.id), item: i),
+            ),
+        ],
+      ),
     );
   }
 }

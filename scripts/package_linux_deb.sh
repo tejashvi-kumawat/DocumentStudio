@@ -53,7 +53,7 @@ if [[ -f "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" ]]; 
   install -m644 "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
   # Point Icon at hicolor name already used by packaging.
-  sed -i 's|^Exec=.*|Exec=document_studio|' \
+  sed -i 's|^Exec=.*|Exec=document_studio %U|' \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
 fi
 if [[ -d "$ROOT/linux/packaging/icons/hicolor" ]]; then

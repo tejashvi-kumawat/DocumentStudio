@@ -127,6 +127,12 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
     COMPONENT Runtime)
 endif()
 
+# PDF handler entry. Deb/AppImage packaging copies this same file to
+# /usr/share/applications; the bundle ships it for the linux runner.
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/packaging/com.documentstudio.document_studio.desktop"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+  COMPONENT Runtime)
+
 # External engines (qpdf, tesseract, LibreOffice, signing tools) from
 # .tools/linux-engines (filled by scripts/bundle_linux_engines.sh). Debug
 # builds symlink the 800 MB tree; release builds copy it into the bundle.

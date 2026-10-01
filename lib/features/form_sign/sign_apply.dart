@@ -30,7 +30,7 @@ Future<SignApplyOutcome> applyPlacedSignItems({
   required SignPlacementController controller,
   void Function(String message)? onMessage,
 }) async {
-  final items = controller.items;
+  final items = controller.pendingItems;
   if (items.isEmpty) return SignApplyOutcome.nothing;
   final tabs = ref.read(documentTabsControllerProvider);
   final session = tabs.activeSession;
@@ -86,8 +86,12 @@ Future<SignApplyOutcome> applyPlacedSignItems({
       successMessage: pages.length == 1
           ? 'Added $what to page ${pages.first}.'
           : 'Added $what to pages ${pages.join(', ')}.',
+      beforeTabSync: () {
+        // Overlay already shows the stamp. A viewer reload would pdf.open again.
+        SignOwnRevisions.mark(session.file.path, session.revision);
+      },
     );
-    controller.clearItems();
+    controller.markBurned();
     return SignApplyOutcome.applied;
   } on DocumentStudioError catch (e) {
     onMessage?.call(e.recoveryHint ?? e.message);

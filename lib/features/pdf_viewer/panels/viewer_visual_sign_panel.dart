@@ -21,6 +21,7 @@ import 'package:document_studio/features/form_sign/stamp_library_view.dart';
 import 'package:document_studio/features/pdf_viewer/document_tabs_controller.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_document_actions.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
+import 'package:document_studio/features/pdf_viewer/viewer_live_tool_session.dart';
 import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:document_studio/infrastructure/pdf/saved_stamp_store.dart';
 import 'package:document_studio/infrastructure/pdf/saved_visual_signature_store.dart';
@@ -54,6 +55,7 @@ class _ViewerVisualSignPanelState extends ConsumerState<ViewerVisualSignPanel> {
   bool _applying = false;
   DocumentSession? _session;
   DocumentTabsController? _tabs;
+  ViewerLiveToolSession? _live;
   (String, int)? _loadedFor;
   Timer? _reloadDebounce;
   int _loadGen = 0;
@@ -73,9 +75,10 @@ class _ViewerVisualSignPanelState extends ConsumerState<ViewerVisualSignPanel> {
     _stampStore.loadUserName().then((n) {
       if (mounted) setState(() => _userName = n);
     });
+    _live = ref.read(viewerLiveToolSessionProvider);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final live = ref.read(viewerLiveToolSessionProvider);
+      final live = _live!;
       if (live.toolId != ViewerToolId.visualSign) {
         live.activate(
           ViewerToolId.visualSign,
@@ -98,9 +101,17 @@ class _ViewerVisualSignPanelState extends ConsumerState<ViewerVisualSignPanel> {
     _tabs?.removeListener(_onTabs);
     final c = _c;
     final apply = _apply;
+    final stillSigning = _live?.toolId == ViewerToolId.visualSign;
     runWhenTreeUnlocked(() {
       // A replacement panel may already own the controller.
-      if (c.onApply == apply) c.reset();
+      if (c.onApply != apply) return;
+      // The rails used to unmount this panel while a signature was armed.
+      // reset() then deleted the stamp and the viewer reloaded underneath.
+      if (stillSigning) {
+        c.onApply = null;
+        return;
+      }
+      c.reset();
     });
     super.dispose();
   }
@@ -384,7 +395,7 @@ class _ViewerVisualSignPanelState extends ConsumerState<ViewerVisualSignPanel> {
           curve: DsMotion.switchCurve,
           child: _c.hasItems
               ? _ApplyBar(
-                  count: _c.items.length,
+                  count: _c.pendingCount,
                   busy: _applying,
                   onApply: _apply,
                   onClear: _c.clearItems,
