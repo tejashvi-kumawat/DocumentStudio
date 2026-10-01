@@ -77,5 +77,8 @@ qpdf_*.deb
 *.deb
 dist/
 
+# Local PDF stress files (see benchmarks/README.md). Do not commit.
+/benchmarks/*.pdf
+
 # Large local PDF benchmarks (do not commit)
 benchmarks/*.pdf
