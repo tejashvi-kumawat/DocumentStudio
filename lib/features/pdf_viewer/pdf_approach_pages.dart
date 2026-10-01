@@ -65,8 +65,9 @@ List<int> pdfApproachDecodeOrder({
 
 /// Screen-quality pixels per PDF point for one page.
 ///
-/// Motion does not change this value. A moving preview is chosen separately
-/// and replaced by this scale once scrolling settles on a visible page.
+/// This is the only scale a page is decoded at: zoom × device pixel ratio,
+/// with the long edge capped at [kPdfSettledRenderLongEdgePx]. Motion and
+/// whether the page is in the viewport do not change it.
 double pdfApproachScaleFor({
   required bool moving,
   required bool inViewport,

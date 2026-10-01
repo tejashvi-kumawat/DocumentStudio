@@ -13,10 +13,11 @@ import 'package:pdfrx/pdfrx.dart';
 /// first sheet is blank white, that rectangle is indistinguishable from page
 /// 1, so a fast scroll looked like every sheet was page 1. This cache never
 /// stores one page's bitmap under another page's number. A page with no
-/// pixels yet is a flat fill of that page's size. While the scroll is moving,
-/// a page may show a small preview of its own pixels. About
-/// [kPdfScrollSettleDelay] after motion stops, each page still on screen is
-/// decoded once at screen quality and that image stays.
+/// pixels yet is a flat fill of that page's size. The only bitmap ever decoded
+/// or painted is the screen scale (zoom × device pixel ratio, long edge capped
+/// at [kPdfSettledRenderLongEdgePx]). Until that bitmap exists the page stays
+/// blank. Zooming out keeps a sharper bitmap. A zoom-in that would make the
+/// current bitmap soft keeps it up until the new screen-scale bitmap arrives.
 class PdfApproachDecoder extends ChangeNotifier {
   PdfViewerController? _controller;
   final Map<int, _HeldBitmap> _held = {};
@@ -115,16 +116,14 @@ class PdfApproachDecoder extends ChangeNotifier {
       if (pageNumber < 1 || pageNumber > pages.length) continue;
       final page = pages[pageNumber - 1];
       if (page.pageNumber != pageNumber) continue;
-      final wanted = _wantedScale(
-        page,
-        inViewport: window.visiblePages.contains(pageNumber),
-      );
+      final target = _screenScale(page);
       final held = _held[pageNumber];
-      if (held != null && held.scale + 0.02 >= wanted) {
+      if (held != null &&
+          pdfViewerKeepsRenderedScale(held: held.scale, target: target)) {
         _cancelJob(pageNumber);
         continue;
       }
-      if (_jobCovers(pageNumber, wanted)) continue;
+      if (_jobCovers(pageNumber, target)) continue;
       if (_jobs.containsKey(pageNumber)) _cancelJob(pageNumber);
       waiting.add(pageNumber);
     }
@@ -143,15 +142,15 @@ class PdfApproachDecoder extends ChangeNotifier {
       if (pageNumber < 1 || pageNumber > controller.pages.length) continue;
       final page = controller.pages[pageNumber - 1];
       if (page.pageNumber != pageNumber) continue;
-      final wanted = _wantedScale(
-        page,
-        inViewport: _visible.contains(pageNumber),
-      );
+      final target = _screenScale(page);
       final held = _held[pageNumber];
-      if (held != null && held.scale + 0.02 >= wanted) continue;
-      if (_jobCovers(pageNumber, wanted)) continue;
+      if (held != null &&
+          pdfViewerKeepsRenderedScale(held: held.scale, target: target)) {
+        continue;
+      }
+      if (_jobCovers(pageNumber, target)) continue;
       final token = page.createCancellationToken();
-      final job = _DecodeJob(scale: wanted, token: token);
+      final job = _DecodeJob(scale: target, token: token);
       _jobs[pageNumber] = job;
       _running++;
       unawaited(_run(page, pageNumber, job));
@@ -160,6 +159,7 @@ class PdfApproachDecoder extends ChangeNotifier {
 
   Future<void> _run(PdfPage page, int pageNumber, _DecodeJob job) async {
     PdfImage? rendered;
+    var retryFull = false;
     try {
       final width = page.width * job.scale;
       final height = page.height * job.scale;
@@ -185,6 +185,19 @@ class PdfApproachDecoder extends ChangeNotifier {
         image.dispose();
         return;
       }
+      final screen = _screenScale(page);
+      // A decode below the screen target is never shown. The page stays blank,
+      // or keeps the sharper bitmap already on screen, until a full one arrives.
+      if (job.scale + 0.02 < screen) {
+        image.dispose();
+        retryFull = true;
+        return;
+      }
+      final existing = _held[pageNumber];
+      if (existing != null && existing.scale > job.scale + 0.02) {
+        image.dispose();
+        return;
+      }
       _held.remove(pageNumber)?.image.dispose();
       _held[pageNumber] = _HeldBitmap(image, job.scale);
       _notify();
@@ -194,42 +207,33 @@ class PdfApproachDecoder extends ChangeNotifier {
       rendered?.dispose();
       if (identical(_jobs[pageNumber], job)) _jobs.remove(pageNumber);
       _running = math.max(0, _running - 1);
+      if (retryFull && !_disposed) _retryFull(page, pageNumber);
       if (!_disposed) _pump();
     }
   }
 
-  /// Scale to decode for this page.
-  ///
-  /// While the view is moving, or the page is only a neighbor, this is a small
-  /// preview unless a sharper bitmap is already held. Once motion has stopped,
-  /// a page on screen whose bitmap is below [kPdfSettledScaleFloor] of the
-  /// screen target is decoded once at that full scale. Zooming out keeps the
-  /// sharper bitmap. A small zoom-in does not discard one that is already
-  /// near screen quality.
-  double _wantedScale(PdfPage page, {required bool inViewport}) {
-    final target = pdfApproachScaleFor(
+  /// The only scale a new decode may use.
+  double _screenScale(PdfPage page) {
+    return pdfApproachScaleFor(
       moving: _moving,
-      inViewport: inViewport,
+      inViewport: _visible.contains(page.pageNumber),
       pageWidth: page.width,
       pageHeight: page.height,
       zoom: _zoom > 0 ? _zoom : 1,
       devicePixelRatio: _dpr,
     );
-    final held = _held[page.pageNumber]?.scale;
-    final preview = pdfViewerMovingPreviewScale(
-      pageWidth: page.width,
-      pageHeight: page.height,
-      settledScale: target,
-    );
-    if (_moving || !inViewport) {
-      if (held != null && held + 0.02 >= preview) return held;
-      return preview;
-    }
+  }
+
+  void _retryFull(PdfPage page, int pageNumber) {
+    if (page.pageNumber != pageNumber || !_decode.contains(pageNumber)) return;
+    if (_jobs.containsKey(pageNumber) || _waiting.contains(pageNumber)) return;
+    final target = _screenScale(page);
+    final held = _held[pageNumber]?.scale;
     if (held != null &&
         pdfViewerKeepsRenderedScale(held: held, target: target)) {
-      return held;
+      return;
     }
-    return target;
+    _waiting = [pageNumber, ..._waiting];
   }
 
   /// True when a decode already running is at [wanted] or sharper.

@@ -10,13 +10,7 @@ import 'package:document_studio/features/pdf_viewer/pdf_viewer_scroll_layout.dar
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-/// Long edge of the bitmap drawn while a fling is still moving.
-///
-/// This preview is replaced once the matrix has been still for
-/// [kPdfScrollSettleDelay]. It is not the scale a settled page keeps.
-const double kPdfMovingPreviewLongEdgePx = 400;
-
-/// Long edge cap for one full-quality render. Screen pixels
+/// Long edge cap for the one full-quality render. Screen pixels
 /// (zoom × device pixel ratio) are used when they are smaller.
 const double kPdfSettledRenderLongEdgePx = 1600;
 
@@ -24,12 +18,11 @@ const double kPdfSettledRenderLongEdgePx = 1600;
 /// screen-quality page is decoded again. Zooming out keeps the sharper bitmap.
 const double kPdfZoomRerenderFactor = 1.35;
 
-/// A held bitmap under this fraction of [pdfViewerSettledRenderScale] is still
-/// a preview. Stopping on the page decodes it once at screen quality.
+/// A held bitmap under this fraction of the screen scale would look soft.
+/// It is left on screen until a decode at [pdfViewerSettledRenderScale] arrives.
 const double kPdfSettledScaleFloor = 0.9;
 
-/// How long the matrix must stay still before a visible page is decoded at
-/// full quality.
+/// How long the matrix must stay still before scrolling counts as finished.
 const Duration kPdfScrollSettleDelay = Duration(milliseconds: 140);
 
 /// Extra band around the viewport, as a fraction of the viewport.
@@ -39,13 +32,11 @@ const Duration kPdfScrollSettleDelay = Duration(milliseconds: 140);
 /// the page just behind without pulling in the rest of the document.
 const double kPdfViewerNeighborCacheExtent = 0.5;
 
-/// Tracks which pages already have a bitmap so a small zoom change does not
-/// decode them again, and so a moving preview is replaced after the scroll
-/// settles.
+/// Notices when the matrix is moving. The decode scale does not change
+/// with motion.
 class PdfViewerRenderPace {
   bool _moving = false;
   Timer? _settleTimer;
-  final Map<int, double> _settledScale = {};
 
   /// Called once the matrix has been still for [kPdfScrollSettleDelay].
   VoidCallback? onSettled;
@@ -65,7 +56,6 @@ class PdfViewerRenderPace {
     _settleTimer?.cancel();
     _settleTimer = null;
     _moving = false;
-    _settledScale.clear();
   }
 
   void dispose() {
@@ -73,45 +63,23 @@ class PdfViewerRenderPace {
     onSettled = null;
   }
 
-  /// Pixels per PDF point for [pageNumber].
+  /// The one scale a page may be decoded at.
   ///
-  /// While the matrix is moving, a page that does not already have a
-  /// screen-quality bitmap is requested at the [kPdfMovingPreviewLongEdgePx]
-  /// preview. Once motion stops, a bitmap below [kPdfSettledScaleFloor] of
-  /// [pdfViewerSettledRenderScale] is requested once at that screen scale
-  /// (capped at [kPdfSettledRenderLongEdgePx]). Zooming out keeps a sharper
-  /// bitmap. A zoom-in smaller than [kPdfZoomRerenderFactor] keeps a bitmap
-  /// that is already near screen quality.
+  /// Screen pixels (zoom × device pixel ratio), with the long edge capped at
+  /// [kPdfSettledRenderLongEdgePx]. Scrolling, flinging, and which page this
+  /// is do not select another scale.
   double scaleFor({
-    required int pageNumber,
     required double pageWidth,
     required double pageHeight,
     required double zoom,
     required double devicePixelRatio,
   }) {
-    final target = pdfViewerSettledRenderScale(
+    return pdfViewerSettledRenderScale(
       pageWidth: pageWidth,
       pageHeight: pageHeight,
       zoom: zoom,
       devicePixelRatio: devicePixelRatio,
     );
-    final kept = _settledScale[pageNumber];
-    if (_moving) {
-      final preview = pdfViewerMovingPreviewScale(
-        pageWidth: pageWidth,
-        pageHeight: pageHeight,
-        settledScale: target,
-      );
-      if (kept != null && kept + 0.02 >= preview) return kept;
-      _settledScale[pageNumber] = preview;
-      return preview;
-    }
-    if (kept != null &&
-        pdfViewerKeepsRenderedScale(held: kept, target: target)) {
-      return kept;
-    }
-    _settledScale[pageNumber] = target;
-    return target;
   }
 }
 
@@ -129,26 +97,12 @@ double pdfViewerSettledRenderScale({
   return math.min(screen, kPdfSettledRenderLongEdgePx / longPt);
 }
 
-/// Cheap scale used while the view is still moving.
-///
-/// Never sharper than [settledScale]. A settled page does not stay on this
-/// scale.
-double pdfViewerMovingPreviewScale({
-  required double pageWidth,
-  required double pageHeight,
-  required double settledScale,
-}) {
-  final longPt = math.max(pageWidth, pageHeight);
-  if (longPt <= 1) return settledScale;
-  return math.min(kPdfMovingPreviewLongEdgePx / longPt, settledScale);
-}
-
 /// Whether [held] is still the right bitmap for screen-quality [target].
 ///
-/// A preview (under [kPdfSettledScaleFloor] of [target]) is not kept, so
-/// stopping on the page requests [target] without a zoom change. Zooming out
-/// keeps a sharper bitmap. A small zoom-in keeps a bitmap that is already
-/// near screen quality.
+/// Zooming out keeps a sharper bitmap so it is not replaced by a smaller
+/// decode. A small zoom-in keeps a bitmap that is already screen quality.
+/// A bitmap under [kPdfSettledScaleFloor] of [target] would look soft, so a
+/// new decode at [target] is requested while the current image stays up.
 bool pdfViewerKeepsRenderedScale({
   required double held,
   required double target,
@@ -179,7 +133,7 @@ PdfViewerParams buildPdfViewerParams({
   /// Presentation: single-tap advances to the next page.
   bool presentationAdvanceOnTap = false,
 
-  /// Preview while scrolling, then one screen-quality decode after settle.
+  /// Settles scroll motion. The page scale stays the screen scale.
   PdfViewerRenderPace? renderPace,
 }) {
   final effectiveMode = immersiveSinglePage
@@ -214,16 +168,16 @@ PdfViewerParams buildPdfViewerParams({
     getPageRenderingScale: (context, page, controller, _) {
       final zoom = controller.currentZoom;
       final dpr = MediaQuery.devicePixelRatioOf(context);
-      if (pace == null) {
-        return pdfViewerSettledRenderScale(
+      // The screen scale only. pdfrx must not be given a smaller scale.
+      if (pace != null) {
+        return pace.scaleFor(
           pageWidth: page.width,
           pageHeight: page.height,
           zoom: zoom,
           devicePixelRatio: dpr,
         );
       }
-      return pace.scaleFor(
-        pageNumber: page.pageNumber,
+      return pdfViewerSettledRenderScale(
         pageWidth: page.width,
         pageHeight: page.height,
         zoom: zoom,
