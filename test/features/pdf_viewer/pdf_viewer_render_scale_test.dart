@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('screen scale is capped at 1600px on the long edge', () {
-    const wide = 2400.0;
-    const tall = 1600.0;
+  test('whole-page scale is capped at 4096px on the long edge', () {
+    const wide = 6000.0;
+    const tall = 4000.0;
     final settled = pdfViewerSettledRenderScale(
       pageWidth: wide,
       pageHeight: tall,
@@ -16,7 +16,7 @@ void main() {
     expect(settled * wide, kPdfSettledRenderLongEdgePx);
   });
 
-  test('settled scale follows the screen when that is under 1600px', () {
+  test('settled scale follows the screen when that is under the cap', () {
     const page = 800.0;
     final settled = pdfViewerSettledRenderScale(
       pageWidth: page,
@@ -31,8 +31,8 @@ void main() {
   testWidgets('scrolling still requests the one screen scale', (tester) async {
     final pace = PdfViewerRenderPace();
     addTearDown(pace.dispose);
-    const wide = 2400.0;
-    const tall = 1600.0;
+    const wide = 6000.0;
+    const tall = 4000.0;
 
     double screen() => pace.scaleFor(
       pageWidth: wide,
@@ -119,14 +119,14 @@ void main() {
     );
     expect(pdfViewerKeepsRenderedScale(held: held, target: target), isFalse);
     expect(target, 2);
-    expect(target * page, kPdfSettledRenderLongEdgePx);
+    expect(target * page, lessThan(kPdfSettledRenderLongEdgePx));
   });
 
   test('a bitmap below the screen scale is not kept', () {
-    const wide = 2400.0;
+    const wide = 6000.0;
     final screen = pdfViewerSettledRenderScale(
       pageWidth: wide,
-      pageHeight: 1600,
+      pageHeight: 4000,
       zoom: 1,
       devicePixelRatio: 1,
     );
@@ -177,8 +177,8 @@ void main() {
   });
 
   test('moving, settled, and neighbor pages share one full-quality scale', () {
-    const wide = 2400.0;
-    const tall = 1600.0;
+    const wide = 6000.0;
+    const tall = 4000.0;
     final moving = pdfApproachScaleFor(
       moving: true,
       inViewport: true,
