@@ -67,9 +67,12 @@ if [[ -f "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" ]]; 
   sed -i 's|^Exec=.*|Exec=document-studio %U|' \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
 fi
-if [[ -d "$ROOT/linux/packaging/icons/hicolor" ]]; then
-  cp -a "$ROOT/linux/packaging/icons/hicolor" "$PKG_ROOT/usr/share/icons/"
+ICON_TREE="$ROOT/linux/packaging/icons/hicolor"
+if [[ ! -d "$ICON_TREE" ]]; then
+  echo "Missing menu icons: $ICON_TREE (copy from AppDir or add PNGs under linux/packaging/icons/)." >&2
+  exit 1
 fi
+cp -a "$ICON_TREE" "$PKG_ROOT/usr/share/icons/"
 
 INSTALLED_SIZE="$(du -sk "$PKG_ROOT/usr" | cut -f1)"
 cat > "$PKG_ROOT/DEBIAN/control" <<CTRL
@@ -87,7 +90,7 @@ Description: Offline, privacy-first PDF and document workspace
  OCR, sign, and more — no account required.
 CTRL
 
-for maint in preinst postrm; do
+for maint in preinst postinst postrm; do
   src="$ROOT/linux/packaging/deb/$maint"
   if [[ ! -f "$src" ]]; then
     echo "Missing maintainer script: $src" >&2
