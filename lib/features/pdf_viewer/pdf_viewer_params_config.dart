@@ -98,6 +98,26 @@ double pdfViewerSettledRenderScale({
   return math.min(screen, kPdfSettledRenderLongEdgePx / longPt);
 }
 
+/// [scale] with a sub-pixel fingerprint of the page geometry.
+///
+/// pdfrx re-renders a cached page only when the requested scale differs or the
+/// image is marked dirty. It stamps a finished render with the geometry read
+/// after the render, so a page measured mid-render keeps its estimate-sized
+/// bitmap until a zoom changes the scale. Folding the geometry into the scale
+/// makes any measurement change a new request. The bitmap grows by at most
+/// 0.0001 %.
+double pdfViewerGeometryKeyedScale({
+  required double scale,
+  required double pageWidth,
+  required double pageHeight,
+  int rotation = 0,
+}) {
+  final w = (pageWidth * 8).round();
+  final h = (pageHeight * 8).round();
+  final mark = ((w * 7919 + h * 104729 + rotation * 31) % 997) + 1;
+  return scale * (1 + mark * 1e-9);
+}
+
 /// Whether [held] is still the right bitmap for screen-quality [target].
 ///
 /// Zooming out keeps a sharper bitmap so it is not replaced by a smaller
@@ -166,21 +186,29 @@ PdfViewerParams buildPdfViewerParams({
     ),
     getPageRenderingScale: (context, page, controller, _) {
       final zoom = controller.currentZoom;
+      // An unmeasured page has an estimated size. A render now would be the
+      // wrong shape and stretched, so the page stays blank until measured.
+      if (!page.isLoaded) return 0;
       final dpr = MediaQuery.devicePixelRatioOf(context);
       // The screen scale only. pdfrx must not be given a smaller scale.
-      if (pace != null) {
-        return pace.scaleFor(
-          pageWidth: page.width,
-          pageHeight: page.height,
-          zoom: zoom,
-          devicePixelRatio: dpr,
-        );
-      }
-      return pdfViewerSettledRenderScale(
+      final scale = pace != null
+          ? pace.scaleFor(
+              pageWidth: page.width,
+              pageHeight: page.height,
+              zoom: zoom,
+              devicePixelRatio: dpr,
+            )
+          : pdfViewerSettledRenderScale(
+              pageWidth: page.width,
+              pageHeight: page.height,
+              zoom: zoom,
+              devicePixelRatio: dpr,
+            );
+      return pdfViewerGeometryKeyedScale(
+        scale: scale,
         pageWidth: page.width,
         pageHeight: page.height,
-        zoom: zoom,
-        devicePixelRatio: dpr,
+        rotation: page.rotation.index,
       );
     },
     // DS-READ-007-B — find match highlight colors on canvas.

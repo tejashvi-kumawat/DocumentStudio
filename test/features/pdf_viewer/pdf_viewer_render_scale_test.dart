@@ -208,6 +208,25 @@ void main() {
     expect(settled * wide, kPdfSettledRenderLongEdgePx);
   });
 
+  test('a measured page size changes the requested scale', () {
+    final estimate = pdfViewerGeometryKeyedScale(
+      scale: 0.38,
+      pageWidth: 612,
+      pageHeight: 792,
+    );
+    final measured = pdfViewerGeometryKeyedScale(
+      scale: 0.38,
+      pageWidth: 2592,
+      pageHeight: 1728,
+    );
+    expect(estimate, isNot(measured));
+    expect((estimate - 0.38).abs(), lessThan(0.38 * 1e-5));
+    expect(
+      pdfViewerGeometryKeyedScale(scale: 0.38, pageWidth: 612, pageHeight: 792),
+      estimate,
+    );
+  });
+
   test('thumbnail strip offset follows the page index', () {
     expect(
       pdfThumbStripOffset(pageNumber: 1, stride: 210, maxScrollExtent: 4000),
