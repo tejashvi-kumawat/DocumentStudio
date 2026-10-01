@@ -57,12 +57,14 @@ require_bundled_engines "$PKG_ROOT/usr/lib/document-studio"
 write_engine_launcher \
   "/usr/lib/document-studio" \
   "$PKG_ROOT/usr/bin/document_studio"
+# Hyphenated name matches package id and user/docs; underscore kept for compatibility.
+ln -sf document_studio "$PKG_ROOT/usr/bin/document-studio"
 
 if [[ -f "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" ]]; then
   install -m644 "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
-  # Point Icon at hicolor name already used by packaging.
-  sed -i 's|^Exec=.*|Exec=document_studio %U|' \
+  # Must match a launcher on PATH (/usr/bin/document-studio).
+  sed -i 's|^Exec=.*|Exec=document-studio %U|' \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
 fi
 if [[ -d "$ROOT/linux/packaging/icons/hicolor" ]]; then
@@ -80,7 +82,7 @@ Installed-Size: ${INSTALLED_SIZE}
 Maintainer: Document Studio <noreply@documentstudio.local>
 Depends: libgtk-3-0, libblkid1, liblzma5
 Homepage: https://github.com/documentstudio/document_studio
- Description: Offline, privacy-first PDF and document workspace
+Description: Offline, privacy-first PDF and document workspace
  Document Studio processes PDFs and images on-device: merge, split, compress,
  OCR, sign, and more — no account required.
 CTRL
