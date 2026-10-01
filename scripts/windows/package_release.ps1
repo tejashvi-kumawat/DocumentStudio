@@ -38,6 +38,9 @@ Write-Host "==> portable zip"
 & powershell -NoProfile -ExecutionPolicy Bypass `
   -File (Join-Path $Root "scripts\windows\package_portable.ps1")
 
+$VersionLine = Select-String -Path (Join-Path $Root "pubspec.yaml") -Pattern '^version:\s*([^\+]+)' | Select-Object -First 1
+$Version = $VersionLine.Matches.Groups[1].Value.Trim()
+
 $iscc = @(
   "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
   "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
@@ -45,15 +48,14 @@ $iscc = @(
 
 if ($iscc) {
   Write-Host "==> Inno Setup installer ($iscc)"
-  & $iscc (Join-Path $Root "scripts\windows\document_studio.iss")
+  & $iscc "/DMyAppVersion=$Version" (Join-Path $Root "scripts\windows\document_studio.iss")
+  if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 } else {
   Write-Warning "Inno Setup 6 (ISCC.exe) not found — portable zip only."
   Write-Warning "Install from https://jrsoftware.org/isinfo.php then re-run, or:"
   Write-Warning "  ISCC.exe scripts\windows\document_studio.iss"
 }
 
-$VersionLine = Select-String -Path (Join-Path $Root "pubspec.yaml") -Pattern '^version:\s*([^\+]+)' | Select-Object -First 1
-$Version = $VersionLine.Matches.Groups[1].Value.Trim()
 Write-Host ""
 Write-Host "Done. Expected artifacts under dist\windows\:"
 Write-Host "  DocumentStudio-$Version-Setup.exe"
