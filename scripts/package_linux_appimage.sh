@@ -9,6 +9,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=linux/copy_app_tree.sh
+source "$ROOT/scripts/linux/copy_app_tree.sh"
 BUNDLE="${1:-}"
 if [[ -z "$BUNDLE" ]]; then
   for cand in \
@@ -29,7 +31,8 @@ APPDIR="$OUT_DIR/DocumentStudio.AppDir"
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor"
 
-cp -a "$BUNDLE"/. "$APPDIR/usr/lib/document-studio/"
+copy_app_tree "$BUNDLE" "$APPDIR/usr/lib/document-studio"
+require_bundled_engines "$APPDIR/usr/lib/document-studio"
 ln -sfr "$APPDIR/usr/lib/document-studio/document_studio" "$APPDIR/usr/bin/document_studio"
 
 install -m644 "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" \

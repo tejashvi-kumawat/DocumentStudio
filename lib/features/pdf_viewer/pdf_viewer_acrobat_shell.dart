@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_document_workspace.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_outline_panel.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_thumbnail_page_action.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_thumbnail_sidebar.dart';
+import 'package:document_studio/features/pdf_viewer/panels/viewer_tool_form_scaffold.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_all_tools_rail.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_embedded_tool_panel.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_left_icon_rail.dart';
@@ -55,6 +58,7 @@ class PdfViewerAcrobatShell extends StatefulWidget {
     this.pageOverlaysBuilder,
     this.onReorderPages,
     this.onPageAction,
+    this.canvasOverlay,
   });
 
   final String documentTabId;
@@ -85,6 +89,10 @@ class PdfViewerAcrobatShell extends StatefulWidget {
   final void Function(int fromIndex0, int toIndex0)? onReorderPages;
   final void Function(int page1Based, PdfThumbnailPageAction action)?
   onPageAction;
+
+  /// Drawn on the page only (draw button). Not over the tool row, the page
+  /// strip, or the Tools rail.
+  final Widget? canvasOverlay;
 
   @override
   State<PdfViewerAcrobatShell> createState() => PdfViewerAcrobatShellState();
@@ -201,24 +209,33 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
     );
   }
 
-  /// Phone / narrow: the open tool form, full width. Not sized from the
-  /// viewport, and never used as a [PdfViewer] key.
+  /// Preferred height of the open tool form under the page on a narrow
+  /// window. Shorter windows use half the column so the page stays visible.
   static const phoneToolPanelHeight = 340.0;
+
+  double _sheetHeight(double maxHeight) {
+    if (!maxHeight.isFinite || maxHeight <= 0) return 0;
+    return math.min(phoneToolPanelHeight, maxHeight * 0.5);
+  }
+
+  /// Tabs + thumbnail strip + divider. Used only to decide whether the strip
+  /// fits; the strip widget keeps its own height.
+  double _compactStripExtent() {
+    final tabs = widget.onSidebarContentChanged != null ? 36.0 : 0.0;
+    return tabs + PdfThumbnailSidebar.mobileStripHeight + 1;
+  }
 
   Widget _buildPhoneToolPanel() {
     final tool = widget.activeToolPanel;
     if (tool == null) return const SizedBox.shrink();
     return Material(
       elevation: 2,
-      child: SizedBox(
-        height: phoneToolPanelHeight,
-        child: PdfViewerEmbeddedToolPanel(
-          toolId: tool,
-          handoff: widget.handoff,
-          pageCount: widget.pageCount,
-          selectedPages1Based: widget.selectedPages1Based,
-          onClose: widget.onCloseToolPanel ?? () {},
-        ),
+      child: PdfViewerEmbeddedToolPanel(
+        toolId: tool,
+        handoff: widget.handoff,
+        pageCount: widget.pageCount,
+        selectedPages1Based: widget.selectedPages1Based,
+        onClose: widget.onCloseToolPanel ?? () {},
       ),
     );
   }
@@ -341,20 +358,39 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
       ),
     );
 
-    // Phone: pages strip + canvas. All tools is a bottom sheet, not a side
-    // column and not the desktop document-tab strip.
+    final overlay = widget.canvasOverlay;
+    final page = overlay == null
+        ? canvas
+        : Stack(
+            fit: StackFit.expand,
+            children: [canvas, overlay],
+          );
+
+    // Phone: pages strip + canvas. The tool form is full width and at most
+    // half the column, so a short phone (or a short desktop window) still
+    // shows the page. All tools is a sheet, not a side column.
     if (compact) {
       return Scaffold(
         key: _scaffoldKey,
         body: Stack(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (showCompactPages) _buildCompactPagesStrip(controller),
-                Expanded(key: _canvasSlot, child: canvas),
-                if (showPhoneToolPanel) _buildPhoneToolPanel(),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final maxH = constraints.maxHeight;
+                final panelH = showPhoneToolPanel ? _sheetHeight(maxH) : 0.0;
+                final showStrip =
+                    showCompactPages &&
+                    maxH - panelH >= _compactStripExtent() + 64;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (showStrip) _buildCompactPagesStrip(controller),
+                    Expanded(key: _canvasSlot, child: page),
+                    if (panelH > 0)
+                      SizedBox(height: panelH, child: _buildPhoneToolPanel()),
+                  ],
+                );
+              },
             ),
             if (showAllToolsSheet) _buildAllToolsSheet(),
           ],
@@ -393,26 +429,37 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
               ],
               Expanded(
                 key: _canvasSlot,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(child: canvas),
-                          if (widget.annotationsPanel case final panel?)
-                            SizedBox(width: 280, child: panel),
-                        ],
-                      ),
-                    ),
-                    if (showPhoneToolPanel) _buildPhoneToolPanel(),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final panelH = showPhoneToolPanel
+                        ? _sheetHeight(constraints.maxHeight)
+                        : 0.0;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(child: page),
+                              if (widget.annotationsPanel case final panel?)
+                                SizedBox(width: 280, child: panel),
+                            ],
+                          ),
+                        ),
+                        if (panelH > 0)
+                          SizedBox(
+                            height: panelH,
+                            child: _buildPhoneToolPanel(),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
               if (_buildRightToolsPane(wideTools) case final tools?) ...[
                 VerticalDivider(width: 1, thickness: 1, color: dividerColor),
-                tools,
+                SizedBox(width: viewerAcrobatOptionsWidth, child: tools),
               ],
             ],
           ),

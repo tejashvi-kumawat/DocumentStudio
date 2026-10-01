@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 /// Open-PDF tool row, most-used actions first.
 ///
 /// Order: Organize, Crop, Rotate, Edit, Convert, Encrypt, Decrypt, Tools.
-/// Drawing tools live in the left comment bar, not a Pencil menu. The row
+/// Drawing tools stay on the floating page button, not in this row. The row
 /// scrolls on a narrow window or phone. There is no More menu.
 class PdfViewerToolRow extends StatelessWidget {
   const PdfViewerToolRow({
@@ -61,6 +61,8 @@ class PdfViewerToolRow extends StatelessWidget {
                   child: ListView(
                     key: const Key('pdf_viewer_tool_row'),
                     scrollDirection: Axis.horizontal,
+                    primary: false,
+                    physics: const ClampingScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
                       horizontal: DsSpacing.xs,
                     ),

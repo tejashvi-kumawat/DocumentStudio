@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/features/page_management/interaction/organize_insertion_indicator.dart';
+import 'package:document_studio/features/page_management/page_thumb_render_gate.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_approach_decoder.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_approach_pages.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_thumbnail_page_action.dart';
-import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_thumb_cell.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pdfrx/pdfrx.dart';
 
 /// Mobile / narrow horizontal thumbnail strip height.
@@ -53,7 +57,13 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
   PdfDocument? _document;
   int? _pageCount;
   int? _lastSyncedPage;
+  int? _paintedPage;
+  int _thumbFollowTries = 0;
   final GlobalKey _activeTileKey = GlobalKey();
+  final ScrollController _thumbs = ScrollController();
+  final PageThumbRenderGate _thumbGate = PageThumbRenderGate(
+    concurrency: kPdfThumbMaxDecodes,
+  );
   VoidCallback? _controllerReadyListener;
   bool _activePageScrollScheduled = false;
   bool _documentStateRebuildScheduled = false;
@@ -70,6 +80,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
   void dispose() {
     _detachControllerReadyListener(widget.controller);
     widget.controller.removeListener(_onViewerPageChanged);
+    _thumbs.dispose();
     super.dispose();
   }
 
@@ -83,6 +94,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
       _document = null;
       _pageCount = null;
       _lastSyncedPage = null;
+      _thumbFollowTries = 0;
       _scheduleResolveDocument();
     }
   }
@@ -135,7 +147,12 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _activePageScrollScheduled = false;
       if (!mounted || !widget.controller.isReady) return;
-      _syncScrollToActivePage(widget.controller.pageNumber ?? 1);
+      // Page number is updated while the viewer rebuilds, after this
+      // controller notification. Read it on the next frame so the highlight
+      // and the strip both follow the page the user is actually on.
+      final page = widget.controller.pageNumber ?? 1;
+      if (_paintedPage != page) setState(() {});
+      _syncScrollToActivePage(page);
     });
   }
 
@@ -163,17 +180,51 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
     });
   }
 
+  double _thumbStride(bool horizontal) {
+    if (horizontal) {
+      final tileHeight = kPdfViewerMobileThumbnailStripHeight - 24;
+      return tileHeight * 3 / 4 + PdfThumbnailSidebar._tileGap;
+    }
+    final tileWidth = PdfThumbnailSidebar.sidebarWidth -
+        PdfThumbnailSidebar._listPaddingHorizontal * 2;
+    return tileWidth * 4 / 3 + PdfThumbnailSidebar._tileGap;
+  }
+
+  /// Moves the strip to [activePage] even when that cell is not built yet.
+  ///
+  /// [Scrollable.ensureVisible] only works for a tile that already exists.
+  /// During a fast scroll the current page is far outside the built range, so
+  /// the strip used to stay on page 1.
   void _syncScrollToActivePage(int activePage) {
     if (_lastSyncedPage == activePage) return;
+    if (!_thumbs.hasClients) {
+      if (_thumbFollowTries < 8) {
+        _thumbFollowTries++;
+        _scheduleScrollToActivePage();
+      }
+      return;
+    }
+    final stride = _thumbStride(widget.scrollAxis == Axis.horizontal);
+    final maxScroll = _thumbs.position.maxScrollExtent;
+    final pendingLayout =
+        maxScroll == 0 && activePage > 1 && (_pageCount ?? 0) > 1;
+    if (pendingLayout) {
+      if (_thumbFollowTries < 8) {
+        _thumbFollowTries++;
+        _scheduleScrollToActivePage();
+      }
+      return;
+    }
+    _thumbFollowTries = 0;
     _lastSyncedPage = activePage;
-    final ctx = _activeTileKey.currentContext;
-    if (ctx == null || !mounted) return;
-    Scrollable.ensureVisible(
-      ctx,
-      alignment: 0.35,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+    final target = pdfThumbStripOffset(
+      pageNumber: activePage,
+      stride: stride,
+      maxScrollExtent: maxScroll,
     );
+    if ((_thumbs.offset - target).abs() > 1) {
+      _thumbs.jumpTo(target);
+    }
   }
 
   Material _sidebarChrome({required Widget child, required bool isDark}) {
@@ -299,15 +350,19 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
 
     final tileRadius = BorderRadius.circular(PdfThumbnailSidebar._tileRadius);
 
+    final approach = PdfApproachDecoder.lookup(widget.controller);
     return _sidebarChrome(
       isDark: isDark,
       child: ListenableBuilder(
-        listenable: widget.controller,
+        listenable: approach == null
+            ? widget.controller
+            : Listenable.merge([widget.controller, approach]),
         builder: (context, _) {
           if (!widget.controller.isReady) {
             return const Center(child: CircularProgressIndicator(strokeWidth: 2));
           }
           final activePage = widget.controller.pageNumber ?? 1;
+          _paintedPage = activePage;
           final horizontal = widget.scrollAxis == Axis.horizontal;
           return ListView.builder(
             key: Key(
@@ -315,6 +370,8 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
                   ? 'pdf_mobile_thumbnail_strip'
                   : 'pdf_thumbnail_sidebar',
             ),
+            controller: _thumbs,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(64),
             scrollDirection: widget.scrollAxis,
             padding: const EdgeInsets.symmetric(
               vertical: PdfThumbnailSidebar._listPaddingVertical,
@@ -344,13 +401,12 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
                     children: [
                       AspectRatio(
                         aspectRatio: 3 / 4,
-                        child: PdfPageView(
+                        child: PdfViewerThumbCell(
+                          key: ValueKey('pdf-thumb-$pageNumber'),
                           document: document,
                           pageNumber: pageNumber,
-                          maximumDpi: 72,
-                          decoration: const BoxDecoration(
-                            color: DsColors.surfaceLight,
-                          ),
+                          gate: _thumbGate,
+                          approach: approach,
                         ),
                       ),
                       Positioned(

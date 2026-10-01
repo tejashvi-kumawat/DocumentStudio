@@ -187,16 +187,18 @@ const kOcrSearchablePdfMobileUnavailable =
 
 String _missingTesseractMessage() {
   if (Platform.isMacOS) {
-    return 'OCR engine not found. Reinstall Document Studio, or install '
-        'Tesseract with Homebrew (brew install tesseract).';
+    return 'OCR engine not found. Reinstall Document Studio so '
+        'Contents/MacOS/engines includes tesseract. A Homebrew tesseract '
+        'is used only when the app copy is missing.';
   }
   if (Platform.isWindows) {
-    return 'OCR engine not found. Reinstall Document Studio, or install '
-        'Tesseract for Windows and add it to PATH.';
+    return 'OCR engine not found. Reinstall Document Studio so engines/ '
+        'includes tesseract. A system tesseract is used only when the '
+        'app copy is missing.';
   }
-  return 'OCR engine not found: tesseract is missing from engines/ and PATH. '
-      'Install the tesseract-ocr package (or run '
-      'scripts/bundle_linux_engines.sh for a bundled build).';
+  return 'OCR engine not found: tesseract is not in the app engines folder. '
+      'Reinstall Document Studio. A system tesseract is used only when '
+      'the app copy is missing.';
 }
 
 Future<OcrEngineEnvironment> _probe(DesktopEngineResolver resolver) async {

@@ -1,6 +1,5 @@
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
-import 'package:document_studio/design_system/shell/ds_shell_page.dart';
 import 'package:document_studio/features/pdf_viewer/panels/viewer_tool_form_scaffold.dart';
 import 'package:flutter/material.dart';
 
@@ -44,8 +43,10 @@ class ViewerToolFormBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = dsUseCompactToolLayout(context) ||
-            (constraints.maxWidth.isFinite && constraints.maxWidth < 520);
+        final window = MediaQuery.sizeOf(context).width;
+        final compact = window < DsSpacing.breakpointCompact ||
+            (constraints.maxWidth.isFinite &&
+                constraints.maxWidth < DsSpacing.breakpointCompact);
         final height = constraints.maxHeight;
         final pageLike = !height.isFinite ||
             height >= MediaQuery.sizeOf(context).height * 0.72;
@@ -88,7 +89,8 @@ class ViewerToolPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compact = dsUseCompactToolLayout(context);
+    final compact =
+        MediaQuery.sizeOf(context).width < DsSpacing.breakpointCompact;
     final button = FilledButton.icon(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
@@ -135,7 +137,8 @@ class ViewerToolSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compact = dsUseCompactToolLayout(context);
+    final compact =
+        MediaQuery.sizeOf(context).width < DsSpacing.breakpointCompact;
     final button = OutlinedButton.icon(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(

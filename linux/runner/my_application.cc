@@ -136,7 +136,15 @@ static void my_application_activate(GApplication* application) {
     }
   }
 
+  // Fallback only, used before the window is mapped. Once the compositor
+  // has sized the window, startup must not unmaximize back to this size:
+  // the embedder would wait for a 1280x720 frame while the live window
+  // is already a different size. Minimum matches DsWindow.minimumSize.
   gtk_window_set_default_size(window, 1280, 720);
+  GdkGeometry geometry = {};
+  geometry.min_width = 560;
+  geometry.min_height = 420;
+  gtk_window_set_geometry_hints(window, nullptr, &geometry, GDK_HINT_MIN_SIZE);
   // Icon must be set before realize/show for reliable dock branding.
   apply_window_icon(window);
 

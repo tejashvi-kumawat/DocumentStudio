@@ -32,13 +32,18 @@ String resolveRunningExecutablePath({String? executablePath}) {
 /// Resolves bundled desktop CLI engines (qpdf, tesseract, pdfsig, …) for the
 /// running app.
 ///
-/// Lookup order on Linux (and other desktops):
-/// 1. `engines/<name>` beside the executable (wrapper sets LD_LIBRARY_PATH)
+/// Lookup order (bundled locations before PATH / `/usr/bin`):
+/// 1. `engines/<name>` beside the executable (wrapper sets library path)
 /// 2. `engines/bin/<name>` (raw binary / portable zip layout)
-/// 3. Next to [Platform.resolvedExecutable]
-/// 4. Parent `engines/` (intermediate build layouts)
-/// 5. Flutter debug/release bundle under cwd (`build/linux/*/bundle/engines`)
-/// 6. PATH (`which`) — last resort only
+/// 3. Next to the executable
+/// 4. Parent `engines/` and, on macOS, `Contents/Resources/engines`
+/// 5. App-support `engines/` registered in [debugDesktopEngineExtraRoots]
+/// 6. Flutter debug/release bundle under cwd (`build/linux/*/bundle/engines`)
+/// 7. PATH (`which` on Linux/macOS, `where` on Windows) — last resort only
+///
+/// Windows Release output keeps engines beside `document_studio.exe`.
+/// macOS `.app` keeps them in `Contents/MacOS/engines` (and may mirror
+/// `Contents/Resources/engines`). Android does not use these CLIs.
 class DesktopEngineResolver {
   DesktopEngineResolver({
     String? executablePath,
@@ -79,6 +84,9 @@ class DesktopEngineResolver {
       dir,
       p.join(dir, '..', 'engines'),
       p.join(dir, '..', 'engines', 'bin'),
+      // macOS .app: MacOS/ holds the executable; Resources/engines is a mirror.
+      p.join(dir, '..', 'Resources', 'engines'),
+      p.join(dir, '..', 'Resources', 'engines', 'bin'),
       p.join(dir, '..', '..', 'bundle', 'engines'),
       p.join(dir, '..', '..', 'bundle', 'engines', 'bin'),
     };
@@ -95,6 +103,9 @@ class DesktopEngineResolver {
         p.join(cwd, 'build', 'linux', 'x64', mode, 'bundle', 'engines', 'bin'),
       );
       roots.add(p.join(cwd, 'build', 'linux', 'arm64', mode, 'bundle', 'engines'));
+      roots.add(
+        p.join(cwd, 'build', 'linux', 'arm64', mode, 'bundle', 'engines', 'bin'),
+      );
     }
     final out = <String>[];
     final seen = <String>{};
@@ -149,7 +160,12 @@ class DesktopEngineResolver {
       p.join(_exeDir, 'engines', 'share', 'tessdata'),
       p.join(_exeDir, '..', 'engines', 'tessdata'),
       p.join(_exeDir, '..', '..', 'bundle', 'engines', 'tessdata'),
+      p.join(_exeDir, '..', 'Resources', 'engines', 'tessdata'),
     };
+    for (final extra in debugDesktopEngineExtraRoots) {
+      if (extra.isEmpty) continue;
+      candidates.add(p.join(extra, 'tessdata'));
+    }
     final cwd = Directory.current.path;
     for (final mode in ['debug', 'release']) {
       candidates.add(
@@ -166,9 +182,16 @@ class DesktopEngineResolver {
 
   static Future<String?> _which(String name) async {
     try {
-      final result = await Process.run('which', [name]);
+      final result = Platform.isWindows
+          ? await Process.run('where', [name], runInShell: true)
+          : await Process.run('which', [name]);
       if (result.exitCode != 0) return null;
-      final path = result.stdout.toString().trim().split('\n').first.trim();
+      final path = result.stdout
+          .toString()
+          .trim()
+          .split(RegExp(r'\r?\n'))
+          .first
+          .trim();
       if (path.isEmpty) return null;
       return path;
     } catch (_) {

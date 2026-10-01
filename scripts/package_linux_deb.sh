@@ -8,6 +8,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=linux/copy_app_tree.sh
+source "$ROOT/scripts/linux/copy_app_tree.sh"
 BUNDLE="${1:-}"
 if [[ -z "$BUNDLE" ]]; then
   for cand in \
@@ -40,14 +42,13 @@ mkdir -p "$PKG_ROOT/DEBIAN" \
   "$PKG_ROOT/usr/share/applications" \
   "$PKG_ROOT/usr/share/icons"
 
-cp -a "$BUNDLE"/. "$PKG_ROOT/usr/lib/document-studio/"
+copy_app_tree "$BUNDLE" "$PKG_ROOT/usr/lib/document-studio"
+require_bundled_engines "$PKG_ROOT/usr/lib/document-studio"
 
-# Wrapper so PATH finds the app and RPATH-relative libs stay under /usr/lib/...
-cat > "$PKG_ROOT/usr/bin/document_studio" <<'WRAP'
-#!/usr/bin/env bash
-exec /usr/lib/document-studio/document_studio "$@"
-WRAP
-chmod 755 "$PKG_ROOT/usr/bin/document_studio"
+# Wrapper prefers bundled engines over /usr/bin.
+write_engine_launcher \
+  "/usr/lib/document-studio" \
+  "$PKG_ROOT/usr/bin/document_studio"
 
 if [[ -f "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" ]]; then
   install -m644 "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" \

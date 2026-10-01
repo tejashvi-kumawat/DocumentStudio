@@ -51,6 +51,18 @@ abstract final class DsWindow {
     if (!isDesktop) return;
     try {
       await windowManager.ensureInitialized();
+      if (Platform.isLinux) {
+        // The GTK window is created at 1280x720
+        // (linux/runner/my_application.cc) and then mapped at its real size.
+        // window_manager's waitUntilReadyToShow unmaximizes on every startup,
+        // including hot restart, which restores that 1280x720 default while
+        // the embedder already has a frame of the live window. The OpenGL
+        // compositor then times out waiting for the old size. Minimum size
+        // does not change the current size.
+        await windowManager.setMinimumSize(minimumSize);
+        _initialized = true;
+        return;
+      }
       final hideNativeTitleBar = Platform.isMacOS || Platform.isWindows;
       await windowManager.waitUntilReadyToShow(
         WindowOptions(

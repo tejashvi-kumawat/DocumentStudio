@@ -109,9 +109,11 @@ class QpdfMetadataAdapter implements PdfMetadataPort {
     if (!await isAvailable()) {
       throw const DocumentStudioError(
         code: DocumentStudioErrorCode.featureUnavailable,
-        message: 'Metadata tools require the qpdf command-line tool on PATH.',
+        message: 'Metadata tools need the bundled qpdf engine.',
         recoveryHint:
-            'Install qpdf on this device, or wait for the bundled qpdf engine.',
+            'On desktop, download qpdf once from Settings or reinstall '
+            'Document Studio. Android and iOS use the built-in PDF engine '
+            'and do not install qpdf.',
       );
     }
   }

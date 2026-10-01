@@ -17,7 +17,9 @@ Not used by the app: `pdftotext`, `pdfinfo`, `pdftoppm`, `mutool`, `gs`, ImageMa
 
 ## Runtime resolver
 
-`lib/core/desktop/desktop_engine_resolver.dart` looks in bundled `engines/` **before** PATH. Wrappers under `engines/<name>` set `LD_LIBRARY_PATH` / `TESSDATA_PREFIX` / `DYLD_*`. Bootstrap seeds qpdf via the same resolver.
+`lib/core/desktop/desktop_engine_resolver.dart` looks in bundled `engines/` **before** PATH (`/usr/bin` is last). The same order is used on Windows (engines beside the `.exe`, including `qpdf.cmd`) and macOS (`Contents/MacOS/engines`, then `Contents/Resources/engines`). Wrappers under `engines/<name>` set `LD_LIBRARY_PATH` / `TESSDATA_PREFIX` / `DYLD_*`. Bootstrap seeds qpdf via the same resolver and also searches app-support `engines/` (a one-time download from Settings, never on every launch, and never on the PDF viewer path).
+
+Android and iOS do not install qpdf. Compress, crop, and encrypt on Android use the Dart / PDFium path.
 
 Missing tools must surface a clear UI message (feature + why), not fail silently.
 
@@ -25,15 +27,29 @@ Missing tools must surface a clear UI message (feature + why), not fail silently
 
 | Tool | Linux (.deb / AppImage) | Windows (.exe / zip) | macOS (.dmg) | Android (Play) |
 | --- | --- | --- | --- | --- |
-| qpdf | **Bundled** (`scripts/bundle_linux_engines.sh`) | **Bundled** (mingw64 zip at build) | **Bundled** (Homebrew copy) | **N/A** — use pdfrx where possible; protect/metadata UI explains desktop-only |
+| qpdf | **Bundled** (`install_local.sh` → `engines/qpdf`, ahead of `/usr/bin`) | **Bundled** (mingw64 zip at build; `engines/qpdf.cmd` beside the exe) | **Bundled** (`Contents/MacOS/engines`, also `Contents/Resources/engines`) | **N/A** — Dart/PDFium. Do not install qpdf. |
 | tesseract + eng/osd | **Bundled** | **Bundled** (NSIS silent install + tessdata_fast) | **Bundled** (brew + tessdata_fast) | **N/A** — `BlockedOcrPort` message |
-| LibreOffice | **Bundled** (Document Foundation tarball / debs) | **Bundled** (official MSI → `engines/libreoffice`) | **Bundled** (official DMG → `engines/LibreOffice.app`) | **N/A** — convert on desktop |
+| LibreOffice | **System `soffice`** (not copied by `install_local.sh`; older `dist/linux` artifacts may still contain a previous download) | **Bundled** when the Windows packager runs (skip with `DS_SKIP_LIBREOFFICE=1`) | **Bundled** when the macOS packager runs | **N/A** — convert on desktop |
 | pdfsig / NSS / openssl | **Bundled** (PATH or portable debs) | **Bundled** (poppler zip + OpenSSL Light + MSYS2 NSS) | **Bundled** via brew | **N/A** |
 | ffmpeg | **Bundled** | **Bundled** (gyan essentials zip or PATH) | **Bundled** via brew | Mobile uses platform camera APIs |
 
+## Linux install (this machine)
+
+One command. It does not rebuild `dist/linux` and it does not download LibreOffice.
+
+```bash
+bash scripts/linux/install_local.sh
+```
+
+qpdf is installed at `~/.local/lib/document-studio/engines/qpdf` (wrapper) and `engines/bin/qpdf`. The launcher `~/.local/bin/document-studio` puts `engines` on `PATH` before `/usr/bin`. Tesseract and `eng`/`osd` tessdata are copied the same way. pdfsig, certutil, pk12util, openssl, and ffmpeg are copied when they are already in the engine tree.
+
+**Not bundled:** LibreOffice. Office conversion uses the system `soffice` when that program is installed.
+
+A root `.deb` for later is `bash scripts/linux/package_deb.sh` (after `flutter build linux --release`). That package also refuses to ship without qpdf and tesseract, and its `/usr/bin/document_studio` wrapper prefers `engines/` over `/usr/bin`.
+
 ## Linux build machine
 
-CMake `install(CODE)` runs `scripts/bundle_linux_engines.sh`. Packaging scripts call it again before `.deb` / AppImage.
+`linux/CMakeLists.txt` copies `.tools/linux-engines` into `bundle/engines` (debug: symlink, release: copy). `scripts/bundle_linux_engines.sh` fills that tree. Packaging scripts call the copy helper before `.deb` / AppImage.
 
 ```bash
 flutter build linux --release
@@ -79,6 +95,10 @@ Outputs: `dist/windows/DocumentStudio-<ver>-Setup.exe`, `DocumentStudio-<ver>-po
 Optional overrides: `DS_TESSERACT_ROOT`, `DS_LIBREOFFICE_ROOT`, `DS_SKIP_LIBREOFFICE=1`.
 
 Windows still keeps an in-app LibreOffice downloader as a **fallback** when an older installer was built without LO; new packages ship it inside `engines/`.
+
+## First-run qpdf (dev or an old build)
+
+If `engines/qpdf` is missing, Settings → **Download qpdf** fetches the official GitHub zip once into the app-support `engines/` directory (Linux and Windows). It does not run at startup and does not block PDF viewing. macOS has no small official zip; use `bash scripts/macos/package_release.sh`. Android never downloads qpdf.
 
 ## macOS build machine
 

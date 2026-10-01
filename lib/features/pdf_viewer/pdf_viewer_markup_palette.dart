@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:document_studio/design_system/ds_colors.dart';
+import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/features/annotations/markup/markup_editor_controller.dart';
 import 'package:document_studio/features/annotations/markup/markup_tool.dart';
 import 'package:flutter/material.dart';
@@ -31,11 +32,11 @@ String _shapeLabel(MarkupTool tool) => switch (tool) {
 
 /// Floating comment tools on the open PDF page.
 ///
-/// Sits on the right of the page (the parent supplies how far the Tools
-/// panel cuts in). Drag the grip to move it; it stays on the page. One
-/// control collapses it to that same button and expands it again.
-/// Collapsed and dragged position last for this process session.
-/// Color, bold, size, and alignment stay on the floating format bar.
+/// One button on the right of the page, left of the Tools rail (the parent
+/// stacks this on the page, not over that rail or the top tool row). Drag
+/// the grip to move it; it stays inside the page. On a phone it sits inset
+/// from the edges. Collapsed and dragged position last for this process
+/// session. Color, bold, size, and alignment stay on the floating format bar.
 class PdfViewerMarkupPalette extends StatefulWidget {
   const PdfViewerMarkupPalette({
     super.key,
@@ -50,10 +51,10 @@ class PdfViewerMarkupPalette extends StatefulWidget {
   final MarkupEditorController markup;
   final ValueChanged<MarkupTool> onSelect;
 
-  /// Space on the right already taken by the Tools panel (and a gap).
+  /// Extra gap on the right of the page (in addition to the edge inset).
   final double pageRightInset;
 
-  /// Space at the bottom already taken by a phone tool sheet.
+  /// Extra gap at the bottom of the page (in addition to the edge inset).
   final double pageBottomInset;
 
   static const railWidth = 44.0;
@@ -80,6 +81,7 @@ class PdfViewerMarkupPalette extends StatefulWidget {
 class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
   final _barKey = GlobalKey();
   Size? _stack;
+  Size? _barSize;
   Offset? _pos;
 
   @override
@@ -115,23 +117,64 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
     });
   }
 
-  double _bottomPad() =>
-      widget.pageBottomInset + MediaQuery.paddingOf(context).bottom;
+  bool get _phone =>
+      MediaQuery.sizeOf(context).width < DsSpacing.breakpointCompact;
+
+  /// Phone sits further in from the screen edge. Desktop keeps a small side
+  /// gap and [PdfViewerMarkupPalette.dockTop] under the tool row.
+  double get _edge => _phone ? 12.0 : 8.0;
+
+  double get _topEdge => _phone ? 12.0 : PdfViewerMarkupPalette.dockTop;
+
+  ({double minLeft, double maxLeft, double minTop, double maxTop}) _limits(
+    Size stack,
+    Size bar,
+  ) {
+    final pad = MediaQuery.paddingOf(context);
+    final insetL = math.max(_edge, pad.left);
+    final insetR = math.max(
+      _edge,
+      math.max(pad.right, widget.pageRightInset),
+    );
+    final insetT = _topEdge;
+    final insetB = math.max(
+      _edge,
+      math.max(pad.bottom, widget.pageBottomInset),
+    );
+    final minLeft = math.min(insetL, math.max(0.0, stack.width - bar.width));
+    final maxLeft = math.max(
+      minLeft,
+      stack.width - insetR - bar.width,
+    );
+    final minTop = math.min(insetT, math.max(0.0, stack.height - bar.height));
+    final maxTop = math.max(
+      minTop,
+      stack.height - insetB - bar.height,
+    );
+    return (
+      minLeft: minLeft,
+      maxLeft: maxLeft,
+      minTop: minTop,
+      maxTop: maxTop,
+    );
+  }
+
+  Offset _originFor(Size stack, Size bar) {
+    final limits = _limits(stack, bar);
+    final raw =
+        PdfViewerMarkupPalette.sessionOrigin ??
+        Offset(limits.maxLeft, limits.minTop);
+    return Offset(
+      raw.dx.clamp(limits.minLeft, limits.maxLeft).toDouble(),
+      raw.dy.clamp(limits.minTop, limits.maxTop).toDouble(),
+    );
+  }
 
   void _dragBy(Offset delta) {
     final stack = _stack;
     if (stack == null) return;
-    final current =
-        _pos ??
-        Offset(
-          math.max(
-            0,
-            stack.width -
-                widget.pageRightInset -
-                PdfViewerMarkupPalette.railWidth,
-          ),
-          PdfViewerMarkupPalette.dockTop,
-        );
+    final bar = _barSize ?? Size(PdfViewerMarkupPalette.railWidth, 64);
+    final current = _pos ?? _originFor(stack, bar);
     PdfViewerMarkupPalette.sessionOrigin = current + delta;
     _clamp();
   }
@@ -141,17 +184,8 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
     final barBox = _barKey.currentContext?.findRenderObject() as RenderBox?;
     if (stack == null || barBox == null || !barBox.hasSize) return;
     final bar = barBox.size;
-    final maxLeft = math.max(
-      0.0,
-      stack.width - widget.pageRightInset - bar.width,
-    );
-    final maxTop = math.max(0.0, stack.height - _bottomPad() - bar.height);
-    final dock = Offset(
-      maxLeft,
-      math.min(PdfViewerMarkupPalette.dockTop, maxTop),
-    );
-    final raw = PdfViewerMarkupPalette.sessionOrigin ?? dock;
-    final next = Offset(raw.dx.clamp(0.0, maxLeft), raw.dy.clamp(0.0, maxTop));
+    _barSize = bar;
+    final next = _originFor(stack, bar);
     if (PdfViewerMarkupPalette.sessionOrigin != null) {
       PdfViewerMarkupPalette.sessionOrigin = next;
     }
@@ -175,19 +209,21 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
               if (hadStack) _scheduleClamp();
             }
             final collapsed = PdfViewerMarkupPalette.collapsed.value;
-            final parked = PdfViewerMarkupPalette.sessionOrigin;
-            final left =
-                _pos?.dx ??
-                parked?.dx ??
-                math.max(
-                  0.0,
-                  stack.width -
-                      widget.pageRightInset -
-                      PdfViewerMarkupPalette.railWidth,
+            final barGuess =
+                _barSize ??
+                Size(
+                  PdfViewerMarkupPalette.railWidth,
+                  collapsed ? 64 : math.min(320, stack.height),
                 );
-            final top =
-                _pos?.dy ?? parked?.dy ?? PdfViewerMarkupPalette.dockTop;
-            final maxHeight = math.max(64.0, stack.height - top - _bottomPad());
+            final placed = _originFor(stack, barGuess);
+            final left = placed.dx;
+            final top = placed.dy;
+            final pad = MediaQuery.paddingOf(context);
+            final insetB = math.max(
+              _edge,
+              math.max(pad.bottom, widget.pageBottomInset),
+            );
+            final maxHeight = math.max(48.0, stack.height - top - insetB);
             final armed = widget.markup.editMode ? widget.markup.tool : null;
             return Stack(
               children: [
@@ -491,6 +527,7 @@ class _ShapeButtonState extends State<_ShapeButton> {
   final _link = LayerLink();
   OverlayEntry? _entry;
   bool _openUp = false;
+  bool _openRight = false;
 
   bool get _shapeArmed =>
       widget.armed != null && pdfViewerMarkupShapeTools.contains(widget.armed);
@@ -521,9 +558,12 @@ class _ShapeButtonState extends State<_ShapeButton> {
     }
     final box = context.findRenderObject()! as RenderBox;
     final origin = box.localToGlobal(Offset.zero);
-    final screenH = MediaQuery.sizeOf(context).height;
+    final screen = MediaQuery.sizeOf(context);
     final menuH = pdfViewerMarkupShapeTools.length * 40.0 + 8;
-    _openUp = origin.dy + menuH > screenH - 12;
+    _openUp = origin.dy + menuH > screen.height - 12;
+    // The menu is ~200dp. Open toward the side of the screen that has room
+    // so a phone button near the left edge does not paint off-screen.
+    _openRight = origin.dx < 220;
     _entry = OverlayEntry(
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -542,13 +582,13 @@ class _ShapeButtonState extends State<_ShapeButton> {
               CompositedTransformFollower(
                 link: _link,
                 showWhenUnlinked: false,
-                targetAnchor: _openUp
-                    ? Alignment.bottomLeft
-                    : Alignment.topLeft,
-                followerAnchor: _openUp
-                    ? Alignment.bottomRight
-                    : Alignment.topRight,
-                offset: const Offset(-6, 0),
+                targetAnchor: _openRight
+                    ? (_openUp ? Alignment.bottomRight : Alignment.topRight)
+                    : (_openUp ? Alignment.bottomLeft : Alignment.topLeft),
+                followerAnchor: _openRight
+                    ? (_openUp ? Alignment.bottomLeft : Alignment.topLeft)
+                    : (_openUp ? Alignment.bottomRight : Alignment.topRight),
+                offset: Offset(_openRight ? 6 : -6, 0),
                 child: Material(
                   elevation: 8,
                   color: surface,

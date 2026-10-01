@@ -154,13 +154,16 @@ PdfViewerParams buildPdfViewerParams({
   return PdfViewerParams(
     // Measure only pages that intersect the cache band. Never walk the
     // document for sizes on open or on a fling.
+    //
+    // pdfrx fills a page that has no bitmap yet with white. Page 1 of a
+    // drawing set is often a blank white sheet, so that fill looked like
+    // page 1 on every other page. Leave both of pdfrx's decodes off.
+    // [PdfApproachDecoder] paints a page number until that page's own
+    // pixels arrive, and never substitutes another page's bitmap.
     behaviorControlParams: const PdfViewerBehaviorControlParams(
       loadPageDimensionsOnDemand: true,
-      enableLowResolutionPagePreview: true,
-      // Screen-resolution tiles wait until the visible rect stops changing.
-      // A fling resets this timer every frame, so it never queues a full
-      // decode for a page the user has already left.
-      partialImageLoadingDelay: Duration(milliseconds: 180),
+      enableLowResolutionPagePreview: false,
+      partialImageLoadingDelay: Duration(days: 1),
     ),
     // One neighbor past the viewport, not another full screen of pages.
     verticalCacheExtent: kPdfViewerNeighborCacheExtent,
