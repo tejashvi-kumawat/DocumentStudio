@@ -1,0 +1,22 @@
+name: document_studio_os_signing
+description: macOS/iOS Keychain identity listing and signing for Document Studio.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      macos:
+        pluginClass: DocumentStudioOsSigningPlugin
+        sharedDarwinSource: true
+      ios:
+        pluginClass: DocumentStudioOsSigningPlugin
+        sharedDarwinSource: true

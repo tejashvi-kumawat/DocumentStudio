@@ -1,0 +1,15 @@
+name: document_studio_ocr
+description: Tesseract OCR ports and searchable-PDF pipeline for Document Studio (ADR-004).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  path: ^1.9.0
+  image: ^4.10.1
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

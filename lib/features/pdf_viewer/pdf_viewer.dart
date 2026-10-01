@@ -1,0 +1,10 @@
+export 'document_tabs_controller.dart';
+export 'pdf_document_tab_bar.dart';
+export 'pdf_document_workspace.dart';
+export 'pdf_search_flow.dart';
+export 'pdf_search_match_bar.dart';
+export 'pdf_thumbnail_sidebar.dart';
+export 'pdf_viewer_params_config.dart';
+export 'pdf_viewer_providers.dart';
+export 'pdf_viewer_screen.dart';
+export 'viewer_route_args.dart';
