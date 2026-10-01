@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:document_studio/features/page_management/page_thumb_render_gate.dart';
-import 'package:document_studio/features/pdf_viewer/pdf_approach_decoder.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_approach_pages.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -24,7 +24,7 @@ class PdfViewerThumbCell extends StatefulWidget {
   final PdfDocument document;
   final int pageNumber;
   final PageThumbRenderGate gate;
-  final PdfApproachDecoder? approach;
+  final PdfViewerRenderPace? approach;
 
   @override
   State<PdfViewerThumbCell> createState() => _PdfViewerThumbCellState();

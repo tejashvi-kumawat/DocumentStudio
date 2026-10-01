@@ -85,6 +85,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
 
   late PdfViewerController _controller;
   final PdfViewerRenderPace _renderPace = PdfViewerRenderPace();
+  (double, double, double)? _motion;
 
   /// pdfrx [PdfViewerController.invalidate] notifies listeners synchronously;
   /// defer so param updates never run during [State.didUpdateWidget] / layout.
@@ -260,6 +261,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
   void initState() {
     super.initState();
     _controller = PdfViewerController();
+    _bindMotion(_controller);
     final identityHint = widget.viewerIdentityPath ?? widget.file.path;
     final loadHint = widget.file.path;
     // Sync path first (cache hit after shell await resolve). If still FUSE,
@@ -300,8 +302,36 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
     _notifyControllerReady();
   }
 
+  void _bindMotion(PdfViewerController controller) {
+    _renderPace.attach(controller);
+    controller.addListener(_onViewerMotion);
+    _motion = null;
+  }
+
+  void _unbindMotion(PdfViewerController controller) {
+    controller.removeListener(_onViewerMotion);
+    _renderPace.detach(controller);
+  }
+
+  /// Marks scroll and zoom so thumbnails yield the PDFium worker.
+  void _onViewerMotion() {
+    final controller = _controller;
+    if (!controller.isReady) return;
+    final s = controller.value.storage;
+    final now = (s[0], s[12], s[13]);
+    final prev = _motion;
+    _motion = now;
+    if (prev == null) return;
+    if ((now.$1 - prev.$1).abs() >= 0.0005 ||
+        (now.$2 - prev.$2).abs() >= 0.5 ||
+        (now.$3 - prev.$3).abs() >= 0.5) {
+      _renderPace.noteMotion();
+    }
+  }
+
   @override
   void dispose() {
+    _unbindMotion(_controller);
     _renderPace.dispose();
     registerPdfViewerSeamlessReload(_controller, null);
     _dropDocument();
@@ -342,7 +372,9 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
         password: widget.password,
       );
       _documentReady = true;
+      _unbindMotion(_controller);
       _controller = PdfViewerController();
+      _bindMotion(_controller);
       _renderPace.clear();
       _notifyControllerReady();
     } else if (loadPathChanged) {

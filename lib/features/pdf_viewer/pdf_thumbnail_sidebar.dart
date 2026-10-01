@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/features/page_management/interaction/organize_insertion_indicator.dart';
 import 'package:document_studio/features/page_management/page_thumb_render_gate.dart';
-import 'package:document_studio/features/pdf_viewer/pdf_approach_decoder.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_approach_pages.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_thumbnail_page_action.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_thumb_cell.dart';
@@ -350,7 +350,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
 
     final tileRadius = BorderRadius.circular(PdfThumbnailSidebar._tileRadius);
 
-    final approach = PdfApproachDecoder.lookup(widget.controller);
+    final approach = PdfViewerRenderPace.lookup(widget.controller);
     return _sidebarChrome(
       isDark: isDark,
       child: ListenableBuilder(

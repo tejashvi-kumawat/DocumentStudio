@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:document_studio/app/keyboard/text_input_guard.dart';
+import 'package:document_studio/core/perf/render_budget.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/features/annotations/markup/markup_keyboard.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_gesture_zoom.dart';
@@ -26,42 +27,68 @@ const double kPdfSettledScaleFloor = 0.9;
 /// How long the matrix must stay still before scrolling counts as finished.
 const Duration kPdfScrollSettleDelay = Duration(milliseconds: 140);
 
-/// Extra band around the viewport, as a fraction of the viewport.
-///
-/// pdfrx renders every page that intersects this band and cancels a render
-/// when the page leaves it. Half a viewport reaches the page just ahead and
-/// the page just behind without pulling in the rest of the document.
-const double kPdfViewerNeighborCacheExtent = 0.5;
-
 /// Notices when the matrix is moving. The decode scale does not change
 /// with motion.
-class PdfViewerRenderPace {
+///
+/// Page renders and thumbnail renders share one PDFium worker. Thumbnails
+/// wait while [isMoving] so the page under the scroll is never queued behind
+/// them. Listeners hear only the start and the end of a motion.
+class PdfViewerRenderPace extends ChangeNotifier {
   bool _moving = false;
+  bool _disposed = false;
   Timer? _settleTimer;
+
+  static final Map<PdfViewerController, PdfViewerRenderPace> _attached = {};
+
+  static PdfViewerRenderPace? lookup(PdfViewerController controller) =>
+      _attached[controller];
+
+  void attach(PdfViewerController controller) {
+    _attached[controller] = this;
+  }
+
+  void detach(PdfViewerController controller) {
+    if (identical(_attached[controller], this)) _attached.remove(controller);
+  }
 
   /// Called once the matrix has been still for [kPdfScrollSettleDelay].
   VoidCallback? onSettled;
 
   bool get isMoving => _moving;
 
+  /// True while the viewer is scrolling or zooming.
+  bool get blocksThumbnails => _moving;
+
   void noteMotion() {
+    if (_disposed) return;
+    final started = !_moving;
     _moving = true;
     _settleTimer?.cancel();
     _settleTimer = Timer(kPdfScrollSettleDelay, () {
+      if (_disposed) return;
       _moving = false;
       onSettled?.call();
+      notifyListeners();
     });
+    if (started) notifyListeners();
   }
 
   void clear() {
     _settleTimer?.cancel();
     _settleTimer = null;
+    final was = _moving;
     _moving = false;
+    if (was && !_disposed) notifyListeners();
   }
 
+  @override
   void dispose() {
-    clear();
+    _settleTimer?.cancel();
+    _settleTimer = null;
+    _disposed = true;
+    _attached.removeWhere((_, pace) => identical(pace, this));
     onSettled = null;
+    super.dispose();
   }
 
   /// The one scale a page may be decoded at.
@@ -161,6 +188,7 @@ PdfViewerParams buildPdfViewerParams({
       ? PdfViewerScrollLayoutMode.singlePage
       : scrollLayoutMode;
   final pace = renderPace;
+  final budget = RenderBudget.current;
   return PdfViewerParams(
     // Measure only pages that intersect the cache band. Never walk the
     // document for sizes on open or on a fling.
@@ -170,16 +198,17 @@ PdfViewerParams buildPdfViewerParams({
     // [getPageRenderingScale], which is the full screen scale, so no coarse
     // stage exists. Zoomed past [kPdfSettledRenderLongEdgePx], the visible
     // region is rendered at real pixel size on top with no delay.
-    behaviorControlParams: const PdfViewerBehaviorControlParams(
+    behaviorControlParams: PdfViewerBehaviorControlParams(
       loadPageDimensionsOnDemand: true,
       enableLowResolutionPagePreview: true,
       partialImageLoadingDelay: Duration.zero,
+      pageImageCachingDelay: budget.pageImageCachingDelay,
     ),
-    // One neighbor past the viewport, not another full screen of pages.
-    verticalCacheExtent: kPdfViewerNeighborCacheExtent,
-    horizontalCacheExtent: kPdfViewerNeighborCacheExtent,
+    verticalCacheExtent: budget.cacheExtent,
+    horizontalCacheExtent: budget.cacheExtent,
+    maxImageBytesCachedOnMemory: budget.viewerImageCacheBytes,
     onePassRenderingSizeThreshold: 100000,
-    limitRenderingCache: true,
+    limitRenderingCache: budget.limitPdfiumImageCache,
     sizeDelegateProvider: const PdfViewerSizeDelegateProviderLegacy(
       minScale: 0.5,
       maxScale: 8,
