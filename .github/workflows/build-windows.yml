@@ -8,9 +8,10 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
-  windows:
+  build_installer:
     runs-on: windows-latest
     timeout-minutes: 90
     steps:
