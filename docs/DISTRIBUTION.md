@@ -110,6 +110,40 @@ bash scripts/linux/package_appimage.sh
 
 Artifacts: `dist/linux/document-studio_<ver>_<arch>.deb` and AppImage (or AppDir tarball if `appimagetool` is missing).
 
+### Install / replace the `.deb`
+
+Package name is **`document-studio`** (deb file: `document-studio_<ver>_<arch>.deb`).
+
+```bash
+sudo dpkg -i dist/linux/document-studio_1.0.3_amd64.deb
+sudo apt-get install -f -y   # only if dpkg reports missing dependencies
+```
+
+Do not mix the `.deb` with `scripts/linux/install_local.sh` on the same machine unless you know why — the local script adds menu entries under `~/.local` and can leave extra LibreOffice trees under `/usr/lib/document-studio` that older packages did not track.
+
+### Clean uninstall (deb + local menu entry)
+
+```bash
+sudo bash scripts/linux/uninstall_document_studio_deb.sh
+bash scripts/linux/uninstall_local.sh
+```
+
+Equivalent manual steps:
+
+```bash
+sudo apt-get purge -y document-studio
+sudo rm -rf /usr/lib/document-studio
+rm -f ~/.local/share/applications/com.documentstudio.document_studio.desktop \
+      ~/.local/share/applications/document-studio.desktop
+rm -rf ~/.local/lib/document-studio ~/.local/bin/document-studio
+```
+
+Then reinstall:
+
+```bash
+sudo dpkg -i dist/linux/document-studio_1.0.3_amd64.deb
+```
+
 **Flathub (optional, later):** free if you have a public GitHub repo; submit a Flatpak manifest when you want distro-store discoverability. Not required for v1 — ship `.deb` + AppImage on GitHub Releases first.
 
 **Engines:** `.deb` and AppImage must include `engines/` (qpdf, tesseract+tessdata, signing tools, ffmpeg). LibreOffice is the system `soffice`, not a bundled download. See **[ENGINES.md](ENGINES.md)**. Packaging refuses to ship without qpdf and tesseract.

@@ -80,10 +80,19 @@ Installed-Size: ${INSTALLED_SIZE}
 Maintainer: Document Studio <noreply@documentstudio.local>
 Depends: libgtk-3-0, libblkid1, liblzma5
 Homepage: https://github.com/documentstudio/document_studio
-Description: Offline, privacy-first PDF and document workspace
+ Description: Offline, privacy-first PDF and document workspace
  Document Studio processes PDFs and images on-device: merge, split, compress,
  OCR, sign, and more — no account required.
 CTRL
+
+for maint in preinst postrm; do
+  src="$ROOT/linux/packaging/deb/$maint"
+  if [[ ! -f "$src" ]]; then
+    echo "Missing maintainer script: $src" >&2
+    exit 1
+  fi
+  install -m755 "$src" "$PKG_ROOT/DEBIAN/$maint"
+done
 
 mkdir -p "$OUT_DIR"
 DEB_OUT="$OUT_DIR/document-studio_${VERSION}_${DEB_ARCH}.deb"

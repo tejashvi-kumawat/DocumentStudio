@@ -34,6 +34,19 @@ copy_file() {
   chmod +x "$dest" 2>/dev/null || true
 }
 
+# Copy a shared library into engines/lib unless it is already there.
+copy_lib_safe() {
+  local src="$1"
+  local base dest
+  [[ -f "$src" ]] || return 0
+  base="$(basename "$src")"
+  dest="$ENGINES/lib/$base"
+  if [[ "$(readlink -f "$src" 2>/dev/null || echo "$src")" == "$(readlink -f "$dest" 2>/dev/null || echo "$dest")" ]]; then
+    return 0
+  fi
+  cp -a "$src" "$dest" 2>/dev/null || cp -aL "$src" "$dest" 2>/dev/null || true
+}
+
 bundle_qpdf_from_portable() {
   local tools="$ROOT/.tools/qpdf"
   local bin="$tools/bin/qpdf"

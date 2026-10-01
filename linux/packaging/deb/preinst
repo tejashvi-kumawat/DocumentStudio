@@ -1,0 +1,17 @@
+#!/bin/sh
+# Normalize ownership before unpack so upgrades can replace engine trees
+# (e.g. leftover LibreOffice versions or a prior user-local copy under /usr/lib).
+set -e
+
+APP_DIR=/usr/lib/document-studio
+
+case "$1" in
+  install|upgrade)
+    if [ -d "$APP_DIR" ]; then
+      chown -R root:root "$APP_DIR" 2>/dev/null || true
+      chmod -R u+rwX,go+rX,go-w "$APP_DIR" 2>/dev/null || true
+    fi
+    ;;
+esac
+
+exit 0

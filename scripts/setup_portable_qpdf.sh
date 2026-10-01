@@ -54,17 +54,24 @@ if [[ ! -f "$ZIP_PATH" ]]; then
   fi
 fi
 
+TMP="$CACHE/qpdf-extract.$$"
+rm -rf "$TOOLS" "$TMP"
+mkdir -p "$TMP"
+unzip -q "$ZIP_PATH" -d "$TMP"
 rm -rf "$TOOLS"
 mkdir -p "$TOOLS"
-unzip -q "$ZIP_PATH" -d "$TOOLS"
-# Release zips unpack to qpdf-VERSION-bin-linux-ARCH/
-EXTRACTED="$(find "$TOOLS" -maxdepth 1 -type d -name 'qpdf-*-bin-linux-*' | head -1)"
-if [[ -z "$EXTRACTED" || ! -x "$EXTRACTED/bin/qpdf" ]]; then
-  echo "Unexpected qpdf zip layout under $TOOLS" >&2
+# Newer releases (e.g. 12.x) unpack bin/ and lib/ at zip root; older zips used qpdf-VERSION-bin-linux-ARCH/.
+if [[ -x "$TMP/bin/qpdf" ]]; then
+  mv "$TMP"/* "$TOOLS/"
+elif EXTRACTED="$(find "$TMP" -maxdepth 1 -type d -name 'qpdf-*-bin-linux-*' | head -1)" \
+  && [[ -n "$EXTRACTED" && -x "$EXTRACTED/bin/qpdf" ]]; then
+  mv "$EXTRACTED"/* "$TOOLS/"
+else
+  rm -rf "$TMP" "$TOOLS"
+  echo "Unexpected qpdf zip layout (expected bin/qpdf at root or under qpdf-*-bin-linux-*)" >&2
   exit 1
 fi
-mv "$EXTRACTED"/* "$TOOLS/"
-rmdir "$EXTRACTED" 2>/dev/null || true
+rm -rf "$TMP"
 
 echo "Installed portable qpdf: $BIN"
 "$BIN" --version
