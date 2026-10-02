@@ -59,10 +59,15 @@ if ($Unregister) {
     Remove-ItemProperty -Path "HKCU:\Software\Classes\$ext\OpenWithProgids" -Name "DocumentStudio.pdf" -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path "HKCU:\Software\Classes\$ext\OpenWithProgids" -Name "DocumentStudio.image" -ErrorAction SilentlyContinue
     Remove-Key "HKCU:\Software\Classes\$ext\shell\DocumentStudio"
+    Remove-Key "HKCU:\Software\Classes\$ext\shell\DocumentStudio.Open"
+    Remove-Key "HKCU:\Software\Classes\$ext\shell\DocumentStudio.Edit"
     Remove-Key "HKCU:\Software\Classes\SystemFileAssociations\$ext\shell\DocumentStudio"
+    Remove-Key "HKCU:\Software\Classes\SystemFileAssociations\$ext\shell\DocumentStudio.Open"
+    Remove-Key "HKCU:\Software\Classes\SystemFileAssociations\$ext\shell\DocumentStudio.Edit"
   }
   $start = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\$AppName.lnk"
   if (Test-Path $start) { Remove-Item -Force $start }
+  & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "register_win11_context_menu.ps1") -Unregister -ErrorAction SilentlyContinue
   Notify-Shell
   Write-Host "Done. Document Studio removed from Open with / Start Menu (this user)."
   exit 0
@@ -111,6 +116,28 @@ function Ensure-OpenWith([string]$Ext, [string]$ProgId) {
 Ensure-OpenWith ".pdf" "DocumentStudio.pdf"
 foreach ($ext in @('.png', '.jpg', '.jpeg', '.webp', '.tif', '.tiff', '.bmp', '.gif')) {
   Ensure-OpenWith $ext "DocumentStudio.image"
+}
+
+# --- Adobe-style TOP-LEVEL verbs (classic / "Show more options") ---
+# Windows 11 primary menu needs the sparse package (register_win11_context_menu.ps1).
+function Set-TopLevelVerb([string]$Ext, [string]$Verb, [string]$Label, [string]$Command, [string]$Position = "Top") {
+  foreach ($base in @(
+      "HKCU:\Software\Classes\$Ext\shell\$Verb",
+      "HKCU:\Software\Classes\SystemFileAssociations\$Ext\shell\$Verb"
+    )) {
+    New-Item -Path "$base\command" -Force | Out-Null
+    Set-ItemProperty -Path $base -Name "(default)" -Value $Label
+    Set-ItemProperty -Path $base -Name "MUIVerb" -Value $Label
+    Set-ItemProperty -Path $base -Name "Icon" -Value "$Exe,0"
+    Set-ItemProperty -Path $base -Name "Position" -Value $Position
+    Set-ItemProperty -Path "$base\command" -Name "(default)" -Value $Command
+  }
+}
+Set-TopLevelVerb ".pdf" "DocumentStudio.Open" "Open with Document Studio" "`"$Exe`" `"%1`""
+Set-TopLevelVerb ".pdf" "DocumentStudio.Edit" "Edit with Document Studio" "`"$Exe`" `"%1`""
+foreach ($ext in @('.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif')) {
+  Set-TopLevelVerb $ext "DocumentStudio.Open" "Open with Document Studio" "`"$Exe`" `"%1`""
+  Set-TopLevelVerb $ext "DocumentStudio.Edit" "Edit with Document Studio" "`"$Exe`" --tool images `"%1`""
 }
 
 # --- Cascading "Document Studio" context menu ---
@@ -180,10 +207,18 @@ try {
 
 Notify-Shell
 Write-Host ""
-Write-Host "Registered for this Windows user:"
-Write-Host "  Start Menu: type `"$AppName`" in Search"
-Write-Host "  Right-click PDF/images: Document Studio submenu"
-Write-Host "  Open with: Document Studio"
+Write-Host "Registered classic shell (Open with / Show more options)."
+Write-Host "Start Menu: type `"$AppName`" in Search"
 Write-Host ""
-Write-Host "If Search does not show it yet, sign out/in or restart Explorer once."
-Write-Host "Unregister later:  powershell -File scripts\windows\register_windows_shell.ps1 -Unregister"
+Write-Host "Windows 11 primary right-click menu (Adobe-style) needs an extra step:"
+$win11 = Join-Path $PSScriptRoot "register_win11_context_menu.ps1"
+try {
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $win11 -AppDir $AppDir
+} catch {
+  Write-Warning $_.Exception.Message
+  Write-Host "Enable Developer Mode, install .NET 8 SDK, then run:"
+  Write-Host "  powershell -File scripts\windows\register_win11_context_menu.ps1 -AppDir `"$AppDir`""
+  Write-Host "Until then: right-click PDF → 'Show more options' → Open/Edit with Document Studio."
+}
+Write-Host ""
+Write-Host "Unregister:  powershell -File scripts\windows\register_windows_shell.ps1 -Unregister"
