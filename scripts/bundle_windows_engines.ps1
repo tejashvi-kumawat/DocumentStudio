@@ -79,15 +79,19 @@ if exist "%ROOT%tessdata\eng.traineddata" set "TESSDATA_PREFIX=%ROOT%tessdata"
 function Get-CachedFile([string]$Url, [string]$FileName) {
   $dest = Join-Path $cache $FileName
   if ((Test-Path $dest) -and ((Get-Item $dest).Length -gt 0)) { return $dest }
+  $part = "$dest.part"
   Write-Host "Downloading $Url ..."
   try {
-    Invoke-WebRequest -Uri $Url -OutFile $dest -UseBasicParsing
-    if (-not (Test-Path $dest) -or (Get-Item $dest).Length -eq 0) {
+    if (Test-Path $part) { Remove-Item -Force $part -ErrorAction SilentlyContinue }
+    Invoke-WebRequest -Uri $Url -OutFile $part -UseBasicParsing
+    if (-not (Test-Path $part) -or (Get-Item $part).Length -eq 0) {
       throw "empty download"
     }
+    Move-Item -Force $part $dest
     return $dest
   } catch {
     Write-Host "WARNING: download failed for $Url : $_"
+    Remove-Item -Force $part -ErrorAction SilentlyContinue
     Remove-Item -Force $dest -ErrorAction SilentlyContinue
     return $null
   }
@@ -96,7 +100,14 @@ function Get-CachedFile([string]$Url, [string]$FileName) {
 function Expand-ZipTo([string]$ZipPath, [string]$Dest) {
   if (Test-Path $Dest) { Remove-Item -Recurse -Force $Dest }
   New-Item -ItemType Directory -Force -Path $Dest | Out-Null
-  Expand-Archive -Path $ZipPath -DestinationPath $Dest -Force
+  # Copy first: Expand-Archive locks the path; parallel runs may still be writing the cache zip.
+  $scratch = Join-Path $cache ("_expand_" + [IO.Path]::GetFileName($ZipPath))
+  Copy-Item -LiteralPath $ZipPath -Destination $scratch -Force
+  try {
+    Expand-Archive -LiteralPath $scratch -DestinationPath $Dest -Force
+  } finally {
+    Remove-Item -LiteralPath $scratch -Force -ErrorAction SilentlyContinue
+  }
 }
 
 function Copy-SiblingDlls([string]$FromDir) {
@@ -106,7 +117,7 @@ function Copy-SiblingDlls([string]$FromDir) {
 }
 
 # --- qpdf (portable mingw64 zip) ---
-function Bundle-Qpdf {
+function BundleQpdf {
   $existing = Get-Command qpdf -ErrorAction SilentlyContinue
   if ($existing) {
     Copy-Item -Force $existing.Source (Join-Path $bin "qpdf.exe")
@@ -134,7 +145,7 @@ function Bundle-Qpdf {
 }
 
 # --- tesseract (NSIS silent install into cache, then copy) ---
-function Bundle-Tesseract {
+function BundleTesseract {
   $src = $null
   if ($env:DS_TESSERACT_ROOT -and (Test-Path (Join-Path $env:DS_TESSERACT_ROOT "tesseract.exe"))) {
     $src = Join-Path $env:DS_TESSERACT_ROOT "tesseract.exe"
@@ -196,7 +207,7 @@ function Bundle-Tesseract {
 }
 
 # --- poppler (pdfsig) ---
-function Bundle-Poppler {
+function BundlePoppler {
   $cmd = Get-Command pdfsig -ErrorAction SilentlyContinue
   if ($cmd) {
     Copy-Item -Force $cmd.Source (Join-Path $bin "pdfsig.exe")
@@ -228,7 +239,7 @@ function Bundle-Poppler {
 }
 
 # --- openssl (Shining Light Light installer → cache) ---
-function Bundle-OpenSsl {
+function BundleOpenSsl {
   $cmd = Get-Command openssl -ErrorAction SilentlyContinue
   $src = $null
   if ($cmd) { $src = $cmd.Source }
@@ -248,8 +259,8 @@ function Bundle-OpenSsl {
       Write-Host "Silent-installing OpenSSL Light into $installDir …"
       if (Test-Path $installDir) { Remove-Item -Recurse -Force $installDir }
       New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-      $args = "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$installDir"
-      $p = Start-Process -FilePath $setup -ArgumentList $args -Wait -PassThru
+      $installArgs = @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$installDir")
+      $p = Start-Process -FilePath $setup -ArgumentList $installArgs -Wait -PassThru
       if ($p.ExitCode -ne 0) {
         Write-Host "WARNING: OpenSSL setup exit $($p.ExitCode)"
       }
@@ -313,7 +324,7 @@ function Expand-MsysPkg([string]$PkgFile, [string]$DestRoot) {
   return $true
 }
 
-function Bundle-NssTools {
+function BundleNssTools {
   foreach ($name in @("certutil", "pk12util")) {
     $c = Get-Command $name -ErrorAction SilentlyContinue
     # Windows ships its own certutil.exe — skip that (no -N / NSS DB).
@@ -362,7 +373,7 @@ function Bundle-NssTools {
 }
 
 # --- ffmpeg ---
-function Bundle-Ffmpeg {
+function BundleFfmpeg {
   $cmd = Get-Command ffmpeg -ErrorAction SilentlyContinue
   if ($cmd) {
     Copy-Item -Force $cmd.Source (Join-Path $bin "ffmpeg.exe")
@@ -383,7 +394,7 @@ function Bundle-Ffmpeg {
 }
 
 # --- LibreOffice (official MSI → administrative extract into engines/) ---
-function Bundle-LibreOffice {
+function BundleLibreOffice {
   if ($env:DS_SKIP_LIBREOFFICE -eq "1") {
     Write-Host "Skipping LibreOffice (DS_SKIP_LIBREOFFICE=1)."
     return
@@ -482,13 +493,14 @@ exit /b 127
   Write-Host "Bundled LibreOffice soffice → $prog"
 }
 
-Bundle-Qpdf
-Bundle-Tesseract
-Bundle-Poppler
-Bundle-OpenSsl
-Bundle-NssTools
-Bundle-Ffmpeg
-Bundle-LibreOffice
+$ErrorActionPreference = "Stop"
+BundleQpdf
+BundleTesseract
+BundlePoppler
+BundleOpenSsl
+BundleNssTools
+BundleFfmpeg
+BundleLibreOffice
 
 Write-Host ""
 Write-Host "Windows engines ready under $engines"
