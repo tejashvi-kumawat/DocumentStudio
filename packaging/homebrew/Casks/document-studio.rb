@@ -1,15 +1,11 @@
 # Homebrew Cask — Document Studio (macOS)
 #
-# Publish: see docs/HOMEBREW.md
-#   PR to https://github.com/Homebrew/homebrew-cask
-#   or host in https://github.com/tejashvi-kumawat/homebrew-tap/Casks/
-#
-# Before release, set version, sha256, and url to match GitHub Release assets.
-#   bash scripts/release/update_homebrew_cask.sh 1.0.3 dist/macos/DocumentStudio-1.0.3-macos.dmg
+# Publish under: https://github.com/tejashvi-kumawat/homebrew-tap
+# Install: brew tap tejashvi-kumawat/tap && brew install --cask document-studio
 
 cask "document-studio" do
   version "1.0.3"
-  sha256 "REPLACE_WITH_SHA256"
+  sha256 "e4bee7d80a70d23fc9d7a8e1a5b2daa812c742c45766c87914b6c01b59399242"
 
   url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v#{version}/DocumentStudio-#{version}-macos.dmg"
   name "Document Studio"
