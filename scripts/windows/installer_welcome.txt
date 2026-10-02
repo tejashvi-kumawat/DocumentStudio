@@ -1,0 +1,17 @@
+Welcome to Document Studio setup.
+
+This installer copies the app and bundled document tools into one folder — no terminal commands and no separate engine downloads for a full build.
+
+Included when built as a complete release:
+  • Document Studio (PDF viewer and tools)
+  • qpdf — merge, split, compress, encrypt, decrypt
+  • Tesseract OCR and language data
+  • OpenSSL and NSS tools for digital signatures
+  • ffmpeg for media-related tools
+  • LibreOffice (optional in some builds) for high-fidelity Office to PDF
+
+You need roughly 500 MB–1.5 GB of free disk space depending on the build.
+
+Click Next to choose where to install, then Finish to launch Document Studio.
+
+For updates, run a newer Setup.exe or use Help → About in the app.

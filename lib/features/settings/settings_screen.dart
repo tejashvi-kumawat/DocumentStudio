@@ -6,6 +6,7 @@ import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/features/command_palette/ds_command_palette.dart';
 import 'package:document_studio/features/home/home_shell_action_bar.dart';
 import 'package:document_studio/features/settings/local_qpdf_engine_panel.dart';
+import 'package:document_studio/features/setup/desktop_document_tools_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -143,6 +144,7 @@ class SettingsScreen extends ConsumerWidget {
                           SizedBox(
                             height: compact ? DsSpacing.md : DsSpacing.lg,
                           ),
+                          const DesktopDocumentToolsPanel(),
                           const LocalQpdfEnginePanel(),
                           DsToolPanel(
                             title: 'About',

@@ -76,16 +76,29 @@ Upload the `.dmg` (or `.zip`) to a GitHub Release.
 
 ## 3. Windows direct download (.exe + zip)
 
-Must run on **Windows**:
+### For end users (GUI — no terminal)
+
+1. Download **`DocumentStudio-<version>-Setup.exe`** from GitHub Releases (or your website).
+2. Double-click it — Inno Setup shows a normal install wizard (welcome, folder, shortcuts, Finish).
+3. The installer copies the app and bundled `engines\` (qpdf, Tesseract, ffmpeg, signing tools, LibreOffice when the release was built with `DS_BUNDLE_LIBREOFFICE=1`).
+4. On first launch, if anything is still missing (e.g. a portable zip), **Settings → Document tools → Install / update tools…** runs a download wizard (qpdf, LibreOffice on Windows).
+
+Users never run PowerShell for installation.
+
+### For maintainers (build the Setup.exe once on Windows)
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_release.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\build_user_installer.ps1
 ```
 
-- Portable zip: `dist/windows/DocumentStudio-<version>-portable-windows.zip`
-- Installer: `dist/windows/DocumentStudio-<version>-Setup.exe` (needs [Inno Setup 6](https://jrsoftware.org/isinfo.php))
+Same as `package_release.ps1`: Flutter release build → bundle engines → portable zip → Inno Setup. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) on the build PC.
 
-Engines are copied into `Release\engines\` by `bundle_windows_engines.ps1` (see **[ENGINES.md](ENGINES.md)** for URLs). LibreOffice is extracted from the official MSI into `engines/libreoffice` at build time (same idea as Linux).
+- Portable zip: `dist/windows/DocumentStudio-<version>-portable-windows.zip`
+- GUI installer: `dist/windows/DocumentStudio-<version>-Setup.exe`
+
+Smaller build (skip embedded LibreOffice): `$env:DS_SKIP_LIBREOFFICE = "1"` before the script; users can add LibreOffice via the in-app setup wizard.
+
+Engines are copied into `Release\engines\` by `bundle_windows_engines.ps1` (see **[ENGINES.md](ENGINES.md)**).
 
 No Microsoft Store packaging. Attach both files to a GitHub Release.
 

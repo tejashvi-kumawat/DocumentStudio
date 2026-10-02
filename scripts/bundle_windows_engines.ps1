@@ -472,7 +472,11 @@ function Expand-LoMsi([string]$MsiPath, [string]$DestDir) {
 # --- LibreOffice (official MSI -> administrative extract into engines/) ---
 function BundleLibreOffice {
   if ($env:DS_SKIP_LIBREOFFICE -eq "1") {
-    Write-Host "Skipping LibreOffice (DS_SKIP_LIBREOFFICE=1)."
+    Write-Host "Skipping LibreOffice (DS_SKIP_LIBREOFFICE=1). Users can install via in-app setup wizard."
+    return
+  }
+  if ($env:DS_BUNDLE_LIBREOFFICE -ne "1" -and -not $env:DS_LIBREOFFICE_ROOT) {
+    Write-Host "Skipping LibreOffice (set DS_BUNDLE_LIBREOFFICE=1 for full Setup.exe). In-app wizard can download later."
     return
   }
 
