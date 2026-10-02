@@ -76,9 +76,30 @@ if exist "%ROOT%tessdata\eng.traineddata" set "TESSDATA_PREFIX=%ROOT%tessdata"
 "@ | Set-Content -Encoding ASCII (Join-Path $engines "$Name.cmd")
 }
 
+function Test-ValidMsi([string]$Path) {
+  if (-not (Test-Path -LiteralPath $Path)) { return $false }
+  $info = Get-Item -LiteralPath $Path
+  if ($info.Length -lt 1MB) { return $false }
+  $fs = [System.IO.File]::OpenRead($info.FullName)
+  try {
+    $buf = New-Object byte[] 4
+    if ($fs.Read($buf, 0, 4) -ne 4) { return $false }
+    return ($buf[0] -eq 0xD0 -and $buf[1] -eq 0xCF -and $buf[2] -eq 0x11 -and $buf[3] -eq 0xE0)
+  } finally {
+    $fs.Close()
+  }
+}
+
 function Get-CachedFile([string]$Url, [string]$FileName) {
   $dest = Join-Path $cache $FileName
-  if ((Test-Path $dest) -and ((Get-Item $dest).Length -gt 0)) { return $dest }
+  if ((Test-Path -LiteralPath $dest) -and ((Get-Item -LiteralPath $dest).Length -gt 0)) {
+    if ($FileName -like "*.msi" -and -not (Test-ValidMsi $dest)) {
+      Write-Host "WARNING: cached $FileName is not a valid MSI; re-downloading ..."
+      Remove-Item -Force -LiteralPath $dest -ErrorAction SilentlyContinue
+    } else {
+      return $dest
+    }
+  }
   $part = "$dest.part"
   Write-Host "Downloading $Url ..."
   try {
@@ -88,6 +109,11 @@ function Get-CachedFile([string]$Url, [string]$FileName) {
       throw "empty download"
     }
     Move-Item -Force $part $dest
+    if ($FileName -like "*.msi" -and -not (Test-ValidMsi $dest)) {
+      Write-Host "WARNING: download is not a valid MSI (wrong URL or mirror HTML)"
+      Remove-Item -Force $dest -ErrorAction SilentlyContinue
+      return $null
+    }
     return $dest
   } catch {
     Write-Host "WARNING: download failed for $Url : $_"
@@ -404,6 +430,45 @@ function BundleFfmpeg {
   }
 }
 
+function Expand-LoMsi([string]$MsiPath, [string]$DestDir) {
+  $msiFull = (Resolve-Path -LiteralPath $MsiPath).Path
+  $msiBytes = (Get-Item -LiteralPath $msiFull).Length
+  if (-not (Test-ValidMsi $msiFull)) {
+    Write-Host "WARNING: $msiFull does not look like a valid MSI ($msiBytes bytes)"
+    return $false
+  }
+  if (Test-Path -LiteralPath $DestDir) { Remove-Item -Recurse -Force -LiteralPath $DestDir }
+  New-Item -ItemType Directory -Force -Path $DestDir | Out-Null
+  $destFull = (Resolve-Path -LiteralPath $DestDir).Path
+  if (-not $destFull.EndsWith('\')) { $destFull += '\' }
+
+  Write-Host "msiexec /a ($msiBytes bytes MSI) -> $destFull"
+  $p = Start-Process -FilePath "msiexec.exe" -ArgumentList @(
+    "/a", $msiFull, "/qn", "/norestart", "TARGETDIR=$destFull"
+  ) -Wait -PassThru
+  $found = Get-ChildItem -Path $DestDir -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+  if ($p.ExitCode -eq 0 -and $found) { return $true }
+
+  Write-Host "WARNING: msiexec /a exit $($p.ExitCode); trying per-user /i into $destFull ..."
+  if (Test-Path -LiteralPath $DestDir) { Remove-Item -Recurse -Force -LiteralPath $DestDir }
+  New-Item -ItemType Directory -Force -Path $DestDir | Out-Null
+  $destFull = (Resolve-Path -LiteralPath $DestDir).Path
+  if (-not $destFull.EndsWith('\')) { $destFull += '\' }
+
+  $p2 = Start-Process -FilePath "msiexec.exe" -ArgumentList @(
+    "/i", $msiFull, "/qn", "/norestart",
+    "ALLUSERS=2", "MSIINSTALLPERUSER=1", "INSTALLDIR=$destFull"
+  ) -Wait -PassThru
+  $found = Get-ChildItem -Path $DestDir -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+  if ($p2.ExitCode -ne 0 -or -not $found) {
+    Write-Host "WARNING: msiexec /i exit $($p2.ExitCode)"
+    return $false
+  }
+  return $true
+}
+
 # --- LibreOffice (official MSI -> administrative extract into engines/) ---
 function BundleLibreOffice {
   if ($env:DS_SKIP_LIBREOFFICE -eq "1") {
@@ -434,18 +499,13 @@ function BundleLibreOffice {
       "https://download.documentfoundation.org/libreoffice/stable/$LoVersion/win/x86_64/$msiName"
     }
     $msi = Get-CachedFile $url $msiName
-    if (-not $msi) {
-      throw "LibreOffice MSI download failed. The Setup.exe must contain LibreOffice."
+    if (-not $msi -or -not (Test-ValidMsi $msi)) {
+      throw "LibreOffice MSI download failed or file is corrupt (msiexec 1619). Delete $cache\$msiName and re-run, or set DS_LIBREOFFICE_MSI_URL."
     }
     $extract = Join-Path $cache "libreoffice_msi_extract"
-    Write-Host "Extracting LibreOffice MSI (administrative install) into $extract ..."
-    if (Test-Path $extract) { Remove-Item -Recurse -Force $extract }
-    New-Item -ItemType Directory -Force -Path $extract | Out-Null
-    $p = Start-Process -FilePath "msiexec.exe" -ArgumentList @(
-      "/a", $msi, "/qn", "TARGETDIR=$extract"
-    ) -Wait -PassThru
-    if ($p.ExitCode -ne 0) {
-      Write-Host "WARNING: msiexec /a exit $($p.ExitCode)"
+    Write-Host "Extracting LibreOffice MSI into $extract ..."
+    if (-not (Expand-LoMsi $msi $extract)) {
+      throw "LibreOffice MSI extract failed (msiexec 1619 = bad MSI or blocked install). Delete $msi and re-run, or install LibreOffice and set DS_LIBREOFFICE_ROOT."
     }
     $found = Get-ChildItem -Path $extract -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
       Select-Object -First 1
