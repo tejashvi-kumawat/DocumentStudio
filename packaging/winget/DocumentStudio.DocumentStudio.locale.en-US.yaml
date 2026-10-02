@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: DocumentStudio.DocumentStudio
+PackageLocale: en-US
+Publisher: Document Studio
+PublisherUrl: https://github.com/tejashvi-kumawat/DocumentStudio
+PublisherSupportUrl: https://github.com/tejashvi-kumawat/DocumentStudio/issues
+PackageName: Document Studio
+PackageUrl: https://github.com/tejashvi-kumawat/DocumentStudio
+License: Proprietary
+Copyright: Copyright (c) Document Studio
+ShortDescription: Offline PDF workspace with merge, OCR, encryption, and Office conversion.
+Description: |-
+  Document Studio is a privacy-first desktop PDF application for Windows.
+  Bundled engines include qpdf, Tesseract OCR, and LibreOffice for local
+  document processing without cloud upload.
+Moniker: document-studio
+Tags:
+  - pdf
+  - ocr
+  - document
+  - libreoffice
+  - qpdf
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

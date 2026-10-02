@@ -8,8 +8,11 @@ This project ships **one store listing** and **direct-download installers**.
 | **macOS direct** | `.dmg` (or `.zip`) | A **Mac** (`flutter build macos`) |
 | **Windows direct** | Setup `.exe` + portable `.zip` | A **Windows** PC |
 | **Linux direct** | `.deb` + AppImage | This Linux machine / Ubuntu CI |
+| **Package managers** | Same release binaries | See **[PACKAGE-MANAGERS.md](PACKAGE-MANAGERS.md)** (winget, Homebrew, apt, Flatpak) |
 
-Host desktop installers on **GitHub Releases** (attach the files to a `v*` tag). Do not invent a separate download site until you need one.
+Host desktop installers on **GitHub Releases** (tag `v*` → CI can attach artifacts via `.github/workflows/release.yml`). Direct download users get **GUI installers**; winget/apt/brew use the same files (often silent CLI).
+
+Do not invent a separate download site until you need one.
 
 **Not in scope:** Apple App Store / Mac App Store (no Apple Developer subscription). Microsoft Store (undecided — not set up). iOS is skipped for distribution.
 
