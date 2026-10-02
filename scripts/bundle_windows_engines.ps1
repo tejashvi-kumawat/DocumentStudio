@@ -297,6 +297,16 @@ function Get-ZstdExe {
   return $null
 }
 
+function Invoke-NativeExe {
+  param(
+    [Parameter(Mandatory = $true)][string]$FilePath,
+    [Parameter(Mandatory = $false)][string[]]$ArgumentList = @()
+  )
+  # Start-Process avoids PS 5.1 treating native stderr (e.g. zstd progress) as terminating errors when $ErrorActionPreference is Stop.
+  $p = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -Wait -PassThru -NoNewWindow
+  return $p.ExitCode
+}
+
 function Expand-MsysPkg([string]$PkgFile, [string]$DestRoot) {
   $zstd = Get-ZstdExe
   if (-not $zstd) {
@@ -306,19 +316,20 @@ function Expand-MsysPkg([string]$PkgFile, [string]$DestRoot) {
   New-Item -ItemType Directory -Force -Path $DestRoot | Out-Null
   $tarPath = Join-Path $cache ([IO.Path]::GetFileNameWithoutExtension($PkgFile) + ".tar")
   # pkg.tar.zst -> .tar then extract
-  & $zstd -d -f -o $tarPath $PkgFile 2>$null
+  $code = Invoke-NativeExe -FilePath $zstd -ArgumentList @("-d", "-f", "-o", $tarPath, $PkgFile)
   if (-not (Test-Path $tarPath)) {
-    # some zstd builds want different flags
-    & $zstd -d -f $PkgFile -o $tarPath 2>$null
+    # some zstd builds want different flag order
+    $code = Invoke-NativeExe -FilePath $zstd -ArgumentList @("-d", "-f", $PkgFile, "-o", $tarPath)
   }
   if (-not (Test-Path $tarPath)) {
-    Write-Host "WARNING: failed to decompress $PkgFile"
+    Write-Host "WARNING: failed to decompress $PkgFile (zstd exit $code)"
     return $false
   }
-  tar -xf $tarPath -C $DestRoot 2>$null
-  if ($LASTEXITCODE -ne 0) {
-    # Fallback: tar.exe may be absent on older Windows
-    Write-Host "WARNING: tar extract failed for $PkgFile (exit $LASTEXITCODE)"
+  $tarExe = (Get-Command tar -ErrorAction SilentlyContinue).Source
+  if (-not $tarExe) { $tarExe = "tar" }
+  $tarCode = Invoke-NativeExe -FilePath $tarExe -ArgumentList @("-xf", $tarPath, "-C", $DestRoot)
+  if ($tarCode -ne 0) {
+    Write-Host "WARNING: tar extract failed for $PkgFile (exit $tarCode)"
     return $false
   }
   return $true
