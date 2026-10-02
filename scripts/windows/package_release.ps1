@@ -37,9 +37,9 @@ if (-not (Test-Path (Join-Path $ReleaseDir "document_studio.exe"))) {
   throw "document_studio.exe missing under $ReleaseDir"
 }
 
-# LibreOffice MSI is ~300MB+; default off. Set DS_BUNDLE_LIBREOFFICE=1 to embed it.
-if (-not $env:DS_BUNDLE_LIBREOFFICE -and $env:DS_SKIP_LIBREOFFICE -ne "0") {
-  $env:DS_SKIP_LIBREOFFICE = "1"
+# Full user installer: try to bundle LibreOffice (~300MB). Set DS_SKIP_LIBREOFFICE=1 for a smaller build.
+if ($env:DS_SKIP_LIBREOFFICE -ne "1") {
+  $env:DS_BUNDLE_LIBREOFFICE = "1"
 }
 
 Write-Host "==> bundle engines into $ReleaseDir"

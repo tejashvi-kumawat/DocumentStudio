@@ -4,6 +4,7 @@ import 'package:document_studio/app/first_launch_splash.dart';
 import 'package:document_studio/app/keyboard/app_shortcuts.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/app/router/app_router.dart';
+import 'package:document_studio/core/desktop/offer_desktop_engine_setup.dart';
 import 'package:document_studio/core/desktop/pdf_default_app_prompt.dart';
 import 'package:document_studio/core/logging/app_log.dart';
 import 'package:document_studio/design_system/adaptive/ds_adaptive.dart';
@@ -38,13 +39,17 @@ class _DocumentStudioAppState extends ConsumerState<DocumentStudioApp> {
       ),
     );
     Future.microtask(() => ref.read(themeModeProvider.notifier).load());
+    final afterSplash = desktopEngineSetupWaitAfterSplash();
     unawaited(
       offerLinuxPdfDefaultPrompt(
         navigatorContext: () => rootNavigatorKey.currentContext,
-        waitBeforePrompt:
-            FirstLaunchSplashTiming.displayUntilFade +
-            FirstLaunchSplashTiming.fadeOut +
-            const Duration(milliseconds: 80),
+        waitBeforePrompt: afterSplash,
+      ),
+    );
+    unawaited(
+      offerDesktopEngineSetup(
+        navigatorContext: () => rootNavigatorKey.currentContext,
+        waitBeforePrompt: afterSplash + const Duration(milliseconds: 400),
       ),
     );
   }
