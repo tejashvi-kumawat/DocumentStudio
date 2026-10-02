@@ -63,9 +63,17 @@ ln -sf document_studio "$PKG_ROOT/usr/bin/document-studio"
 if [[ -f "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" ]]; then
   install -m644 "$ROOT/linux/packaging/com.documentstudio.document_studio.desktop" \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
-  # Must match a launcher on PATH (/usr/bin/document-studio).
-  sed -i 's|^Exec=.*|Exec=document-studio %U|' \
+  # Absolute Exec so app menus find it even when PATH is minimal.
+  sed -i 's|^Exec=.*|Exec=/usr/bin/document-studio %U|' \
     "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
+  sed -i 's|^TryExec=.*|TryExec=/usr/bin/document-studio|' \
+    "$PKG_ROOT/usr/share/applications/com.documentstudio.document_studio.desktop"
+fi
+METAINFO_SRC="$ROOT/linux/packaging/metainfo/com.documentstudio.document_studio.metainfo.xml"
+if [[ -f "$METAINFO_SRC" ]]; then
+  mkdir -p "$PKG_ROOT/usr/share/metainfo"
+  install -m644 "$METAINFO_SRC" \
+    "$PKG_ROOT/usr/share/metainfo/com.documentstudio.document_studio.metainfo.xml"
 fi
 ICON_TREE="$ROOT/linux/packaging/icons/hicolor"
 if [[ ! -d "$ICON_TREE" ]]; then
