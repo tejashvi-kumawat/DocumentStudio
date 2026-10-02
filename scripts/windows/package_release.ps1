@@ -51,12 +51,12 @@ if ($iscc) {
   & $iscc "/DMyAppVersion=$Version" (Join-Path $Root "scripts\windows\document_studio.iss")
   if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 } else {
-  Write-Warning "Inno Setup 6 (ISCC.exe) not found — portable zip only."
+  Write-Warning "Inno Setup 6 (ISCC.exe) not found - portable zip only."
   Write-Warning "Install from https://jrsoftware.org/isinfo.php then re-run, or:"
   Write-Warning "  ISCC.exe scripts\windows\document_studio.iss"
 }
 
 Write-Host ""
-Write-Host "Done. Expected artifacts under dist\windows\:"
+Write-Host ('Done. Expected artifacts under {0}:' -f (Join-Path $Root 'dist\windows'))
 Write-Host "  DocumentStudio-$Version-Setup.exe"
 Write-Host "  DocumentStudio-$Version-portable-windows.zip"
