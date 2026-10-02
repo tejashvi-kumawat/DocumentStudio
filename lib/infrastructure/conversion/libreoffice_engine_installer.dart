@@ -27,7 +27,7 @@ class LibreOfficeEngineInstaller {
     final env = Platform.environment['DS_LIBREOFFICE_MSI_URL'];
     if (env != null && env.isNotEmpty) return env;
     // Pin a known stable version; bump deliberately when testing upgrades.
-    const ver = '24.8.4';
+    const ver = '26.2.6';
     return 'https://download.documentfoundation.org/libreoffice/stable/'
         '$ver/win/x86_64/LibreOffice_${ver}_Win_x86-64.msi';
   }
