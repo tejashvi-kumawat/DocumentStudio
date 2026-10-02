@@ -1,12 +1,16 @@
 [Desktop Entry]
+Version=1.0
+Type=Application
 Name=Document Studio
-GenericName=Document Studio
-Comment=Offline PDF workspace
-Exec=document-studio %U
+GenericName=PDF Editor
+Comment=Offline PDF workspace — merge, OCR, encrypt, and convert Office files
+Exec=/usr/bin/document-studio %U
+TryExec=/usr/bin/document-studio
 Icon=com.documentstudio.document_studio
 Terminal=false
-Type=Application
-Categories=Office;
-MimeType=application/pdf;
+StartupNotify=true
+Categories=Office;Graphics;Viewer;Utility;
+MimeType=application/pdf;image/png;image/jpeg;image/webp;image/tiff;image/bmp;image/gif;
 StartupWMClass=com.documentstudio.document_studio
-Keywords=PDF;Document;Document Studio;Offline;
+Keywords=PDF;Document;Document Studio;document-studio;OCR;merge;compress;offline;
+X-GNOME-UsesNotifications=false

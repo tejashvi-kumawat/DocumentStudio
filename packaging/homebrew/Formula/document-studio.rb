@@ -49,16 +49,54 @@ class DocumentStudio < Formula
       inreplace share/"applications/com.documentstudio.document_studio.desktop",
                 /^Exec=.*/,
                 "Exec=#{opt_bin}/document-studio %U"
+      inreplace share/"applications/com.documentstudio.document_studio.desktop",
+                /^TryExec=.*/,
+                "TryExec=#{opt_bin}/document-studio"
+    end
+
+    metainfo = "usr/share/metainfo/com.documentstudio.document_studio.metainfo.xml"
+    if File.exist?(metainfo)
+      (share/"metainfo").mkpath
+      (share/"metainfo").install metainfo
     end
 
     icons = Pathname("usr/share/icons")
     cp_r icons, share if icons.directory?
   end
 
+  def post_install
+    # App menus rarely search Homebrew's share/ — link into the user apps dir.
+    return if ENV["HOME"].to_s.empty?
+
+    user_apps = Pathname.new(ENV["HOME"])/".local/share/applications"
+    user_apps.mkpath
+    desktop_src = opt_share/"applications/com.documentstudio.document_studio.desktop"
+    if desktop_src.exist?
+      desktop_dst = user_apps/"com.documentstudio.document_studio.desktop"
+      desktop_dst.unlink if desktop_dst.exist? || desktop_dst.symlink?
+      desktop_dst.make_symlink desktop_src
+    end
+
+    system "update-desktop-database", user_apps.to_s if which("update-desktop-database")
+    icon_dir = opt_share/"icons/hicolor"
+    system "gtk-update-icon-cache", "-f", icon_dir.to_s if which("gtk-update-icon-cache") && icon_dir.directory?
+  end
+
   def caveats
     <<~EOS
       Linux (this formula):
         brew install tejashvi-kumawat/tap/document-studio
+
+      After install, Document Studio should appear in your app menu (search
+      "Document Studio"). If it does not, log out/in once, or run:
+
+        mkdir -p ~/.local/share/applications
+        ln -sf "#{opt_share}/applications/com.documentstudio.document_studio.desktop" \\
+          ~/.local/share/applications/
+        update-desktop-database ~/.local/share/applications 2>/dev/null || true
+
+      Also ensure brew is on PATH for GUI sessions (login shell):
+        eval "$(#{HOMEBREW_PREFIX}/bin/brew shellenv)"
 
       macOS (cask):
         brew install --cask tejashvi-kumawat/tap/document-studio

@@ -9,6 +9,13 @@ case "$1" in
     if command -v gtk-update-icon-cache >/dev/null 2>&1; then
       gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
     fi
+    if command -v update-mime-database >/dev/null 2>&1; then
+      update-mime-database /usr/share/mime >/dev/null 2>&1 || true
+    fi
+    # AppStream cache (GNOME Software / some overview search paths).
+    if command -v appstreamcli >/dev/null 2>&1; then
+      appstreamcli refresh-cache --force >/dev/null 2>&1 || true
+    fi
     ;;
 esac
 

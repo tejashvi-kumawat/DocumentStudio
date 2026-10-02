@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream / GNOME Software / some desktop searches index this. -->
+<component type="desktop-application">
+  <id>com.documentstudio.document_studio</id>
+  <name>Document Studio</name>
+  <summary>Offline PDF workspace with merge, OCR, encryption, and Office conversion</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <developer_name>Document Studio</developer_name>
+  <url type="homepage">https://github.com/tejashvi-kumawat/DocumentStudio</url>
+  <url type="bugtracker">https://github.com/tejashvi-kumawat/DocumentStudio/issues</url>
+  <launchable type="desktop-id">com.documentstudio.document_studio.desktop</launchable>
+  <provides>
+    <binary>document-studio</binary>
+    <binary>document_studio</binary>
+  </provides>
+  <description>
+    <p>
+      Document Studio is an offline, privacy-first PDF and document workspace.
+      Merge, split, compress, OCR, encrypt, and convert Office files on your machine.
+    </p>
+  </description>
+  <categories>
+    <category>Office</category>
+    <category>Graphics</category>
+    <category>Viewer</category>
+  </categories>
+  <keywords>
+    <keyword>PDF</keyword>
+    <keyword>OCR</keyword>
+    <keyword>document</keyword>
+  </keywords>
+  <content_rating type="oars-1.1" />
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </recommends>
+</component>
