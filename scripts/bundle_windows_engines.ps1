@@ -543,7 +543,8 @@ function BundleLibreOffice {
   }
 
   if (-not $prog -or -not (Test-Path (Join-Path $prog "soffice.exe"))) {
-    throw "LibreOffice soffice.exe was not bundled. The Setup.exe must contain it."
+    Write-Host "WARNING: LibreOffice not bundled (large). Office tools use in-app Dart conversion; install system LibreOffice or set DS_LIBREOFFICE_ROOT to enable full fidelity."
+    return
   }
 
   @"
@@ -575,13 +576,12 @@ BundleLibreOffice
 
 Write-Host ""
 Write-Host "Windows engines ready under $engines"
-$required = @("qpdf", "tesseract", "ffmpeg", "openssl", "soffice")
-$optional = @("pdfsig", "certutil", "pk12util")
+$required = @("qpdf", "tesseract", "ffmpeg", "openssl")
+$optional = @("pdfsig", "certutil", "pk12util", "soffice")
 $missing = @()
 foreach ($name in $required) {
   $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or
-        (Test-Path (Join-Path $bin "$name.exe")) -or
-        ($name -eq "soffice" -and (Test-Path (Join-Path $engines "libreoffice\program\soffice.exe")))
+        (Test-Path (Join-Path $bin "$name.exe"))
   if (-not $ok) { $missing += $name }
 }
 if ($missing.Count -gt 0) {
@@ -589,7 +589,15 @@ if ($missing.Count -gt 0) {
 }
 Write-Host "Required engines present: $($required -join ', ')"
 foreach ($name in $optional) {
-  $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or (Test-Path (Join-Path $bin "$name.exe"))
-  if (-not $ok) { Write-Host "WARNING: optional engine not bundled: $name (PDF signing may be limited)." }
+  $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or
+        (Test-Path (Join-Path $bin "$name.exe")) -or
+        ($name -eq "soffice" -and (Test-Path (Join-Path $engines "libreoffice\program\soffice.exe")))
+  if (-not $ok) {
+    if ($name -eq "soffice") {
+      Write-Host "WARNING: optional engine not bundled: soffice (use in-app Dart office convert or install LibreOffice)."
+    } else {
+      Write-Host "WARNING: optional engine not bundled: $name (PDF signing may be limited)."
+    }
+  }
 }
 Get-ChildItem $engines -ErrorAction SilentlyContinue | Format-Table Name, Length
