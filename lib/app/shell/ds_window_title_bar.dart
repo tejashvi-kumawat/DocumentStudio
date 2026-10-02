@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, exit;
 
 import 'package:document_studio/app/shell/ds_shell_actions.dart';
 import 'package:document_studio/app/shell/ds_shell_document_tab_bar.dart';
 import 'package:document_studio/app/shell/ds_sidebar_state.dart';
 import 'package:document_studio/app/shell/window/ds_window.dart';
+import 'package:document_studio/core/pdf/pdf_document_cache.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
@@ -101,8 +102,27 @@ class _DsWindowFrameState extends ConsumerState<DsWindowFrame>
   Future<void> _handleWindowClose() async {
     final ok = await requestQuitWithDirtyPrompt(ref);
     if (!ok) return;
-    await windowManager.setPreventClose(false);
-    await windowManager.destroy();
+    // Hide first so close feels instant; Windows otherwise waits on PDFium /
+    // Flutter teardown while the window is still on screen.
+    try {
+      await windowManager.hide();
+    } catch (_) {}
+    try {
+      ref.read(documentTabsControllerProvider).clearAll();
+    } catch (_) {}
+    PdfDocumentCache.instance.disposeAllNow();
+    try {
+      await windowManager.setPreventClose(false);
+    } catch (_) {}
+    if (Platform.isWindows) {
+      // windowManager.destroy() can hang for seconds on Windows with open PDFs.
+      exit(0);
+    }
+    try {
+      await windowManager.destroy();
+    } catch (_) {
+      exit(0);
+    }
   }
 
   Future<void> _requestCloseTab(int index) async {

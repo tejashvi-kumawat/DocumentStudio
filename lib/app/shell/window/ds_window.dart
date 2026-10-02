@@ -66,6 +66,7 @@ abstract final class DsWindow {
       final hideNativeTitleBar = Platform.isMacOS || Platform.isWindows;
       await windowManager.waitUntilReadyToShow(
         WindowOptions(
+          title: 'Document Studio',
           minimumSize: minimumSize,
           titleBarStyle: hideNativeTitleBar ? TitleBarStyle.hidden : null,
           windowButtonVisibility: Platform.isMacOS ? true : null,
