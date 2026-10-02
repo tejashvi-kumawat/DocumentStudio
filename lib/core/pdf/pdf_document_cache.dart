@@ -245,6 +245,29 @@ class PdfDocumentCache {
       );
     }
   }
+
+  /// Drop every cached document without waiting for native dispose to finish.
+  ///
+  /// Used on app quit so Windows does not stall on PDFium teardown while the
+  /// window is still visible. Dispose futures are fire-and-forget.
+  void disposeAllNow() {
+    final entries = List<_DocEntry>.from(_entries.values);
+    _entries.clear();
+    for (final e in entries) {
+      e.idleTimer?.cancel();
+      if (e.disposed) continue;
+      e.disposed = true;
+      final doc = e.document;
+      e.document = null;
+      if (doc != null) {
+        unawaited(doc.dispose());
+      } else {
+        unawaited(
+          e.opening.then((d) => d.dispose(), onError: (Object _) {}),
+        );
+      }
+    }
+  }
 }
 
 /// pdfrx keeps calling the provider while the password is wrong; answer once.
