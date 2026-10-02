@@ -1,8 +1,8 @@
-# Bundle desktop CLI engines into a Flutter Windows Release output folder.
+﻿# Bundle desktop CLI engines into a Flutter Windows Release output folder.
 # Non-interactive: downloads pinned portable archives into .tools\windows\ when
 # PATH / local installs are missing. LibreOffice is extracted from the official
 # MSI into engines\libreoffice (same approach as Linux's Document Foundation
-# tarball) — not left as a first-run download.
+# tarball) - not left as a first-run download.
 #
 # Usage (on Windows, after flutter build windows --release):
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\bundle_windows_engines.ps1
@@ -162,7 +162,7 @@ function BundleTesseract {
     $installDir = Join-Path $cache "tesseract_install"
     if ($setup) {
       if (-not (Test-Path (Join-Path $installDir "tesseract.exe"))) {
-        Write-Host "Silent-installing Tesseract into $installDir …"
+        Write-Host "Silent-installing Tesseract into $installDir ..."
         if (Test-Path $installDir) { Remove-Item -Recurse -Force $installDir }
         New-Item -ItemType Directory -Force -Path $installDir | Out-Null
         # NSIS: /S silent, /D= must be last and unquoted.
@@ -238,7 +238,7 @@ function BundlePoppler {
   Write-Host "Bundled poppler/pdfsig from $url"
 }
 
-# --- openssl (Shining Light Light installer → cache) ---
+# --- openssl (Shining Light Light installer -> cache) ---
 function BundleOpenSsl {
   $cmd = Get-Command openssl -ErrorAction SilentlyContinue
   $src = $null
@@ -256,7 +256,7 @@ function BundleOpenSsl {
     $setup = Get-CachedFile $OpenSslLightUrl "Win64OpenSSL_Light.exe"
     $installDir = Join-Path $cache "openssl_install"
     if ($setup) {
-      Write-Host "Silent-installing OpenSSL Light into $installDir …"
+      Write-Host "Silent-installing OpenSSL Light into $installDir ..."
       if (Test-Path $installDir) { Remove-Item -Recurse -Force $installDir }
       New-Item -ItemType Directory -Force -Path $installDir | Out-Null
       $installArgs = @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$installDir")
@@ -300,12 +300,12 @@ function Get-ZstdExe {
 function Expand-MsysPkg([string]$PkgFile, [string]$DestRoot) {
   $zstd = Get-ZstdExe
   if (-not $zstd) {
-    Write-Host "WARNING: zstd.exe unavailable — cannot extract $PkgFile"
+    Write-Host "WARNING: zstd.exe unavailable - cannot extract $PkgFile"
     return $false
   }
   New-Item -ItemType Directory -Force -Path $DestRoot | Out-Null
   $tarPath = Join-Path $cache ([IO.Path]::GetFileNameWithoutExtension($PkgFile) + ".tar")
-  # pkg.tar.zst → .tar then extract
+  # pkg.tar.zst -> .tar then extract
   & $zstd -d -f -o $tarPath $PkgFile 2>$null
   if (-not (Test-Path $tarPath)) {
     # some zstd builds want different flags
@@ -327,7 +327,7 @@ function Expand-MsysPkg([string]$PkgFile, [string]$DestRoot) {
 function BundleNssTools {
   foreach ($name in @("certutil", "pk12util")) {
     $c = Get-Command $name -ErrorAction SilentlyContinue
-    # Windows ships its own certutil.exe — skip that (no -N / NSS DB).
+    # Windows ships its own certutil.exe - skip that (no -N / NSS DB).
     if ($c -and $c.Source -notmatch '\\System32\\' -and $c.Source -notmatch '\\SysWOW64\\') {
       Copy-Item -Force $c.Source (Join-Path $bin "$name.exe")
       Copy-SiblingDlls (Split-Path -Parent $c.Source)
@@ -393,7 +393,7 @@ function BundleFfmpeg {
   }
 }
 
-# --- LibreOffice (official MSI → administrative extract into engines/) ---
+# --- LibreOffice (official MSI -> administrative extract into engines/) ---
 function BundleLibreOffice {
   if ($env:DS_SKIP_LIBREOFFICE -eq "1") {
     Write-Host "Skipping LibreOffice (DS_SKIP_LIBREOFFICE=1)."
@@ -427,7 +427,7 @@ function BundleLibreOffice {
       throw "LibreOffice MSI download failed. The Setup.exe must contain LibreOffice."
     }
     $extract = Join-Path $cache "libreoffice_msi_extract"
-    Write-Host "Extracting LibreOffice MSI (administrative install) into $extract …"
+    Write-Host "Extracting LibreOffice MSI (administrative install) into $extract ..."
     if (Test-Path $extract) { Remove-Item -Recurse -Force $extract }
     New-Item -ItemType Directory -Force -Path $extract | Out-Null
     $p = Start-Process -FilePath "msiexec.exe" -ArgumentList @(
@@ -452,7 +452,7 @@ function BundleLibreOffice {
         $probe = $probe.Parent
       }
       if (Test-Path (Join-Path $probe.FullName "program\soffice.exe")) {
-        Write-Host "Copying LibreOffice tree from $($probe.FullName) …"
+        Write-Host "Copying LibreOffice tree from $($probe.FullName) ..."
         if (Test-Path $loDest) { Remove-Item -Recurse -Force $loDest }
         Copy-Item -Recurse -Force $probe.FullName $loDest
         $prog = Join-Path $loDest "program"
@@ -465,7 +465,7 @@ function BundleLibreOffice {
   } else {
     # Copy from local install when DS_BUNDLE_LIBREOFFICE_FULL=1 or always for parity with Linux.
     $srcRoot = Split-Path -Parent $prog
-    Write-Host "Copying LibreOffice from $srcRoot …"
+    Write-Host "Copying LibreOffice from $srcRoot ..."
     if (Test-Path $loDest) { Remove-Item -Recurse -Force $loDest }
     Copy-Item -Recurse -Force $srcRoot $loDest
     $prog = Join-Path $loDest "program"
@@ -490,7 +490,7 @@ if exist "%ROOT%bin\soffice.exe" (
 echo LibreOffice (soffice) not found under engines\ >&2
 exit /b 127
 "@ | Set-Content -Encoding ASCII (Join-Path $engines "soffice.cmd")
-  Write-Host "Bundled LibreOffice soffice → $prog"
+  Write-Host "Bundled LibreOffice soffice -> $prog"
 }
 
 $ErrorActionPreference = "Stop"
@@ -504,7 +504,8 @@ BundleLibreOffice
 
 Write-Host ""
 Write-Host "Windows engines ready under $engines"
-$required = @("qpdf", "tesseract", "ffmpeg", "openssl", "pdfsig", "certutil", "pk12util", "soffice")
+$required = @("qpdf", "tesseract", "ffmpeg", "openssl", "soffice")
+$optional = @("pdfsig", "certutil", "pk12util")
 $missing = @()
 foreach ($name in $required) {
   $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or
@@ -514,7 +515,10 @@ foreach ($name in $required) {
 }
 if ($missing.Count -gt 0) {
   throw "The Windows package is missing engines: $($missing -join ', '). They must be inside the Setup.exe."
-} else {
-  Write-Host "All expected engines present: $($required -join ', ')"
+}
+Write-Host "Required engines present: $($required -join ', ')"
+foreach ($name in $optional) {
+  $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or (Test-Path (Join-Path $bin "$name.exe"))
+  if (-not $ok) { Write-Host "WARNING: optional engine not bundled: $name (PDF signing may be limited)." }
 }
 Get-ChildItem $engines -ErrorAction SilentlyContinue | Format-Table Name, Length

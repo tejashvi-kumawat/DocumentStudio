@@ -1,4 +1,4 @@
-# One-shot Windows release: Flutter build → bundle engines → portable zip → Inno Setup .exe.
+﻿# One-shot Windows release: Flutter build -> bundle engines -> portable zip -> Inno Setup .exe.
 # MUST run on Windows with Flutter desktop + (recommended) Inno Setup 6.
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_release.ps1
@@ -48,6 +48,9 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "==> portable zip"
 & powershell -NoProfile -ExecutionPolicy Bypass `
   -File (Join-Path $Root "scripts\windows\package_portable.ps1")
+if ($LASTEXITCODE -ne 0) {
+  throw "package_portable.ps1 failed with exit code $LASTEXITCODE"
+}
 
 $VersionLine = Select-String -Path (Join-Path $Root "pubspec.yaml") -Pattern '^version:\s*([^\+]+)' | Select-Object -First 1
 $Version = $VersionLine.Matches.Groups[1].Value.Trim()

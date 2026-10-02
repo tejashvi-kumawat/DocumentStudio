@@ -1,4 +1,4 @@
-# Portable Windows zip from a Release build (PowerShell).
+﻿# Portable Windows zip from a Release build (PowerShell).
 # Usage (from repo root, on Windows):
 #   flutter build windows --release
 #   .\scripts\bundle_windows_engines.ps1
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $ReleaseDir = Join-Path $Root "build\windows\x64\runner\Release"
 if (-not (Test-Path $ReleaseDir)) {
-  throw "Missing $ReleaseDir — run flutter build windows --release first"
+  throw "Missing $ReleaseDir - run flutter build windows --release first"
 }
 
 $VersionLine = Select-String -Path (Join-Path $Root "pubspec.yaml") -Pattern '^version:\s*([^\+]+)' | Select-Object -First 1
