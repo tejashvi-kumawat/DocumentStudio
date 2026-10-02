@@ -2,14 +2,11 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
-  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
   xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
   xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
-  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
-  IgnorableNamespaces="uap uap2 uap3 uap10 rescap desktop desktop4 com">
+  IgnorableNamespaces="uap uap10 rescap desktop4 com">
 
   <!-- Sparse identity: COM context menus for Windows 11 modern right-click. -->
   <Identity
@@ -47,13 +44,19 @@
         Square44x44Logo="Assets\StoreLogo.png" />
 
       <Extensions>
+        <!-- Schema requires SurrogateServer / ExeServer (not InProcessServer) under ComServer. -->
         <com:Extension Category="windows.comServer">
           <com:ComServer>
-            <com:InProcessServer>
-              <com:Path>DocumentStudio.Shell.comhost.dll</com:Path>
-              <com:Class Id="A1B2C3D4-E5F6-7890-ABCD-000000000001" DisplayName="DocumentStudioRootCommand" ThreadingModel="STA" />
-              <com:Class Id="A1B2C3D4-E5F6-7890-ABCD-00000000000A" DisplayName="DocumentStudioImageRoot" ThreadingModel="STA" />
-            </com:InProcessServer>
+            <com:SurrogateServer DisplayName="Document Studio Shell">
+              <com:Class
+                Id="A1B2C3D4-E5F6-7890-ABCD-000000000001"
+                Path="DocumentStudio.Shell.comhost.dll"
+                ThreadingModel="STA" />
+              <com:Class
+                Id="A1B2C3D4-E5F6-7890-ABCD-00000000000A"
+                Path="DocumentStudio.Shell.comhost.dll"
+                ThreadingModel="STA" />
+            </com:SurrogateServer>
           </com:ComServer>
         </com:Extension>
 
