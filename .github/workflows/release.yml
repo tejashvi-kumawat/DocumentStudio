@@ -1,16 +1,24 @@
-# Tag v* → build Windows installer + Linux .deb → GitHub Release assets.
-# Enables winget / apt / direct download from one URL base.
+# Tag v* → build Windows + Linux + macOS DMG → GitHub Release.
+# Homebrew needs the macOS DMG asset from this release.
 #
 #   git tag v1.0.3 && git push origin v1.0.3
+#
+# Manual (no tag): Actions → "Release" → Run workflow
+# Or: Actions → "Build macOS DMG" → Run workflow
 
 name: Release
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   windows:
@@ -38,6 +46,7 @@ jobs:
         with:
           name: windows
           path: dist/windows/*
+          if-no-files-found: error
 
   linux:
     runs-on: ubuntu-latest
@@ -56,6 +65,7 @@ jobs:
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev
 
       - run: flutter pub get
+      - run: flutter config --enable-linux-desktop
       - run: flutter build linux --release
 
       - name: Build .deb
@@ -68,21 +78,80 @@ jobs:
           path: |
             dist/linux/*.deb
             dist/linux/*.AppImage
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-14
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable macOS desktop
+        run: |
+          flutter config --enable-macos-desktop
+          flutter doctor -v
+
+      - name: Cache LibreOffice DMG + brew downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools/macos
+            .tools/tessdata
+          key: macos-engines-${{ runner.arch }}-${{ hashFiles('scripts/bundle_macos_engines.sh') }}
+          restore-keys: |
+            macos-engines-${{ runner.arch }}-
+
+      - run: flutter pub get
+
+      - name: Package macOS DMG (engines + ad-hoc sign)
+        env:
+          NONINTERACTIVE: '1'
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: bash scripts/macos/package_release.sh
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: |
+            dist/macos/*.dmg
+            dist/macos/*.zip
+          if-no-files-found: error
 
   publish:
-    needs: [windows, linux]
+    needs: [windows, linux, macos]
+    # Only attach to a real version tag (v*). Branch workflow_dispatch still
+    # uploads job artifacts for download from the Actions UI.
+    if: |
+      always()
+      && !cancelled()
+      && startsWith(github.ref, 'refs/tags/')
+      && (needs.macos.result == 'success'
+          || needs.windows.result == 'success'
+          || needs.linux.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Create GitHub Release
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Create / update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          fail_on_unmatched_files: false
           files: |
             artifacts/windows/*
             artifacts/linux/*
+            artifacts/macos/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -39,7 +39,8 @@ ZIP="$OUT_DIR/DocumentStudio-${VERSION}-macos.zip"
 STAGE="$OUT_DIR/dmg-stage"
 rm -rf "$STAGE" "$DMG"
 mkdir -p "$STAGE"
-cp -R "$APP" "$STAGE/"
+# Homebrew / Finder-friendly name (Flutter build is document_studio.app).
+cp -R "$APP" "$STAGE/Document Studio.app"
 ln -sf /Applications "$STAGE/Applications"
 
 if command -v create-dmg >/dev/null 2>&1; then

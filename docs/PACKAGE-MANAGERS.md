@@ -75,14 +75,34 @@ when the manifest supports it; direct **Setup.exe** download always uses the ful
 
 ### Publish
 
-**Option A — Homebrew Cask (wide reach):** PR to [homebrew-cask](https://github.com/Homebrew/homebrew-cask) adding `Casks/d/document-studio.rb`.
+**Full walkthrough:** **[HOMEBREW.md](HOMEBREW.md)** (build DMG → Release → tap or official cask PR).
 
-**Option B — Your tap (faster, you control):**
+**Option A — Your tap (faster, you control):**
 
 ```bash
 # One-time: create github.com/tejashvi-kumawat/homebrew-tap with Casks/document-studio.rb
 brew tap tejashvi-kumawat/tap
 brew install --cask document-studio
+brew upgrade --cask document-studio   # later updates (in place)
+```
+
+**Option B — Homebrew Cask (wide reach):** PR to [homebrew-cask](https://github.com/Homebrew/homebrew-cask) adding `Casks/d/document-studio.rb`.
+
+Refresh the template after each macOS release:
+
+```bash
+bash scripts/release/update_homebrew_cask.sh 1.0.3 dist/macos/DocumentStudio-1.0.3-macos.dmg
+```
+
+---
+
+## Updates (all platforms)
+
+See **[UPDATES.md](UPDATES.md)**. Short version:
+
+```bash
+document_studio --check-update
+document_studio --update          # in-place via winget/brew/flatpak or GitHub asset
 ```
 
 ---

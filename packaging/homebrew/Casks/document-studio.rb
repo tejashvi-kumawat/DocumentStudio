@@ -1,10 +1,11 @@
 # Homebrew Cask — Document Studio (macOS)
 #
-# Publish: PR to https://github.com/Homebrew/homebrew-cask
+# Publish: see docs/HOMEBREW.md
+#   PR to https://github.com/Homebrew/homebrew-cask
 #   or host in https://github.com/tejashvi-kumawat/homebrew-tap/Casks/
 #
 # Before release, set version, sha256, and url to match GitHub Release assets.
-#   shasum -a 256 DocumentStudio-1.0.3-macos.dmg
+#   bash scripts/release/update_homebrew_cask.sh 1.0.3 dist/macos/DocumentStudio-1.0.3-macos.dmg
 
 cask "document-studio" do
   version "1.0.3"
@@ -14,6 +15,11 @@ cask "document-studio" do
   name "Document Studio"
   desc "Offline PDF workspace with merge, OCR, encryption, and Office conversion"
   homepage "https://github.com/tejashvi-kumawat/DocumentStudio"
+
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
 
   depends_on macos: ">= :monterey"
 
