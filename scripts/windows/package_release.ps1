@@ -15,6 +15,11 @@ if ($env:OS -notmatch "Windows") {
   Write-Error "This script must run on Windows. A Linux host cannot produce document_studio.exe."
 }
 
+if (-not (Test-Path (Join-Path $Root "windows\CMakeLists.txt"))) {
+  Write-Host "==> Windows runner missing; running flutter create --platforms=windows"
+  flutter create --platforms=windows .
+}
+
 Write-Host "==> flutter build windows --release"
 flutter build windows --release
 
