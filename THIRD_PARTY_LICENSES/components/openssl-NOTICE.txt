@@ -1,0 +1,9 @@
+OpenSSL
+=======
+Version: see bundled-versions.json (e.g. Win64 OpenSSL Light 4.0.2 or system/Git copy on Windows; distro packages on Linux).
+License: Apache License 2.0 (OpenSSL 3.x) — ../Apache-2.0.txt
+Upstream: https://www.openssl.org/
+
+OpenSSL license and copyright notices are preserved in upstream distributions.
+Document Studio bundles openssl as a separate CLI under engines/ when required
+for signing workflows.

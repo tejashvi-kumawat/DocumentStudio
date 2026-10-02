@@ -1,0 +1,11 @@
+Tesseract OCR / tessdata
+========================
+Version: see bundled-versions.json (e.g. Tesseract 5.5.3 Windows installer, 5.3.4 Ubuntu debs on Linux).
+License: Apache License 2.0 — ../Apache-2.0.txt
+Upstream: https://github.com/tesseract-ocr/tesseract
+tessdata (eng): https://github.com/tesseract-ocr/tessdata / tessdata_fast
+
+Leptonica (dependency): BSD 2-Clause — ../BSD-2-Clause.txt
+
+Document Studio bundles tesseract and selected .traineddata files as separate
+files under engines/; not linked into the application binary.

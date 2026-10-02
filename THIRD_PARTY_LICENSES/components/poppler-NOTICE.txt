@@ -1,0 +1,12 @@
+Poppler (pdfsig / poppler-utils)
+================================
+Version: see bundled-versions.json (e.g. poppler-windows 24.08.0-0; Ubuntu poppler-utils 24.02.0-1ubuntu9).
+License: GNU General Public License version 2 or later — ../GPL-2.0-or-later.txt
+Upstream: https://poppler.freedesktop.org/
+
+When pdfsig or other Poppler binaries are included in engines/, they are
+redistributed as standalone executables invoked by Document Studio. GPL
+obligations may apply. Corresponding source offer: ../../docs/CORRESPONDING_SOURCE.md
+
+Document Studio does not modify Poppler source; binaries come from third-party
+packagers (oschwartz10612/poppler-windows or distribution packages).

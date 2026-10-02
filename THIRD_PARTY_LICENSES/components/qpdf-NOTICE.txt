@@ -1,0 +1,8 @@
+QPDF
+====
+Version: see bundled-versions.json (default 12.4.2 on Windows, 12.2.0 Linux zip).
+License: Apache License 2.0 — full text in ../Apache-2.0.txt
+Upstream: https://github.com/qpdf/qpdf
+
+Copyright notices and attribution are retained in upstream releases. Document Studio
+distributes unmodified qpdf binaries as a separate executable under engines/.

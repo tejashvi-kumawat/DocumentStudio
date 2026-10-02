@@ -12,7 +12,7 @@ PATHS=(
   linux android ios macos windows web l10n .github
   pubspec.yaml pubspec.lock analysis_options.yaml l10n.yaml
   Makefile README.md .gitignore .metadata
-  LICENSE PRIVACY.md TERMS.md THIRD_PARTY_NOTICES.md
+  LICENSE PRIVACY.md TERMS.md THIRD_PARTY_NOTICES.md THIRD_PARTY_LICENSES
 )
 
 branch="$(git branch --show-current)"
