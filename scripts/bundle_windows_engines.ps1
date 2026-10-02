@@ -9,7 +9,8 @@
 #   powershell -File scripts\bundle_windows_engines.ps1 -BundleDir build\windows\x64\runner\Release
 #
 # Skip LibreOffice (huge): $env:DS_SKIP_LIBREOFFICE = "1"
-# Override LO version:     $env:DS_LIBREOFFICE_VERSION = "26.2.6"
+# Override LO version:     $env:DS_LIBREOFFICE_VERSION = "26.8.0"
+# Override MSI URL:        $env:DS_LIBREOFFICE_MSI_URL = "https://ftp.osuosl.org/..."
 param(
   [Parameter(Mandatory = $false)]
   [string]$BundleDir = ""
@@ -42,7 +43,19 @@ New-Item -ItemType Directory -Force -Path $bin, $lib, $tessdata, $cache | Out-Nu
 # --- pinned versions / URLs (override via env) ---
 $QpdfVersion = if ($env:DS_QPDF_VERSION) { $env:DS_QPDF_VERSION } else { "12.4.2" }
 $PopplerVersion = if ($env:DS_POPPLER_VERSION) { $env:DS_POPPLER_VERSION } else { "24.08.0-0" }
-$LoVersion = if ($env:DS_LIBREOFFICE_VERSION) { $env:DS_LIBREOFFICE_VERSION } else { "26.2.6" }
+# Prefer a version known on university mirrors; TDF CDN often 504s in CI.
+$LoVersion = if ($env:DS_LIBREOFFICE_VERSION) { $env:DS_LIBREOFFICE_VERSION } else { "26.8.0" }
+$LoVersionFallbacks = @(
+  $LoVersion,
+  "26.8.0",
+  "26.2.6",
+  "25.8.7"
+) | Select-Object -Unique
+$LoMirrors = @(
+  "https://ftp.osuosl.org/pub/tdf/libreoffice/stable",
+  "https://mirror.csclub.uwaterloo.ca/tdf/libreoffice/stable",
+  "https://download.documentfoundation.org/libreoffice/stable"
+)
 $TesseractSetupUrl = if ($env:DS_TESSERACT_SETUP_URL) {
   $env:DS_TESSERACT_SETUP_URL
 } else {
@@ -102,25 +115,31 @@ function Get-CachedFile([string]$Url, [string]$FileName) {
   }
   $part = "$dest.part"
   Write-Host "Downloading $Url ..."
-  try {
-    if (Test-Path $part) { Remove-Item -Force $part -ErrorAction SilentlyContinue }
-    Invoke-WebRequest -Uri $Url -OutFile $part -UseBasicParsing
-    if (-not (Test-Path $part) -or (Get-Item $part).Length -eq 0) {
-      throw "empty download"
-    }
-    Move-Item -Force $part $dest
-    if ($FileName -like "*.msi" -and -not (Test-ValidMsi $dest)) {
-      Write-Host "WARNING: download is not a valid MSI (wrong URL or mirror HTML)"
+  $attempt = 0
+  while ($attempt -lt 4) {
+    $attempt++
+    try {
+      if (Test-Path $part) { Remove-Item -Force $part -ErrorAction SilentlyContinue }
+      # Longer timeout helps when TDF/nginx is slow before 504.
+      Invoke-WebRequest -Uri $Url -OutFile $part -UseBasicParsing -TimeoutSec 600
+      if (-not (Test-Path $part) -or (Get-Item $part).Length -eq 0) {
+        throw "empty download"
+      }
+      Move-Item -Force $part $dest
+      if ($FileName -like "*.msi" -and -not (Test-ValidMsi $dest)) {
+        Write-Host "WARNING: download is not a valid MSI (wrong URL or mirror HTML)"
+        Remove-Item -Force $dest -ErrorAction SilentlyContinue
+        return $null
+      }
+      return $dest
+    } catch {
+      Write-Host "WARNING: download attempt $attempt failed for $Url : $_"
+      Remove-Item -Force $part -ErrorAction SilentlyContinue
       Remove-Item -Force $dest -ErrorAction SilentlyContinue
-      return $null
+      if ($attempt -lt 4) { Start-Sleep -Seconds (3 * $attempt) }
     }
-    return $dest
-  } catch {
-    Write-Host "WARNING: download failed for $Url : $_"
-    Remove-Item -Force $part -ErrorAction SilentlyContinue
-    Remove-Item -Force $dest -ErrorAction SilentlyContinue
-    return $null
   }
+  return $null
 }
 
 function Expand-ZipTo([string]$ZipPath, [string]$Dest) {
@@ -494,15 +513,61 @@ function BundleLibreOffice {
 
   $loDest = Join-Path $engines "libreoffice"
   if (-not $prog) {
-    $msiName = "LibreOffice_${LoVersion}_Win_x86-64.msi"
-    $url = if ($env:DS_LIBREOFFICE_MSI_URL) {
-      $env:DS_LIBREOFFICE_MSI_URL
-    } else {
-      "https://download.documentfoundation.org/libreoffice/stable/$LoVersion/win/x86_64/$msiName"
+    $msi = $null
+    $msiName = $null
+
+    # Explicit override first.
+    if ($env:DS_LIBREOFFICE_MSI_URL) {
+      $msiName = [IO.Path]::GetFileName(($env:DS_LIBREOFFICE_MSI_URL -split '\?')[0])
+      if (-not $msiName) { $msiName = "LibreOffice_custom.msi" }
+      $msi = Get-CachedFile $env:DS_LIBREOFFICE_MSI_URL $msiName
     }
-    $msi = Get-CachedFile $url $msiName
-    if (-not $msi -or -not (Test-ValidMsi $msi)) {
-      throw "LibreOffice MSI download failed or file is corrupt (msiexec 1619). Delete $cache\$msiName and re-run, or set DS_LIBREOFFICE_MSI_URL."
+
+    # Reuse any valid cached MSI from fallbacks.
+    if (-not $msi) {
+      foreach ($ver in $LoVersionFallbacks) {
+        $candName = "LibreOffice_${ver}_Win_x86-64.msi"
+        $candPath = Join-Path $cache $candName
+        if (Test-ValidMsi $candPath) {
+          Write-Host "Using cached LibreOffice MSI: $candPath"
+          $msi = $candPath
+          $msiName = $candName
+          break
+        }
+      }
+    }
+
+    # Download: mirrors × versions (OSUOSL first — TDF often 504s in CI).
+    if (-not $msi) {
+      $tried = @()
+      foreach ($ver in $LoVersionFallbacks) {
+        $msiName = "LibreOffice_${ver}_Win_x86-64.msi"
+        foreach ($mirror in $LoMirrors) {
+          $url = "$mirror/$ver/win/x86_64/$msiName"
+          $tried += $url
+          Write-Host "Trying LibreOffice MSI ($ver) ..."
+          $msi = Get-CachedFile $url $msiName
+          if ($msi -and (Test-ValidMsi $msi)) {
+            Write-Host "Downloaded LibreOffice $ver from $mirror"
+            break
+          }
+          $msi = $null
+        }
+        if ($msi) { break }
+      }
+      if (-not $msi) {
+        throw @"
+LibreOffice MSI download failed on all mirrors (TDF 504 / mirror errors).
+Tried:
+  $($tried -join "`n  ")
+Delete corrupt cache under $cache\LibreOffice_*_Win_x86-64.msi and re-run,
+or set DS_LIBREOFFICE_MSI_URL to a working MSI URL.
+"@
+      }
+    }
+
+    if (-not (Test-ValidMsi $msi)) {
+      throw "LibreOffice MSI download failed or file is corrupt (msiexec 1619). Delete $msi and re-run, or set DS_LIBREOFFICE_MSI_URL."
     }
     $extract = Join-Path $cache "libreoffice_msi_extract"
     Write-Host "Extracting LibreOffice MSI into $extract ..."
