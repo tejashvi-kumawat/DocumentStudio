@@ -86,7 +86,7 @@ Outputs: `dist/windows/DocumentStudio-<ver>-Setup.exe`, `DocumentStudio-<ver>-po
 | OpenSSL Light | `https://slproweb.com/download/Win64OpenSSL_Light-4_0_2.exe` (`DS_OPENSSL_URL`) |
 | zstd (extract helper) | `https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-v1.5.7-win64.zip` |
 | NSS / NSPR / sqlite / zlib | MSYS2 mingw64 `.pkg.tar.zst` under `https://repo.msys2.org/mingw/mingw64/` (pinned filenames in script) |
-| LibreOffice MSI | `https://download.documentfoundation.org/libreoffice/stable/26.2.6/win/x86_64/LibreOffice_26.2.6_Win_x86-64.msi` (`DS_LIBREOFFICE_VERSION` / `DS_LIBREOFFICE_MSI_URL`) |
+| LibreOffice MSI | `https://download.documentfoundation.org/libreoffice/stable/26.8.1/win/x86_64/LibreOffice_26.8.1_Win_x86-64.msi` (`DS_LIBREOFFICE_VERSION` / `DS_LIBREOFFICE_MSI_URL`) |
 
 Optional overrides: `DS_TESSERACT_ROOT`, `DS_LIBREOFFICE_ROOT`, `DS_SKIP_LIBREOFFICE=1`.
 
@@ -118,7 +118,7 @@ Outputs: `dist/macos/DocumentStudio-<ver>-macos.dmg`, `DocumentStudio-<ver>-maco
 Homebrew formulas (non-interactive): `qpdf`, `tesseract`, `poppler`, `nss`, `openssl`, `ffmpeg`.
 
 LibreOffice: official DMG for host arch → copied to `engines/LibreOffice.app`
-(`DS_LIBREOFFICE_VERSION`, default `26.2.6`; `DS_LIBREOFFICE_DMG_URL` to override).
+(`DS_LIBREOFFICE_VERSION`, default `26.8.1`; `DS_LIBREOFFICE_DMG_URL` to override).
 
 **Universal vs arm64:** script copies **host arch** binaries. For universal, build on each arch (or Rosetta brew) and `lipo` the engine binaries, then re-sign. Without Apple Developer Program, skip notarization; users right-click → Open once.
 

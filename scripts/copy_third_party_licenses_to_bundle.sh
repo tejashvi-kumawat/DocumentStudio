@@ -28,7 +28,7 @@ cat > "$DEST/bundled-versions.json" <<EOF
   "qpdf": "${DS_QPDF_VERSION:-12.2.0}",
   "tesseract_linux_debs": "5.3.4-1build5 (Ubuntu pool when used)",
   "poppler_linux": "poppler-utils 24.02.0-1ubuntu9 (when used)",
-  "libreoffice": "${DS_LIBREOFFICE_VERSION:-26.2.6}",
+  "libreoffice": "${DS_LIBREOFFICE_VERSION:-26.8.1}",
   "ffmpeg": "distro or DS_FFMPEG_URL build — verify license via ffmpeg -version",
   "nss": "${DS_NSS_PKG:-system libnss3-tools}",
   "notes": "See BUNDLED_COMPONENTS.md and bundled-versions.json in Windows build for Windows-specific pins."

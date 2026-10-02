@@ -53,6 +53,8 @@ jobs:
           NONINTERACTIVE: '1'
           HOMEBREW_NO_AUTO_UPDATE: '1'
           HOMEBREW_NO_INSTALL_CLEANUP: '1'
+          DS_LIBREOFFICE_VERSION: '26.8.1'
+          DS_LIBREOFFICE_DMG_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.1/mac/aarch64/LibreOffice_26.8.1_MacOS_aarch64.dmg'
         run: bash scripts/macos/package_release.sh
 
       - name: Upload artifact
