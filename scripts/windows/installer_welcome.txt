@@ -8,7 +8,7 @@ Included when built as a complete release:
   • Tesseract OCR and language data
   • OpenSSL and NSS tools for digital signatures
   • ffmpeg for media-related tools
-  • LibreOffice (optional in some builds) for high-fidelity Office to PDF
+  • LibreOffice for Office to PDF and PDF to Word (full releases)
 
 You need roughly 500 MB–1.5 GB of free disk space depending on the build.
 

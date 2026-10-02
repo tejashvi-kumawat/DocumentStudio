@@ -472,13 +472,11 @@ function Expand-LoMsi([string]$MsiPath, [string]$DestDir) {
 # --- LibreOffice (official MSI -> administrative extract into engines/) ---
 function BundleLibreOffice {
   if ($env:DS_SKIP_LIBREOFFICE -eq "1") {
-    Write-Host "Skipping LibreOffice (DS_SKIP_LIBREOFFICE=1). Users can install via in-app setup wizard."
+    Write-Host "Skipping LibreOffice (DS_SKIP_LIBREOFFICE=1). Office conversion uses in-app download or Dart fallback."
     return
   }
-  if ($env:DS_BUNDLE_LIBREOFFICE -ne "1" -and -not $env:DS_LIBREOFFICE_ROOT) {
-    Write-Host "Skipping LibreOffice (set DS_BUNDLE_LIBREOFFICE=1 for full Setup.exe). In-app wizard can download later."
-    return
-  }
+
+  Write-Host "Bundling LibreOffice (Office to PDF, PDF to Word, etc.) ..."
 
   $prog = $null
   if ($env:DS_LIBREOFFICE_ROOT) {
@@ -547,8 +545,12 @@ function BundleLibreOffice {
   }
 
   if (-not $prog -or -not (Test-Path (Join-Path $prog "soffice.exe"))) {
-    Write-Host "WARNING: LibreOffice not bundled (large). Office tools use in-app Dart conversion; install system LibreOffice or set DS_LIBREOFFICE_ROOT to enable full fidelity."
-    return
+    throw @"
+LibreOffice soffice.exe was not bundled. Office conversion needs it inside Setup.exe.
+  - Delete corrupt MSI: .tools\windows\LibreOffice_*_Win_x86-64.msi then re-run
+  - Or install LibreOffice and set DS_LIBREOFFICE_ROOT=C:\Program Files\LibreOffice
+  - Or build without LO: `$env:DS_SKIP_LIBREOFFICE = '1' (smaller installer; in-app wizard adds LO later)
+"@
   }
 
   @"
@@ -581,11 +583,15 @@ BundleLibreOffice
 Write-Host ""
 Write-Host "Windows engines ready under $engines"
 $required = @("qpdf", "tesseract", "ffmpeg", "openssl")
-$optional = @("pdfsig", "certutil", "pk12util", "soffice")
+$optional = @("pdfsig", "certutil", "pk12util")
+if ($env:DS_SKIP_LIBREOFFICE -ne "1") {
+  $required += "soffice"
+}
 $missing = @()
 foreach ($name in $required) {
   $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or
-        (Test-Path (Join-Path $bin "$name.exe"))
+        (Test-Path (Join-Path $bin "$name.exe")) -or
+        ($name -eq "soffice" -and (Test-Path (Join-Path $engines "libreoffice\program\soffice.exe")))
   if (-not $ok) { $missing += $name }
 }
 if ($missing.Count -gt 0) {
@@ -594,14 +600,9 @@ if ($missing.Count -gt 0) {
 Write-Host "Required engines present: $($required -join ', ')"
 foreach ($name in $optional) {
   $ok = (Test-Path (Join-Path $engines "$name.cmd")) -or
-        (Test-Path (Join-Path $bin "$name.exe")) -or
-        ($name -eq "soffice" -and (Test-Path (Join-Path $engines "libreoffice\program\soffice.exe")))
+        (Test-Path (Join-Path $bin "$name.exe"))
   if (-not $ok) {
-    if ($name -eq "soffice") {
-      Write-Host "WARNING: optional engine not bundled: soffice (use in-app Dart office convert or install LibreOffice)."
-    } else {
-      Write-Host "WARNING: optional engine not bundled: $name (PDF signing may be limited)."
-    }
+    Write-Host "WARNING: optional engine not bundled: $name (PDF signing may be limited)."
   }
 }
 Get-ChildItem $engines -ErrorAction SilentlyContinue | Format-Table Name, Length
