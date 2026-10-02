@@ -49,8 +49,12 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
   LocalFileRef? _saved;
   bool _installingEngine = false;
 
+  /// Pure-Dart office convert when mobile, or desktop without bundled/system LO.
   bool get _useDartPath =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+      !kIsWeb &&
+      (Platform.isAndroid ||
+          Platform.isIOS ||
+          _enginePath == null);
 
   bool get _ready =>
       _engineChecked && (_useDartPath || _enginePath != null);
