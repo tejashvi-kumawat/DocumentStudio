@@ -208,6 +208,7 @@ internal static class ShellPaths
     public static IntPtr Alloc(string s) => Marshal.StringToCoTaskMemUni(s);
 }
 
+[ComVisible(false)]
 public abstract class ExplorerCommandBase : IExplorerCommand
 {
     protected abstract string Title { get; }
@@ -267,6 +268,7 @@ public abstract class ExplorerCommandBase : IExplorerCommand
     }
 }
 
+[ComVisible(false)]
 public sealed class EnumCommands : IEnumExplorerCommand
 {
     private readonly IExplorerCommand[] _items;
