@@ -41,7 +41,7 @@ internal static class NativeMethods
 [ComImport]
 [Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-internal interface IShellItem
+public interface IShellItem
 {
     void BindToHandler(IntPtr pbc, in Guid bhid, in Guid riid, out IntPtr ppv);
     void GetParent(out IShellItem ppsi);
@@ -53,7 +53,7 @@ internal interface IShellItem
 [ComImport]
 [Guid("b63ea76d-1f85-456f-a19c-48159efa858b")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-internal interface IShellItemArray
+public interface IShellItemArray
 {
     void BindToHandler(IntPtr pbc, in Guid bhid, in Guid riid, out IntPtr ppvOut);
     void GetPropertyStore(int flags, in Guid riid, out IntPtr ppv);
@@ -67,7 +67,7 @@ internal interface IShellItemArray
 [ComImport]
 [Guid("a08ce4d0-fa25-44ab-b57c-c7b1ce4549ce")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-internal interface IExplorerCommand
+public interface IExplorerCommand
 {
     [PreserveSig]
     int GetTitle(IShellItemArray? psiItemArray, out IntPtr ppszName);
@@ -97,7 +97,7 @@ internal interface IExplorerCommand
 [ComImport]
 [Guid("a88826f8-186f-4987-aae3-36671d1bf46b")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-internal interface IEnumExplorerCommand
+public interface IEnumExplorerCommand
 {
     [PreserveSig]
     int Next(uint celt, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IExplorerCommand[] pUICommand, out uint pceltFetched);
@@ -208,7 +208,7 @@ internal static class ShellPaths
     public static IntPtr Alloc(string s) => Marshal.StringToCoTaskMemUni(s);
 }
 
-internal abstract class ExplorerCommandBase : IExplorerCommand
+public abstract class ExplorerCommandBase : IExplorerCommand
 {
     protected abstract string Title { get; }
     protected abstract Guid CanonicalName { get; }
@@ -267,7 +267,7 @@ internal abstract class ExplorerCommandBase : IExplorerCommand
     }
 }
 
-internal sealed class EnumCommands : IEnumExplorerCommand
+public sealed class EnumCommands : IEnumExplorerCommand
 {
     private readonly IExplorerCommand[] _items;
     private int _index;
