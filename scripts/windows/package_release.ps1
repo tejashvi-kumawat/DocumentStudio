@@ -22,6 +22,9 @@ if (-not (Test-Path (Join-Path $Root "windows\CMakeLists.txt"))) {
 
 Write-Host "==> flutter build windows --release"
 flutter build windows --release
+if ($LASTEXITCODE -ne 0) {
+  throw "flutter build windows --release failed with exit code $LASTEXITCODE. Run: flutter clean && flutter pub get && flutter build windows --release -v"
+}
 
 $ReleaseDir = Join-Path $Root "build\windows\x64\runner\Release"
 if (-not (Test-Path $ReleaseDir)) {
