@@ -1,4 +1,4 @@
-# Registers Document Studio for Start Menu search, "Open with", and PDF/image
+﻿# Registers Document Studio for Start Menu search, "Open with", and PDF/image
 # context menus. Use after a portable Release build OR against an installed folder.
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\register_windows_shell.ps1
@@ -170,7 +170,7 @@ $pdfVerbs = [ordered]@{
   protect   = @{ Label = "Encrypt / protect PDF"; Command = "`"$Exe`" --tool protect `"%1`"" }
   unlock    = @{ Label = "Decrypt / unlock PDF"; Command = "`"$Exe`" --tool unlock `"%1`"" }
   split     = @{ Label = "Split PDF"; Command = "`"$Exe`" --tool split `"%1`"" }
-  merge     = @{ Label = "Merge PDFs…"; Command = "`"$Exe`" --tool merge `"%1`"" }
+  merge     = @{ Label = "Merge PDFs..."; Command = "`"$Exe`" --tool merge `"%1`"" }
   ocr       = @{ Label = "Make searchable (OCR)"; Command = "`"$Exe`" --tool ocr `"%1`"" }
   watermark = @{ Label = "Add watermark"; Command = "`"$Exe`" --tool watermark `"%1`"" }
 }
@@ -218,7 +218,7 @@ try {
   Write-Warning $_.Exception.Message
   Write-Host "Enable Developer Mode, install .NET 8 SDK, then run:"
   Write-Host "  powershell -File scripts\windows\register_win11_context_menu.ps1 -AppDir `"$AppDir`""
-  Write-Host "Until then: right-click PDF → 'Show more options' → Open/Edit with Document Studio."
+  Write-Host "Until then: right-click PDF > 'Show more options' > Open/Edit with Document Studio."
 }
 Write-Host ""
 Write-Host "Unregister:  powershell -File scripts\windows\register_windows_shell.ps1 -Unregister"
