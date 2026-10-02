@@ -17,6 +17,11 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 1
 fi
 
+if [[ ! -d "$ROOT/macos/Runner.xcodeproj" ]]; then
+  echo "macos/ platform missing. Scaffolding with flutter create…" >&2
+  flutter create --platforms=macos "$ROOT"
+fi
+
 echo "==> flutter build macos --release"
 flutter build macos --release
 
