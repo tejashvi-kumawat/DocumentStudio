@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.license          = { :type => 'MIT' }
   s.author           = { 'Document Studio' => 'dev@local' }
   s.source           = { :path => '.' }
-  s.source_files     = 'darwin/Sources/document_studio_os_signing/**/*.swift'
+  s.source_files     = 'Sources/document_studio_os_signing/**/*.swift'
   s.ios.deployment_target = '13.0'
   s.osx.deployment_target = '10.15'
   s.swift_version    = '5.0'
