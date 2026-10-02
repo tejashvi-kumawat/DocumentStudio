@@ -41,6 +41,9 @@ Write-Host "==> bundle engines into $ReleaseDir"
 & powershell -NoProfile -ExecutionPolicy Bypass `
   -File (Join-Path $Root "scripts\bundle_windows_engines.ps1") `
   -BundleDir $ReleaseDir
+if ($LASTEXITCODE -ne 0) {
+  throw "bundle_windows_engines.ps1 failed with exit code $LASTEXITCODE"
+}
 
 Write-Host "==> portable zip"
 & powershell -NoProfile -ExecutionPolicy Bypass `
