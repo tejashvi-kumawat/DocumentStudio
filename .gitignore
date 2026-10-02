@@ -82,3 +82,6 @@ dist/
 
 # Large local PDF benchmarks (do not commit)
 benchmarks/*.pdf
+
+# Win11 shell COM build output
+windows/shell/out/

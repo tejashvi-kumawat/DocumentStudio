@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  IgnorableNamespaces="uap uap2 uap3 uap10 rescap desktop desktop4 com">
+
+  <!-- Sparse identity: COM context menus for Windows 11 modern right-click. -->
+  <Identity
+    Name="DocumentStudio.ContextMenu"
+    Publisher="CN=DocumentStudio"
+    Version="1.0.3.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Document Studio Context Menu</DisplayName>
+    <PublisherDisplayName>Document Studio</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
+  </Properties>
+
+  <Resources>
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+
+  <Applications>
+    <Application Id="DocumentStudio" Executable="document_studio.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Document Studio"
+        Description="Offline PDF workspace"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\StoreLogo.png"
+        Square44x44Logo="Assets\StoreLogo.png" />
+
+      <Extensions>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:InProcessServer>
+              <com:Path>DocumentStudio.Shell.comhost.dll</com:Path>
+              <com:Class Id="A1B2C3D4-E5F6-7890-ABCD-000000000001" DisplayName="DocumentStudioRootCommand" ThreadingModel="STA" />
+              <com:Class Id="A1B2C3D4-E5F6-7890-ABCD-00000000000A" DisplayName="DocumentStudioImageRoot" ThreadingModel="STA" />
+            </com:InProcessServer>
+          </com:ComServer>
+        </com:Extension>
+
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop4:ItemType Type=".pdf">
+              <desktop4:Verb Id="DocumentStudioPdf" Clsid="A1B2C3D4-E5F6-7890-ABCD-000000000001" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".png">
+              <desktop4:Verb Id="DocumentStudioPng" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".jpg">
+              <desktop4:Verb Id="DocumentStudioJpg" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".jpeg">
+              <desktop4:Verb Id="DocumentStudioJpeg" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".webp">
+              <desktop4:Verb Id="DocumentStudioWebp" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".bmp">
+              <desktop4:Verb Id="DocumentStudioBmp" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".tif">
+              <desktop4:Verb Id="DocumentStudioTif" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".tiff">
+              <desktop4:Verb Id="DocumentStudioTiff" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+            <desktop4:ItemType Type=".gif">
+              <desktop4:Verb Id="DocumentStudioGif" Clsid="A1B2C3D4-E5F6-7890-ABCD-00000000000A" />
+            </desktop4:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>
