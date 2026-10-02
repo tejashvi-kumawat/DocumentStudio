@@ -1,59 +1,76 @@
 # Licenses — Document Studio
 
-Document Studio application code: **proprietary** (`LicenseRef-proprietary`, All Rights Reserved). See:
+Document Studio **application code** is **proprietary** (`LicenseRef-proprietary`, All Rights Reserved). See [LICENSE](../LICENSE), [TERMS.md](../TERMS.md), [PRIVACY.md](../PRIVACY.md).
 
-| Document | Path |
-| --- | --- |
-| End-user / distribution license | [LICENSE](../LICENSE) |
-| Privacy policy | [PRIVACY.md](../PRIVACY.md) |
-| Terms and Conditions | [TERMS.md](../TERMS.md) |
-| Third-party notices pointer | [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) |
+**Third-party** software keeps its **own** licenses. Full texts and notices:
+[THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) → [THIRD_PARTY_LICENSES/](../THIRD_PARTY_LICENSES/).
 
-This document tracks **third-party** obligations for the recommended engine stack. Bundled engines are **not** relicensed by Document Studio's proprietary `LICENSE`.
+Bundled engines are **not** relicensed by Document Studio's `LICENSE`.
 
-## Application dependencies (planned)
+---
 
-| Component | License | Attribution |
+## Bundled desktop engines (version pins)
+
+See **[THIRD_PARTY_LICENSES/BUNDLED_COMPONENTS.md](../THIRD_PARTY_LICENSES/BUNDLED_COMPONENTS.md)** for default versions, distribution mode, and obligations. Build-time pins are also written to `engines/THIRD_PARTY_LICENSES/bundled-versions.json` in shipped artifacts.
+
+| Component | Default license | Distribution |
 | --- | --- | --- |
-| Flutter SDK | BSD-3 | Google |
-| pdfrx / pdfrx_engine / pdfium_flutter | MIT | Plugin author + PDFium NOTICES |
-| PDFium (binary) | BSD-3-Clause / Apache-2.0 (composite) | Ship `licenses/` from pdfium bundle |
-| qpdf | Apache-2.0 | NOTICE in app legal screen |
-| Tesseract | Apache-2.0 | Include NOTICE |
-| Leptonica (via Tesseract) | BSD-2-clause | Bundled with Tesseract |
-| `image` | MIT | |
-| `file_picker` | MIT | |
-| `printing` | Apache-2.0 | |
-| tessdata language files | Apache-2.0 (tessdata repo) | Per-language if required |
+| QPDF | Apache-2.0 | Bundled CLI + libs |
+| Tesseract (+ tessdata) | Apache-2.0 | Bundled CLI + data |
+| Leptonica | BSD-2-Clause | With Tesseract |
+| Poppler (`pdfsig`) | GPL-2.0-or-later | Bundled CLI when present |
+| OpenSSL | Apache-2.0 | Bundled CLI |
+| NSS tools | MPL-2.0 | Bundled CLI + libs |
+| FFmpeg | **Verify per binary** | Bundled CLI |
+| LibreOffice | MPL-2.0 (+ upstream set) | Bundled tree, external process |
 
-## PDFium bundled libraries (typical)
+Copyleft / **corresponding source:** [CORRESPONDING_SOURCE.md](CORRESPONDING_SOURCE.md).
 
-Abseil, FreeType, ICU, libjpeg-turbo, libpng, libtiff, OpenJPEG, zlib, etc.—full list in PDFium release `licenses/` folder. **Must ship** in app “Third-party licenses” UI.
+---
 
-## External processes (desktop)
+## Flutter application dependencies (pub.dev)
 
 | Component | License | Notes |
 | --- | --- | --- |
-| LibreOffice | MPL-2.0 | Separate install; not linked; document in FAQ |
-| veraPDF (optional) | MPL-2.0 / GPL-3+ dual | CLI validator only |
+| Flutter SDK | BSD-3-Clause | Google |
+| pdfrx / pdfrx_engine / pdfium_flutter | MIT + PDFium NOTICES | PDF rendering |
+| PDFium (native) | BSD-3-Clause / Apache-2.0 (composite) | Linked native library |
+| document_studio_qpdf | Project license + qpdf Apache-2.0 | FFI/CLI to qpdf |
+| document_studio_ocr | Project license + Tesseract Apache-2.0 | OCR |
+| printing | Apache-2.0 | |
+| flutter_tesseract_ocr | Upstream license | Mobile OCR binding |
+| Other pub deps | Mostly MIT/BSD/Apache | See `pubspec.lock` |
 
-## Explicitly excluded (copyleft in app binary)
+Before adding dependencies, update [DEPENDENCIES.md](DEPENDENCIES.md) and this file when the license is outside MIT/BSD/Apache/MPL-2.0 (with review).
 
-MuPDF (AGPL), Ghostscript (AGPL), Poppler (GPL), GPL `pdf_signer`.
+---
 
-## Syncfusion
+## Previously excluded from **linked** app binary
 
-Not used in core product (ADR-008).
+These are **not** linked into the Flutter binary. **Poppler** may still appear as a **bundled GPL CLI** (`pdfsig`) — that triggers **distribution** obligations for that binary, not “linking exclusion.”
 
-## Compliance checklist (release)
+| Component | Reason |
+| --- | --- |
+| MuPDF | AGPL |
+| Ghostscript | AGPL |
+| GPL `pdf_signer` | GPL linked tooling rejected |
 
-- [ ] `ThirdPartyLicenses` screen or dialog scrollable text
-- [ ] PDFium licenses directory copied to resources
-- [ ] qpdf Apache 2.0 NOTICE
-- [ ] Tesseract Apache 2.0
-- [ ] tessdata attribution if required by pack used
-- [ ] No GPL/AGPL linked native libs in release artifact (verify with `ldd`/APK analyzer)
+---
+
+## Release compliance checklist
+
+- [ ] `engines/THIRD_PARTY_LICENSES/` present in Windows/Linux/macOS release trees  
+- [ ] `bundled-versions.json` matches build pins  
+- [ ] FFmpeg license line captured from shipped `ffmpeg -version` (if FFmpeg bundled)  
+- [ ] Poppler/GPL source offer documented if `pdfsig` shipped  
+- [ ] LibreOffice upstream license files in `libreoffice-upstream/` when LO bundled (Windows script)  
+- [ ] PDFium / Flutter notices included per store requirements  
+- [ ] In-app or installer “Legal / Third-party licenses” surfaces text for store policies (recommended; verify per store)
+
+This checklist does **not** guarantee compliance with every jurisdiction or store policy; it reflects reasonable open-source distribution practice.
+
+---
 
 ## Agent rule
 
-Before adding any dependency, append row to [DEPENDENCIES.md](DEPENDENCIES.md) and update this file if license is not MIT/BSD/Apache.
+Before adding any dependency or bundled binary, append a row to [DEPENDENCIES.md](DEPENDENCIES.md) and update [THIRD_PARTY_LICENSES/BUNDLED_COMPONENTS.md](../THIRD_PARTY_LICENSES/BUNDLED_COMPONENTS.md) when the component is redistributed.

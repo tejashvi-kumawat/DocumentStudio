@@ -1,0 +1,9 @@
+Network Security Services (NSS) — certutil, pk12util
+=====================================================
+Version: see bundled-versions.json (e.g. MSYS2 mingw-w64-x86_64-nss 3.129 on Windows; libnss3-tools on Linux).
+License: Mozilla Public License 2.0 — ../MPL-2.0.txt
+Upstream: https://firefox-source-docs.mozilla.org/security/nss/
+
+NSPR and related libraries may be bundled alongside NSS tools. Document Studio
+invokes certutil/pk12util as external processes; binaries are not linked into
+the Flutter application.

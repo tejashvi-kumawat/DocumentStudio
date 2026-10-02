@@ -1,29 +1,49 @@
 # Third-party notices — Document Studio
 
 Document Studio's own application code is proprietary
-(`LicenseRef-proprietary`; see `LICENSE`). That grant does **not** relicense
-bundled or linked engines and libraries.
+(`LicenseRef-proprietary`; see [LICENSE](LICENSE)). That grant does **not** relicense
+bundled or linked third-party software.
 
-## Where to find license details
+## Shipped with desktop installers
 
-| Topic | Location |
+Release builds copy this repository's **[THIRD_PARTY_LICENSES/](THIRD_PARTY_LICENSES/)**
+tree into the installed application at:
+
+```text
+engines/THIRD_PARTY_LICENSES/
+```
+
+That folder includes **full license texts** (Apache-2.0, GPL-2.0, MPL-2.0, BSD, etc.),
+per-component NOTICE files, and **`bundled-versions.json`** (exact version pins for that build).
+
+| Reference | Content |
 | --- | --- |
-| Engine and dependency license table | [docs/LICENSES.md](docs/LICENSES.md) |
-| Dependency inventory | [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) (if present) |
-| Liberation fonts | [assets/fonts/text/LICENSE-Liberation.txt](assets/fonts/text/LICENSE-Liberation.txt) |
+| Component table | [THIRD_PARTY_LICENSES/BUNDLED_COMPONENTS.md](THIRD_PARTY_LICENSES/BUNDLED_COMPONENTS.md) |
+| Copyleft / source offers | [docs/CORRESPONDING_SOURCE.md](docs/CORRESPONDING_SOURCE.md) |
+| Dependency inventory | [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) |
+| Summary table | [docs/LICENSES.md](docs/LICENSES.md) |
 
-## Engines commonly shipped with desktop builds
+## Bundled CLI engines (external processes)
 
-These components remain under **their** licenses when bundled or invoked:
+When present under `engines/`, these run as **separate executables** (not linked into
+`document_studio.exe` / the Flutter binary):
 
-- **Flutter / Dart SDK** — BSD-style licenses from Google / Dart project
-- **PDFium** (via pdfrx / pdfium) — PDFium and its embedded library notices
-- **qpdf** — Apache-2.0
-- **Tesseract** / Leptonica — Apache-2.0 / BSD-2-Clause as applicable; optional
-  tessdata language files under their upstream terms
-- **LibreOffice** (desktop conversion, when packaged) — MPL-2.0 and related
-  LibreOffice notices
+- **QPDF** — Apache-2.0  
+- **Tesseract OCR** (+ Leptonica, tessdata) — Apache-2.0 / BSD-2-Clause  
+- **Poppler** (`pdfsig`) — GPL-2.0-or-later when bundled  
+- **OpenSSL** — Apache-2.0 (OpenSSL 3.x)  
+- **NSS** (`certutil`, `pk12util`) — MPL-2.0  
+- **FFmpeg** — license depends on upstream build (**verify** — see `components/FFMPEG-NOTICE.md`)  
+- **LibreOffice** — MPL-2.0 and upstream collective licenses  
 
-Ship the notices that accompany each binary release (for example PDFium
-`licenses/` folders and Apache NOTICE files) with the corresponding artifact.
-Do not treat Document Studio's proprietary `LICENSE` as covering those works.
+## Linked in the application binary
+
+- **PDFium** (via pdfrx / pdfium_flutter) — BSD / Apache composite notices from the engine package  
+- **Flutter / Dart SDK** — BSD-style licenses  
+
+## Fonts
+
+- **Liberation** — [assets/fonts/text/LICENSE-Liberation.txt](assets/fonts/text/LICENSE-Liberation.txt)
+
+Preserve all upstream copyright and license notices when redistributing installers or
+store packages. Do not replace third-party licenses with Document Studio's proprietary license.

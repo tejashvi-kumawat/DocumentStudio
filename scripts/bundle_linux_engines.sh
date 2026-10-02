@@ -839,6 +839,8 @@ fi
 bundle_ffmpeg
 bundle_dsc_tools
 
+bash "$ROOT/scripts/copy_third_party_licenses_to_bundle.sh" "$ENGINES" || true
+
 if [[ -x "$ENGINES/qpdf" || -x "$ENGINES/bin/qpdf" ]]; then
   echo "Engines ready under $ENGINES"
   "$ENGINES/bin/qpdf" --version 2>/dev/null || "$ENGINES/qpdf" --version 2>/dev/null || true

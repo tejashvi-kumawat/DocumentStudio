@@ -1,0 +1,17 @@
+LibreOffice
+===========
+Version: see bundled-versions.json (default 26.2.6 stable from Document Foundation).
+License: Mozilla Public License 2.0 for LibreOffice core — ../MPL-2.0.txt
+LibreOffice includes many third-party components under MPL-2.0, LGPL, and other
+licenses. Full collective notices ship with upstream installs.
+
+Upstream licenses: https://www.libreoffice.org/about-us/licenses/
+Source code: https://www.libreoffice.org/download/source-code/
+
+Document Studio redistributes an **unmodified** official MSI/DMG/tarball layout
+under engines/libreoffice/ (or LibreOffice.app on macOS). Additional upstream
+license files may appear in engines/THIRD_PARTY_LICENSES/libreoffice-upstream/
+when copied at bundle time.
+
+LibreOffice is invoked as an **external process** (soffice headless); it is not
+linked into the Flutter binary.

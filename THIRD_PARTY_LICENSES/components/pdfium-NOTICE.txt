@@ -1,0 +1,10 @@
+PDFium (via pdfrx / pdfium_flutter / pdfium_dart)
+=================================================
+License: BSD-style and Apache-2.0 notices (composite) — see package NOTICES.
+Upstream: https://pdfium.googlesource.com/pdfium/
+
+Document Studio links PDFium **natively** through Flutter plugins for PDF
+rendering. This is distinct from engines/ CLI tools.
+
+Include license texts from the PDFium bundle shipped with pdfrx_engine /
+pdfium_flutter in store submissions as required by those packages.

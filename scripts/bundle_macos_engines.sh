@@ -316,6 +316,7 @@ if ((${#missing[@]})); then
   exit 1
 fi
 echo "All expected engines present."
+bash "$ROOT/scripts/copy_third_party_licenses_to_bundle.sh" "$ENGINES" || true
 ls -la "$ENGINES" "$ENGINES/bin" 2>/dev/null || true
 echo
 echo "Codesign (ad-hoc, no Apple ID):"

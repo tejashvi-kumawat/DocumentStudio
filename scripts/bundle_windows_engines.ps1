@@ -571,6 +571,60 @@ exit /b 127
   Write-Host "Bundled LibreOffice soffice -> $prog"
 }
 
+function Copy-LibreOfficeUpstreamLegal {
+  $loDest = Join-Path $engines "libreoffice"
+  $legalRoot = Join-Path $engines "THIRD_PARTY_LICENSES\libreoffice-upstream"
+  if (-not (Test-Path (Join-Path $loDest "program\soffice.exe"))) { return }
+  New-Item -ItemType Directory -Force -Path $legalRoot | Out-Null
+  $candidates = @(
+    (Join-Path $loDest "license.txt"),
+    (Join-Path $loDest "LICENSE"),
+    (Join-Path $loDest "COPYING"),
+    (Join-Path $loDest "NOTICE")
+  )
+  foreach ($p in $candidates) {
+    if (Test-Path -LiteralPath $p) {
+      Copy-Item -Force -LiteralPath $p -Destination $legalRoot
+    }
+  }
+  Get-ChildItem -Path $loDest -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match 'LICENSE|COPYING|copyright|NOTICE' } |
+    Select-Object -First 50 |
+    ForEach-Object {
+      $target = Join-Path $legalRoot $_.Name
+      if (-not (Test-Path -LiteralPath $target)) {
+        Copy-Item -Force -LiteralPath $_.FullName -Destination $target
+      }
+    }
+}
+
+function Copy-ThirdPartyLegalToBundle {
+  $src = Join-Path $Root "THIRD_PARTY_LICENSES"
+  $dest = Join-Path $engines "THIRD_PARTY_LICENSES"
+  if (-not (Test-Path -LiteralPath $src)) {
+    Write-Host "WARNING: THIRD_PARTY_LICENSES missing in repo root"
+    return
+  }
+  if (Test-Path -LiteralPath $dest) { Remove-Item -Recurse -Force -LiteralPath $dest }
+  Copy-Item -Recurse -Force -LiteralPath $src -Destination $dest
+  $manifest = @{
+    generatedUtc = (Get-Date).ToUniversalTime().ToString("o")
+    platform     = "windows"
+    qpdf         = $QpdfVersion
+    tesseract    = "5.5.3 UB Mannheim w64 setup 5.5.3.20260724 (default URL)"
+    poppler      = $PopplerVersion
+    libreoffice  = if ($env:DS_SKIP_LIBREOFFICE -eq "1") { $null } else { $LoVersion }
+    ffmpeg       = "gyan.dev ffmpeg-release-essentials (verify license — see components/FFMPEG-NOTICE.md)"
+    nss          = $NssPkg
+    nspr         = $NsprPkg
+    sqlite       = $SqlitePkg
+    zlib         = $ZlibPkg
+    openssl      = "Win64OpenSSL Light 4.0.2 default or Git usr/bin when bundled"
+  } | ConvertTo-Json -Depth 4
+  Set-Content -Encoding UTF8 -LiteralPath (Join-Path $dest "bundled-versions.json") -Value $manifest
+  Write-Host "Copied THIRD_PARTY_LICENSES to $dest"
+}
+
 $ErrorActionPreference = "Stop"
 BundleQpdf
 BundleTesseract
@@ -579,6 +633,8 @@ BundleOpenSsl
 BundleNssTools
 BundleFfmpeg
 BundleLibreOffice
+Copy-ThirdPartyLegalToBundle
+Copy-LibreOfficeUpstreamLegal
 
 Write-Host ""
 Write-Host "Windows engines ready under $engines"
