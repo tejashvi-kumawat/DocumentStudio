@@ -348,18 +348,44 @@ bundle_soffice_from_official() {
   local tarball=""
   # Reuse any previously downloaded official tarball.
   tarball="$(ls -1 "$work"/LibreOffice_*_Linux_x86-64_deb.tar.gz 2>/dev/null | head -1 || true)"
-  local url_base="https://download.documentfoundation.org/libreoffice/stable"
+  local mirrors=(
+    "https://ftp.osuosl.org/pub/tdf/libreoffice/stable"
+    "https://mirror.csclub.uwaterloo.ca/tdf/libreoffice/stable"
+    "https://download.documentfoundation.org/libreoffice/stable"
+  )
+  local versions=(
+    "${DS_LIBREOFFICE_VERSION:-26.8.0}"
+    "26.8.0"
+    "26.2.6"
+    "25.8.7"
+  )
   local ver=""
   if [[ -z "$tarball" ]] || ! gzip -t "$tarball" >/dev/null 2>&1; then
     echo "Downloading official LibreOffice portable suite into $work …"
-    ver="$(curl -fsSL "$url_base/" 2>/dev/null | grep -oE 'href="[0-9]+\.[0-9]+\.[0-9]+/' | head -1 | tr -d 'href="/' || true)"
-    if [[ -z "$ver" ]]; then
-      ver="26.2.6"
-    fi
-    tarball="$work/LibreOffice_${ver}_Linux_x86-64_deb.tar.gz"
-    local url="$url_base/$ver/deb/x86_64/LibreOffice_${ver}_Linux_x86-64_deb.tar.gz"
-    if ! curl -fL --retry 3 -o "$tarball" "$url" 2>/dev/null; then
-      echo "WARNING: could not download official LibreOffice tarball from $url" >&2
+    local mirror name url ok=0
+    for ver in "${versions[@]}"; do
+      [[ -z "$ver" ]] && continue
+      name="LibreOffice_${ver}_Linux_x86-64_deb.tar.gz"
+      tarball="$work/$name"
+      if [[ -s "$tarball" ]] && gzip -t "$tarball" >/dev/null 2>&1; then
+        ok=1
+        break
+      fi
+      for mirror in "${mirrors[@]}"; do
+        url="$mirror/$ver/deb/x86_64/$name"
+        echo "  trying $url"
+        if curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+          --connect-timeout 30 --max-time 1800 -o "$tarball.partial" "$url"
+        then
+          mv -f "$tarball.partial" "$tarball"
+          ok=1
+          break 2
+        fi
+        rm -f "$tarball.partial"
+      done
+    done
+    if [[ $ok -ne 1 ]]; then
+      echo "WARNING: could not download official LibreOffice tarball from any mirror." >&2
       return 1
     fi
   fi

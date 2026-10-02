@@ -39,6 +39,10 @@ jobs:
 
       - name: Package Windows release
         shell: pwsh
+        env:
+          # Prefer OSUOSL — download.documentfoundation.org often 504s on Actions.
+          DS_LIBREOFFICE_VERSION: '26.8.0'
+          DS_LIBREOFFICE_MSI_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.0/win/x86_64/LibreOffice_26.8.0_Win_x86-64.msi'
         run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_release.ps1
 
       - name: Upload Windows artifacts
@@ -69,6 +73,8 @@ jobs:
       - run: flutter build linux --release
 
       - name: Build .deb
+        env:
+          DS_LIBREOFFICE_VERSION: '26.8.0'
         run: bash scripts/linux/package_deb.sh
 
       - name: Upload Linux artifacts

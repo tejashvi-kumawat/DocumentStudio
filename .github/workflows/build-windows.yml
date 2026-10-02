@@ -30,6 +30,9 @@ jobs:
 
       - name: Build, bundle engines, package installer
         shell: pwsh
+        env:
+          DS_LIBREOFFICE_VERSION: '26.8.0'
+          DS_LIBREOFFICE_MSI_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.0/win/x86_64/LibreOffice_26.8.0_Win_x86-64.msi'
         run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_release.ps1
 
       - name: Upload installer
