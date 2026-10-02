@@ -1,10 +1,14 @@
-# Homebrew — publish Document Studio (macOS)
+# Homebrew — publish Document Studio (macOS + Linux)
 
-Goal: users run `brew install --cask document-studio` and later
-`brew upgrade --cask document-studio`.
+| Platform | Package | Install |
+| --- | --- | --- |
+| **macOS** | Cask (`.dmg`) | `brew install --cask tejashvi-kumawat/tap/document-studio` |
+| **Linux** | Formula (`.deb`) | `brew install tejashvi-kumawat/tap/document-studio` |
 
-The **`.dmg` is built on GitHub Actions** (`macos-14`). You do **not** need a
-local Mac for the first publish if CI is unlocked.
+Tap: https://github.com/tejashvi-kumawat/homebrew-tap
+
+The **macOS `.dmg`** is built on GitHub Actions (`macos-14`). The **Linux `.deb`**
+comes from the same Release workflow.
 
 ---
 
@@ -56,17 +60,19 @@ Actions → **Build macOS DMG** → **Run workflow** → download the artifact f
 
 ---
 
-## 2. Point the cask at that release
+## 2. Point cask + formula at that release
 
 ```bash
 bash scripts/release/sync_homebrew_cask_from_release.sh 1.0.3
+bash scripts/release/update_homebrew_formula.sh 1.0.3
 ```
 
-This downloads the DMG from the Release URL and sets `version` / `sha256` / `url` in:
+This updates:
 
-`packaging/homebrew/Casks/document-studio.rb`
+- `packaging/homebrew/Casks/document-studio.rb` (macOS)
+- `packaging/homebrew/Formula/document-studio.rb` (Linux)
 
-Commit that file in **this** repo so the template stays current.
+Commit those files, then copy both into `homebrew-tap` (`Casks/` + `Formula/`).
 
 ---
 
@@ -81,19 +87,23 @@ Users install:
 
 ```bash
 brew tap tejashvi-kumawat/tap
+# macOS
 brew install --cask document-studio
+# Linux (Homebrew on Linux / Linuxbrew)
+brew install document-studio
 ```
 
 Upgrade later:
 
 ```bash
 brew update
-brew upgrade --cask document-studio
+brew upgrade --cask document-studio   # macOS
+brew upgrade document-studio         # Linux
 # or:
 document_studio --update
 ```
 
-**Each new version:** tag → wait for CI DMG on Release → run `sync_homebrew_cask_from_release.sh` → copy updated rb into `homebrew-tap` → push tap.
+**Each new version:** tag → wait for Release assets → sync cask + formula → copy into `homebrew-tap` → push tap.
 
 ### B — Official Homebrew Cask (wide reach, slower review)
 
