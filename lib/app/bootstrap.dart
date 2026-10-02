@@ -1,14 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:document_studio/app/cli_launch_args.dart';
 import 'package:document_studio/app/document_studio_app.dart';
+import 'package:document_studio/app/router/app_router.dart';
 import 'package:document_studio/app/shell/window/ds_window.dart';
 import 'package:document_studio/core/desktop/desktop_engine_resolver.dart';
 import 'package:document_studio/core/perf/perf_log.dart';
 import 'package:document_studio/core/storage/storage_cache_manager.dart';
 import 'package:document_studio/core/storage/storage_paths.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
+import 'package:document_studio/features/image_tools/image_tools_route.dart';
+import 'package:document_studio/features/image_viewer/image_viewer_route.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
+import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:document_studio_qpdf/document_studio_qpdf.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +64,7 @@ Future<void> bootstrap() async {
   );
   WidgetsBinding.instance.addPostFrameCallback((_) {
     PerfLog.mark('startup.firstFrame');
+    _openLaunchArgs(container);
     _devAutoOpen(container);
     // Housekeeping off the startup path.
     Timer(const Duration(seconds: 3), () {
@@ -67,10 +73,53 @@ Future<void> bootstrap() async {
   });
 }
 
+/// Opens files / tools from shell ("Open with", context menus, double-click).
+void _openLaunchArgs(ProviderContainer container) {
+  if (kIsWeb) return;
+  if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) return;
+  final launch = CliLaunchArgs.fromProcess();
+  if (!launch.hasWork) return;
+  Future<void>.delayed(const Duration(milliseconds: 350), () async {
+    PerfLog.mark('launch.openArgs');
+    final tabs = container.read(documentTabsControllerProvider);
+    final router = container.read(appRouterProvider);
+    final toolName = launch.tool?.toLowerCase();
+    final openImagesTool = toolName == 'images' || toolName == 'image';
+    ViewerToolId? panel = launch.viewerTool;
+    var openedPdf = false;
+
+    for (final file in launch.fileRefs) {
+      if (file.isPdf) {
+        await tabs.openDocument(
+          file,
+          openToolPanel: panel,
+        );
+        panel = null;
+        openedPdf = true;
+        continue;
+      }
+      if (CliLaunchArgs.isImagePath(file.path)) {
+        if (openImagesTool) {
+          router.go(imageToolsRoutePath, extra: file);
+        } else {
+          router.go(imageViewerRoutePath, extra: file);
+        }
+        return;
+      }
+    }
+
+    if (openedPdf) {
+      router.go('/');
+    }
+  });
+}
+
 /// Debug/profile only: `DS_DEV_OPEN_PDF=/path/a.pdf flutter run` opens a tab
 /// on launch so load timings can be measured without clicking through.
 void _devAutoOpen(ProviderContainer container) {
   if (kReleaseMode) return;
+  // Prefer real CLI / Open-with args when present.
+  if (CliLaunchArgs.fromProcess().files.isNotEmpty) return;
   final path = Platform.environment['DS_DEV_OPEN_PDF'];
   if (path == null || path.isEmpty || !File(path).existsSync()) return;
   Future<void>.delayed(const Duration(milliseconds: 300), () {

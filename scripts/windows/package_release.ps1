@@ -79,3 +79,19 @@ Write-Host ""
 Write-Host ('Done. Expected artifacts under {0}:' -f (Join-Path $Root 'dist\windows'))
 Write-Host "  DocumentStudio-$Version-Setup.exe"
 Write-Host "  DocumentStudio-$Version-portable-windows.zip"
+Write-Host ""
+Write-Host "Shell integration (Start Menu / Open with / right-click):"
+if ($iscc) {
+  Write-Host "  Included in Setup.exe (checked by default during install)."
+} else {
+  Write-Host "  No Setup.exe yet (install Inno Setup 6). For the portable/Release build run:"
+  Write-Host ('  powershell -NoProfile -ExecutionPolicy Bypass -File "{0}" -AppDir "{1}"' -f (Join-Path $Root 'scripts\windows\register_windows_shell.ps1'), $ReleaseDir)
+}
+# Always register the just-built Release so this machine can Start-search immediately.
+try {
+  & powershell -NoProfile -ExecutionPolicy Bypass `
+    -File (Join-Path $Root "scripts\windows\register_windows_shell.ps1") `
+    -AppDir $ReleaseDir
+} catch {
+  Write-Warning "Could not register shell integration: $_"
+}
