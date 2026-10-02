@@ -1,10 +1,11 @@
-# Builds DocumentStudio.Shell (Win11 modern context menu COM host) and registers a
-# sparse package so "Document Studio" appears in the primary Windows 11 right-click
-# menu (same place as Adobe), not only under "Show more options".
+﻿# Builds DocumentStudio.Shell (Win11 modern context menu COM host) and registers a
+# sparse package so Document Studio appears in the primary Windows 11 right-click
+# menu (same place as Adobe), not only under Show more options.
 #
 # Prerequisites on the Windows build PC:
 #   - .NET 8 SDK (dotnet)
-#   - Developer Mode OR sideloading enabled (Settings → Privacy & security → For developers)
+#   - Developer Mode OR sideloading enabled
+#     (Settings > System > For developers)
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\register_win11_context_menu.ps1
 #   powershell -File scripts\windows\register_win11_context_menu.ps1 -AppDir "C:\...\Release"
@@ -19,11 +20,11 @@ $Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $ShellProj = Join-Path $Root "windows\shell\DocumentStudio.Shell\DocumentStudio.Shell.csproj"
 $ManifestSrc = Join-Path $Root "windows\shell\Package.appxmanifest"
 $PackageName = "DocumentStudio.ContextMenu"
-$Publisher = "CN=DocumentStudio"
 
 if ($Unregister) {
   Write-Host "Removing sparse package $PackageName ..."
-  Get-AppxPackage -Name $PackageName -ErrorAction SilentlyContinue | Remove-AppxPackage -ErrorAction SilentlyContinue
+  Get-AppxPackage -Name $PackageName -ErrorAction SilentlyContinue |
+    Remove-AppxPackage -ErrorAction SilentlyContinue
   Write-Host "Unregistered Win11 modern context menu package."
   exit 0
 }
@@ -38,7 +39,9 @@ function Find-AppDir {
       (Join-Path $Root "build\windows\runner\Release"),
       (Join-Path $env:LOCALAPPDATA "Programs\Document Studio")
     )) {
-    if (Test-Path (Join-Path $c "document_studio.exe")) { return (Resolve-Path $c).Path }
+    if (Test-Path (Join-Path $c "document_studio.exe")) {
+      return (Resolve-Path $c).Path
+    }
   }
   return $null
 }
@@ -76,7 +79,6 @@ $logoDst = Join-Path $assets "StoreLogo.png"
 if (Test-Path $logoSrc) {
   Copy-Item -Force $logoSrc $logoDst
 } else {
-  # Tiny valid PNG placeholder if brand asset missing
   [IO.File]::WriteAllBytes($logoDst, [Convert]::FromBase64String(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="))
 }
@@ -84,25 +86,27 @@ if (Test-Path $logoSrc) {
 $manifestDst = Join-Path $AppDir "AppxManifest.xml"
 Copy-Item -Force $ManifestSrc $manifestDst
 
-# Ensure Developer Mode / sideloading hint
 $devMode = $false
 try {
-  $devMode = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1
+  $prop = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" `
+    -Name AllowDevelopmentWithoutDevLicense -ErrorAction SilentlyContinue
+  $devMode = $prop.AllowDevelopmentWithoutDevLicense -eq 1
 } catch {}
 
 Write-Host "==> Registering sparse package (Win11 modern context menu)"
-Get-AppxPackage -Name $PackageName -ErrorAction SilentlyContinue | Remove-AppxPackage -ErrorAction SilentlyContinue
+Get-AppxPackage -Name $PackageName -ErrorAction SilentlyContinue |
+  Remove-AppxPackage -ErrorAction SilentlyContinue
 
 try {
   Add-AppxPackage -Path $manifestDst -ExternalLocation $AppDir -Register
   Write-Host ""
-  Write-Host "SUCCESS. Right-click a PDF — you should see 'Document Studio' in the main Windows 11 menu."
-  Write-Host "If not: enable Developer Mode (Settings → System → For developers), then re-run this script."
+  Write-Host "SUCCESS. Right-click a PDF - you should see Document Studio in the main Windows 11 menu."
+  Write-Host "If not: enable Developer Mode (Settings > System > For developers), then re-run this script."
   Write-Host "Restart Explorer if needed:  Stop-Process -Name explorer -Force; Start-Process explorer"
 } catch {
-  Write-Warning "Sparse package register failed: $_"
+  Write-Warning ("Sparse package register failed: " + $_)
   if (-not $devMode) {
-    Write-Warning "Enable Developer Mode, then re-run. Classic 'Show more options' menus still work via register_windows_shell.ps1."
+    Write-Warning "Enable Developer Mode, then re-run. Classic Show more options menus still work via register_windows_shell.ps1."
   }
   throw
 }
