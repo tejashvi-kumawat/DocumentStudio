@@ -72,14 +72,10 @@ Commit that file in **this** repo so the template stays current.
 
 ## 3. Put it on Homebrew (pick A or B)
 
-### A — Personal tap (do this first — minutes, not days)
+### A — Personal tap (**live**)
 
-1. Create a **public** GitHub repo named exactly:
-   `https://github.com/tejashvi-kumawat/homebrew-tap`
-2. Add file:
-   `Casks/document-studio.rb`  
-   (copy from `packaging/homebrew/Casks/document-studio.rb` in DocumentStudio)
-3. Commit + push on the tap’s `main`.
+Tap repo: https://github.com/tejashvi-kumawat/homebrew-tap  
+(Owned by **tejashvi-kumawat** only.)
 
 Users install:
 
