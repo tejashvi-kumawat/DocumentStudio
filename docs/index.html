@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Document Studio Docs</title>
+  <meta name="description" content="Documentation for Document Studio — offline, privacy-first PDF and document workspace." />
+  <meta name="theme-color" content="#0B1220" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/site.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" defer></script>
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button type="button" class="nav-toggle" id="navToggle" aria-label="Open navigation">
+      <span></span><span></span>
+    </button>
+    <a class="brand" href="#/" data-home>
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">
+        <strong>Document Studio</strong>
+        <em>Docs</em>
+      </span>
+    </a>
+    <div class="topbar-actions">
+      <label class="search-wrap">
+        <span class="sr-only">Search docs</span>
+        <input type="search" id="searchInput" placeholder="Search docs…" autocomplete="off" />
+      </label>
+      <a class="btn ghost" id="repoLink" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn solid" id="releaseLink" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases" target="_blank" rel="noopener">Download</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <nav id="navRoot" aria-label="Documentation"></nav>
+    </aside>
+
+    <main class="main" id="main">
+      <section class="hero" id="homeView">
+        <p class="eyebrow">Offline · Privacy-first · Cross-platform</p>
+        <h1>Document Studio</h1>
+        <p class="lede">
+          Work with PDFs, images, and Office files on your device — no account,
+          no cloud processing, no ads. This site is the project documentation
+          for install, architecture, engines, and shipping.
+        </p>
+        <div class="cta-row">
+          <a class="btn solid" href="#/install">Install</a>
+          <a class="btn ghost" href="#/features">Features</a>
+          <a class="btn ghost" href="#/privacy">Privacy</a>
+        </div>
+        <div class="hero-cards" id="heroCards"></div>
+      </section>
+
+      <article class="doc" id="docView" hidden>
+        <header class="doc-head">
+          <p class="crumb" id="docCrumb"></p>
+          <h1 id="docTitle"></h1>
+        </header>
+        <div class="doc-body prose" id="docBody"></div>
+      </article>
+
+      <section class="search-results" id="searchView" hidden>
+        <h1>Search</h1>
+        <p class="lede" id="searchMeta"></p>
+        <ul id="searchList"></ul>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p>Document Studio documentation · sourced from the project knowledge base · <a href="https://github.com/tejashvi-kumawat/DocumentStudio">source on GitHub</a></p>
+  </footer>
+</body>
+</html>

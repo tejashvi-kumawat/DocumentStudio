@@ -1,16 +1,9 @@
-# Tag v* → build Windows + Linux + macOS DMG → GitHub Release.
-# Homebrew needs the macOS DMG asset from this release.
-#
-#   git tag v1.0.3 && git push origin v1.0.3
-#
-# Manual (no tag): Actions → "Release" → Run workflow
-# Or: Actions → "Build macOS DMG" → Run workflow
+# Manual only — auto CI disabled to avoid accidental runs on docs/history rewrites.
+# Re-enable push/tag triggers when you want Release / installer builds again.
 
 name: Release
 
 on:
-  push:
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -40,7 +33,6 @@ jobs:
       - name: Package Windows release
         shell: pwsh
         env:
-          # Prefer OSUOSL — download.documentfoundation.org often 504s on Actions.
           DS_LIBREOFFICE_VERSION: '26.8.0'
           DS_LIBREOFFICE_MSI_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.0/win/x86_64/LibreOffice_26.8.0_Win_x86-64.msi'
         run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_release.ps1
@@ -119,7 +111,6 @@ jobs:
           NONINTERACTIVE: '1'
           HOMEBREW_NO_AUTO_UPDATE: '1'
           HOMEBREW_NO_INSTALL_CLEANUP: '1'
-          # Prefer OSUOSL — download.documentfoundation.org often 504s on Actions.
           DS_LIBREOFFICE_VERSION: '26.8.1'
           DS_LIBREOFFICE_DMG_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.1/mac/aarch64/LibreOffice_26.8.1_MacOS_aarch64.dmg'
         run: bash scripts/macos/package_release.sh
@@ -135,8 +126,6 @@ jobs:
 
   publish:
     needs: [windows, linux, macos]
-    # Only attach to a real version tag (v*). Branch workflow_dispatch still
-    # uploads job artifacts for download from the Actions UI.
     if: |
       always()
       && !cancelled()

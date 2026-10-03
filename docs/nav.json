@@ -1,0 +1,53 @@
+{
+  "site": {
+    "title": "Document Studio",
+    "tagline": "Offline, privacy-first document workspace",
+    "repo": "https://github.com/tejashvi-kumawat/DocumentStudio",
+    "releases": "https://github.com/tejashvi-kumawat/DocumentStudio/releases"
+  },
+  "sections": [
+    {
+      "title": "Get started",
+      "items": [
+        { "id": "overview", "title": "Overview", "file": "overview.md" },
+        { "id": "install", "title": "Install", "file": "install.md" },
+        { "id": "quick-start", "title": "Quick start", "file": "quick-start.md" },
+        { "id": "updates", "title": "Updates", "file": "updates.md" }
+      ]
+    },
+    {
+      "title": "Product",
+      "items": [
+        { "id": "features", "title": "Features", "file": "features.md" },
+        { "id": "platforms", "title": "Platforms", "file": "platforms.md" },
+        { "id": "privacy", "title": "Privacy", "file": "privacy.md" },
+        { "id": "security", "title": "Security", "file": "security.md" }
+      ]
+    },
+    {
+      "title": "Guides",
+      "items": [
+        { "id": "pdf-tools", "title": "PDF tools", "file": "pdf-tools.md" },
+        { "id": "ocr", "title": "OCR", "file": "ocr.md" },
+        { "id": "office-conversion", "title": "Office conversion", "file": "office-conversion.md" },
+        { "id": "cli", "title": "CLI & shell", "file": "cli.md" }
+      ]
+    },
+    {
+      "title": "Developers",
+      "items": [
+        { "id": "architecture", "title": "Architecture", "file": "architecture.md" },
+        { "id": "engines", "title": "Engines", "file": "engines.md" },
+        { "id": "building", "title": "Building from source", "file": "building.md" },
+        { "id": "contributing", "title": "Contributing", "file": "contributing.md" }
+      ]
+    },
+    {
+      "title": "Legal",
+      "items": [
+        { "id": "licenses", "title": "Licenses", "file": "licenses.md" },
+        { "id": "faq", "title": "FAQ", "file": "faq.md" }
+      ]
+    }
+  ]
+}
