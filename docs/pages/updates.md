@@ -1,8 +1,8 @@
 # Updates
 
-Keep Document Studio current without a full manual reinstall when possible.
+Keep Document Studio current without hunting for a new installer every time.
 
-## CLI (all desktop builds)
+## Recommended: CLI
 
 ```bash
 document_studio --version
@@ -10,17 +10,34 @@ document_studio --check-update
 document_studio --update
 ```
 
-`--update` prefers the channel you already used (**winget**, **Homebrew**, **Flatpak**), otherwise downloads the matching GitHub Release asset and upgrades **in place**.
+`--update` picks the best path for how you installed:
+
+1. **winget** / **Homebrew** / **Flatpak** if that channel owns the install  
+2. Otherwise downloads the matching asset from [GitHub Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases) and upgrades **in place**
 
 ## Package managers
 
-| Channel | Command |
+| Channel | Upgrade |
 | --- | --- |
 | winget | `winget upgrade --id DocumentStudio.DocumentStudio` |
 | Homebrew (macOS) | `brew upgrade --cask document-studio` |
 | Homebrew (Linux) | `brew upgrade document-studio` |
-| Debian package | `sudo apt install ./document-studio_<ver>_amd64.deb` |
+| Debian `.deb` | Install the newer `.deb` over the old one |
 
-## Direct download
+First-time Homebrew:
 
-Install the newer **Setup.exe** / **.dmg** / **.deb** from [Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases). Windows Setup uses the same app id so it replaces the previous install folder.
+```bash
+brew tap tejashvi-kumawat/tap
+```
+
+## Fresh installer
+
+Download the new **Setup.exe** / **.dmg** / **.deb** from [v1.0.3 Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3) (or newer). Windows Setup replaces the previous install under the same app id.
+
+## After updating
+
+| Check | Command / action |
+| --- | --- |
+| Version | `document_studio --version` |
+| App search | Still find “Document Studio” in Start / Spotlight / Activities |
+| Engines | Office convert / OCR still available (full release builds) |

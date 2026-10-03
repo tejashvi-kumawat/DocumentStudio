@@ -2,30 +2,29 @@
 
 ## Desktop
 
-| OS | Installer | Shows as app |
+| OS | Installer | Appears as |
 | --- | --- | --- |
-| Windows 10/11 | Inno Setup `.exe` | Start Menu, Open with, context menus |
-| macOS 12+ | `.dmg` / Homebrew cask | Applications + Spotlight |
-| Linux (amd64) | `.deb` / Homebrew formula | `.desktop` entry + icons |
+| Windows 10/11 | [Setup.exe](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe) | Start Menu app + optional context menus |
+| macOS 12+ | [DMG](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg) / Homebrew cask | Applications + Spotlight |
+| Linux amd64 | [.deb](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb) / Homebrew formula | App menu via `.desktop` |
 
-Desktop release builds **bundle engines** (qpdf, Tesseract, LibreOffice, and related tools) so users are not asked to “install qpdf first.”
+Desktop releases **bundle engines** so you are not asked to install qpdf/LibreOffice yourself.
 
 ## Mobile
 
 | OS | Notes |
 | --- | --- |
-| Android | Play Store packaging; on-device tools |
-| iOS / iPadOS | Supported in the Flutter project; distribution depends on your Apple program |
+| Android | On-device tools; Play distribution when published |
+| iOS / iPadOS | Flutter targets exist; store distribution needs Apple program |
 
-Office conversion on mobile is limited or unavailable by design (size and licensing). Use desktop for Word/Excel → PDF.
+Office conversion is a **desktop** strength because LibreOffice is large.
 
 ## Package managers
 
-| Tool | Package |
+| Tool | Command |
 | --- | --- |
-| winget | `DocumentStudio.DocumentStudio` |
-| Homebrew (macOS) | cask `document-studio` via `tejashvi-kumawat/tap` |
-| Homebrew (Linux) | formula `document-studio` via the same tap |
-| apt | install the release `.deb` |
+| winget | `winget install DocumentStudio.DocumentStudio` |
+| Homebrew macOS | `brew install --cask tejashvi-kumawat/tap/document-studio` |
+| Homebrew Linux | `brew install tejashvi-kumawat/tap/document-studio` |
 
-Tap: [tejashvi-kumawat/homebrew-tap](https://github.com/tejashvi-kumawat/homebrew-tap).
+Tap repo: [tejashvi-kumawat/homebrew-tap](https://github.com/tejashvi-kumawat/homebrew-tap).

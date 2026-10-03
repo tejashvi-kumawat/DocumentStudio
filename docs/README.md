@@ -1,22 +1,27 @@
-# Document Studio — GitHub Pages
+# Document Studio — public docs site
 
-Public documentation site (not internal planning notes).
+This folder is the **GitHub Pages** site for Document Studio.
 
-| Path | Role |
-| --- | --- |
-| `index.html` | Designed shell |
-| `assets/` | CSS / JS |
-| `nav.json` | Navigation |
-| `pages/` | Public markdown guides |
+- Live site: project Pages URL for [tejashvi-kumawat/DocumentStudio](https://github.com/tejashvi-kumawat/DocumentStudio) (source = `/docs`)
+- Author: [Tejashvi Kumawat](https://tejashvi-kumawat.github.io)
 
-Private planning docs live in **`docs-local/`** (gitignored) and are **not** published here.
-
-## Preview
+## Local preview
 
 ```bash
-python3 -m http.server 8080 --directory docs
+cd docs
+python3 -m http.server 8080
+# open http://127.0.0.1:8080/
 ```
 
-## GitHub Pages
+Do not open `index.html` as a `file://` URL — the SPA fetches `nav.json` and Markdown pages.
 
-Settings → Pages → Deploy from branch → `main` → `/docs`.
+## Content map
+
+| Area | Pages |
+| --- | --- |
+| Start | overview, install, quick-start, updates |
+| Product | features, how-to, platforms, privacy, security |
+| Guides | pdf-tools, ocr, office-conversion, cli |
+| About | author, licenses, faq |
+
+Private planning notes belong in `docs-local/` (gitignored), not here.

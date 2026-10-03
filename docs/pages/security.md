@@ -1,19 +1,28 @@
 # Security
 
-## Threat model (product)
+## Product rules
 
-- Documents are processed locally; compromise of a remote Document Studio API is not in the core model because there isn’t one.
-- Password-protected PDFs still need the correct password — the app does not bypass encryption.
-- Redaction aims to remove underlying content, not only paint over it.
+- Documents are processed **locally**. There is no Document Studio cloud API that receives your PDF bytes for core tools.
+- Password-protected PDFs still need the **correct password** — the app does not crack or bypass encryption.
+- **Redaction** is meant to remove underlying content, not only paint a black box on top.
 
-## Desktop packaging
+## Packaging notes
 
-- Windows Setup installs under the user Programs folder by default (per-user friendly).
-- macOS builds may be ad-hoc signed until Apple notarization is configured — Gatekeeper may ask for an explicit Open the first time.
-- Release bundles include third-party engines; license texts ship under `THIRD_PARTY_LICENSES`.
+| Platform | Note |
+| --- | --- |
+| Windows | Per-user Setup under Programs by default; elevates only when needed for optional system bits |
+| macOS | Builds may be ad-hoc signed until Apple notarization is configured — use right-click → Open once |
+| Linux | `.deb` installs under `/usr` with a desktop entry and icons |
+
+Release bundles include third-party engines; license texts ship under `THIRD_PARTY_LICENSES`.
 
 ## Recommendations
 
-- Keep the app updated (`document_studio --update` or your package manager).
-- Treat encrypted PDFs carefully — remember passwords; we can’t recover them.
-- On shared machines, save outputs to private folders.
+1. Keep current with `document_studio --update` or your package manager.  
+2. Store encryption passwords outside the PDF — we cannot recover them.  
+3. On shared PCs, save exports to a private folder.  
+4. Prefer **redact** over covering text with a black rectangle in a drawing tool.
+
+## Reporting issues
+
+Security-sensitive bugs: open a private report or issue on [GitHub](https://github.com/tejashvi-kumawat/DocumentStudio/issues) with enough detail to reproduce, without attaching confidential documents.

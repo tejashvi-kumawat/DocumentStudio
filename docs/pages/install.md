@@ -1,66 +1,134 @@
-# Install
+# Download & install
 
-Download from [GitHub Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3) (current: **v1.0.3**).
+This page is the full install guide. The homepage also shows the same downloads up top.
 
-## Windows
+**Latest version: v1.0.3**  
+**All files:** [github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3)
 
-1. Download **`DocumentStudio-1.0.3-Setup.exe`**.
-2. Run the installer (GUI wizard).
-3. Open **Document Studio** from the Start Menu.
+---
 
-Portable zip is available for advanced users; the **Setup.exe** is what registers Start Menu / Open with / context menus.
+## Windows (recommended path)
 
-```text
+### Download
+
+[**DocumentStudio-1.0.3-Setup.exe**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe)
+
+### Install
+
+1. Double-click the Setup file.
+2. Walk through the wizard (destination folder, optional desktop icon, shell menus).
+3. Finish — the app registers for your user.
+4. Open **Start** and search **Document Studio**.
+
+You should see a normal app entry (not only a terminal command).
+
+### What the Setup gives you
+
+- Start Menu shortcut  
+- App Paths (`document_studio` resolvable)  
+- Open with / right-click verbs for PDF and images  
+- Bundled engines (qpdf, Tesseract, LibreOffice, …)
+
+### Portable zip (optional)
+
+`DocumentStudio-1.0.3-portable-windows.zip` is for advanced users. Prefer Setup.exe so Start Menu and context menus work.
+
+### winget (when listed)
+
+```powershell
 winget install --id DocumentStudio.DocumentStudio
+winget upgrade --id DocumentStudio.DocumentStudio
 ```
 
-*(Community winget listing may lag the first release.)*
+---
 
 ## macOS
 
-1. Download **`DocumentStudio-1.0.3-macos.dmg`**.
-2. Open the DMG and drag **Document Studio** into Applications.
-3. First launch may need **right-click → Open** (ad-hoc signed builds).
+### Download
+
+[**DocumentStudio-1.0.3-macos.dmg**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg)
+
+### Install
+
+1. Open the DMG.
+2. Drag **Document Studio** into **Applications**.
+3. First launch: if macOS blocks it, **Finder → right-click app → Open → Open**.
+4. Search Spotlight for **Document Studio**.
+
+### Homebrew
 
 ```bash
 brew tap tejashvi-kumawat/tap
 brew install --cask document-studio
 ```
 
-One-shot:
+Upgrade later:
+
+```bash
+brew upgrade --cask document-studio
+```
+
+One-shot without a prior tap:
 
 ```bash
 brew install --cask tejashvi-kumawat/tap/document-studio
 ```
 
-## Linux (Debian / Ubuntu)
+---
 
-1. Download **`document-studio_1.0.3_amd64.deb`**.
-2. Install:
+## Linux (Debian / Ubuntu amd64)
+
+### Download
+
+[**document-studio_1.0.3_amd64.deb**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb)
+
+### Install
 
 ```bash
+cd ~/Downloads   # or wherever you saved the file
 sudo apt install ./document-studio_1.0.3_amd64.deb
 ```
 
-Then search **Document Studio** in Activities / your app menu, or run:
+Then:
 
-```bash
-document-studio
-```
+- Press the Super key and search **Document Studio**, or  
+- Run `document-studio` / `document_studio` in a terminal.
+
+The `.deb` installs a desktop entry and icons under `/usr/share/...` so the app appears in GNOME/KDE menus.
 
 ### Homebrew on Linux
 
 ```bash
 brew tap tejashvi-kumawat/tap
 brew install document-studio
+brew upgrade document-studio
 ```
 
-## After install
+---
 
-You should see **Document Studio** in:
+## After install — verify
 
-- Windows → Start search  
-- macOS → Spotlight / Launchpad  
-- Linux → GNOME/KDE app search  
+| Check | Expected |
+| --- | --- |
+| App search | “Document Studio” appears |
+| Version | `document_studio --version` → `Document Studio 1.0.3` |
+| Help | `document_studio --help` |
+| Update | `document_studio --check-update` |
 
-If the binary works in a terminal but the menu entry is missing, log out/in once, or see [FAQ](#/faq).
+---
+
+## Uninstall
+
+| OS | How |
+| --- | --- |
+| Windows | Settings → Apps → Document Studio → Uninstall (or Start Menu uninstall shortcut) |
+| macOS | Delete the app from Applications · or `brew uninstall --cask document-studio` |
+| Linux | `sudo apt remove document-studio` · or `brew uninstall document-studio` |
+
+---
+
+## Next
+
+- [Quick start](#/quick-start) — first 5 minutes in the app  
+- [How to use tools](#/how-to) — step-by-step for each major feature  
+- [Updates](#/updates) — keep current without re-downloading manually  

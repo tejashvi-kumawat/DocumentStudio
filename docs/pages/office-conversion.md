@@ -1,24 +1,26 @@
 # Office conversion
 
-On **Windows, macOS, and Linux** release builds, Document Studio bundles **LibreOffice** for high-fidelity Office → PDF conversion.
+## Desktop releases
 
-## Supported direction (desktop)
+Official **Windows Setup**, **macOS DMG**, and **Linux .deb** builds bundle **LibreOffice** so you can convert Office-style documents to PDF offline with strong layout fidelity.
 
-- Word / Excel / PowerPoint-style documents → PDF  
-- Related import paths exposed in the convert tools
+## Convert Office → PDF
 
-## Why desktop-only for Office
+1. Open Document Studio on desktop.  
+2. Open **Office convert**.  
+3. Pick `.docx`, `.xlsx`, `.pptx`, or related formats the picker allows.  
+4. Convert and save the PDF.  
+5. Open the PDF to verify fonts and layout.
 
-LibreOffice is large. Mobile packages stay smaller and avoid shipping a full office stack. Convert on a desktop build, or create a PDF before opening on mobile.
+## Limits
 
-## Fidelity
-
-Bundled LibreOffice is chosen for layout fidelity versus thin “export as PDF” shortcuts. Complex macros or exotic fonts may still differ from Microsoft Office — always preview important filings.
-
-## Troubleshooting
-
-| Symptom | Try |
+| Topic | Reality |
 | --- | --- |
-| Convert missing | Confirm you installed a full desktop release (not a stripped custom build) |
-| Convert fails | Re-run from a local path without sync-locker files; check the file opens in LibreOffice |
-| macOS Gatekeeper | Right-click app → Open once after install |
+| Mobile | Office stack not bundled — convert on desktop |
+| Macros | Not a macro runtime; expect static layout export |
+| Exotic fonts | Embed or substitute may differ from Microsoft Office |
+| PDF → Office | Best-effort / limited compared to → PDF |
+
+## If convert is missing
+
+Reinstall the full release artifact from GitHub Releases. Custom builds that set `DS_SKIP_LIBREOFFICE=1` intentionally omit this engine.

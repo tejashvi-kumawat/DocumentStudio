@@ -4,30 +4,22 @@
 
 Document Studio processes documents **on your device**. Core features do not require an account or internet access.
 
+Built by [Tejashvi Kumawat](https://tejashvi-kumawat.github.io) with a hard rule: **your files are not our product**.
+
 ## What we do not do
 
-- Upload PDFs, images, or extracted text to Document Studio servers
-- Use cloud OCR, cloud conversion, or cloud AI on your files
-- Sync your document library to a company cloud
-- Sell document content or ad profiles built from your files
+- Upload PDFs, images, or extracted text to Document Studio servers  
+- Cloud OCR / cloud conversion / cloud AI on your documents  
+- Ads or account walls  
+- Selling document-derived profiles  
 
 ## What stays local
 
-- Source and output files you choose
-- Temporary working copies in the app sandbox
-- Recent-files list and settings
-- OCR language data stored with the app
-- Bundled engines running as local processes
+- Source and output files you choose  
+- Temp working copies in the app sandbox  
+- Recents and settings  
+- OCR language data and bundled engines  
 
-## Network use
+## Optional network
 
-Optional network is limited to things like:
-
-- Checking for app updates
-- Downloading an optional language pack **after you confirm**
-
-Strict offline mode (when enabled) blocks even those optional downloads. Document content is never attached to update checks.
-
-## Telemetry
-
-**Default: none.** If optional diagnostics are ever added, they will require explicit opt-in and must not include file names, paths, or document content.
+Only things like update checks or an explicit language-pack download you confirm. Document bytes are not attached. Strict offline mode can block optional downloads.

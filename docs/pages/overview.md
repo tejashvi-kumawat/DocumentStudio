@@ -1,40 +1,48 @@
 # Overview
 
-**Document Studio** is a free, ad-free desktop and mobile app for working with PDFs, images, and common document formats — entirely on your device.
+**Document Studio** is a free, ad-free application for working with PDFs, images, and common document formats — **entirely on your device**.
 
-There is no account, no cloud conversion pipeline, and no document upload to a Document Studio server. Open a file, run a tool, save the result locally.
+Created by **[Tejashvi Kumawat](https://tejashvi-kumawat.github.io)**.
 
-## Who it’s for
+![Document Studio home](../images/image.png)
 
-- People who want PDF merge, compress, OCR, and protect tools without SaaS
-- Teams that must keep documents offline
-- Users who prefer a real app in Start Menu / Applications / app search — not only a terminal command
+## Why it exists
 
-## What you get
+Most “PDF tools” push you into a browser upload. Document Studio is the opposite:
 
-| Area | Examples |
+- No account  
+- No cloud conversion of your files  
+- No ads  
+- Desktop builds show up as a real app (Start Menu / Applications / Linux app search)
+
+## What you can do
+
+| Category | Tools |
 | --- | --- |
-| **Organize** | Merge, split, reorder, extract, rotate |
-| **Optimize** | Compress, repair, metadata |
-| **Protect** | Encrypt, unlock (with password), watermark, redact |
-| **Capture** | Images → PDF, OCR / searchable PDF |
-| **Convert** | Office → PDF on desktop (bundled LibreOffice) |
-| **View** | Fast PDF viewing, search, annotations |
+| **Home** | Open, create, images↔PDF, pinned/recent, tools hub |
+| **Organize** | Merge, split, extract, insert, reorder, rotate, crop, resize |
+| **Optimize** | Compress, watermark, batch, metadata, repair |
+| **Protect** | Encrypt, decrypt, headers/footers, page numbers, redact |
+| **Sign** | Visual signatures, stamps, certificate / digital sign, fill forms |
+| **Edit** | Text edit, highlight, shapes, comments, links, compare |
+| **Capture** | Insert scan, OCR / searchable PDF |
+| **Convert** | Office → PDF (desktop), create from text |
 
-## Platforms
+## Current release
 
-| Platform | How you install |
+**v1.0.3** — [GitHub Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3)
+
+| File | Platform |
 | --- | --- |
-| **Windows** | `DocumentStudio-*-Setup.exe` (Start Menu app) |
-| **macOS** | `.dmg` or Homebrew cask |
-| **Linux** | `.deb` or Homebrew formula |
-| **Android** | Google Play (when published) |
+| `DocumentStudio-1.0.3-Setup.exe` | Windows |
+| `DocumentStudio-1.0.3-macos.dmg` | macOS |
+| `document-studio_1.0.3_amd64.deb` | Linux |
 
-Latest binaries: [GitHub Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases).
+Next: [Download & install](#/install) · [How to use tools](#/how-to) · [Feature list](#/features).
 
-## Design principles
+## Project links
 
-1. **Offline first** — core tools work without a network.
-2. **Privacy first** — document bytes stay on the machine.
-3. **Honest UX** — no “unlock without password” or fake redaction.
-4. **Ship as an app** — desktop builds register as normal applications users can search for.
+- Repository: [github.com/tejashvi-kumawat/DocumentStudio](https://github.com/tejashvi-kumawat/DocumentStudio)
+- Author: [github.com/tejashvi-kumawat](https://github.com/tejashvi-kumawat)
+- Portfolio: [tejashvi-kumawat.github.io](https://tejashvi-kumawat.github.io)
+- Homebrew tap: [tejashvi-kumawat/homebrew-tap](https://github.com/tejashvi-kumawat/homebrew-tap)

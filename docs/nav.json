@@ -3,14 +3,17 @@
     "title": "Document Studio",
     "tagline": "Offline, privacy-first document workspace",
     "repo": "https://github.com/tejashvi-kumawat/DocumentStudio",
-    "releases": "https://github.com/tejashvi-kumawat/DocumentStudio/releases"
+    "releases": "https://github.com/tejashvi-kumawat/DocumentStudio/releases",
+    "author": "Tejashvi Kumawat",
+    "portfolio": "https://tejashvi-kumawat.github.io",
+    "githubProfile": "https://github.com/tejashvi-kumawat"
   },
   "sections": [
     {
-      "title": "Get started",
+      "title": "Start",
       "items": [
         { "id": "overview", "title": "Overview", "file": "overview.md" },
-        { "id": "install", "title": "Install", "file": "install.md" },
+        { "id": "install", "title": "Download & install", "file": "install.md" },
         { "id": "quick-start", "title": "Quick start", "file": "quick-start.md" },
         { "id": "updates", "title": "Updates", "file": "updates.md" }
       ]
@@ -18,7 +21,8 @@
     {
       "title": "Product",
       "items": [
-        { "id": "features", "title": "Features", "file": "features.md" },
+        { "id": "features", "title": "Feature list", "file": "features.md" },
+        { "id": "how-to", "title": "How to use tools", "file": "how-to.md" },
         { "id": "platforms", "title": "Platforms", "file": "platforms.md" },
         { "id": "privacy", "title": "Privacy", "file": "privacy.md" },
         { "id": "security", "title": "Security", "file": "security.md" }
@@ -27,24 +31,25 @@
     {
       "title": "Guides",
       "items": [
-        { "id": "pdf-tools", "title": "PDF tools", "file": "pdf-tools.md" },
-        { "id": "ocr", "title": "OCR", "file": "ocr.md" },
+        { "id": "pdf-tools", "title": "PDF tools deep dive", "file": "pdf-tools.md" },
+        { "id": "ocr", "title": "OCR & searchable PDF", "file": "ocr.md" },
         { "id": "office-conversion", "title": "Office conversion", "file": "office-conversion.md" },
-        { "id": "cli", "title": "CLI & shell", "file": "cli.md" }
+        { "id": "cli", "title": "CLI & Windows shell", "file": "cli.md" }
       ]
     },
     {
       "title": "Developers",
       "items": [
         { "id": "architecture", "title": "Architecture", "file": "architecture.md" },
-        { "id": "engines", "title": "Engines", "file": "engines.md" },
-        { "id": "building", "title": "Building from source", "file": "building.md" },
+        { "id": "engines", "title": "Bundled engines", "file": "engines.md" },
+        { "id": "building", "title": "Build from source", "file": "building.md" },
         { "id": "contributing", "title": "Contributing", "file": "contributing.md" }
       ]
     },
     {
-      "title": "Legal",
+      "title": "About",
       "items": [
+        { "id": "author", "title": "Author", "file": "author.md" },
         { "id": "licenses", "title": "Licenses", "file": "licenses.md" },
         { "id": "faq", "title": "FAQ", "file": "faq.md" }
       ]
