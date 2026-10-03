@@ -113,9 +113,9 @@
   }
 
   const COPY_ICON =
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>';
+    '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#0b1220" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>';
   const CHECK_ICON =
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
+    '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#059669" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
 
   function setActive(id) {
     el.navRoot.querySelectorAll("a").forEach((a) => {
@@ -182,7 +182,7 @@
       wrap.setAttribute("data-copy", "");
       const bar = document.createElement("div");
       bar.className = "code-block-bar";
-      bar.innerHTML = `<span>CLI</span><button type="button" class="copy-btn" aria-label="Copy"></button>`;
+      bar.innerHTML = `<span>CLI</span><button type="button" class="copy-btn" aria-label="Copy">${COPY_ICON}</button>`;
       pre.replaceWith(wrap);
       wrap.appendChild(bar);
       wrap.appendChild(pre);

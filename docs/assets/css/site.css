@@ -534,12 +534,12 @@ body.view-home .main > .hero {
 
 .dl-card li + li { margin-top: 0.25rem; }
 
-/* Light code blocks — match paper UI */
+/* White code blocks everywhere */
 .code-block {
   margin: 0.85rem 0 0;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: #f8fafc;
+  background: #ffffff;
   overflow: hidden;
 }
 
@@ -552,7 +552,7 @@ body.view-home .main > .hero {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.4rem 0.65rem 0.4rem 0.85rem;
-  background: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
   border-bottom: 1px solid var(--line);
   color: var(--slate);
   font-size: 0.72rem;
@@ -567,22 +567,33 @@ body.view-home .main > .hero {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #0b1220;
   border-radius: 10px;
   padding: 0;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.copy-btn svg { display: block; width: 16px; height: 16px; }
+.copy-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: #0b1220;
+  color: #0b1220;
+}
+
+.copy-btn svg path { fill: #0b1220; }
 
 .copy-btn:hover {
   background: #eff6ff;
   border-color: rgba(29, 78, 216, 0.35);
-  color: var(--accent);
+  color: #1d4ed8;
 }
+
+.copy-btn:hover svg,
+.copy-btn:hover svg path { fill: #1d4ed8; }
 
 .copy-btn.is-copied {
   background: #ecfdf5;
@@ -590,19 +601,26 @@ body.view-home .main > .hero {
   color: #059669;
 }
 
-.code-block pre {
+.copy-btn.is-copied svg,
+.copy-btn.is-copied svg path { fill: #059669; }
+
+.code-block pre,
+.prose .code-block pre {
   margin: 0;
   padding: 0.85rem 0.95rem 0.95rem;
   overflow-x: auto;
-  color: var(--ink-soft);
+  color: #172033;
   font-family: var(--font-mono);
   font-size: 0.82rem;
   line-height: 1.55;
   white-space: pre;
-  background: transparent;
+  background: #ffffff !important;
+  border: 0;
+  border-radius: 0;
 }
 
-.code-block code {
+.code-block code,
+.prose .code-block code {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
@@ -886,9 +904,18 @@ body.view-home .main > .hero {
 .prose pre {
   padding: 0.9rem 1rem;
   border-radius: 12px;
-  background: var(--ink);
-  color: #e2e8f0;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: #172033;
   overflow-x: auto;
+}
+
+.prose :not(pre) > code {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+  color: #0b1220;
 }
 
 .prose table {
