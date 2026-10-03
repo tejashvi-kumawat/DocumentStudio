@@ -1,31 +1,41 @@
-# PDF tools
+# PDF tools deep dive
 
-Common PDF workflows inside Document Studio:
+This page expands on PDF-centric tools. For click-by-click flows see [How to use tools](#/how-to).
 
-## Merge & organize
+## Organize family
 
-Combine files, reorder pages, extract ranges, rotate, and export a new PDF. Desktop builds expose a workspace for multi-file jobs.
+These tools rewrite page order or membership using local PDF structure engines (primarily **qpdf** on desktop):
+
+- Merge, split, extract, delete  
+- Rotate, duplicate, reverse  
+- Insert blank, insert/replace from another PDF  
+- Move pages between two open documents  
+- Crop (CropBox-style) and resize (MediaBox / paper size)
+
+**Workspace** on desktop wraps many of these into a multi-document shell with a page ribbon — useful when you are assembling a packet from several sources.
 
 ## Compress
 
-Reduce file size with quality tradeoffs made explicit in the UI. Good for email and uploads you control yourself.
+Compression balances file size and visual quality. Image-heavy scans usually benefit most. Always keep the original until you confirm the result.
 
 ## Protect
 
-- Set a password and permissions
-- Remove a password when you know it
-- Add watermarks or page numbers
-
-## Redact
-
-Use redaction when text or regions must be **removed** from the file — not merely covered on screen.
+| Tool | Purpose |
+| --- | --- |
+| Encrypt | Add password + optional permission flags |
+| Decrypt | Remove password when you know it |
+| Watermark | Visible overlay for draft/confidential |
+| Page numbers / header-footer | Navigation & branding |
+| Redact | Permanent removal of marked content |
 
 ## Metadata
 
-View, edit, or strip document information before you share a file.
+Edit fields (title, author, keywords, …) or strip metadata before sharing externally.
 
-## Tips
+## Export images
 
-- Keep a copy of the original before destructive tools (redact, unlock failures, etc.).
-- Large jobs run locally — leave the app open until export finishes.
-- Encrypted inputs need the password for most structure operations.
+Rasterize pages to PNG/JPG for slides, OCR prep, or archival previews. Watch DPI settings — higher DPI means larger images.
+
+## Repair
+
+Attempts to normalize broken PDF structure. Not a miracle for every corrupt file; if repair fails, try re-exporting from the original producer.

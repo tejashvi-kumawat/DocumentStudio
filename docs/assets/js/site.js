@@ -21,6 +21,12 @@
     navToggle: document.getElementById("navToggle"),
     repoLink: document.getElementById("repoLink"),
     releaseLink: document.getElementById("releaseLink"),
+    pinRail: document.getElementById("pinRail"),
+    pinLabel: document.getElementById("pinLabel"),
+    pinCaption: document.getElementById("pinCaption"),
+    pinProgressBar: document.getElementById("pinProgressBar"),
+    pinImgA: document.getElementById("pinImgA"),
+    pinImgB: document.getElementById("pinImgB"),
   };
 
   /** @type {any} */
@@ -28,20 +34,41 @@
   /** @type {Map<string, {section:string,title:string,file:string,id:string}>} */
   const byId = new Map();
   /** @type {Map<string, string>} */
-  const cache = new Map();
+  const mdCache = new Map();
+  /** @type {Map<string, Promise<string>>} */
+  const imageCache = new Map();
   /** @type {Array<{id:string,title:string,section:string,text:string}>} */
   let searchIndex = [];
 
+  let pinIndex = 0;
+  let pinUsingA = true;
+  let pinIo = null;
+  let pinBound = false;
+
   function asset(path) {
     return `${base}${path.replace(/^\//, "")}`;
+  }
+
+  function preloadImage(src) {
+    const url = asset(src);
+    if (imageCache.has(url)) return imageCache.get(url);
+    const p = new Promise((resolve, reject) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => resolve(url);
+      img.onerror = reject;
+      img.src = url;
+    }).catch(() => url);
+    imageCache.set(url, p);
+    return p;
   }
 
   async function loadNav() {
     const res = await fetch(asset("nav.json"));
     if (!res.ok) throw new Error("Failed to load nav.json");
     nav = await res.json();
-    el.repoLink.href = nav.site.repo;
-    el.releaseLink.href = nav.site.releases;
+    if (el.repoLink) el.repoLink.href = nav.site.repo;
+    if (el.releaseLink) el.releaseLink.href = nav.site.releases;
     renderNav();
     renderHeroCards();
   }
@@ -67,13 +94,14 @@
   }
 
   function renderHeroCards() {
+    if (!el.heroCards) return;
     const picks = [
-      ["install", "Install on every OS", "Windows Setup, macOS DMG, Linux deb, Homebrew & winget."],
-      ["privacy", "Privacy by design", "Documents stay on device. No accounts. No cloud OCR."],
-      ["features", "Features", "Merge, compress, protect, OCR, Office convert — offline."],
-      ["engines", "Local engines", "qpdf, Tesseract, LibreOffice, and friends — bundled."],
-      ["architecture", "Architecture", "Flutter UI → jobs → domain → engine ports → local files."],
-      ["faq", "FAQ", "App search, updates, Gatekeeper, and more."],
+      ["install", "Download & install", "Setup.exe, macOS DMG, Linux deb — step by step."],
+      ["how-to", "How to use every tool", "Merge, compress, encrypt, OCR, sign, Office convert."],
+      ["features", "Full feature list", "Everything available offline, by category."],
+      ["privacy", "Privacy", "No uploads. No account. Documents stay on your device."],
+      ["updates", "Stay updated", "CLI --update, winget, Homebrew, or new installers."],
+      ["author", "Tejashvi Kumawat", "Author, portfolio, and GitHub links."],
     ];
     el.heroCards.innerHTML = picks
       .map(
@@ -96,14 +124,240 @@
     el.homeView.hidden = view !== "home";
     el.docView.hidden = view !== "doc";
     el.searchView.hidden = view !== "search";
+    if (view === "home") {
+      initPinShowcase();
+      initCarousel();
+      initFadeUps();
+    }
+  }
+
+  function initFadeUps() {
+    const nodes = document.querySelectorAll(".fade-up:not(.is-in)");
+    if (!nodes.length) return;
+    if (!("IntersectionObserver" in window)) {
+      nodes.forEach((n) => n.classList.add("is-in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-in");
+          io.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
+    );
+    nodes.forEach((n) => io.observe(n));
+  }
+
+  let carouselBound = false;
+  let carouselTimer = null;
+  let carouselIndex = 0;
+
+  function initCarousel() {
+    const track = document.getElementById("carouselTrack");
+    const dots = document.getElementById("carouselDots");
+    const prev = document.getElementById("carouselPrev");
+    const next = document.getElementById("carouselNext");
+    if (!track || !dots) return;
+    const slides = [...track.querySelectorAll(".carousel-slide")];
+    if (!slides.length) return;
+
+    const go = (i) => {
+      carouselIndex = (i + slides.length) % slides.length;
+      slides.forEach((s, idx) => s.classList.toggle("is-active", idx === carouselIndex));
+      dots.querySelectorAll("button").forEach((b, idx) => b.classList.toggle("is-active", idx === carouselIndex));
+      const rel = (src) => {
+        if (!src) return "";
+        if (src.startsWith(base)) return src.slice(base.length);
+        return src.replace(/^\.?\/?/, "");
+      };
+      const img = slides[carouselIndex].querySelector("img");
+      if (img) preloadImage(rel(img.getAttribute("src")));
+      const neighbor = slides[(carouselIndex + 1) % slides.length]?.querySelector("img");
+      if (neighbor) preloadImage(rel(neighbor.getAttribute("src")));
+    };
+
+    const restart = () => {
+      clearInterval(carouselTimer);
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      carouselTimer = setInterval(() => go(carouselIndex + 1), 4500);
+    };
+
+    if (!carouselBound) {
+      carouselBound = true;
+      dots.innerHTML = slides
+        .map((_, i) => `<button type="button" aria-label="Go to slide ${i + 1}"></button>`)
+        .join("");
+      dots.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => { go(i); restart(); }));
+      prev?.addEventListener("click", () => { go(carouselIndex - 1); restart(); });
+      next?.addEventListener("click", () => { go(carouselIndex + 1); restart(); });
+      track.addEventListener("mouseenter", () => clearInterval(carouselTimer));
+      track.addEventListener("mouseleave", restart);
+      let touchX = null;
+      track.addEventListener("touchstart", (e) => { touchX = e.changedTouches[0].clientX; }, { passive: true });
+      track.addEventListener("touchend", (e) => {
+        if (touchX == null) return;
+        const dx = e.changedTouches[0].clientX - touchX;
+        if (Math.abs(dx) > 40) go(carouselIndex + (dx < 0 ? 1 : -1));
+        touchX = null;
+        restart();
+      }, { passive: true });
+    }
+
+    go(carouselIndex);
+    restart();
+  }
+
+  function steps() {
+    return el.pinRail ? [...el.pinRail.querySelectorAll(".pin-step")] : [];
+  }
+
+  function injectMobileShots() {
+    steps().forEach((step) => {
+      if (step.querySelector(".pin-step-mobile-shot")) return;
+      const src = step.dataset.shot;
+      if (!src) return;
+      const wrap = document.createElement("figure");
+      wrap.className = "pin-step-mobile-shot";
+      const img = document.createElement("img");
+      img.src = asset(src);
+      img.alt = step.dataset.label || "";
+      img.loading = "lazy";
+      img.decoding = "async";
+      wrap.appendChild(img);
+      step.appendChild(wrap);
+    });
+  }
+
+  async function setPinImage(src, label, caption) {
+    const url = await preloadImage(src);
+    const current = pinUsingA ? el.pinImgA : el.pinImgB;
+    if (el.pinLabel) el.pinLabel.textContent = label || "";
+    if (el.pinCaption) el.pinCaption.textContent = caption || label || "";
+
+    if (current && current.classList.contains("is-active") && current.getAttribute("src") === url) {
+      const list = steps();
+      const i = pinIndex;
+      [list[i + 1], list[i + 2], list[i - 1]]
+        .filter(Boolean)
+        .forEach((s) => s.dataset.shot && preloadImage(s.dataset.shot));
+      return;
+    }
+
+    const next = pinUsingA ? el.pinImgB : el.pinImgA;
+    const prev = pinUsingA ? el.pinImgA : el.pinImgB;
+    if (!next || !prev) return;
+
+    next.hidden = false;
+    next.removeAttribute("hidden");
+    next.src = url;
+    next.alt = label || "";
+    void next.offsetWidth;
+    next.classList.add("is-active");
+    prev.classList.remove("is-active");
+    pinUsingA = !pinUsingA;
+
+    const list = steps();
+    const i = pinIndex;
+    [list[i + 1], list[i + 2], list[i - 1]]
+      .filter(Boolean)
+      .forEach((s) => s.dataset.shot && preloadImage(s.dataset.shot));
+  }
+
+  function activateStep(index) {
+    const list = steps();
+    if (!list.length) return;
+    const next = Math.max(0, Math.min(list.length - 1, index));
+    if (next === pinIndex && list[next].classList.contains("is-active")) {
+      // still update progress
+    } else {
+      pinIndex = next;
+      list.forEach((step, i) => {
+        step.classList.toggle("is-active", i === pinIndex);
+        step.classList.toggle("is-passed", i < pinIndex);
+      });
+      const active = list[pinIndex];
+      const title = active.querySelector("h3")?.textContent?.trim() || "";
+      setPinImage(active.dataset.shot, active.dataset.label || title, title);
+    }
+    if (el.pinProgressBar) {
+      const pct = list.length <= 1 ? 100 : (pinIndex / (list.length - 1)) * 100;
+      el.pinProgressBar.style.width = `${pct}%`;
+    }
+  }
+
+  function pickActiveFromScroll() {
+    const list = steps();
+    if (!list.length) return;
+    const focusY = window.innerHeight * 0.38;
+    let best = 0;
+    let bestDist = Infinity;
+    list.forEach((step, i) => {
+      const rect = step.getBoundingClientRect();
+      const mid = rect.top + rect.height * 0.35;
+      const dist = Math.abs(mid - focusY);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    activateStep(best);
+  }
+
+  function initPinShowcase() {
+    if (!el.pinRail) return;
+    injectMobileShots();
+
+    const list = steps();
+    if (list[0]?.dataset.shot) preloadImage(list[0].dataset.shot);
+    if (list[1]?.dataset.shot) preloadImage(list[1].dataset.shot);
+
+    if (!pinBound) {
+      pinBound = true;
+      let ticking = false;
+      const onScroll = () => {
+        if (el.homeView.hidden) return;
+        if (window.matchMedia("(max-width: 980px)").matches) return;
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          pickActiveFromScroll();
+          ticking = false;
+        });
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+
+      list.forEach((step, i) => {
+        step.addEventListener("click", () => {
+          step.scrollIntoView({ behavior: "smooth", block: "center" });
+          activateStep(i);
+        });
+      });
+    }
+
+    // IntersectionObserver as secondary trigger for smoother enter/leave
+    if (pinIo) pinIo.disconnect();
+    if ("IntersectionObserver" in window && !window.matchMedia("(max-width: 980px)").matches) {
+      pinIo = new IntersectionObserver(
+        () => pickActiveFromScroll(),
+        { root: null, threshold: [0.2, 0.45, 0.7], rootMargin: "-20% 0px -35% 0px" }
+      );
+      list.forEach((step) => pinIo.observe(step));
+    }
+
+    activateStep(0);
+    pickActiveFromScroll();
   }
 
   async function fetchMarkdown(file) {
-    if (cache.has(file)) return cache.get(file);
+    if (mdCache.has(file)) return mdCache.get(file);
     const res = await fetch(asset(`pages/${file}`));
     if (!res.ok) throw new Error(`Missing ${file}`);
     const text = await res.text();
-    cache.set(file, text);
+    mdCache.set(file, text);
     return text;
   }
 
@@ -113,13 +367,34 @@
     tmp.querySelectorAll("a[href]").forEach((a) => {
       const href = a.getAttribute("href") || "";
       if (href.startsWith("http") || href.startsWith("#/") || href.startsWith("mailto:")) return;
-      if (href.startsWith("../")) {
+      if (href.startsWith("../") && !href.includes("images/")) {
         a.setAttribute("href", nav.site.repo);
         return;
       }
       const clean = href.split("#")[0].replace(/^\.\//, "");
       const hit = [...byId.values()].find((x) => x.file === clean || x.file.endsWith("/" + clean));
       if (hit) a.setAttribute("href", `#/${hit.id}`);
+    });
+    tmp.querySelectorAll("img[src]").forEach((img) => {
+      const src = img.getAttribute("src") || "";
+      if (src.startsWith("http") || src.startsWith("data:")) return;
+      const cleaned = src.replace(/^\.\.\//, "").replace(/^\.\//, "");
+      const url = asset(cleaned);
+      img.setAttribute("src", url);
+      img.setAttribute("loading", "lazy");
+      img.setAttribute("decoding", "async");
+      preloadImage(cleaned);
+      if (!img.closest("figure")) {
+        const fig = document.createElement("figure");
+        fig.className = "doc-shot";
+        img.replaceWith(fig);
+        fig.appendChild(img);
+        if (img.alt) {
+          const cap = document.createElement("figcaption");
+          cap.textContent = img.alt;
+          fig.appendChild(cap);
+        }
+      }
     });
     return tmp.innerHTML;
   }
@@ -207,7 +482,7 @@
     document.body.classList.remove("nav-open");
     const raw = (location.hash || "#/").replace(/^#\/?/, "");
     if (!raw) {
-      document.title = "Document Studio Docs";
+      document.title = "Document Studio — Download, Features & Docs";
       setActive("");
       show("home");
       return;

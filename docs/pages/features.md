@@ -1,47 +1,172 @@
-# Features
+# Feature list
 
-Document Studio focuses on practical PDF and document work offline.
+Everything below runs **offline** on your device. Desktop release builds bundle the engines they need (qpdf, Tesseract, LibreOffice, signing helpers, …).
 
-## Organize
+Screenshots below are from the real app. Tools without a screenshot are still available — see the text sections.
 
-- Merge multiple PDFs
-- Split by page ranges or intervals
-- Reorder, rotate, extract, delete pages
-- Workspace-style multi-document flow on desktop
+![Tools home — Create PDF, Organize, PDF to images, Compress, Encrypt, Scan](../images/tools-home.png)
 
-## Optimize & repair
+![Full tools catalog — Optimize, Sign, Edit, Create](../images/tools-catalog.png)
 
-- Compress PDFs
-- Edit or strip metadata
-- Repair damaged structure where engines allow
+---
 
-## Protect
+## Home & library
 
-- Encrypt with a password
-- Unlock when you know the password
-- Watermark and page numbers
-- Redaction paths that remove content (not only black boxes on top)
+| Feature | What it does |
+| --- | --- |
+| Open PDF | Open from disk, drag-and-drop, or Browse |
+| Create PDF | Blank / from plain text |
+| Images to PDF | Combine photos & scans into one PDF |
+| PDF to images | Export pages as PNG or JPEG |
+| Pinned & recent | Local library only — no cloud sync |
+| Workspace | Multi-document desktop shell |
+| Tools hub | Searchable grid of every tool |
+| Strict offline | Blocks optional downloads when enabled |
+
+![Document Studio home dashboard](../images/image.png)
+
+---
+
+## Organize pages
+
+| Feature | Notes |
+| --- | --- |
+| Organize | Drag thumbnails · rotate · duplicate · delete · reverse · Apply |
+| Merge | Add PDFs in order · Save / Save as |
+| Split | Every N · after pages · custom ranges · odd/even · each page |
+| Extract pages | This page / selected / all / range · optional delete after extract |
+| Insert pages | Insert every page of another PDF after a chosen page |
+| Crop | Full page / small / wide margins · live crop box |
+| Resize pages | LETTER / A4 / LEGAL (MediaBox / CropBox; content not scaled) |
+| Rotate | Ribbon rotate or organize actions |
+| Add blank page | Insert empty pages |
+| Move between docs | Dual-document move in Workspace |
+
+![Organize — reorder and rotate pages](../images/organize.png)
+
+![Merge PDFs](../images/merge.png)
+
+![Split PDF with result preview](../images/split.png)
+
+![Extract pages](../images/extract-pages.png)
+
+![Crop pages](../images/crop.png)
+
+![Resize pages](../images/resize-pages.png)
+
+![Insert pages from another PDF](../images/insert-pages.png)
+
+---
+
+## Optimize
+
+| Feature | Notes |
+| --- | --- |
+| Compress PDF | Reduce file size with quality tradeoffs |
+| Watermark | Text or image · opacity · rotation · position grid · tokens |
+| Batch | One operation on many files |
+| Edit metadata | Title, author, properties |
+| Remove metadata | Strip Info and XMP before sharing |
+| Repair PDF | Structure repair via engines |
+
+![Watermark — text, opacity, rotation, position](../images/watermark.png)
+
+---
+
+## Protect & stamp
+
+| Feature | Notes |
+| --- | --- |
+| Encrypt | Open password · owner password · print/copy/modify/annotate permissions |
+| Decrypt | Unlock when you know the password (no cracking) |
+| Header & footer | Templates · position grid · `{page}` `{pages}` `{date}` `{file}` `{title}` `{bates}` |
+| Page numbers | Style · prefix · start · sectioning |
+| Redact | Remove underlying content — not paint-only |
+
+![Encrypt with passwords and permissions](../images/encrypt.png)
+
+![Header and footer templates](../images/header-footer.png)
+
+![Page numbers](../images/page-numbers.png)
+
+---
+
+## Sign & forms
+
+| Feature | Notes |
+| --- | --- |
+| Visual Sign | Draw / type signatures & initials · drag onto page · resize/rotate |
+| Stamps | Approved, dates, custom stamps |
+| Certificate signature | Digital IDs · import `.p12` · create self-signed · USB token / NSS stores · validate |
+| Fill form | Fill AcroForm fields and save |
+
+![Sign PDF — digital certificates and validation](../images/sign-digital.png)
+
+![Sign PDF — visual signatures and initials](../images/sign-visual.png)
+
+---
+
+## Edit & markup
+
+| Feature | Notes |
+| --- | --- |
+| Edit text | Select / replace existing text · font · size · alignment · line spacing |
+| Highlight / underline / strikethrough / squiggly | Text markup |
+| Freehand / eraser | Ink draw |
+| Shapes | Rectangle, circle, line, arrow, pentagon, cloud, … |
+| Comments | Sticky notes |
+| Add image | Stamp an image onto a page |
+| Link | URI or internal page links |
+| Smart guides | Snap for clean alignment |
+| Compare PDFs | Diff text, images, and pages |
+
+![Edit & markup tools](../images/edit-markup.png)
+
+![Pages tools list in the Tools panel](../images/tools-pages.png)
+
+---
 
 ## Capture & OCR
 
-- Images → PDF
-- OCR / searchable PDF (bundled Tesseract on desktop)
-- Camera scan flows on mobile where platform APIs allow
+| Feature | Notes |
+| --- | --- |
+| Insert scan | Open camera or choose images |
+| Searchable PDF (OCR) | Local Tesseract — text layer for scans |
+| Image OCR | OCR on standalone images |
 
-## Convert (desktop)
+![Insert scan — camera or choose images](../images/insert-scan.png)
 
-- Office → PDF via **bundled LibreOffice** on Windows, macOS, and Linux release builds
-- Mobile builds intentionally skip heavy Office stacks; convert on desktop or pre-convert
+---
 
-## View & annotate
+## Convert & create
 
-- Fast PDF viewing
-- Text search and copy
-- Annotations and visual signatures
+| Feature | Notes |
+| --- | --- |
+| From Office | Word / Excel / PowerPoint → PDF (desktop, bundled LibreOffice) |
+| Images to PDF | Multi-image compose |
+| PDF to images | PNG / JPEG export |
+| Create PDF | From plain text |
+| Place image | Stamp image into PDF |
 
-## Not in scope
+---
 
-- Cloud AI “rewrite my PDF”
-- Uploading documents to Document Studio servers
-- Cracking passwords you don’t know
-- Fake redaction that leaves text in the file
+## Platform extras
+
+| Feature | Notes |
+| --- | --- |
+| CLI | `document_studio` open / `--tool` / `--update` |
+| Windows shell | Start Menu · Open with · context menus after Setup.exe |
+| App search | Start / Spotlight / Activities after proper install |
+
+---
+
+## Intentionally not included
+
+| Not a feature | Why |
+| --- | --- |
+| Upload PDF to our cloud | Privacy — we don’t run that |
+| Crack PDF passwords | Illegal / dishonest |
+| Fake redaction | Leaves text in the file |
+| Ads / account wall | Product principle |
+
+Step-by-step for each major tool: [How to use tools](#/how-to).

@@ -1,20 +1,24 @@
 # FAQ
 
-## Why don’t I see Document Studio in Start / Spotlight / Activities?
+## Where do I download?
 
-The terminal launcher can exist without a desktop registration. Install via **Setup.exe**, **.dmg → Applications**, or the **.deb** / Homebrew packages so the OS gets a Start Menu shortcut or `.desktop` / `.app` bundle. Then search for **“Document Studio”** (space), not only `document-studio`.
+[GitHub Releases v1.0.3](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3) — or the Download panel on the [home page](#/).
 
-## Is my PDF uploaded anywhere?
+## Who built this?
 
-No. Core tools run locally. Update checks do not send document contents.
+**[Tejashvi Kumawat](https://tejashvi-kumawat.github.io)** — [GitHub](https://github.com/tejashvi-kumawat) · [Document Studio repo](https://github.com/tejashvi-kumawat/DocumentStudio).
+
+## Why don’t I see it in Start / Spotlight / Activities?
+
+Install with **Setup.exe**, **DMG → Applications**, or the **.deb**. Terminal-only copies without desktop registration won’t appear in app search. Search for **“Document Studio”** (with a space).
+
+## Are my files uploaded?
+
+No. Tools run locally. See [Privacy](#/privacy).
 
 ## Can it unlock a PDF without the password?
 
-No. That is intentionally unsupported.
-
-## Where do I download builds?
-
-[github.com/tejashvi-kumawat/DocumentStudio/releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases)
+No.
 
 ## Homebrew?
 
@@ -26,8 +30,16 @@ brew install document-studio         # Linux
 
 ## How do I update?
 
-`document_studio --update`, or your package manager / a newer installer from Releases.
+```bash
+document_studio --update
+```
 
-## macOS says the app can’t be opened
+Or install a newer release / `brew upgrade` / `winget upgrade`.
 
-Use **right-click → Open** once for ad-hoc signed builds, or wait for a notarized release if you require Gatekeeper-clean defaults.
+## macOS “app can’t be opened”
+
+Right-click → **Open** once (ad-hoc signature). Notarized builds may come later.
+
+## Something broken?
+
+[Open an issue](https://github.com/tejashvi-kumawat/DocumentStudio/issues) with OS, version (`document_studio --version`), and what you tried.

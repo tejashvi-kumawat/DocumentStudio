@@ -85,3 +85,4 @@ benchmarks/*.pdf
 
 # Win11 shell COM build output
 windows/shell/out/
+/docs-local/

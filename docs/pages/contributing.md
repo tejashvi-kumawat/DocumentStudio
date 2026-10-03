@@ -1,28 +1,24 @@
 # Contributing
 
+## Author
+
+Maintained by **[Tejashvi Kumawat](https://tejashvi-kumawat.github.io)**  
+GitHub: [@tejashvi-kumawat](https://github.com/tejashvi-kumawat)
+
 ## Before you change code
 
-1. Prefer small, focused PRs.
-2. Don’t add cloud document processing or account systems.
-3. Don’t add dependencies casually — justify size and license.
-4. Keep user-facing behavior honest (encryption, redaction, offline).
+1. Keep the product offline-first and privacy-first.  
+2. No cloud document pipelines or account systems.  
+3. Don’t add heavy dependencies without license/size justification.  
+4. Keep encryption/redaction behavior honest.
 
-## Repo layout (high level)
+## Public vs private docs
 
 | Path | Purpose |
 | --- | --- |
-| `lib/` | Flutter application |
-| `packages/` | Local plugins / helpers |
-| `scripts/` | Bundle & package scripts |
-| `packaging/` | winget / Homebrew / apt templates |
-| `docs/` | This GitHub Pages site |
+| `docs/` | This GitHub Pages site (public) |
 | `docs-local/` | Private planning notes (not published) |
 
-## Docs site
+## Issues
 
-Public documentation lives only under `docs/` (designed site + `docs/pages/*.md`). Planning material in `docs-local/` stays local / gitignored.
-
-## Issues & releases
-
-- Bugs and features: GitHub Issues on the main repo  
-- Binaries: GitHub Releases  
+Bugs and ideas → [GitHub Issues](https://github.com/tejashvi-kumawat/DocumentStudio/issues).
