@@ -957,6 +957,134 @@ body.view-home .main > .hero {
   font-size: 0.88rem;
 }
 
+/* How-to: procedure left, compact screenshot right */
+.prose .tool-toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.45rem 0.85rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.65);
+  list-style: none;
+}
+
+.prose .tool-toc a {
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.prose .tool-toc a:hover { text-decoration: underline; }
+
+.prose .tool-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(180px, 0.7fr);
+  gap: 1.15rem 1.35rem;
+  align-items: start;
+  margin: 0.85rem 0 1.65rem;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 8px 22px rgba(11, 18, 32, 0.05);
+}
+
+.prose .tool-guide.no-shot {
+  grid-template-columns: 1fr;
+}
+
+.prose .tool-guide-body > :first-child { margin-top: 0; }
+.prose .tool-guide-body > :last-child { margin-bottom: 0; }
+
+.prose .tool-why {
+  margin: 0 0 0.65rem;
+  color: var(--ink);
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.prose .tool-guide-body ol,
+.prose .tool-guide-body ul {
+  margin: 0.35rem 0 0.75rem;
+  padding-left: 1.2rem;
+}
+
+.prose .tool-guide-body li + li { margin-top: 0.28rem; }
+
+.prose .tool-tips {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 0 10px 10px 0;
+  color: var(--slate);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.prose .tool-guide-shot {
+  margin: 0;
+  position: sticky;
+  top: calc(var(--top-h, 4rem) + 0.75rem);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(11, 18, 32, 0.08);
+}
+
+.prose .tool-guide-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  object-position: top center;
+  border-bottom: 1px solid var(--line);
+}
+
+.prose .tool-guide-shot figcaption {
+  margin: 0;
+  padding: 0.45rem 0.65rem 0.55rem;
+  color: var(--slate);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.prose .tool-guide-shot.placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 140px;
+  padding: 0.9rem;
+  background: linear-gradient(160deg, #f7f9fc, #eef3f9);
+}
+
+.prose .tool-guide-shot.placeholder figcaption {
+  border: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 860px) {
+  .prose .tool-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .prose .tool-guide-shot {
+    position: static;
+    max-width: 16rem;
+    justify-self: start;
+  }
+
+  .prose .tool-guide-shot img {
+    max-height: 150px;
+  }
+}
+
 .search-results ul {
   list-style: none;
   padding: 0;
