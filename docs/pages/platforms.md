@@ -23,7 +23,6 @@ Office conversion is a **desktop** strength because LibreOffice is large.
 
 | Tool | Command |
 | --- | --- |
-| winget | `winget install DocumentStudio.DocumentStudio` |
 | Homebrew macOS | `brew install --cask tejashvi-kumawat/tap/document-studio` |
 | Homebrew Linux | `brew install tejashvi-kumawat/tap/document-studio` |
 

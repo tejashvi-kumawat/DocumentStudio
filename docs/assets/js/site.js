@@ -22,8 +22,6 @@
     repoLink: document.getElementById("repoLink"),
     releaseLink: document.getElementById("releaseLink"),
     pinRail: document.getElementById("pinRail"),
-    pinLabel: document.getElementById("pinLabel"),
-    pinCaption: document.getElementById("pinCaption"),
     pinProgressBar: document.getElementById("pinProgressBar"),
     pinImgA: document.getElementById("pinImgA"),
     pinImgB: document.getElementById("pinImgB"),
@@ -100,8 +98,8 @@
       ["how-to", "How to use every tool", "Merge, compress, encrypt, OCR, sign, Office convert."],
       ["features", "Full feature list", "Everything available offline, by category."],
       ["privacy", "Privacy", "No uploads. No account. Documents stay on your device."],
-      ["updates", "Stay updated", "CLI --update, winget, Homebrew, or new installers."],
-      ["author", "Tejashvi Kumawat", "Author, portfolio, and GitHub links."],
+      ["updates", "Stay updated", "CLI --update, Homebrew, or a newer installer."],
+      ["about", "About", "Product story, author, and project links."],
     ];
     el.heroCards.innerHTML = picks
       .map(
@@ -114,9 +112,18 @@
       .join("");
   }
 
+  const COPY_ICON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>';
+  const CHECK_ICON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
+
   function setActive(id) {
     el.navRoot.querySelectorAll("a").forEach((a) => {
       a.classList.toggle("active", a.dataset.id === id);
+    });
+    document.querySelectorAll(".top-nav a").forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      a.classList.toggle("is-active", id && href === `#/${id}`);
     });
   }
 
@@ -124,11 +131,63 @@
     el.homeView.hidden = view !== "home";
     el.docView.hidden = view !== "doc";
     el.searchView.hidden = view !== "search";
+    document.body.classList.toggle("view-home", view === "home");
+    document.body.classList.toggle("view-docs", view !== "home");
+    const topDl = document.getElementById("topDownload");
+    if (topDl) topDl.href = view === "home" ? "#downloadPanel" : "#/install";
     if (view === "home") {
       initPinShowcase();
       initCarousel();
       initFadeUps();
+      initCopyBlocks(document);
     }
+  }
+
+  function paintCopyBtn(btn, copied) {
+    btn.innerHTML = copied ? CHECK_ICON : COPY_ICON;
+    btn.classList.toggle("is-copied", !!copied);
+    btn.setAttribute("aria-label", copied ? "Copied" : "Copy");
+  }
+
+  function initCopyBlocks(root) {
+    (root || document).querySelectorAll("[data-copy]").forEach((block) => {
+      const btn = block.querySelector(".copy-btn");
+      const code = block.querySelector("code, pre");
+      if (!btn || !code) return;
+      if (!btn.dataset.iconReady) {
+        paintCopyBtn(btn, false);
+        btn.dataset.iconReady = "1";
+      }
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", async () => {
+        const text = code.textContent || "";
+        try {
+          await navigator.clipboard.writeText(text);
+          paintCopyBtn(btn, true);
+          setTimeout(() => paintCopyBtn(btn, false), 1400);
+        } catch {
+          paintCopyBtn(btn, false);
+        }
+      });
+    });
+  }
+
+  function wrapProseCodeBlocks(container) {
+    container.querySelectorAll("pre > code").forEach((code) => {
+      const pre = code.parentElement;
+      if (!pre || pre.closest("[data-copy]")) return;
+      const wrap = document.createElement("div");
+      wrap.className = "code-block";
+      wrap.setAttribute("data-copy", "");
+      const bar = document.createElement("div");
+      bar.className = "code-block-bar";
+      bar.innerHTML = `<span>CLI</span><button type="button" class="copy-btn" aria-label="Copy"></button>`;
+      pre.replaceWith(wrap);
+      wrap.appendChild(bar);
+      wrap.appendChild(pre);
+    });
+    initCopyBlocks(container);
   }
 
   function initFadeUps() {
@@ -164,17 +223,26 @@
     const slides = [...track.querySelectorAll(".carousel-slide")];
     if (!slides.length) return;
 
-    const go = (i) => {
-      carouselIndex = (i + slides.length) % slides.length;
+    const rel = (src) => {
+      if (!src) return "";
+      if (src.startsWith(base)) return src.slice(base.length);
+      return src.replace(/^\.?\/?/, "");
+    };
+
+    const go = async (i) => {
+      const nextIndex = (i + slides.length) % slides.length;
+      const img = slides[nextIndex].querySelector("img");
+      if (img) {
+        await preloadImage(rel(img.getAttribute("src")));
+        try {
+          if (typeof img.decode === "function") await img.decode();
+        } catch {
+          /* ignore */
+        }
+      }
+      carouselIndex = nextIndex;
       slides.forEach((s, idx) => s.classList.toggle("is-active", idx === carouselIndex));
       dots.querySelectorAll("button").forEach((b, idx) => b.classList.toggle("is-active", idx === carouselIndex));
-      const rel = (src) => {
-        if (!src) return "";
-        if (src.startsWith(base)) return src.slice(base.length);
-        return src.replace(/^\.?\/?/, "");
-      };
-      const img = slides[carouselIndex].querySelector("img");
-      if (img) preloadImage(rel(img.getAttribute("src")));
       const neighbor = slides[(carouselIndex + 1) % slides.length]?.querySelector("img");
       if (neighbor) preloadImage(rel(neighbor.getAttribute("src")));
     };
@@ -182,7 +250,7 @@
     const restart = () => {
       clearInterval(carouselTimer);
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      carouselTimer = setInterval(() => go(carouselIndex + 1), 4500);
+      carouselTimer = setInterval(() => go(carouselIndex + 1), 5200);
     };
 
     if (!carouselBound) {
@@ -231,11 +299,9 @@
     });
   }
 
-  async function setPinImage(src, label, caption) {
+  async function setPinImage(src, label) {
     const url = await preloadImage(src);
     const current = pinUsingA ? el.pinImgA : el.pinImgB;
-    if (el.pinLabel) el.pinLabel.textContent = label || "";
-    if (el.pinCaption) el.pinCaption.textContent = caption || label || "";
 
     if (current && current.classList.contains("is-active") && current.getAttribute("src") === url) {
       const list = steps();
@@ -250,11 +316,16 @@
     const prev = pinUsingA ? el.pinImgA : el.pinImgB;
     if (!next || !prev) return;
 
+    // Wait for decode before crossfading to avoid blink
     next.hidden = false;
     next.removeAttribute("hidden");
     next.src = url;
     next.alt = label || "";
-    void next.offsetWidth;
+    try {
+      if (typeof next.decode === "function") await next.decode();
+    } catch {
+      /* ignore decode errors */
+    }
     next.classList.add("is-active");
     prev.classList.remove("is-active");
     pinUsingA = !pinUsingA;
@@ -280,7 +351,7 @@
       });
       const active = list[pinIndex];
       const title = active.querySelector("h3")?.textContent?.trim() || "";
-      setPinImage(active.dataset.shot, active.dataset.label || title, title);
+      setPinImage(active.dataset.shot, active.dataset.label || title);
     }
     if (el.pinProgressBar) {
       const pct = list.length <= 1 ? 100 : (pinIndex / (list.length - 1)) * 100;
@@ -415,6 +486,7 @@
       const md = await fetchMarkdown(item.file);
       const html = marked.parse(md, { mangle: false, headerIds: true });
       el.docBody.innerHTML = rewriteDocLinks(html);
+      wrapProseCodeBlocks(el.docBody);
       window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
     } catch (err) {
       el.docBody.innerHTML = `<p>Could not load <code>${item.file}</code>.</p>`;

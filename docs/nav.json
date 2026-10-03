@@ -49,6 +49,7 @@
     {
       "title": "About",
       "items": [
+        { "id": "about", "title": "About", "file": "about.md" },
         { "id": "author", "title": "Author", "file": "author.md" },
         { "id": "licenses", "title": "Licenses", "file": "licenses.md" },
         { "id": "faq", "title": "FAQ", "file": "faq.md" }
