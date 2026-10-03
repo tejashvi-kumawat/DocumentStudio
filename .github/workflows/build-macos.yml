@@ -1,15 +1,8 @@
-# Build macOS DMG for Homebrew (no Windows/Linux).
-# Use when you only need DocumentStudio-*-macos.dmg.
-#
-# Actions → "Build macOS DMG" → Run workflow
-# Or tag a release (Release workflow also builds macOS).
-
+# Manual only — push/tag triggers disabled.
 name: Build macOS DMG
 
 on:
   workflow_dispatch:
-  push:
-    tags: ['v*']
 
 permissions:
   contents: write
