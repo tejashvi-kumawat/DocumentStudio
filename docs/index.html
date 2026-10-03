@@ -29,6 +29,13 @@
         <em>Docs</em>
       </span>
     </a>
+    <nav class="top-nav" aria-label="Primary">
+      <a href="#/features">Features</a>
+      <a href="#/how-to">How to</a>
+      <a href="#/install">Install</a>
+      <a href="#/overview">Docs</a>
+      <a href="#/about">About</a>
+    </nav>
     <div class="topbar-actions">
       <label class="search-wrap">
         <span class="sr-only">Search docs</span>
@@ -40,7 +47,7 @@
       <a class="icon-btn" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener" title="Document Studio repository" aria-label="Document Studio on GitHub">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 5h3v3h-3v-3zm5 0h3v3h-3v-3zm-5-5h3v3h-3V13zm5 0h3v3h-3V13z"/></svg>
       </a>
-      <a class="btn solid" href="#downloadPanel">Download</a>
+      <a class="btn solid" id="topDownload" href="#downloadPanel">Download</a>
     </div>
   </header>
 
@@ -70,40 +77,29 @@
         </div>
 
         <section class="carousel fade-up" id="appCarousel" aria-label="App preview carousel">
-          <div class="carousel-head">
-            <h2>See Document Studio</h2>
-            <div class="carousel-nav">
-              <button type="button" class="carousel-btn" id="carouselPrev" aria-label="Previous slide">‹</button>
-              <button type="button" class="carousel-btn" id="carouselNext" aria-label="Next slide">›</button>
-            </div>
-          </div>
           <div class="carousel-viewport">
             <div class="carousel-track" id="carouselTrack">
-              <figure class="carousel-slide is-active" data-label="Home">
+              <figure class="carousel-slide is-active">
                 <img src="images/image.png" alt="Document Studio home dashboard" width="1495" height="921" loading="eager" decoding="async" />
-                <figcaption>Home — open, create, pin, and stay offline</figcaption>
               </figure>
-              <figure class="carousel-slide" data-label="Tools">
-                <img src="images/tools-home.png" alt="Tools hub grid" width="1024" height="641" loading="lazy" decoding="async" />
-                <figcaption>Tools hub — Create, Organize, Compress, Encrypt, Scan</figcaption>
+              <figure class="carousel-slide">
+                <img src="images/tools-home.png" alt="Tools hub" width="1024" height="641" loading="lazy" decoding="async" />
               </figure>
-              <figure class="carousel-slide" data-label="Organize">
+              <figure class="carousel-slide">
                 <img src="images/organize.png" alt="Organize pages" width="1400" height="900" loading="lazy" decoding="async" />
-                <figcaption>Organize — drag, rotate, reverse, Apply</figcaption>
               </figure>
-              <figure class="carousel-slide" data-label="Encrypt">
+              <figure class="carousel-slide">
                 <img src="images/encrypt.png" alt="Encrypt PDF" width="1400" height="900" loading="lazy" decoding="async" />
-                <figcaption>Encrypt — passwords and permissions</figcaption>
               </figure>
-              <figure class="carousel-slide" data-label="Sign">
-                <img src="images/sign-digital.png" alt="Digital certificate signing" width="1400" height="900" loading="lazy" decoding="async" />
-                <figcaption>Digital sign — certificates, .p12, validation</figcaption>
+              <figure class="carousel-slide">
+                <img src="images/sign-digital.png" alt="Digital signing" width="1400" height="900" loading="lazy" decoding="async" />
               </figure>
-              <figure class="carousel-slide" data-label="Watermark">
+              <figure class="carousel-slide">
                 <img src="images/watermark.png" alt="Watermark tool" width="1400" height="900" loading="lazy" decoding="async" />
-                <figcaption>Watermark — text/image, opacity, rotation</figcaption>
               </figure>
             </div>
+            <button type="button" class="carousel-btn carousel-btn-prev" id="carouselPrev" aria-label="Previous slide">‹</button>
+            <button type="button" class="carousel-btn carousel-btn-next" id="carouselNext" aria-label="Next slide">›</button>
           </div>
           <div class="carousel-dots" id="carouselDots" aria-hidden="true"></div>
         </section>
@@ -111,50 +107,55 @@
         <section class="download-panel fade-up" id="downloadPanel" aria-labelledby="downloadHeading">
           <div class="download-panel-head">
             <h2 id="downloadHeading">Download &amp; install</h2>
-            <p>Current release <strong>v1.0.3</strong> · engines bundled · pick your platform</p>
+            <p><strong>v1.0.3</strong> · engines bundled · offline-ready</p>
           </div>
           <div class="download-grid">
             <article class="dl-card">
               <h3>Windows</h3>
-              <p>GUI installer · Start Menu · context menus</p>
+              <p>Setup.exe · Start Menu · context menus</p>
               <a class="btn solid" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe">Download Setup.exe</a>
               <ol>
-                <li>Run <code>DocumentStudio-1.0.3-Setup.exe</code></li>
-                <li>Finish the wizard (defaults are fine)</li>
+                <li>Run the installer</li>
                 <li>Open <strong>Document Studio</strong> from Start</li>
               </ol>
-              <p class="muted">Portable zip on Releases · <code>winget install DocumentStudio.DocumentStudio</code> when listed</p>
             </article>
             <article class="dl-card">
               <h3>macOS</h3>
-              <p>DMG → Applications · or Homebrew cask</p>
+              <p>DMG → Applications · or Homebrew</p>
               <a class="btn solid" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg">Download .dmg</a>
               <ol>
-                <li>Open the DMG · drag to <strong>Applications</strong></li>
-                <li>First open: right-click → <strong>Open</strong> if asked</li>
-                <li>Spotlight: “Document Studio”</li>
+                <li>Drag to <strong>Applications</strong></li>
+                <li>Right-click → <strong>Open</strong> the first time if asked</li>
               </ol>
-              <pre class="mini-code">brew tap tejashvi-kumawat/tap
-brew install --cask document-studio</pre>
+              <div class="code-block" data-copy>
+                <div class="code-block-bar"><span>Homebrew</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+                <pre><code>brew tap tejashvi-kumawat/tap
+brew install --cask document-studio</code></pre>
+              </div>
             </article>
             <article class="dl-card">
               <h3>Linux</h3>
-              <p>Debian/Ubuntu <code>.deb</code> · app menu entry</p>
+              <p>Debian/Ubuntu .deb · or Homebrew</p>
               <a class="btn solid" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb">Download .deb</a>
-              <ol>
-                <li><code>sudo apt install ./document-studio_1.0.3_amd64.deb</code></li>
-                <li>Search <strong>Document Studio</strong> in Activities</li>
-                <li>Or run <code>document-studio</code></li>
-              </ol>
-              <pre class="mini-code">brew tap tejashvi-kumawat/tap
-brew install document-studio</pre>
+              <div class="code-block" data-copy>
+                <div class="code-block-bar"><span>apt</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+                <pre><code>sudo apt install ./document-studio_1.0.3_amd64.deb</code></pre>
+              </div>
+              <div class="code-block" data-copy>
+                <div class="code-block-bar"><span>Homebrew</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+                <pre><code>brew tap tejashvi-kumawat/tap
+brew install document-studio</code></pre>
+              </div>
             </article>
           </div>
+          <div class="code-block code-block-wide" data-copy>
+            <div class="code-block-bar"><span>Update from CLI</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+            <pre><code>document_studio --check-update
+document_studio --update</code></pre>
+          </div>
           <p class="download-foot">
-            All assets:
-            <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3" target="_blank" rel="noopener">GitHub Releases v1.0.3</a>
+            <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3" target="_blank" rel="noopener">All release files</a>
             · <a href="#/install">Full install guide</a>
-            · <a href="#/updates"><code>document_studio --update</code></a>
           </p>
         </section>
 
@@ -371,10 +372,6 @@ brew install document-studio</pre>
 
             <aside class="pin-stage" aria-live="polite">
               <div class="pin-stage-card" id="pinStageCard">
-                <div class="shot-chrome">
-                  <span></span><span></span><span></span>
-                  <em id="pinLabel">Home dashboard</em>
-                </div>
                 <div class="pin-media" id="pinMedia">
                   <img id="pinImgA" class="pin-img is-active" src="images/image.png" alt="" width="1495" height="921" decoding="async" />
                   <img id="pinImgB" class="pin-img" alt="" width="1495" height="921" decoding="async" hidden />
@@ -382,7 +379,6 @@ brew install document-studio</pre>
                 <div class="pin-progress" aria-hidden="true">
                   <div class="pin-progress-bar" id="pinProgressBar"></div>
                 </div>
-                <p class="pin-caption" id="pinCaption">Scroll features — the preview stays pinned and updates with each step.</p>
               </div>
             </aside>
           </div>

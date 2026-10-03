@@ -34,7 +34,7 @@ brew install document-studio         # Linux
 document_studio --update
 ```
 
-Or install a newer release / `brew upgrade` / `winget upgrade`.
+Or install a newer release / `brew upgrade`.
 
 ## macOS “app can’t be opened”
 

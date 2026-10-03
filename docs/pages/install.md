@@ -33,13 +33,6 @@ You should see a normal app entry (not only a terminal command).
 
 `DocumentStudio-1.0.3-portable-windows.zip` is for advanced users. Prefer Setup.exe so Start Menu and context menus work.
 
-### winget (when listed)
-
-```powershell
-winget install --id DocumentStudio.DocumentStudio
-winget upgrade --id DocumentStudio.DocumentStudio
-```
-
 ---
 
 ## macOS
