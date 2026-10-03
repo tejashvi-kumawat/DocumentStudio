@@ -455,16 +455,17 @@
       img.setAttribute("loading", "lazy");
       img.setAttribute("decoding", "async");
       preloadImage(cleaned);
-      if (!img.closest("figure")) {
-        const fig = document.createElement("figure");
-        fig.className = "doc-shot";
-        img.replaceWith(fig);
-        fig.appendChild(img);
-        if (img.alt) {
-          const cap = document.createElement("figcaption");
-          cap.textContent = img.alt;
-          fig.appendChild(cap);
-        }
+      if (img.closest("figure") || img.closest(".tool-guide-shot") || img.classList.contains("tool-thumb")) {
+        return;
+      }
+      const fig = document.createElement("figure");
+      fig.className = "doc-shot";
+      img.replaceWith(fig);
+      fig.appendChild(img);
+      if (img.alt) {
+        const cap = document.createElement("figcaption");
+        cap.textContent = img.alt;
+        fig.appendChild(cap);
       }
     });
     return tmp.innerHTML;
