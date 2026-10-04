@@ -19,12 +19,7 @@
     searchList: document.getElementById("searchList"),
     searchMeta: document.getElementById("searchMeta"),
     navToggle: document.getElementById("navToggle"),
-    repoLink: document.getElementById("repoLink"),
-    releaseLink: document.getElementById("releaseLink"),
-    pinRail: document.getElementById("pinRail"),
-    pinProgressBar: document.getElementById("pinProgressBar"),
-    pinImgA: document.getElementById("pinImgA"),
-    pinImgB: document.getElementById("pinImgB"),
+    mobileNav: document.getElementById("mobileNav"),
   };
 
   /** @type {any} */
@@ -38,10 +33,16 @@
   /** @type {Array<{id:string,title:string,section:string,text:string}>} */
   let searchIndex = [];
 
-  let pinIndex = 0;
-  let pinUsingA = true;
-  let pinIo = null;
-  let pinBound = false;
+  let carouselBound = false;
+  let carouselTimer = null;
+  let carouselIndex = 0;
+  let filmBound = false;
+  let filmIndex = -1;
+
+  const reduceMotion = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const isDesktopFilm = () => window.matchMedia("(min-width: 900px)").matches;
 
   function asset(path) {
     return `${base}${path.replace(/^\//, "")}`;
@@ -65,8 +66,6 @@
     const res = await fetch(asset("nav.json"));
     if (!res.ok) throw new Error("Failed to load nav.json");
     nav = await res.json();
-    if (el.repoLink) el.repoLink.href = nav.site.repo;
-    if (el.releaseLink) el.releaseLink.href = nav.site.releases;
     renderNav();
     renderHeroCards();
   }
@@ -136,9 +135,9 @@
     const topDl = document.getElementById("topDownload");
     if (topDl) topDl.href = view === "home" ? "#downloadPanel" : "#/install";
     if (view === "home") {
-      initPinShowcase();
-      initCarousel();
-      initFadeUps();
+      initFilmstrip();
+      initReveals();
+      initScrollMotion();
       initCopyBlocks(document);
     }
   }
@@ -190,29 +189,428 @@
     initCopyBlocks(container);
   }
 
-  function initFadeUps() {
-    const nodes = document.querySelectorAll(".fade-up:not(.is-in)");
+  function initReveals() {
+    const nodes = [...document.querySelectorAll(".fade-up:not(.is-in), .reveal:not(.is-in)")];
     if (!nodes.length) return;
-    if (!("IntersectionObserver" in window)) {
+
+    const groups = new Map();
+    nodes.forEach((n) => {
+      const parent = n.parentElement;
+      if (!parent) return;
+      if (!groups.has(parent)) groups.set(parent, []);
+      groups.get(parent).push(n);
+    });
+    groups.forEach((list) => {
+      list.forEach((n, i) => {
+        if (!n.style.getPropertyValue("--fade-delay")) {
+          n.style.setProperty("--fade-delay", `${Math.min(i, 6) * 90}ms`);
+        }
+      });
+    });
+
+    if (reduceMotion() || !("IntersectionObserver" in window)) {
       nodes.forEach((n) => n.classList.add("is-in"));
       return;
     }
-    const io = new IntersectionObserver(
+
+    // Kick anything already near the top immediately (mobile first paint)
+    const vh = window.innerHeight || 800;
+    nodes.forEach((n) => {
+      const r = n.getBoundingClientRect();
+      if (r.top < vh * 0.92 && r.bottom > 40) n.classList.add("is-in");
+    });
+
+    const pending = new Set(nodes.filter((n) => !n.classList.contains("is-in")));
+    if (!pending.size) return;
+
+    let io;
+    const mark = (n) => {
+      n.classList.add("is-in");
+      pending.delete(n);
+      if (io) io.unobserve(n);
+    };
+
+    io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-in");
-          io.unobserve(entry.target);
+          mark(entry.target);
         });
       },
-      { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
+      { threshold: [0, 0.08, 0.16], rootMargin: "40px 0px -6% 0px" }
     );
-    nodes.forEach((n) => io.observe(n));
+    pending.forEach((n) => io.observe(n));
+
+    // Fallback for mobile browsers that miss first IO pass
+    const scan = () => {
+      const h = window.innerHeight || 800;
+      [...pending].forEach((n) => {
+        const r = n.getBoundingClientRect();
+        if (r.top < h * 0.94 && r.bottom > 24) mark(n);
+      });
+      if (!pending.size) {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      }
+    };
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(scan);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    requestAnimationFrame(scan);
   }
 
-  let carouselBound = false;
-  let carouselTimer = null;
-  let carouselIndex = 0;
+  let scrollMotionBound = false;
+
+  function clamp(n, a, b) {
+    return Math.min(b, Math.max(a, n));
+  }
+
+  function sceneProgress(el) {
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight || 800;
+    // 0 before enter, 1 when section mid is near viewport mid
+    const start = vh * 0.92;
+    const end = vh * 0.28;
+    return clamp((start - r.top) / (start - end), 0, 1);
+  }
+
+  function initScrollMotion() {
+    const heroInner = document.querySelector("[data-hero-motion]");
+    const scenes = [...document.querySelectorAll("[data-scroll-scene]")];
+    if (!heroInner && !scenes.length) return;
+
+    const tick = () => {
+      if (el.homeView?.hidden) return;
+
+      if (heroInner && !reduceMotion()) {
+        const hero = heroInner.closest(".hero") || heroInner;
+        const r = hero.getBoundingClientRect();
+        // Gentle exit parallax — keep text fully readable
+        const exit = clamp((-r.top) / Math.max(r.height * 1.1, 1), 0, 1) * 0.55;
+        heroInner.style.setProperty("--hero-exit", exit.toFixed(4));
+        const mesh = hero.querySelector(".hero-mesh");
+        if (mesh) mesh.style.transform = `translate3d(0, ${exit * 28}px, 0)`;
+      } else if (heroInner) {
+        heroInner.style.setProperty("--hero-exit", "0");
+      }
+
+      scenes.forEach((scene) => {
+        if (reduceMotion()) {
+          scene.style.setProperty("--scene-p", "1");
+          scene.style.setProperty("--scene-lift", "0");
+          return;
+        }
+        const p = sceneProgress(scene);
+        scene.style.setProperty("--scene-p", p.toFixed(4));
+        scene.style.setProperty("--scene-lift", ((1 - p) * 14).toFixed(2));
+        // Soft parallax on cards still in view
+        scene.querySelectorAll(".reveal-card.is-in").forEach((card, i) => {
+          const lift = (1 - p) * (8 + i * 2);
+          card.style.setProperty("--scene-lift", lift.toFixed(2));
+        });
+      });
+    };
+
+    if (!scrollMotionBound) {
+      scrollMotionBound = true;
+      let raf = 0;
+      const onScroll = () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(tick);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+    }
+    tick();
+  }
+
+  /* ——— Feature filmstrip: vertical scroll → horizontal scrub ——— */
+  function decodeBody(html) {
+    const t = document.createElement("textarea");
+    t.innerHTML = html || "";
+    return t.value;
+  }
+
+  function setFilmCopy(card, index, total) {
+    const title = document.getElementById("filmTitle");
+    const summary = document.getElementById("filmSummary");
+    const body = document.getElementById("filmBody");
+    const idx = document.getElementById("filmIndex");
+    if (!card || !title || !body) return;
+    title.textContent = card.dataset.title || "";
+    if (summary) summary.textContent = card.dataset.summary || "";
+    body.innerHTML = decodeBody(card.dataset.body || "");
+    if (idx) {
+      idx.textContent = `${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+    }
+  }
+
+  let mobileFilmBound = false;
+  let mobileFilmIndex = -1;
+
+  function buildFilmMobile(cards) {
+    const mount = document.getElementById("filmMobile");
+    if (!mount || mount.dataset.built === "1") return;
+    mount.dataset.built = "1";
+    const first = cards[0];
+    mount.innerHTML = `
+      <div class="film-mobile-runway" id="filmMobileRunway">
+        <div class="film-mobile-sticky">
+          <div class="film-mobile-top">
+            <p class="section-label">Selected tools</p>
+            <p class="film-index" id="filmMobileIndex">01 / ${String(cards.length).padStart(2, "0")}</p>
+          </div>
+          <div class="film-mobile-stage">
+            <div class="film-mobile-rail" id="filmMobileRail">
+              ${cards
+                .map((card, i) => {
+                  const img = card.querySelector("img");
+                  const src = img?.getAttribute("src") || "";
+                  const alt = img?.getAttribute("alt") || "";
+                  const label = (card.dataset.title || "").split(" ")[0] || "Tool";
+                  return `
+                <article class="film-m-card" data-idx="${i}">
+                  <div class="shot-frame">
+                    <img src="${src}" alt="${alt}" width="1400" height="900" loading="${i < 2 ? "eager" : "lazy"}" decoding="async" />
+                  </div>
+                  <p class="film-card-cap">${String(i + 1).padStart(2, "0")} · ${label}</p>
+                </article>`;
+                })
+                .join("")}
+            </div>
+          </div>
+          <div class="film-mobile-progress" aria-hidden="true"><span id="filmMobileProgress"></span></div>
+          <div class="film-mobile-copy" aria-live="polite">
+            <h2 id="filmMobileTitle"></h2>
+            <p class="film-summary" id="filmMobileSummary"></p>
+            <div class="film-body" id="filmMobileBody"></div>
+          </div>
+        </div>
+      </div>`;
+
+    const railCards = [...mount.querySelectorAll(".film-m-card")];
+    railCards.forEach((el, i) => {
+      const src = cards[i];
+      if (!src) return;
+      el.dataset.title = src.dataset.title || "";
+      el.dataset.summary = src.dataset.summary || "";
+      el.dataset.body = src.dataset.body || "";
+    });
+
+    const title = document.getElementById("filmMobileTitle");
+    const summary = document.getElementById("filmMobileSummary");
+    const body = document.getElementById("filmMobileBody");
+    if (title) title.textContent = first?.dataset.title || "";
+    if (summary) summary.textContent = first?.dataset.summary || "";
+    if (body) body.innerHTML = decodeBody(first?.dataset.body || "");
+
+    initMobileFilmScrub(cards.length);
+  }
+
+  function initMobileFilmScrub(total) {
+    const runway = document.getElementById("filmMobileRunway");
+    const sticky = runway?.querySelector(".film-mobile-sticky");
+    const track = document.getElementById("filmMobileRail");
+    const title = document.getElementById("filmMobileTitle");
+    const summary = document.getElementById("filmMobileSummary");
+    const body = document.getElementById("filmMobileBody");
+    const idxEl = document.getElementById("filmMobileIndex");
+    const progress = document.getElementById("filmMobileProgress");
+    if (!runway || !sticky || !track) return;
+
+    const cards = [...track.querySelectorAll(".film-m-card")];
+    if (!cards.length) return;
+
+    const applyCopy = (i, animate = true) => {
+      const card = cards[i];
+      if (!card) return;
+      if (idxEl) {
+        idxEl.textContent = `${String(i + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+      }
+      const setCopy = () => {
+        if (title) title.textContent = card.dataset.title || "";
+        if (summary) summary.textContent = card.dataset.summary || "";
+        if (body) body.innerHTML = decodeBody(card.dataset.body || "");
+      };
+      if (title && animate && !reduceMotion() && i !== mobileFilmIndex) {
+        title.classList.add("is-swap");
+        window.setTimeout(() => {
+          setCopy();
+          title.classList.remove("is-swap");
+        }, 140);
+      } else {
+        setCopy();
+      }
+      cards.forEach((c, n) => c.classList.toggle("is-active", n === i));
+      mobileFilmIndex = i;
+      const img = card.querySelector("img");
+      if (img) preloadImage(img.getAttribute("src") || "");
+      const next = cards[i + 1]?.querySelector("img");
+      if (next) preloadImage(next.getAttribute("src") || "");
+    };
+
+    const measure = () => {
+      if (isDesktopFilm()) {
+        runway.style.height = "";
+        track.style.transform = "translate3d(0,0,0)";
+        return { travel: 0, stickStart: 0 };
+      }
+      const stickyH = sticky.clientHeight || window.innerHeight;
+      const stickyTop = parseFloat(getComputedStyle(sticky).top) || 0;
+      const cardW = cards[0].offsetWidth || cards[0].getBoundingClientRect().width;
+      const gap = 14;
+      // Peek next card ~40% from the right
+      const step = cardW * 0.6 + gap * 0.6;
+      const travel = Math.max(0, (cards.length - 1) * step);
+      const nextH = stickyH + travel + window.innerHeight * 0.08;
+      if (runway.style.height !== `${nextH}px`) {
+        runway.style.height = `${nextH}px`;
+      }
+      const runwayAbs = runway.getBoundingClientRect().top + window.scrollY;
+      const stickStart = runwayAbs - stickyTop;
+      return { travel, stickStart, step, cardW };
+    };
+
+    const sync = () => {
+      if (isDesktopFilm() || el.homeView?.hidden) return;
+      const { travel, stickStart } = measure();
+      if (travel <= 0) return;
+
+      if (reduceMotion()) {
+        track.style.transform = "translate3d(0,0,0)";
+        if (progress) progress.style.width = "0%";
+        return;
+      }
+
+      const into = Math.min(travel, Math.max(0, window.scrollY - stickStart));
+      const p = into / travel;
+      track.style.transform = `translate3d(${-into}px, 0, 0)`;
+      if (progress) progress.style.width = `${(p * 100).toFixed(2)}%`;
+
+      const nextIdx = Math.min(cards.length - 1, Math.round(p * (cards.length - 1)));
+      if (nextIdx !== mobileFilmIndex) applyCopy(nextIdx, true);
+    };
+
+    if (!mobileFilmBound) {
+      mobileFilmBound = true;
+      let raf = 0;
+      const onScroll = () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(sync);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      if ("ResizeObserver" in window) {
+        const ro = new ResizeObserver(onScroll);
+        ro.observe(track);
+        ro.observe(runway);
+      }
+    }
+
+    if (mobileFilmIndex < 0) applyCopy(0, false);
+    sync();
+  }
+
+  function initFilmstrip() {
+    const runway = document.getElementById("filmRunway");
+    const track = document.getElementById("filmTrack");
+    const progress = document.getElementById("filmProgressBar");
+    if (!runway || !track) return;
+
+    const cards = [...track.querySelectorAll(".film-card")];
+    if (!cards.length) return;
+
+    buildFilmMobile(cards);
+    if (filmIndex < 0) {
+      setFilmCopy(cards[0], 0, cards.length);
+      filmIndex = 0;
+    }
+
+    const measure = () => {
+      if (!isDesktopFilm()) {
+        runway.style.height = "";
+        track.style.transform = "translate3d(0,0,0)";
+        return { travel: 0, stickyH: 0, stickStart: 0 };
+      }
+      const sticky = runway.querySelector(".film-sticky");
+      const stickyH = sticky ? sticky.clientHeight : window.innerHeight;
+      const stickyTop = sticky
+        ? parseFloat(getComputedStyle(sticky).top) || 0
+        : 0;
+      const stage = runway.querySelector(".film-stage");
+      const stageW = stage ? stage.clientWidth : window.innerWidth * 0.55;
+      // Peek next card ~45%: each step moves by ~55% of a card width
+      const cardW = cards[0].offsetWidth || cards[0].getBoundingClientRect().width;
+      const gap = 16;
+      const step = cardW * 0.55 + gap * 0.55;
+      const travel = Math.max(0, (cards.length - 1) * step);
+      const nextH = stickyH + travel + stageW * 0.12;
+      if (runway.style.height !== `${nextH}px`) {
+        runway.style.height = `${nextH}px`;
+      }
+      // Absolute Y where the panel sticks and scrub begins
+      const runwayAbs = runway.getBoundingClientRect().top + window.scrollY;
+      const stickStart = runwayAbs - stickyTop;
+      return { travel, stickyH, step, cardW, stickStart };
+    };
+
+    let metrics = measure();
+
+    const sync = () => {
+      if (!isDesktopFilm()) return;
+      metrics = measure();
+      const { travel, stickStart } = metrics;
+      if (travel <= 0) return;
+
+      const into = Math.min(travel, Math.max(0, window.scrollY - stickStart));
+      const p = into / travel;
+
+      track.style.transform = `translate3d(${-into}px, 0, 0)`;
+      if (progress) progress.style.width = `${(p * 100).toFixed(2)}%`;
+
+      const idx = Math.min(cards.length - 1, Math.round(p * (cards.length - 1)));
+      if (idx !== filmIndex) {
+        filmIndex = idx;
+        setFilmCopy(cards[idx], idx, cards.length);
+        const img = cards[idx].querySelector("img");
+        if (img) preloadImage(img.getAttribute("src") || "");
+        const next = cards[idx + 1]?.querySelector("img");
+        if (next) preloadImage(next.getAttribute("src") || "");
+      }
+    };
+
+    if (!filmBound) {
+      filmBound = true;
+      let raf = 0;
+      const onScroll = () => {
+        if (el.homeView?.hidden) return;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(sync);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      if ("ResizeObserver" in window) {
+        const ro = new ResizeObserver(onScroll);
+        ro.observe(track);
+        ro.observe(runway);
+      }
+    }
+
+    // Reduced motion: jump to start state, still allow scroll through height
+    if (reduceMotion()) {
+      metrics = measure();
+      track.style.transform = "translate3d(0,0,0)";
+      if (progress) progress.style.width = "0%";
+      return;
+    }
+
+    sync();
+  }
 
   function initCarousel() {
     const track = document.getElementById("carouselTrack");
@@ -249,7 +647,7 @@
 
     const restart = () => {
       clearInterval(carouselTimer);
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (reduceMotion()) return;
       carouselTimer = setInterval(() => go(carouselIndex + 1), 5200);
     };
 
@@ -258,169 +656,45 @@
       dots.innerHTML = slides
         .map((_, i) => `<button type="button" aria-label="Go to slide ${i + 1}"></button>`)
         .join("");
-      dots.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => { go(i); restart(); }));
-      prev?.addEventListener("click", () => { go(carouselIndex - 1); restart(); });
-      next?.addEventListener("click", () => { go(carouselIndex + 1); restart(); });
+      dots.querySelectorAll("button").forEach((b, i) =>
+        b.addEventListener("click", () => {
+          go(i);
+          restart();
+        })
+      );
+      prev?.addEventListener("click", () => {
+        go(carouselIndex - 1);
+        restart();
+      });
+      next?.addEventListener("click", () => {
+        go(carouselIndex + 1);
+        restart();
+      });
       track.addEventListener("mouseenter", () => clearInterval(carouselTimer));
       track.addEventListener("mouseleave", restart);
       let touchX = null;
-      track.addEventListener("touchstart", (e) => { touchX = e.changedTouches[0].clientX; }, { passive: true });
-      track.addEventListener("touchend", (e) => {
-        if (touchX == null) return;
-        const dx = e.changedTouches[0].clientX - touchX;
-        if (Math.abs(dx) > 40) go(carouselIndex + (dx < 0 ? 1 : -1));
-        touchX = null;
-        restart();
-      }, { passive: true });
+      track.addEventListener(
+        "touchstart",
+        (e) => {
+          touchX = e.changedTouches[0].clientX;
+        },
+        { passive: true }
+      );
+      track.addEventListener(
+        "touchend",
+        (e) => {
+          if (touchX == null) return;
+          const dx = e.changedTouches[0].clientX - touchX;
+          if (Math.abs(dx) > 40) go(carouselIndex + (dx < 0 ? 1 : -1));
+          touchX = null;
+          restart();
+        },
+        { passive: true }
+      );
     }
 
     go(carouselIndex);
     restart();
-  }
-
-  function steps() {
-    return el.pinRail ? [...el.pinRail.querySelectorAll(".pin-step")] : [];
-  }
-
-  function injectMobileShots() {
-    steps().forEach((step) => {
-      if (step.querySelector(".pin-step-mobile-shot")) return;
-      const src = step.dataset.shot;
-      if (!src) return;
-      const wrap = document.createElement("figure");
-      wrap.className = "pin-step-mobile-shot";
-      const img = document.createElement("img");
-      img.src = asset(src);
-      img.alt = step.dataset.label || "";
-      img.loading = "lazy";
-      img.decoding = "async";
-      wrap.appendChild(img);
-      step.appendChild(wrap);
-    });
-  }
-
-  async function setPinImage(src, label) {
-    const url = await preloadImage(src);
-    const current = pinUsingA ? el.pinImgA : el.pinImgB;
-
-    if (current && current.classList.contains("is-active") && current.getAttribute("src") === url) {
-      const list = steps();
-      const i = pinIndex;
-      [list[i + 1], list[i + 2], list[i - 1]]
-        .filter(Boolean)
-        .forEach((s) => s.dataset.shot && preloadImage(s.dataset.shot));
-      return;
-    }
-
-    const next = pinUsingA ? el.pinImgB : el.pinImgA;
-    const prev = pinUsingA ? el.pinImgA : el.pinImgB;
-    if (!next || !prev) return;
-
-    // Wait for decode before crossfading to avoid blink
-    next.hidden = false;
-    next.removeAttribute("hidden");
-    next.src = url;
-    next.alt = label || "";
-    try {
-      if (typeof next.decode === "function") await next.decode();
-    } catch {
-      /* ignore decode errors */
-    }
-    next.classList.add("is-active");
-    prev.classList.remove("is-active");
-    pinUsingA = !pinUsingA;
-
-    const list = steps();
-    const i = pinIndex;
-    [list[i + 1], list[i + 2], list[i - 1]]
-      .filter(Boolean)
-      .forEach((s) => s.dataset.shot && preloadImage(s.dataset.shot));
-  }
-
-  function activateStep(index) {
-    const list = steps();
-    if (!list.length) return;
-    const next = Math.max(0, Math.min(list.length - 1, index));
-    if (next === pinIndex && list[next].classList.contains("is-active")) {
-      // still update progress
-    } else {
-      pinIndex = next;
-      list.forEach((step, i) => {
-        step.classList.toggle("is-active", i === pinIndex);
-        step.classList.toggle("is-passed", i < pinIndex);
-      });
-      const active = list[pinIndex];
-      const title = active.querySelector("h3")?.textContent?.trim() || "";
-      setPinImage(active.dataset.shot, active.dataset.label || title);
-    }
-    if (el.pinProgressBar) {
-      const pct = list.length <= 1 ? 100 : (pinIndex / (list.length - 1)) * 100;
-      el.pinProgressBar.style.width = `${pct}%`;
-    }
-  }
-
-  function pickActiveFromScroll() {
-    const list = steps();
-    if (!list.length) return;
-    const focusY = window.innerHeight * 0.38;
-    let best = 0;
-    let bestDist = Infinity;
-    list.forEach((step, i) => {
-      const rect = step.getBoundingClientRect();
-      const mid = rect.top + rect.height * 0.35;
-      const dist = Math.abs(mid - focusY);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = i;
-      }
-    });
-    activateStep(best);
-  }
-
-  function initPinShowcase() {
-    if (!el.pinRail) return;
-    injectMobileShots();
-
-    const list = steps();
-    if (list[0]?.dataset.shot) preloadImage(list[0].dataset.shot);
-    if (list[1]?.dataset.shot) preloadImage(list[1].dataset.shot);
-
-    if (!pinBound) {
-      pinBound = true;
-      let ticking = false;
-      const onScroll = () => {
-        if (el.homeView.hidden) return;
-        if (window.matchMedia("(max-width: 980px)").matches) return;
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-          pickActiveFromScroll();
-          ticking = false;
-        });
-      };
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener("resize", onScroll, { passive: true });
-
-      list.forEach((step, i) => {
-        step.addEventListener("click", () => {
-          step.scrollIntoView({ behavior: "smooth", block: "center" });
-          activateStep(i);
-        });
-      });
-    }
-
-    // IntersectionObserver as secondary trigger for smoother enter/leave
-    if (pinIo) pinIo.disconnect();
-    if ("IntersectionObserver" in window && !window.matchMedia("(max-width: 980px)").matches) {
-      pinIo = new IntersectionObserver(
-        () => pickActiveFromScroll(),
-        { root: null, threshold: [0.2, 0.45, 0.7], rootMargin: "-20% 0px -35% 0px" }
-      );
-      list.forEach((step) => pinIo.observe(step));
-    }
-
-    activateStep(0);
-    pickActiveFromScroll();
   }
 
   async function fetchMarkdown(file) {
@@ -553,7 +827,19 @@
 
   function route() {
     document.body.classList.remove("nav-open");
+    if (el.navToggle) el.navToggle.setAttribute("aria-expanded", "false");
     const raw = (location.hash || "#/").replace(/^#\/?/, "");
+
+    if (raw && !raw.includes("/") && !raw.startsWith("search") && !byId.has(raw) && document.getElementById(raw)) {
+      document.title = "Document Studio — Download, Features & Docs";
+      setActive("");
+      show("home");
+      requestAnimationFrame(() => {
+        document.getElementById(raw)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return;
+    }
+
     if (!raw) {
       document.title = "Document Studio — Download, Features & Docs";
       setActive("");
@@ -569,12 +855,20 @@
     renderDoc(raw);
   }
 
-  el.navToggle.addEventListener("click", () => {
-    document.body.classList.toggle("nav-open");
+  el.navToggle?.addEventListener("click", () => {
+    const open = document.body.classList.toggle("nav-open");
+    el.navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  el.mobileNav?.querySelectorAll("a").forEach((a) => {
+    a.addEventListener("click", () => {
+      document.body.classList.remove("nav-open");
+      el.navToggle?.setAttribute("aria-expanded", "false");
+    });
   });
 
   let searchTimer = null;
-  el.searchInput.addEventListener("input", () => {
+  el.searchInput?.addEventListener("input", () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
       const q = el.searchInput.value.trim();
@@ -586,13 +880,45 @@
     }, 180);
   });
 
+  function initTopbarScroll() {
+    const bar = document.querySelector(".topbar");
+    if (!bar || bar.dataset.scrollBound) return;
+    bar.dataset.scrollBound = "1";
+    const sync = () => bar.classList.toggle("is-scrolled", window.scrollY > 8);
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+  }
+
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href^='#']");
+    if (!a) return;
+    const href = a.getAttribute("href") || "";
+    if (href.startsWith("#/")) return;
+    const id = href.slice(1);
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    if (el.homeView?.hidden) {
+      location.hash = "#/";
+      setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+    } else {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", `#${id}`);
+    }
+    document.body.classList.remove("nav-open");
+  });
+
   window.addEventListener("hashchange", route);
+  initTopbarScroll();
 
   loadNav()
     .then(route)
     .catch((err) => {
-      document.getElementById("homeView").innerHTML =
-        `<p class="lede">Docs failed to load. Open this site via GitHub Pages or a local static server.</p><pre>${String(err)}</pre>`;
+      const home = document.getElementById("homeView");
+      if (home) {
+        home.innerHTML = `<p class="lede" style="padding:2rem">Docs failed to load. Open this site via GitHub Pages or a local static server.</p><pre>${String(err)}</pre>`;
+      }
       console.error(err);
     });
 })();

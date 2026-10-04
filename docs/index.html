@@ -5,51 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Document Studio — Download, Features &amp; Docs</title>
   <meta name="description" content="Download Document Studio — offline PDF workspace by Tejashvi Kumawat. Merge, split, encrypt, OCR, digital sign, Office convert, and more." />
-  <meta name="theme-color" content="#0B1220" />
+  <meta name="theme-color" content="#0f1115" />
   <link rel="icon" href="assets/img/icon.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/img/icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,550;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/site.css" />
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" defer></script>
   <script src="assets/js/site.js" defer></script>
 </head>
 <body>
-  <div class="atmosphere" aria-hidden="true"></div>
-
   <header class="topbar">
-    <button type="button" class="nav-toggle" id="navToggle" aria-label="Open navigation">
+    <button type="button" class="nav-toggle" id="navToggle" aria-label="Open navigation" aria-expanded="false">
       <span></span><span></span>
     </button>
     <a class="brand" href="#/" data-home>
-      <img class="brand-logo" src="assets/img/icon.png" width="40" height="40" alt="Document Studio" />
+      <img class="brand-logo" src="assets/img/icon.png" width="36" height="36" alt="" />
       <span class="brand-text">
         <strong>Document Studio</strong>
-        <em>Docs</em>
+        <em>Offline PDF</em>
       </span>
     </a>
     <nav class="top-nav" aria-label="Primary">
-      <a href="#/features">Features</a>
+      <a href="#downloadPanel">Download</a>
+      <a href="#whyOffline">Why</a>
+      <a href="#featureFilm">Features</a>
       <a href="#/how-to">How to</a>
-      <a href="#/install">Install</a>
       <a href="#/overview">Docs</a>
-      <a href="#/about">About</a>
     </nav>
     <div class="topbar-actions">
       <label class="search-wrap">
         <span class="sr-only">Search docs</span>
         <input type="search" id="searchInput" placeholder="Search docs…" autocomplete="off" />
       </label>
-      <a class="icon-btn" href="https://github.com/tejashvi-kumawat" target="_blank" rel="noopener" title="Tejashvi Kumawat on GitHub" aria-label="GitHub profile">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
-      </a>
-      <a class="icon-btn" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener" title="Document Studio repository" aria-label="Document Studio on GitHub">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 5h3v3h-3v-3zm5 0h3v3h-3v-3zm-5-5h3v3h-3V13zm5 0h3v3h-3V13z"/></svg>
-      </a>
       <a class="btn solid" id="topDownload" href="#downloadPanel">Download</a>
+      <a class="btn ghost top-github" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub</a>
     </div>
   </header>
+
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+    <a href="#downloadPanel">Download</a>
+    <a href="#whyOffline">Why offline</a>
+    <a href="#featureFilm">Features</a>
+    <a href="#builtBy">Built by</a>
+    <a href="#/how-to">How to</a>
+    <a href="#/overview">Docs</a>
+    <a href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub</a>
+  </nav>
 
   <div class="shell">
     <aside class="sidebar" id="sidebar">
@@ -57,396 +60,452 @@
     </aside>
 
     <main class="main" id="main">
-      <section class="hero" id="homeView">
-        <div class="hero-top">
-          <img class="hero-logo" src="assets/img/logo.png" width="200" height="200" alt="Document Studio" />
-          <div class="hero-copy">
-            <p class="eyebrow">Offline · Privacy-first · Free · v1.0.3</p>
-            <h1>Document Studio</h1>
-            <p class="lede">
-              A real desktop PDF workspace — organize, encrypt, OCR, convert, mark up, and digitally sign —
-              entirely on your machine. Built by
-              <a href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener">Tejashvi Kumawat</a>.
-            </p>
-            <div class="cta-row">
-              <a class="btn solid" href="#downloadPanel">Download &amp; install</a>
-              <a class="btn ghost" href="#featurePin">Scroll the features</a>
-              <a class="btn ghost" href="#/how-to">How-to guides</a>
-            </div>
-          </div>
-        </div>
+      <section class="home" id="homeView">
+        <div class="desk-grid" aria-hidden="true"></div>
+        <div class="desk-glow" aria-hidden="true"></div>
 
-        <section class="carousel fade-up" id="appCarousel" aria-label="App preview carousel">
-          <div class="carousel-viewport">
-            <div class="carousel-track" id="carouselTrack">
-              <figure class="carousel-slide is-active">
-                <img src="images/image.png" alt="Document Studio home dashboard" width="1495" height="921" loading="eager" decoding="async" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="images/tools-home.png" alt="Tools hub" width="1024" height="641" loading="lazy" decoding="async" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="images/organize.png" alt="Organize pages" width="1400" height="900" loading="lazy" decoding="async" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="images/encrypt.png" alt="Encrypt PDF" width="1400" height="900" loading="lazy" decoding="async" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="images/sign-digital.png" alt="Digital signing" width="1400" height="900" loading="lazy" decoding="async" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="images/watermark.png" alt="Watermark tool" width="1400" height="900" loading="lazy" decoding="async" />
+        <!-- HERO -->
+        <section class="hero" id="top">
+          <!-- 3-wave inclined mask: tip ~0 at top-right, max thickness at bottom -->
+          <svg class="hero-defs" width="0" height="0" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="heroWaveClip" clipPathUnits="objectBoundingBox">
+                <path d="
+                  M 1 0
+                  C 0.94 0.08 0.86 0.16 0.80 0.26
+                  C 0.68 0.38 0.88 0.46 0.68 0.56
+                  C 0.50 0.68 0.56 0.84 0.48 1
+                  L 1 1
+                  L 1 0
+                  Z" />
+              </clipPath>
+            </defs>
+          </svg>
+
+          <div class="hero-bg" aria-hidden="true">
+            <div class="hero-wash"></div>
+            <div class="hero-grid"></div>
+            <div class="hero-grain"></div>
+          </div>
+
+          <div class="hero-inner" data-hero-motion>
+            <div class="hero-copy">
+              <p class="eyebrow">
+                <span class="eyebrow-pill">v1.0.3</span>
+                <span class="eyebrow-rest">Offline desktop for private PDFs</span>
+              </p>
+              <h1 class="hero-title">
+                Open the PDF.
+                <span class="title-break"></span>
+                Keep the
+                <span class="word-box">bytes</span>
+                here.
+              </h1>
+              <p class="lede">
+                Organize, encrypt, OCR, convert, mark up, and sign — all from one local desk app.
+                Engines ship with the install. No account. No
+                <span class="word-mark">upload</span>.
+              </p>
+              <div class="cta-row">
+                <a class="btn solid hero-cta" href="#downloadPanel">Get Document Studio</a>
+                <a class="btn-text" href="#featureFilm">See the toolset <span aria-hidden="true">→</span></a>
+              </div>
+              <ul class="hero-stats">
+                <li>
+                  <strong>Offline</strong>
+                  <span>No cloud upload</span>
+                </li>
+                <li>
+                  <strong>Free</strong>
+                  <span>Open &amp; yours</span>
+                </li>
+                <li>
+                  <strong>3 OS</strong>
+                  <span>Win · Mac · Linux</span>
+                </li>
+                <li>
+                  <strong>Bundled</strong>
+                  <span>OCR + convert</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <aside class="hero-stage" aria-label="Document Studio with PDF and tools">
+            <div class="hero-stage-panel">
+              <figure class="hero-shot">
+                <img
+                  src="images/tools-catalog.png"
+                  alt="Document Studio open on a PDF with the Tools panel showing optimize, sign, edit, and create actions"
+                  width="1600"
+                  height="1000"
+                  loading="eager"
+                  decoding="async" />
               </figure>
             </div>
-            <button type="button" class="carousel-btn carousel-btn-prev" id="carouselPrev" aria-label="Previous slide">‹</button>
-            <button type="button" class="carousel-btn carousel-btn-next" id="carouselNext" aria-label="Next slide">›</button>
-          </div>
-          <div class="carousel-dots" id="carouselDots" aria-hidden="true"></div>
+          </aside>
         </section>
 
-        <section class="download-panel fade-up" id="downloadPanel" aria-labelledby="downloadHeading">
-          <div class="download-panel-head">
-            <h2 id="downloadHeading">Download &amp; install</h2>
-            <p><strong>v1.0.3</strong> · engines bundled · offline-ready</p>
-          </div>
-          <div class="download-grid">
-            <article class="dl-card">
-              <h3>Windows</h3>
-              <p>Setup.exe · Start Menu · context menus</p>
-              <a class="btn solid" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe">Download Setup.exe</a>
-              <ol>
-                <li>Run the installer</li>
-                <li>Open <strong>Document Studio</strong> from Start</li>
-              </ol>
-            </article>
-            <article class="dl-card">
-              <h3>macOS</h3>
-              <p>DMG → Applications · or Homebrew</p>
-              <a class="btn solid" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg">Download .dmg</a>
-              <ol>
-                <li>Drag to <strong>Applications</strong></li>
-                <li>Right-click → <strong>Open</strong> the first time if asked</li>
-              </ol>
-              <div class="code-block" data-copy>
-                <div class="code-block-bar"><span>Homebrew</span><button type="button" class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#0b1220" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div>
-                <pre><code>brew tap tejashvi-kumawat/tap
+        <!-- DOWNLOAD (directly after hero) -->
+        <section class="section download-section" id="downloadPanel" data-scroll-scene>
+          <div class="section-grid" aria-hidden="true"></div>
+          <div class="section-inner">
+            <header class="section-head reveal reveal-up">
+              <p class="section-label">Get the app</p>
+              <h2 class="reveal-title">Download &amp; install</h2>
+              <p class="section-lede">
+                <strong>v1.0.3</strong> ships as a normal desktop install for Windows, macOS, and Linux.
+                Engines the workflows need are bundled with the release so you are offline-ready
+                after install — not after a second download wizard.
+              </p>
+              <span class="reveal-rule" aria-hidden="true"></span>
+            </header>
+
+            <div class="download-grid">
+              <article class="dl-card reveal reveal-card" data-os="windows">
+                <div class="dl-card-top">
+                  <h3>Windows</h3>
+                  <span class="dl-chip">.exe</span>
+                </div>
+                <p>Setup.exe · Start Menu · context menus</p>
+                <a class="btn solid dl-btn" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe">Download Setup.exe</a>
+                <ol>
+                  <li>Run the installer</li>
+                  <li>Open <strong>Document Studio</strong> from Start</li>
+                </ol>
+              </article>
+              <article class="dl-card reveal reveal-card" data-os="macos">
+                <div class="dl-card-top">
+                  <h3>macOS</h3>
+                  <span class="dl-chip">.dmg</span>
+                </div>
+                <p>DMG → Applications · or Homebrew</p>
+                <a class="btn solid dl-btn" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg">Download .dmg</a>
+                <ol>
+                  <li>Drag to <strong>Applications</strong></li>
+                  <li>Right-click → <strong>Open</strong> the first time if asked</li>
+                </ol>
+                <div class="code-block" data-copy>
+                  <div class="code-block-bar"><span>Homebrew</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+                  <pre><code>brew tap tejashvi-kumawat/tap
 brew install --cask document-studio</code></pre>
-              </div>
-            </article>
-            <article class="dl-card">
-              <h3>Linux</h3>
-              <p>Debian/Ubuntu .deb · or Homebrew</p>
-              <a class="btn solid" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb">Download .deb</a>
-              <div class="code-block" data-copy>
-                <div class="code-block-bar"><span>apt</span><button type="button" class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#0b1220" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div>
-                <pre><code>sudo apt install ./document-studio_1.0.3_amd64.deb</code></pre>
-              </div>
-              <div class="code-block" data-copy>
-                <div class="code-block-bar"><span>Homebrew</span><button type="button" class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#0b1220" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div>
-                <pre><code>brew tap tejashvi-kumawat/tap
+                </div>
+              </article>
+              <article class="dl-card reveal reveal-card" data-os="linux">
+                <div class="dl-card-top">
+                  <h3>Linux</h3>
+                  <span class="dl-chip">.deb</span>
+                </div>
+                <p>Debian/Ubuntu .deb · or Homebrew</p>
+                <a class="btn solid dl-btn" href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb">Download .deb</a>
+                <div class="code-block" data-copy>
+                  <div class="code-block-bar"><span>apt</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+                  <pre><code>sudo apt install ./document-studio_1.0.3_amd64.deb</code></pre>
+                </div>
+                <div class="code-block" data-copy>
+                  <div class="code-block-bar"><span>Homebrew</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+                  <pre><code>brew tap tejashvi-kumawat/tap
 brew install document-studio</code></pre>
-              </div>
-            </article>
-          </div>
-          <div class="code-block code-block-wide" data-copy>
-            <div class="code-block-bar"><span>Update from CLI</span><button type="button" class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#0b1220" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div>
-            <pre><code>document_studio --check-update
+                </div>
+              </article>
+            </div>
+
+            <div class="code-block code-block-wide" data-copy>
+              <div class="code-block-bar"><span>Update from CLI</span><button type="button" class="copy-btn" aria-label="Copy"></button></div>
+              <pre><code>document_studio --check-update
 document_studio --update</code></pre>
+            </div>
+            <p class="download-foot">
+              <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3" target="_blank" rel="noopener">All release files</a>
+              · <a href="#/install">Full install guide</a>
+            </p>
           </div>
-          <p class="download-foot">
-            <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3" target="_blank" rel="noopener">All release files</a>
-            · <a href="#/install">Full install guide</a>
-          </p>
         </section>
 
-        <section class="pin-section fade-up" id="featurePin" aria-labelledby="pinHeading">
-          <header class="pin-intro">
-            <h2 id="pinHeading">Features, one by one</h2>
-            <p>
-              Scroll the left column. The screenshot on the right stays pinned and swaps as each feature reaches the focus band.
-              On phones, each feature keeps its own image underneath the text.
-            </p>
-          </header>
+        <!-- WHY OFFLINE -->
+        <section class="section why-section" id="whyOffline" data-scroll-scene>
+          <div class="section-grid" aria-hidden="true"></div>
+          <div class="section-inner">
+            <header class="section-head reveal reveal-up">
+              <p class="section-label">Why offline</p>
+              <h2 class="reveal-title">Privacy is not a footer link</h2>
+              <p class="section-lede">
+                Most “PDF tools” ask you to upload a contract, a passport scan, or a medical form
+                so a server can rearrange pages. Document Studio rejects that bargain.
+                The file opens on your disk, the engines run beside it, and the result is written
+                back beside it — nothing leaves unless you choose to share it.
+              </p>
+              <span class="reveal-rule" aria-hidden="true"></span>
+            </header>
 
-          <div class="pin-layout" id="pinLayout">
-            <div class="pin-rail" id="pinRail">
-              <article class="pin-step is-active" data-shot="images/image.png" data-label="Home dashboard">
-                <p class="pin-kicker">01 · Home</p>
-                <h3>Your private document dashboard</h3>
+            <div class="why-grid">
+              <article class="why-card reveal reveal-card" style="--i:0">
+                <p class="section-label">01 · Architecture</p>
+                <h3>Documents stay where you opened them</h3>
                 <p>
-                  Open PDFs, create blank files, convert images, and jump into All tools.
-                  Pinned and recent files stay on this device — the home screen literally says
-                  “everything stays on this device.”
+                  <strong>The problem:</strong> browser converters and SaaS suites treat your PDF as
+                  temporary cloud inventory. That means accounts, retention policies, and a trust leap
+                  every time you need a quick merge.
                 </p>
-                <ul>
-                  <li>Quick cards: Open · Create · Images to PDF · All tools</li>
-                  <li>Drop zone + Browse for local files</li>
-                  <li>Pinned gallery and Recent / Starred filters</li>
-                </ul>
-              </article>
-
-              <article class="pin-step" data-shot="images/tools-home.png" data-label="Tools hub">
-                <p class="pin-kicker">02 · Tools hub</p>
-                <h3>Every major action on one grid</h3>
                 <p>
-                  The Tools screen surfaces Create PDF, Organize, PDF to images, Compress, Encrypt, and Scan
-                  as large cards — plus Create &amp; Convert shortcuts for Office convert, fill form, and Sign PDF.
+                  <strong>What we do:</strong> Document Studio is a desktop app. Open, edit, save —
+                  all against local paths. There is no document sync backend and no “upload to process” step.
                 </p>
-                <ul>
-                  <li>Search tools from the top of the grid</li>
-                  <li>Open dropdown on each card for related actions</li>
-                  <li>Same hub available from Home → All tools</li>
-                </ul>
-              </article>
-
-              <article class="pin-step" data-shot="images/tools-catalog.png" data-label="Full tools catalog">
-                <p class="pin-kicker">03 · Catalog</p>
-                <h3>Optimize · Sign · Edit · Create</h3>
                 <p>
-                  The expanded Tools panel lists every specialized workflow with a short description —
-                  watermark, compress, batch, metadata, visual sign, stamps, certificate signature,
-                  fill form, edit text, compare PDFs, Office convert, and more.
-                </p>
-                <ul>
-                  <li>Scrollable categorized list with red tool icons</li>
-                  <li>Use when you know the job name but not the ribbon button</li>
-                </ul>
-              </article>
-
-              <article class="pin-step" data-shot="images/organize.png" data-label="Organize pages">
-                <p class="pin-kicker">04 · Organize</p>
-                <h3>Reorder, rotate, duplicate, reverse</h3>
-                <p>
-                  Thumbnail grid for the whole document. Click to select, drag to reorder,
-                  rotate left/right, duplicate, delete, reverse order — then Apply.
-                </p>
-                <ul>
-                  <li>Keyboard tip: Ctrl+Delete removes selected pages</li>
-                  <li>Perfect for assembling packets before merge/export</li>
-                </ul>
-              </article>
-
-              <article class="pin-step" data-shot="images/merge.png" data-label="Merge PDFs">
-                <p class="pin-kicker">05 · Merge</p>
-                <h3>Stack multiple PDFs in order</h3>
-                <p>
-                  Add files with + Add PDFs, keep the sequence you want, then Save or Save as.
-                  Protected sources show a lock until you unlock them.
-                </p>
-                <ul>
-                  <li>Works from Tools or while a PDF is open</li>
-                  <li>Keep originals — merge writes a new file</li>
-                </ul>
-              </article>
-
-              <article class="pin-step" data-shot="images/split.png" data-label="Split PDF">
-                <p class="pin-kicker">06 · Split</p>
-                <h3>Slice a PDF with a live result list</h3>
-                <p>
-                  Modes: every N pages, after pages, custom ranges, odd/even, or each page.
-                  The Result preview shows File 1, File 2, … before you commit. The open document stays intact.
+                  <strong>Why it matters:</strong> you can work on client packets, HR files, or personal
+                  records without inventing a second privacy story for a tool that should have been local.
                 </p>
               </article>
 
-              <article class="pin-step" data-shot="images/extract-pages.png" data-label="Extract pages">
-                <p class="pin-kicker">07 · Extract</p>
-                <h3>Pull pages into a new PDF</h3>
+              <article class="why-card reveal reveal-card" style="--i:1">
+                <p class="section-label">02 · OCR &amp; convert</p>
+                <h3>No cloud OCR tax</h3>
                 <p>
-                  Scope: this page, selected, all, or a custom range.
-                  Optionally delete those pages from the open file after extract.
+                  <strong>The problem:</strong> making a scan searchable often means shipping page images
+                  to a remote OCR API. Office-to-PDF conversion usually means the same upload dance.
+                </p>
+                <p>
+                  <strong>What we do:</strong> desktop builds bundle local engines — Tesseract for
+                  searchable PDFs and LibreOffice for Word / Excel / PowerPoint style convert —
+                  so those jobs never need a network round-trip.
+                </p>
+                <p>
+                  <strong>Why it matters:</strong> scans and drafts stay on the machine that already
+                  holds them. Convenience stops being an excuse to exfiltrate content.
                 </p>
               </article>
 
-              <article class="pin-step" data-shot="images/insert-pages.png" data-label="Insert pages">
-                <p class="pin-kicker">08 · Insert pages</p>
-                <h3>Bring another PDF into this one</h3>
+              <article class="why-card reveal reveal-card" style="--i:2">
+                <p class="section-label">03 · Craft</p>
+                <h3>A real desktop workspace</h3>
                 <p>
-                  Insert every page of a second PDF after the chosen page — useful for appending
-                  lab reports, covers, or signed pages without a full merge dance.
+                  <strong>The problem:</strong> one-shot web tools are fine for a single merge, then
+                  fall apart when you need organize → encrypt → sign in one sitting.
+                </p>
+                <p>
+                  <strong>What we do:</strong> pinned files, a tools hub, page thumbnails, markup that
+                  saves into the PDF, certificate signing, watermarks, and batch ops live in one place —
+                  designed for focused desktop sessions, not tab chaos.
+                </p>
+                <p>
+                  <strong>Why it matters:</strong> PDF work is a workflow. The UI should remember that
+                  without forcing you into a subscription suite.
                 </p>
               </article>
 
-              <article class="pin-step" data-shot="images/crop.png" data-label="Crop pages">
-                <p class="pin-kicker">09 · Crop</p>
-                <h3>Trim margins with presets or a live box</h3>
+              <article class="why-card reveal reveal-card" style="--i:3">
+                <p class="section-label">04 · Open</p>
+                <h3>Free, honest, yours</h3>
                 <p>
-                  Presets for full page, small margins, and wide margins, plus a draggable crop rectangle.
-                  Apply to this page, selected pages, all, or a range.
+                  <strong>The problem:</strong> “free” online tools monetize uploads, lock features
+                  behind accounts, or bury real redaction and permissions behind upsells.
                 </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/resize-pages.png" data-label="Resize pages">
-                <p class="pin-kicker">10 · Resize</p>
-                <h3>LETTER · A4 · LEGAL media boxes</h3>
                 <p>
-                  Sets MediaBox and CropBox to a target paper size. Content is not scaled or deleted —
-                  use when a printer or workflow expects a standard page size.
+                  <strong>What we do:</strong> Document Studio is free and open. No ads. No account wall.
+                  Security UX stays honest — real encryption permissions, real redaction intent,
+                  no password-cracking theater.
                 </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/header-footer.png" data-label="Header and footer">
-                <p class="pin-kicker">11 · Header &amp; footer</p>
-                <h3>Templates, variables, and position grid</h3>
                 <p>
-                  Templates like Minimal page number, Page X of Y, Corporate, and Legal Bates.
-                  Drop tokens for page, date, file, title, or Bates numbers; save your own template.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/page-numbers.png" data-label="Page numbers">
-                <p class="pin-kicker">12 · Page numbers</p>
-                <h3>Style, prefix, start, sections</h3>
-                <p>
-                  Number all pages or a from–to range. Choose style and prefix, set the starting number,
-                  and begin a new section when packets need restarted numbering.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/encrypt.png" data-label="Encrypt PDF">
-                <p class="pin-kicker">13 · Encrypt</p>
-                <h3>Passwords plus real permissions</h3>
-                <p>
-                  Set a password to open and an optional owner password.
-                  Toggle allow printing, copying text, modifying, and annotating — then Encrypt.
-                  Remember the password; Document Studio cannot recover it.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/watermark.png" data-label="Watermark">
-                <p class="pin-kicker">14 · Watermark</p>
-                <h3>Text or image overlays with full control</h3>
-                <p>
-                  Text or Image modes, dynamic tokens, font/size/color, opacity, rotation presets,
-                  and a 3×3 position grid. Detect and remove existing watermarks before replacing.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/sign-digital.png" data-label="Digital / certificate sign">
-                <p class="pin-kicker">15 · Digital sign</p>
-                <h3>Certificates, .p12 import, validation</h3>
-                <p>
-                  The Digital tab validates existing signatures, lets you draw signature fields,
-                  pick IDs from USB tokens / smart cards / NSS system stores, import <code>.p12</code>,
-                  or create a self-signed identity.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/sign-visual.png" data-label="Visual signatures">
-                <p class="pin-kicker">16 · Visual sign</p>
-                <h3>Drawn signatures, initials, and stamps</h3>
-                <p>
-                  Create signature and initials cards, then drag a box onto the page (or long-press drag).
-                  Resize and rotate with handles. Stamps cover Approved / date / custom marks.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/edit-markup.png" data-label="Edit and markup">
-                <p class="pin-kicker">17 · Edit &amp; markup</p>
-                <h3>Text, highlights, shapes, comments, links</h3>
-                <p>
-                  Edit mode opens font controls, highlight/underline/strikethrough/squiggly,
-                  freehand + eraser, shapes, sticky notes, images, and links — with smart guides.
-                  Status shows “Saved in the PDF.”
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/insert-scan.png" data-label="Insert scan">
-                <p class="pin-kicker">18 · Insert scan</p>
-                <h3>Camera capture or choose images</h3>
-                <p>
-                  Frame a page with the camera, or choose existing photos/scans and insert them
-                  into the open PDF — great for appending receipts and paper forms.
-                </p>
-              </article>
-
-              <article class="pin-step" data-shot="images/tools-pages.png" data-label="Pages tools list">
-                <p class="pin-kicker">19 · Pages toolkit</p>
-                <h3>Extract, reorder, blank pages, and more</h3>
-                <p>
-                  The Pages category also covers extract odd/even, reorder, reverse, duplicate,
-                  delete, rotate, add blank page, crop, resize, header &amp; footer, page numbers,
-                  and insert scan — all searchable from the Tools panel.
+                  <strong>Why it matters:</strong> you should own the tool that opens your documents.
+                  Update when you want via installer, Homebrew, or CLI — not when a SaaS plan renews.
                 </p>
               </article>
             </div>
+          </div>
+        </section>
 
-            <aside class="pin-stage" aria-live="polite">
-              <div class="pin-stage-card" id="pinStageCard">
-                <div class="pin-media" id="pinMedia">
-                  <img id="pinImgA" class="pin-img is-active" src="images/image.png" alt="" width="1495" height="921" decoding="async" />
-                  <img id="pinImgB" class="pin-img" alt="" width="1495" height="921" decoding="async" hidden />
-                </div>
-                <div class="pin-progress" aria-hidden="true">
-                  <div class="pin-progress-bar" id="pinProgressBar"></div>
+        <!-- FEATURE FILMSTRIP -->
+        <section class="film-section" id="featureFilm" aria-label="Feature tour">
+          <div class="film-runway" id="filmRunway">
+            <div class="film-sticky">
+              <div class="film-layout">
+                <aside class="film-copy" aria-live="polite">
+                  <p class="section-label">Selected tools</p>
+                  <p class="film-index" id="filmIndex">01 / 08</p>
+                  <h2 id="filmTitle">Home dashboard</h2>
+                  <p class="film-summary" id="filmSummary">Your private document surface.</p>
+                  <div class="film-body" id="filmBody"></div>
+                  <div class="film-progress" aria-hidden="true">
+                    <div class="film-progress-bar" id="filmProgressBar"></div>
+                  </div>
+                </aside>
+
+                <div class="film-stage">
+                  <div class="film-track" id="filmTrack">
+                    <article class="film-card" data-title="Home dashboard" data-summary="Your private document surface — pinned, recent, local." data-body="&lt;p&gt;Open a PDF, create a blank file, turn images into a PDF, or jump into All tools. The home screen is built around a simple promise: pinned and recent files stay on this device, and every action you take from here runs locally.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Quick cards for Open, Create, Images to PDF, and All tools&lt;/li&gt;&lt;li&gt;Drop zone plus Browse when you already know the path&lt;/li&gt;&lt;li&gt;Pinned gallery with Recent / Starred filters for daily packets&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/image.png" alt="Home dashboard" width="1495" height="921" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">01 · Home</p>
+                    </article>
+
+                    <article class="film-card" data-title="Tools hub" data-summary="Every major action on one searchable grid." data-body="&lt;p&gt;When you know the job but not the ribbon button, the Tools hub is the map. Large cards surface Create PDF, Organize, Compress, Encrypt, Scan, Office convert, fill form, and Sign — each with related actions in a dropdown so you are not hunting menus.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Search the grid from the top when you remember the tool name&lt;/li&gt;&lt;li&gt;Open the card dropdown for sibling workflows&lt;/li&gt;&lt;li&gt;Same hub is one click from Home → All tools&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/tools-home.png" alt="Tools hub" width="1024" height="641" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">02 · Tools</p>
+                    </article>
+
+                    <article class="film-card" data-title="Organize pages" data-summary="Reorder, rotate, duplicate, reverse — then Apply." data-body="&lt;p&gt;Page order is half the battle before you merge or send. Organize shows a thumbnail grid for the whole document: select pages, drag to reorder, rotate left or right, duplicate, delete, or reverse the stack, then Apply when the sequence is right.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Ctrl+Delete removes selected pages without leaving the grid&lt;/li&gt;&lt;li&gt;Ideal for assembling packets before merge or export&lt;/li&gt;&lt;li&gt;Live preview of the new order before you commit&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/organize.png" alt="Organize pages" width="1400" height="900" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">03 · Organize</p>
+                    </article>
+
+                    <article class="film-card" data-title="Merge &amp; split" data-summary="Stack PDFs in order — or slice one into clean results." data-body="&lt;p&gt;Merge lets you add multiple PDFs, keep the sequence you want, and Save or Save as without destroying the originals. Split offers every-N, after pages, custom ranges, odd/even, or each page — with a Result list that shows File 1, File 2, … before you commit.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Protected sources show a lock until you unlock them&lt;/li&gt;&lt;li&gt;Extract and insert pages sit nearby for partial moves&lt;/li&gt;&lt;li&gt;The open document stays intact until you choose to write&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/merge.png" alt="Merge PDFs" width="1400" height="900" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">04 · Merge</p>
+                    </article>
+
+                    <article class="film-card" data-title="Encrypt PDF" data-summary="Passwords plus real permissions — offline." data-body="&lt;p&gt;Before you email a packet, set a password to open and an optional owner password. Toggle whether printing, copying text, modifying, or annotating is allowed, then Encrypt. Remember the password yourself — Document Studio cannot recover it, and that is intentional.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Open password and owner password as separate controls&lt;/li&gt;&lt;li&gt;Permission toggles that map to real PDF restrictions&lt;/li&gt;&lt;li&gt;Decrypt when you know the password and need the file unlocked&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/encrypt.png" alt="Encrypt PDF" width="1400" height="900" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">05 · Encrypt</p>
+                    </article>
+
+                    <article class="film-card" data-title="Watermark" data-summary="Text or image overlays with full control." data-body="&lt;p&gt;Mark drafts, stamp CONFIDENTIAL, or brand a packet before it leaves your desk. Choose Text or Image mode, set font/size/color, opacity, rotation presets, and a 3×3 position grid. Detect and remove an existing watermark first when you are replacing one.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Dynamic tokens for dates and common labels&lt;/li&gt;&lt;li&gt;Rotation and position without guessing margins&lt;/li&gt;&lt;li&gt;Detect / remove before you lay down a new mark&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/watermark.png" alt="Watermark" width="1400" height="900" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">06 · Watermark</p>
+                    </article>
+
+                    <article class="film-card" data-title="Digital sign" data-summary="Certificates, .p12 import, and validation." data-body="&lt;p&gt;The Digital tab is for real signatures, not just a drawn scribble. Validate what is already on the file, draw signature fields, pick identities from USB tokens / smart cards / system stores, import a .p12, or create a self-signed identity when you need a local test seal.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Certificate path plus visual signature / initials / stamps&lt;/li&gt;&lt;li&gt;Hardware token and smart-card friendly flows&lt;/li&gt;&lt;li&gt;Validation so you can see what already landed on the PDF&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/sign-digital.png" alt="Digital sign" width="1400" height="900" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">07 · Sign</p>
+                    </article>
+
+                    <article class="film-card" data-title="Edit &amp; markup" data-summary="Text, highlights, shapes, comments, links." data-body="&lt;p&gt;Edit mode opens the markup kit: font controls, highlight / underline / strikethrough / squiggly, freehand and eraser, shapes, sticky notes, images, and links — with smart guides while you place. Status shows “Saved in the PDF” so you know the annotations stuck in the file itself.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Annotation tools that write into the document&lt;/li&gt;&lt;li&gt;Smart guides for alignment while dragging&lt;/li&gt;&lt;li&gt;No separate cloud layer — the PDF carries the marks&lt;/li&gt;&lt;/ul&gt;">
+                      <div class="shot-frame">
+                        <img src="images/edit-markup.png" alt="Edit and markup" width="1400" height="900" loading="lazy" decoding="async" />
+                      </div>
+                      <p class="film-card-cap">08 · Markup</p>
+                    </article>
+                  </div>
                 </div>
               </div>
-            </aside>
-          </div>
-        </section>
-
-        <section class="home-section fade-up" aria-labelledby="textFeaturesHeading">
-          <h2 id="textFeaturesHeading">Also in the app</h2>
-          <p class="section-lede">Documented in text — same offline engines, even without a dedicated screenshot above.</p>
-          <div class="feature-grid">
-            <article>
-              <h3>Compress PDF</h3>
-              <p>Shrink scans and image-heavy files with quality presets before you share.</p>
-            </article>
-            <article>
-              <h3>Searchable PDF (OCR)</h3>
-              <p>Local Tesseract — make scans findable without uploading pages to a cloud OCR API.</p>
-            </article>
-            <article>
-              <h3>Office → PDF</h3>
-              <p>Desktop releases bundle LibreOffice for Word / Excel / PowerPoint style convert.</p>
-            </article>
-            <article>
-              <h3>Images ↔ PDF</h3>
-              <p>Images to PDF, PDF to PNG/JPEG, create PDF from plain text.</p>
-            </article>
-            <article>
-              <h3>Fill PDF form</h3>
-              <p>Fill AcroForm fields and save values into the file.</p>
-            </article>
-            <article>
-              <h3>Compare PDFs</h3>
-              <p>Compare text, images, and pages between two documents.</p>
-            </article>
-            <article>
-              <h3>Batch · Metadata</h3>
-              <p>Run one op on many files. Edit or strip Info &amp; XMP before sharing.</p>
-            </article>
-            <article>
-              <h3>Redact · Repair · Decrypt</h3>
-              <p>Remove content for real, repair structure, unlock when you know the password.</p>
-            </article>
-          </div>
-          <div class="cta-row">
-            <a class="btn ghost" href="#/features">Complete feature list</a>
-            <a class="btn ghost" href="#/how-to">Step-by-step how-tos</a>
-            <a class="btn ghost" href="#/privacy">Privacy</a>
-          </div>
-        </section>
-
-        <section class="author-band fade-up" aria-labelledby="authorHeading">
-          <img class="author-icon" src="assets/img/icon.png" width="64" height="64" alt="" />
-          <div>
-            <h2 id="authorHeading">Built by Tejashvi Kumawat</h2>
-            <p>
-              Document Studio is an open project by
-              <a href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener"><strong>Tejashvi Kumawat</strong></a>
-              · <a href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener">tejashvi-kumawat.github.io</a>
-            </p>
-            <div class="cta-row">
-              <a class="btn ghost" href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener">Portfolio</a>
-              <a class="btn ghost" href="https://github.com/tejashvi-kumawat" target="_blank" rel="noopener">GitHub profile</a>
-              <a class="btn ghost" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">Repository</a>
-              <a class="btn ghost" href="#/author">Author page</a>
             </div>
           </div>
+
+          <!-- Mobile fallback: stacked detailed cards -->
+          <div class="film-mobile" id="filmMobile"></div>
         </section>
 
-        <div class="hero-cards" id="heroCards"></div>
+        <!-- MORE TOOLS -->
+        <section class="section more-section" id="moreTools">
+          <div class="section-grid" aria-hidden="true"></div>
+          <div class="section-inner">
+            <header class="section-head reveal">
+              <p class="section-label">Also in the app</p>
+              <h2>Same engines. More surface.</h2>
+              <p class="section-lede">
+                The filmstrip covers the tools you will show someone first.
+                Under the hood, the same offline stack powers OCR, Office convert, forms,
+                compare, batch jobs, and repair — documented in the feature list and how-tos.
+              </p>
+            </header>
+            <div class="feature-grid">
+              <article class="reveal">
+                <h3>Compress PDF</h3>
+                <p>Shrink scans and image-heavy files with quality presets before you share.
+                  Keep the packet readable without mailing a 40&nbsp;MB attachment.</p>
+              </article>
+              <article class="feature-emphasis reveal">
+                <h3>Searchable PDF (OCR)</h3>
+                <p>Local Tesseract turns page images into text you can find later.
+                  No cloud OCR API, no uploading a passport scan to make it searchable.</p>
+              </article>
+              <article class="reveal">
+                <h3>Office → PDF</h3>
+                <p>Desktop releases bundle LibreOffice so Word, Excel, and PowerPoint style
+                  files can become PDFs without a round-trip through a website.</p>
+              </article>
+              <article class="reveal">
+                <h3>Images ↔ PDF</h3>
+                <p>Build a PDF from photos or scans, export pages to PNG/JPEG, or create
+                  a simple PDF from plain text when you need a clean one-pager.</p>
+              </article>
+              <article class="reveal">
+                <h3>Fill PDF form</h3>
+                <p>Fill AcroForm fields and save the values into the file so recipients
+                  see completed answers, not empty blanks.</p>
+              </article>
+              <article class="reveal">
+                <h3>Compare PDFs</h3>
+                <p>Diff text, images, and pages between two documents when you need to
+                  know what changed between draft and final.</p>
+              </article>
+              <article class="reveal">
+                <h3>Batch · Metadata</h3>
+                <p>Run one operation across many files, then edit or strip Info and XMP
+                  before a packet leaves your machine.</p>
+              </article>
+              <article class="reveal">
+                <h3>Redact · Repair · Decrypt</h3>
+                <p>Remove content for real, repair broken structure when a file misbehaves,
+                  and decrypt when you know the password and need the pages unlocked.</p>
+              </article>
+            </div>
+            <div class="cta-row">
+              <a class="btn ghost" href="#/features">Complete feature list</a>
+              <a class="btn ghost" href="#/how-to">Step-by-step how-tos</a>
+              <a class="btn ghost" href="#/privacy">Privacy</a>
+            </div>
+            <div class="hero-cards" id="heroCards"></div>
+          </div>
+        </section>
+
+        <!-- BUILT BY -->
+        <section class="section author-section" id="builtBy">
+          <div class="section-grid" aria-hidden="true"></div>
+          <div class="section-inner author-layout">
+            <div class="author-copy reveal">
+              <p class="section-label">Built by</p>
+              <h2>Tejashvi Kumawat</h2>
+              <p class="section-lede">
+                Document Studio exists because PDF work should not require renting a suite
+                or trusting an upload form with the contents of your life.
+              </p>
+              <p>
+                I build offline, privacy-first tools — software that keeps bytes on the machine
+                that opened them. Document Studio is the PDF half of that bet: a real desktop
+                workspace with local engines, no account wall, and no ads, so merge / encrypt /
+                OCR / sign feel like normal computer work again.
+              </p>
+              <p>
+                Offline-first is not nostalgia. It is trust you can inspect. When a tool needs
+                the network only for updates you choose — not for every page rearrange —
+                you can use it on client files, lab reports, and personal scans without inventing
+                a second privacy policy in your head.
+              </p>
+              <p>
+                “Done right” here means honest security UX (real permissions, real redaction intent),
+                engines that ship with the app, and docs that explain how to install and how to use
+                every tool. If that ethos resonates, the trail is public.
+              </p>
+              <div class="cta-row">
+                <a class="btn solid" href="https://github.com/tejashvi-kumawat" target="_blank" rel="noopener">GitHub profile</a>
+                <a class="btn ghost" href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener">Portfolio</a>
+                <a class="btn ghost" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">Repository</a>
+              </div>
+            </div>
+            <figure class="author-portrait reveal">
+              <a class="author-avatar" href="https://github.com/tejashvi-kumawat" target="_blank" rel="noopener">
+                <img src="assets/img/tejashvi-github.jpg" width="280" height="280" alt="Tejashvi Kumawat on GitHub" />
+              </a>
+              <figcaption>
+                <a href="https://github.com/tejashvi-kumawat" target="_blank" rel="noopener">@tejashvi-kumawat</a>
+                · GitHub
+              </figcaption>
+            </figure>
+          </div>
+        </section>
       </section>
 
       <article class="doc" id="docView" hidden>
@@ -468,24 +527,21 @@ document_studio --update</code></pre>
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <img src="assets/img/icon.png" width="36" height="36" alt="" />
-        <div>
-          <strong>Document Studio</strong>
-          <span>Offline PDF &amp; document workspace</span>
-        </div>
+        <strong>Document Studio</strong>
+        <span>Offline PDF workspace · local engines · no account</span>
       </div>
-      <div class="footer-links">
-        <a href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub repo</a>
-        <a href="https://github.com/tejashvi-kumawat" target="_blank" rel="noopener">@tejashvi-kumawat</a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#featureFilm">Features</a>
+        <a href="#downloadPanel">Download</a>
+        <a href="#/privacy">Privacy</a>
+        <a href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub</a>
         <a href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener">Portfolio</a>
-        <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases" target="_blank" rel="noopener">Releases</a>
         <a href="#/author">Author</a>
-      </div>
+      </nav>
       <p class="footer-credit">
         Built by
         <a href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener"><strong>Tejashvi Kumawat</strong></a>
-        ·
-        <a href="https://tejashvi-kumawat.github.io" target="_blank" rel="noopener">tejashvi-kumawat.github.io</a>
+        · Crafted with care · © 2026
       </p>
     </div>
   </footer>
