@@ -3,11 +3,12 @@ import 'package:document_studio/features/pdf_viewer/viewer_live_tool_session.dar
 import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/live_draw_layers.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/live_form_layer.dart';
+import 'package:document_studio/features/pdf_viewer/widgets/live_image_edit_layer.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/live_link_layer.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/live_page_geom.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/live_placement_layer.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/live_text_layer.dart';
-import 'package:flutter/gestures.dart';
+import 'package:document_studio/features/pdf_viewer/widgets/viewer_nav_forwarder.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -135,7 +136,13 @@ class _LiveMarkupPageHostState extends State<LiveMarkupPageHost> {
           viewer: widget.controller,
           documentPath: widget.signDocumentPath,
         ),
-      ViewerToolId.editText => LiveTextLayer(session: live, geom: g),
+      ViewerToolId.editText => Stack(
+          fit: StackFit.expand,
+          children: [
+            LiveTextLayer(session: live, geom: g),
+            LiveImageEditLayer(session: live, geom: g),
+          ],
+        ),
       ViewerToolId.fillForm => LiveFormLayer(session: live, geom: g),
       _ => const SizedBox.shrink(),
     };
@@ -144,14 +151,8 @@ class _LiveMarkupPageHostState extends State<LiveMarkupPageHost> {
       fit: StackFit.expand,
       children: [
         stamps,
-        Listener(
-          onPointerSignal: controller == null
-              ? null
-              : (e) {
-                  if (e is PointerScrollEvent) {
-                    controller.handlePointerSignalEvent(e);
-                  }
-                },
+        ViewerNavForwarder(
+          controller: controller,
           child: RepaintBoundary(
             child: KeyedSubtree(key: ValueKey(tool), child: layer),
           ),

@@ -1,3 +1,4 @@
+import 'package:document_studio/features/pdf_viewer/viewer_pending_page.dart';
 import 'dart:typed_data';
 
 import 'package:document_studio/app/providers.dart';
@@ -25,6 +26,10 @@ Future<void> commitOrganizePagesInSession({
   required String successMessage,
   Map<String, String>? passwordsByPath,
   bool unlockMismatchedPasswords = false,
+
+  /// Page to show afterwards (e.g. first inserted page). Default: wherever the
+  /// current page moved to.
+  int? focusPage1Based,
 }) async {
   if (pages.isEmpty) {
     throw StateError('No pages to update');
@@ -48,6 +53,14 @@ Future<void> commitOrganizePagesInSession({
     unlockMismatchedPasswords: unlockMismatchedPasswords,
   );
   if (!context.mounted) return;
+  ViewerPendingPage.set(
+    focusPage1Based ??
+        remapPageAfterOrganize(
+          pages: pages,
+          sourcePath: session.file.path,
+          oldPage: handoff.currentPage1,
+        ),
+  );
   await commitBytesToSession(
     context: context,
     storage: ref.read(fileStorageProvider),

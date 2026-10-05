@@ -5,6 +5,37 @@
 #include "flutter_window.h"
 #include "utils.h"
 
+#include <string>
+
+namespace {
+// Hands the command line to an already-running window (single instance, so
+// "Open with" on a second PDF opens a tab instead of a second app).
+bool ForwardToRunningInstance(const std::vector<std::string>& args) {
+  if (args.empty()) return false;
+  HWND existing =
+      ::FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", nullptr);
+  if (existing == nullptr) return false;
+  std::string joined;
+  for (const auto& a : args) {
+    joined += a;
+    joined += '\n';
+  }
+  COPYDATASTRUCT cds;
+  cds.dwData = 0x44535031;  // 'DSP1'
+  cds.cbData = static_cast<DWORD>(joined.size());
+  cds.lpData = const_cast<char*>(joined.data());
+  DWORD_PTR result = 0;
+  if (!::SendMessageTimeout(existing, WM_COPYDATA, 0,
+                            reinterpret_cast<LPARAM>(&cds), SMTO_ABORTIFHUNG,
+                            3000, &result)) {
+    return false;
+  }
+  if (::IsIconic(existing)) ::ShowWindow(existing, SW_RESTORE);
+  ::SetForegroundWindow(existing);
+  return true;
+}
+}  // namespace
+
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   // Attach to console when present (e.g., 'flutter run') or create a
@@ -21,6 +52,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
+
+  if (ForwardToRunningInstance(command_line_arguments)) {
+    ::CoUninitialize();
+    return EXIT_SUCCESS;
+  }
 
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 

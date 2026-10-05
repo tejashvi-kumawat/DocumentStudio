@@ -4,7 +4,7 @@
 
 | | |
 | --- | --- |
-| **Latest release** | [v1.0.3](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3) |
+| **Latest release** | [v1.1.0](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0) |
 | **Product docs** | [tejashvi-kumawat.github.io/DocumentStudio](https://tejashvi-kumawat.github.io/DocumentStudio/) |
 | **Author** | [Tejashvi Kumawat](https://tejashvi-kumawat.github.io) |
 | **License** | See [LICENSE](LICENSE) (app) · third-party engines keep their own licenses |
@@ -22,13 +22,13 @@ Most PDF tools push you into a browser upload or a subscription suite. Document 
 
 ---
 
-## Download (v1.0.3)
+## Download (v1.1.0)
 
 | Platform | Installer |
 | --- | --- |
-| **Windows** | [DocumentStudio-1.0.3-Setup.exe](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe) |
-| **macOS** | [DocumentStudio-1.0.3-macos.dmg](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg) |
-| **Linux (Debian/Ubuntu amd64)** | [document-studio_1.0.3_amd64.deb](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb) |
+| **Windows** | [DocumentStudio-1.1.0-Setup.exe](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-Setup.exe) |
+| **macOS** | [DocumentStudio-1.1.0-macos.dmg](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-macos.dmg) |
+| **Linux (Debian/Ubuntu amd64)** | [document-studio_1.1.0_amd64.deb](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/document-studio_1.1.0_amd64.deb) |
 
 Full install guide (shell menus, Homebrew, updates):  
 **[docs site → Download & install](https://tejashvi-kumawat.github.io/DocumentStudio/#/install)**

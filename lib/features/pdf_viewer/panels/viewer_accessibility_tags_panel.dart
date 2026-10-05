@@ -1,5 +1,7 @@
+import 'package:document_studio/core/pdf/large_doc_policy.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/core/errors/document_studio_error.dart';
@@ -8,6 +10,9 @@ import 'package:document_studio/design_system/widgets/ds_buttons.dart';
 import 'package:document_studio/features/document_lifecycle/document_session_commit.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_document_actions.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
+import 'package:document_studio/infrastructure/pdf/pdf_accessibility_checker.dart';
+import 'package:document_studio/infrastructure/pdf/pdf_archive_checker.dart';
+import 'package:document_studio/infrastructure/pdf/pdfa/pdfa_converter.dart';
 import 'package:document_studio/infrastructure/pdf/pdf_accessibility_tags_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,6 +42,8 @@ class _ViewerAccessibilityTagsPanelState
   bool _busy = false;
   String? _error;
   PdfAccessibilityStructureInfo? _info;
+  List<A11yFinding> _findings = const [];
+  List<A11yFinding> _archive = const [];
 
   @override
   void initState() {
@@ -50,7 +57,102 @@ class _ViewerAccessibilityTagsPanelState
     super.dispose();
   }
 
+  Future<void> _runCheck() async {
+    try {
+      if ((await File(widget.handoff.file.path).length()) >
+          LargeDocPolicy.analysisByteLimit) {
+        return; // very large file: the structure check is skipped
+      }
+      final bytes = await File(widget.handoff.file.path).readAsBytes();
+      final found = await Isolate.run(() => checkPdfAccessibility(bytes));
+      final arch = await Isolate.run(() => checkPdfArchiveReadiness(bytes));
+      if (mounted) {
+        setState(() {
+          _findings = found;
+          _archive = arch;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fix(A11yFinding f) async {
+    final session = ref.read(documentTabsControllerProvider).activeSession;
+    if (session == null || f.fixId == null) return;
+    setState(() => _busy = true);
+    try {
+      final bytes = await LargeDocPolicy.readBounded(session);
+      if (bytes == null) return;
+      final title = widget.handoff.file.displayName.replaceFirst(
+        RegExp(r'\.pdf$', caseSensitive: false),
+        '',
+      );
+      final out = await Isolate.run(
+        () => fixPdfAccessibility(
+          bytes,
+          fixId: f.fixId!,
+          title: title,
+          language: _langCtrl.text,
+        ),
+      );
+      if (out == null || !mounted) return;
+      await commitBytesToSession(
+        context: context,
+        storage: ref.read(fileStorageProvider),
+        tabs: ref.read(documentTabsControllerProvider),
+        session: session,
+        bytes: out,
+        successMessage: 'Fixed: ${f.title}.',
+        silent: true,
+      );
+      await _runCheck();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  PdfALevel _pdfaLevel = PdfALevel.a2b;
+
+  /// Archive copy: fonts embedded, sRGB output intent, PDF/A metadata.
+  Future<void> _convertPdfA() async {
+    final session = ref.read(documentTabsControllerProvider).activeSession;
+    if (session == null) return;
+    setState(() => _busy = true);
+    try {
+      final storage = ref.read(fileStorageProvider);
+      final out = await storage.createTempFile(prefix: 'pdfa', suffix: '.pdf');
+      final r = await convertToPdfA(
+        inputPath: session.file.path,
+        outputPath: out,
+        level: _pdfaLevel,
+        password: session.password,
+        title: widget.handoff.file.displayName.replaceFirst(
+          RegExp(r'\.pdf$', caseSensitive: false),
+          '',
+        ),
+      );
+      if (!mounted) return;
+      if (!r.ok) {
+        await storage.deleteIfExists(out);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(r.error ?? 'PDF/A conversion failed.')),
+        );
+        return;
+      }
+      await commitTempPathToActiveSession(
+        ref: ref,
+        context: context,
+        tempPath: out,
+        successMessage: 'Converted to ${_pdfaLevel.label}. Save to keep it.',
+      );
+      await _runCheck();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _load() async {
+    unawaited(_runCheck());
     setState(() {
       _loading = true;
       _error = null;
@@ -155,6 +257,86 @@ class _ViewerAccessibilityTagsPanelState
     return ListView(
       padding: const EdgeInsets.all(DsSpacing.md),
       children: [
+        if (_findings.isNotEmpty) ...[
+          Text('Accessibility check', style: theme.textTheme.titleSmall),
+          const SizedBox(height: DsSpacing.xs),
+          for (final f in _findings)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                switch (f.severity) {
+                  A11ySeverity.pass => Icons.check_circle,
+                  A11ySeverity.warning => Icons.warning_amber_rounded,
+                  A11ySeverity.fail => Icons.cancel,
+                },
+                size: 20,
+                color: switch (f.severity) {
+                  A11ySeverity.pass => const Color(0xFF059669),
+                  A11ySeverity.warning => const Color(0xFFD97706),
+                  A11ySeverity.fail => const Color(0xFFDC2626),
+                },
+              ),
+              title: Text(f.title),
+              subtitle: Text(f.detail, style: const TextStyle(fontSize: 12)),
+              trailing: f.fixId != null && f.severity != A11ySeverity.pass
+                  ? TextButton(
+                      onPressed: _busy ? null : () => _fix(f),
+                      child: const Text('Fix'),
+                    )
+                  : null,
+            ),
+          const Divider(height: DsSpacing.lg),
+        ],
+        if (_archive.isNotEmpty) ...[
+          Text('PDF/A archive readiness', style: theme.textTheme.titleSmall),
+          const SizedBox(height: DsSpacing.xs),
+          for (final f in _archive)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                switch (f.severity) {
+                  A11ySeverity.pass => Icons.check_circle,
+                  A11ySeverity.warning => Icons.warning_amber_rounded,
+                  A11ySeverity.fail => Icons.cancel,
+                },
+                size: 20,
+                color: switch (f.severity) {
+                  A11ySeverity.pass => const Color(0xFF059669),
+                  A11ySeverity.warning => const Color(0xFFD97706),
+                  A11ySeverity.fail => const Color(0xFFDC2626),
+                },
+              ),
+              title: Text(f.title),
+              subtitle: Text(f.detail, style: const TextStyle(fontSize: 12)),
+            ),
+          const SizedBox(height: DsSpacing.xs),
+          Row(
+            children: [
+              DropdownButton<PdfALevel>(
+                value: _pdfaLevel,
+                isDense: true,
+                items: [
+                  for (final l in PdfALevel.values)
+                    DropdownMenuItem(value: l, child: Text(l.label)),
+                ],
+                onChanged: _busy
+                    ? null
+                    : (v) => setState(() => _pdfaLevel = v ?? _pdfaLevel),
+              ),
+              const SizedBox(width: DsSpacing.sm),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: _busy ? null : _convertPdfA,
+                  icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                  label: Text(_busy ? 'Converting…' : 'Convert to PDF/A'),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: DsSpacing.lg),
+        ],
         Text(
           'Inspect catalog language and tagging flags. Setting language writes '
           '/Lang and /MarkInfo /Marked via qpdf — not a full tag tree or PDF/UA.',

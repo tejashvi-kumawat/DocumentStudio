@@ -1,3 +1,4 @@
+import 'package:document_studio/core/perf/render_budget.dart';
 import 'package:document_studio/core/storage/linux_document_portal.dart';
 import 'package:document_studio/core/jobs/job_runner.dart';
 import 'package:document_studio/core/settings/settings_repository.dart';
@@ -110,7 +111,7 @@ final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
-  ThemeMode build() => ThemeMode.system;
+  ThemeMode build() => ThemeMode.light;
 
   Future<void> load() async {
     final repo = await ref.read(settingsRepositoryProvider.future);
@@ -233,5 +234,92 @@ class FavoritesNotifier extends AsyncNotifier<List<LocalFileRef>> {
     final list = state.value;
     if (list == null) return false;
     return list.any((f) => f.path == path);
+  }
+}
+
+
+/// Viewer defaults chosen in Settings (applied when a document opens).
+class ViewerPrefs {
+  const ViewerPrefs({
+    this.zoom = 'fitWidth',
+    this.display = 'continuous',
+    this.quality = 'auto',
+    this.textFamily = 'sans',
+    this.textSize = 14,
+  });
+
+  final String zoom;
+  final String display;
+  final String quality;
+  final String textFamily;
+  final double textSize;
+
+  ViewerPrefs copyWith({
+    String? zoom,
+    String? display,
+    String? quality,
+    String? textFamily,
+    double? textSize,
+  }) =>
+      ViewerPrefs(
+        zoom: zoom ?? this.zoom,
+        display: display ?? this.display,
+        quality: quality ?? this.quality,
+        textFamily: textFamily ?? this.textFamily,
+        textSize: textSize ?? this.textSize,
+      );
+}
+
+final viewerPrefsProvider =
+    NotifierProvider<ViewerPrefsNotifier, ViewerPrefs>(ViewerPrefsNotifier.new);
+
+class ViewerPrefsNotifier extends Notifier<ViewerPrefs> {
+  @override
+  ViewerPrefs build() {
+    _load();
+    return const ViewerPrefs();
+  }
+
+  Future<void> _load() async {
+    final repo = await ref.read(settingsRepositoryProvider.future);
+    RenderBudget.userQuality = repo.renderQuality;
+    state = ViewerPrefs(
+      zoom: repo.defaultZoom,
+      display: repo.defaultPageDisplay,
+      quality: repo.renderQuality,
+      textFamily: repo.newTextFamily,
+      textSize: repo.newTextSize,
+    );
+  }
+
+  Future<void> setQuality(String v) async {
+    final repo = await ref.read(settingsRepositoryProvider.future);
+    await repo.setRenderQuality(v);
+    RenderBudget.userQuality = v;
+    state = state.copyWith(quality: v);
+  }
+
+  Future<void> setTextFamily(String v) async {
+    final repo = await ref.read(settingsRepositoryProvider.future);
+    await repo.setNewTextFamily(v);
+    state = state.copyWith(textFamily: v);
+  }
+
+  Future<void> setTextSize(double v) async {
+    final repo = await ref.read(settingsRepositoryProvider.future);
+    await repo.setNewTextSize(v);
+    state = state.copyWith(textSize: v);
+  }
+
+  Future<void> setZoom(String v) async {
+    final repo = await ref.read(settingsRepositoryProvider.future);
+    await repo.setDefaultZoom(v);
+    state = state.copyWith(zoom: v);
+  }
+
+  Future<void> setDisplay(String v) async {
+    final repo = await ref.read(settingsRepositoryProvider.future);
+    await repo.setDefaultPageDisplay(v);
+    state = state.copyWith(display: v);
   }
 }

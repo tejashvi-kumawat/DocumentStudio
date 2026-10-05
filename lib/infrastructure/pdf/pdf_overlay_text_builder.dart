@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io' show ZLibEncoder;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:document_studio/infrastructure/pdf/pdf_helvetica_metrics.dart';
+import 'package:document_studio/infrastructure/pdf/ttf_font.dart';
 
 /// One line of Helvetica text on a PDF page (points, origin bottom-left).
 class PdfOverlayTextLine {
@@ -16,6 +18,8 @@ class PdfOverlayTextLine {
     this.centerAtAnchor = false,
     this.invisible = false,
     this.bold = false,
+    this.fontBase,
+    this.ttf,
     this.fillRgb,
     this.fillAlpha = 1,
   });
@@ -40,11 +44,24 @@ class PdfOverlayTextLine {
   /// Use Helvetica-Bold when true.
   final bool bold;
 
+  /// Standard-14 BaseFont (e.g. `Times-Italic`). Overrides [bold] when set.
+  final String? fontBase;
+
+  /// A TrueType font embedded in the file (overrides [fontBase] and [bold]).
+  final TtfFont? ttf;
+
   /// Optional RGB fill (0–1). When set, overrides gray [opacity].
   final (double r, double g, double b)? fillRgb;
 
   /// True fill transparency (`/ca`), independent of the gray [opacity] level.
   final double fillAlpha;
+}
+
+class _FontSpec {
+  const _FontSpec(this.name, {this.ttf});
+
+  final String name;
+  final TtfFont? ttf;
 }
 
 /// Builds minimal multi-page PDFs with text overlays (headers, footers, numbers).
@@ -59,13 +76,28 @@ class PdfOverlayTextBuilder {
       throw ArgumentError.value(pageCount, 'pageCount', 'must be >= 1');
     }
 
+    // Fonts used anywhere in the document, in first-use order.
+    final fonts = <_FontSpec>[
+      const _FontSpec('Helvetica'),
+      const _FontSpec('Helvetica-Bold'),
+    ];
+    // Characters each embedded font must draw (for subsetting).
+    final usedChars = <int, Set<int>>{};
+    for (var page = 1; page <= pageCount; page++) {
+      for (final l in linesForPage(page)) {
+        final i = _indexOfFont(fonts, l);
+        if (l.ttf != null) {
+          (usedChars[i] ??= {}).addAll(l.text.runes);
+        }
+      }
+    }
     final gStates = <String, int>{};
     final pageBodies = <String>[];
     final pageGs = <Set<int>>[];
     for (var page = 1; page <= pageCount; page++) {
       final used = <int>{};
       pageBodies.add(
-        _contentBody(linesForPage(page), (alpha) {
+        _contentBody(linesForPage(page), fonts, (alpha) {
           final idx = gStates.putIfAbsent(alpha, () => gStates.length);
           used.add(idx);
           return idx;
@@ -74,17 +106,24 @@ class PdfOverlayTextBuilder {
       pageGs.add(used);
     }
 
-    final fontRegularId = 3 + pageCount * 2;
-    final fontBoldId = fontRegularId + 1;
-    final firstGsId = fontBoldId + 1;
-    final objects = <String>[];
+    // Object ids: catalog, pages, 2 per page, then fonts (1 object for a
+    // standard font, 3 for an embedded one), then graphics states.
+    var next = 3 + pageCount * 2;
+    final fontIds = <int>[];
+    for (final f in fonts) {
+      fontIds.add(next);
+      next += f.ttf == null ? 1 : 3;
+    }
+    final firstGsId = next;
+    final objects = <List<int>>[];
+    List<int> str(String s) => latin1.encode(s);
 
-    objects.add('1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj');
+    objects.add(str('1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj'));
     final kids = [
       for (var page = 0; page < pageCount; page++) '${3 + page * 2 + 1} 0 R',
     ].join(' ');
     objects.add(
-      '2 0 obj<< /Type /Pages /Kids [$kids] /Count $pageCount >>endobj',
+      str('2 0 obj<< /Type /Pages /Kids [$kids] /Count $pageCount >>endobj'),
     );
 
     for (var page = 0; page < pageCount; page++) {
@@ -92,8 +131,10 @@ class PdfOverlayTextBuilder {
       final pageId = contentId + 1;
       final content = pageBodies[page];
       objects.add(
-        '$contentId 0 obj<< /Length ${content.length} >>\n'
-        'stream\n$content\nendstream endobj',
+        str(
+          '$contentId 0 obj<< /Length ${content.length} >>\n'
+          'stream\n$content\nendstream endobj',
+        ),
       );
       final w = _n(pageWidthPt?.call(page + 1) ?? 612);
       final h = _n(pageHeightPt?.call(page + 1) ?? 792);
@@ -103,35 +144,87 @@ class PdfOverlayTextBuilder {
           : '/ExtGState<< '
               '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> ';
       objects.add(
-        '$pageId 0 obj<< /Type /Page /Parent 2 0 R '
-        '/MediaBox [0 0 $w $h] /Contents $contentId 0 R '
-        '/Resources<< /Font<< /F1 $fontRegularId 0 R /F2 $fontBoldId 0 R >> '
-        '$gs>> >>endobj',
+        str(
+          '$pageId 0 obj<< /Type /Page /Parent 2 0 R '
+          '/MediaBox [0 0 $w $h] /Contents $contentId 0 R '
+          '/Resources<< /Font<< ${[
+            for (var i = 0; i < fonts.length; i++) '/F${i + 1} ${fontIds[i]} 0 R',
+          ].join(' ')} >> '
+          '$gs>> >>endobj',
+        ),
       );
     }
 
-    objects.add(
-      '$fontRegularId 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica '
-      '/Encoding /WinAnsiEncoding >>endobj',
-    );
-    objects.add(
-      '$fontBoldId 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold '
-      '/Encoding /WinAnsiEncoding >>endobj',
-    );
+    for (var i = 0; i < fonts.length; i++) {
+      final f = fonts[i];
+      final ttf = f.ttf;
+      if (ttf == null) {
+        objects.add(
+          str(
+            '${fontIds[i]} 0 obj<< /Type /Font /Subtype /Type1 '
+            '/BaseFont /${f.name} /Encoding /WinAnsiEncoding >>endobj',
+          ),
+        );
+        continue;
+      }
+      final id = fontIds[i];
+      final chars = usedChars[i] ?? const <int>{};
+      // Subset fonts carry a six-letter tag (ISO 32000 9.6.4).
+      final tag = String.fromCharCodes([
+        for (var k = 0; k < 6; k++)
+          0x41 + ((chars.fold<int>(i * 7919, (a, c) => a * 31 + c) >> (k * 4)) & 0xF),
+      ]);
+      final ps =
+          '$tag+${ttf.postScriptName.isEmpty ? 'EmbeddedFont' : ttf.postScriptName}';
+      final fontFile = ttf.subset(chars);
+      final flags = 32 |
+          (ttf.isFixedPitch ? 1 : 0) |
+          (ttf.italic ? 64 : 0) |
+          (ttf.bold ? 262144 : 0);
+      objects.add(
+        str(
+          '$id 0 obj<< /Type /Font /Subtype /TrueType /BaseFont /$ps '
+          '/FirstChar 32 /LastChar 255 /Widths [${ttf.winAnsiWidths().join(' ')}] '
+          '/FontDescriptor ${id + 1} 0 R /Encoding /WinAnsiEncoding >>endobj',
+        ),
+      );
+      objects.add(
+        str(
+          '${id + 1} 0 obj<< /Type /FontDescriptor /FontName /$ps '
+          '/Flags $flags /FontBBox [${ttf.bbox.join(' ')}] '
+          '/ItalicAngle ${ttf.italicAngle.toStringAsFixed(1)} '
+          '/Ascent ${ttf.ascent} /Descent ${ttf.descent} '
+          '/CapHeight ${ttf.capHeight} /StemV ${ttf.bold ? 140 : 80} '
+          '/FontFile2 ${id + 2} 0 R >>endobj',
+        ),
+      );
+      final packed = ZLibEncoder().convert(fontFile);
+      objects.add([
+        ...str(
+          '${id + 2} 0 obj<< /Length ${packed.length} '
+          '/Length1 ${fontFile.length} /Filter /FlateDecode >>\nstream\n',
+        ),
+        ...packed,
+        ...str('\nendstream endobj'),
+      ]);
+    }
     final gsByIndex = gStates.map((alpha, idx) => MapEntry(idx, alpha));
     for (var i = 0; i < gStates.length; i++) {
       objects.add(
-        '${firstGsId + i} 0 obj<< /Type /ExtGState /ca ${gsByIndex[i]} >>endobj',
+        str('${firstGsId + i} 0 obj<< /Type /ExtGState /ca ${gsByIndex[i]} >>endobj'),
       );
     }
 
-    // Everything is pure ASCII (text bytes >= 0x80 are octal-escaped).
+    // Header, objects (each followed by a newline), xref, trailer.
     const header = '%PDF-1.4\n';
-    final body = objects.join('\n');
+    final out = BytesBuilder(copy: false)..add(str(header));
     final offsets = <int>[0];
     var pos = header.length;
     for (final obj in objects) {
       offsets.add(pos);
+      out
+        ..add(obj)
+        ..addByte(0x0a);
       pos += obj.length + 1;
     }
     final xrefStart = pos;
@@ -144,15 +237,35 @@ class PdfOverlayTextBuilder {
             .map((o) => '$o 00000 n ')
             .join('\n'),
       );
-    final trailer =
-        'trailer<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n$xrefStart\n%%EOF';
-    return Uint8List.fromList(
-      ascii.encode('$header$body\n$xref$trailer'),
+    out.add(
+      str(
+        '$xref'
+        'trailer<< /Size ${offsets.length} /Root 1 0 R >>\n'
+        'startxref\n$xrefStart\n%%EOF',
+      ),
     );
+    return out.toBytes();
+  }
+
+  /// Index of the font [l] uses in [fonts], adding it when new.
+  int _indexOfFont(List<_FontSpec> fonts, PdfOverlayTextLine l) {
+    final ttf = l.ttf;
+    if (ttf != null) {
+      final i = fonts.indexWhere((f) => identical(f.ttf, ttf));
+      if (i >= 0) return i;
+      fonts.add(_FontSpec(ttf.postScriptName, ttf: ttf));
+      return fonts.length - 1;
+    }
+    final name = l.fontBase ?? (l.bold ? 'Helvetica-Bold' : 'Helvetica');
+    final i = fonts.indexWhere((f) => f.ttf == null && f.name == name);
+    if (i >= 0) return i;
+    fonts.add(_FontSpec(name));
+    return fonts.length - 1;
   }
 
   String _contentBody(
     List<PdfOverlayTextLine> lines,
+    List<_FontSpec> fonts,
     int Function(String alpha) gStateIndex,
   ) {
     if (lines.isEmpty) return ' ';
@@ -162,7 +275,7 @@ class PdfOverlayTextBuilder {
       final size = _n(line.fontSizePt);
       final x = _n(line.xPt);
       final y = _n(line.yPt);
-      final font = line.bold ? '/F2' : '/F1';
+      final font = '/F${_indexOfFont(fonts, line) + 1}';
       final gray = line.opacity.clamp(0.01, 1.0);
       buf.write('q ');
       final alpha = line.fillAlpha.clamp(0.0, 1.0);
@@ -189,11 +302,10 @@ class PdfOverlayTextBuilder {
         var tx = 0.0;
         var ty = 0.0;
         if (line.centerAtAnchor) {
-          final estWidth = helveticaTextWidthPt(
-            line.text.replaceAll('\t', ' '),
-            line.fontSizePt,
-            bold: line.bold,
-          );
+          final plain = line.text.replaceAll('\t', ' ');
+          final estWidth = line.ttf != null
+              ? line.ttf!.textWidthPt(plain, line.fontSizePt)
+              : helveticaTextWidthPt(plain, line.fontSizePt, bold: line.bold);
           tx = -estWidth / 2;
           ty = -line.fontSizePt / 2;
         }

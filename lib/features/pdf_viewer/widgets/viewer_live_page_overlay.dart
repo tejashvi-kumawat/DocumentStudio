@@ -12,6 +12,7 @@ import 'package:document_studio/features/pdf_viewer/widgets/page_crop_quad_math.
 import 'package:document_studio/features/pdf_viewer/widgets/page_placement_canvas.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/page_placement_math.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -226,15 +227,6 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
   void initState() {
     super.initState();
     session.addListener(_tick);
-    if (session.dragRectNorm == null) {
-      // Defer so we never notifyListeners during initState/build.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (session.dragRectNorm == null) {
-          session.setDragRectNorm(const Rect.fromLTRB(0.08, 0.08, 0.92, 0.92));
-        }
-      });
-    }
   }
 
   @override
@@ -244,7 +236,15 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
   }
 
   void _tick() {
-    if (!mounted || _tickScheduled) return;
+    if (!mounted) return;
+    // Repaint in the same frame while dragging (a post-frame setState made
+    // the rectangle trail the pointer by a frame).
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.persistentCallbacks) {
+      setState(() {});
+      return;
+    }
+    if (_tickScheduled) return;
     _tickScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _tickScheduled = false;
@@ -255,15 +255,17 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
   void _begin(Offset local) {
     final w = math.max(widget.pageSize.width, 1);
     final h = math.max(widget.pageSize.height, 1);
-    final rect = session.dragRectNorm ??
-        const Rect.fromLTRB(0.08, 0.08, 0.92, 0.92);
+    final current = session.dragRectNorm;
+    final rect = current ?? Rect.zero;
     final box = Rect.fromLTRB(
       rect.left * w,
       rect.top * h,
       rect.right * w,
       rect.bottom * h,
     );
-    final handle = hitTestPlacementHandle(boxPx: box, local: local);
+    final handle = current == null
+        ? null
+        : hitTestPlacementHandle(boxPx: box, local: local);
     if (handle != null) {
       _dragBase = rect;
       _dragStartLocal = local;
@@ -271,7 +273,7 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
       _creating = false;
       return;
     }
-    if (box.contains(local)) {
+    if (current != null && box.contains(local)) {
       _dragBase = rect;
       _dragStartLocal = local;
       _activeHandle = null;
@@ -368,6 +370,17 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
             fill: isRedact,
             dimOutside: isCrop,
           ),
+          child: rect == null && isCrop
+              ? const Align(
+                  alignment: Alignment(0, -0.9),
+                  child: IgnorePointer(
+                    child: LiveHintChip(
+                      icon: Icons.crop_rounded,
+                      text: 'Drag a rectangle around the area to keep',
+                    ),
+                  ),
+                )
+              : null,
         ),
       ),
     );

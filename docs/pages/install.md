@@ -2,8 +2,8 @@
 
 This page is the full install guide. The homepage also shows the same downloads up top.
 
-**Latest version: v1.0.3**  
-**All files:** [github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3)
+**Latest version: v1.1.0**  
+**All files:** [github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0)
 
 ---
 
@@ -11,7 +11,7 @@ This page is the full install guide. The homepage also shows the same downloads 
 
 ### Download
 
-[**DocumentStudio-1.0.3-Setup.exe**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-Setup.exe)
+[**DocumentStudio-1.1.0-Setup.exe**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-Setup.exe)
 
 ### Install
 
@@ -31,7 +31,7 @@ You should see a normal app entry (not only a terminal command).
 
 ### Portable zip (optional)
 
-`DocumentStudio-1.0.3-portable-windows.zip` is for advanced users. Prefer Setup.exe so Start Menu and context menus work.
+`DocumentStudio-1.1.0-portable-windows.zip` is for advanced users. Prefer Setup.exe so Start Menu and context menus work.
 
 ---
 
@@ -39,7 +39,7 @@ You should see a normal app entry (not only a terminal command).
 
 ### Download
 
-[**DocumentStudio-1.0.3-macos.dmg**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/DocumentStudio-1.0.3-macos.dmg)
+[**DocumentStudio-1.1.0-macos.dmg**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-macos.dmg)
 
 ### Install
 
@@ -73,13 +73,13 @@ brew install --cask tejashvi-kumawat/tap/document-studio
 
 ### Download
 
-[**document-studio_1.0.3_amd64.deb**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb)
+[**document-studio_1.1.0_amd64.deb**](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/document-studio_1.1.0_amd64.deb)
 
 ### Install
 
 ```bash
 cd ~/Downloads   # or wherever you saved the file
-sudo apt install ./document-studio_1.0.3_amd64.deb
+sudo apt install ./document-studio_1.1.0_amd64.deb
 ```
 
 Then:
@@ -104,7 +104,7 @@ brew upgrade document-studio
 | Check | Expected |
 | --- | --- |
 | App search | “Document Studio” appears |
-| Version | `document_studio --version` → `Document Studio 1.0.3` |
+| Version | `document_studio --version` → `Document Studio 1.1.0` |
 | Help | `document_studio --help` |
 | Update | `document_studio --check-update` |
 

@@ -1,3 +1,4 @@
+import 'package:document_studio/features/pdf_viewer/panels/viewer_edit_text_panel.dart';
 import 'package:document_studio/features/annotations/markup/markup_tool_panel.dart';
 import 'package:document_studio/features/pdf_viewer/panels/viewer_compress_panel.dart';
 import 'package:document_studio/features/pdf_viewer/panels/viewer_organize_pages_panel.dart';
@@ -210,6 +211,8 @@ class PdfViewerEmbeddedToolPanel extends ConsumerWidget {
           pageCount: pageCount,
           selectedPages1Based: selectedPages1Based,
         );
+      case ViewerToolId.editText:
+        return ViewerEditTextPanel(handoff: handoff);
       case ViewerToolId.redact:
         return ViewerRedactPanel(handoff: handoff, pageCount: pageCount);
       case ViewerToolId.fillForm:
@@ -219,7 +222,6 @@ class PdfViewerEmbeddedToolPanel extends ConsumerWidget {
       case ViewerToolId.ink:
       case ViewerToolId.placeImage:
       case ViewerToolId.markupBurn:
-      case ViewerToolId.editText:
       case ViewerToolId.addLink:
         return const MarkupToolPanel();
       case ViewerToolId.searchablePdf:

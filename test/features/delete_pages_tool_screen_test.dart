@@ -33,7 +33,7 @@ void main() {
 
     expect(find.text('Delete pages'), findsOneWidget);
     expect(find.text('Save PDF without deleted pages'), findsOneWidget);
-    expect(find.byTooltip('Undo'), findsOneWidget);
+
     expect(
       tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save PDF without deleted pages')).onPressed,
       isNull,

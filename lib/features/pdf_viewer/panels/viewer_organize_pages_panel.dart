@@ -10,6 +10,9 @@ import 'package:document_studio/features/pdf_viewer/panels/viewer_page_grid_scaf
 import 'package:document_studio/features/pdf_viewer/panels/viewer_page_organize_export.dart';
 import 'package:document_studio/features/pdf_viewer/panels/viewer_page_organize_logic.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_document_actions.dart';
+import 'package:document_studio/app/providers.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_tool_panel_scope.dart';
+import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -197,6 +200,32 @@ class _ViewerOrganizePagesPanelState
     });
   }
 
+  void _selectAll() {
+    if (_busy) return;
+    setState(() {
+      _selected
+        ..clear()
+        ..addAll(_pages.map((p) => p.id));
+    });
+  }
+
+  /// Blank page after the last selected page (or at the end).
+  Future<void> _insertBlank() async {
+    if (_busy) return;
+    final blank = await ref.read(blankPageFactoryProvider).blankPageFile();
+    if (!mounted) return;
+    var at = _pages.length;
+    for (var i = _pages.length - 1; i >= 0; i--) {
+      if (_selected.contains(_pages[i].id)) {
+        at = i + 1;
+        break;
+      }
+    }
+    setState(() {
+      _pages = [..._pages]..insert(at, OrganizePageRef.fromFilePage(blank, 1));
+    });
+  }
+
   void _duplicateSelected() {
     if (_selected.isEmpty || _busy) return;
     final next = <OrganizePageRef>[];
@@ -298,6 +327,33 @@ class _ViewerOrganizePagesPanelState
         ),
       ),
       toolbar: [
+        viewerPageToolButton(
+          icon: Icons.select_all,
+          label: 'Select all',
+          onPressed: _busy ? null : _selectAll,
+        ),
+        viewerPageToolButton(
+          icon: Icons.note_add_outlined,
+          label: 'Blank page',
+          onPressed: _busy ? null : _insertBlank,
+        ),
+        viewerPageToolButton(
+          icon: Icons.upload_file_outlined,
+          label: 'Insert file',
+          onPressed: _busy || _changed
+              ? null
+              : () => openViewerToolPanel(
+                    context,
+                    ViewerToolId.workspaceInsert,
+                  ),
+        ),
+        viewerPageToolButton(
+          icon: Icons.content_cut,
+          label: 'Extract',
+          onPressed: _busy || _changed
+              ? null
+              : () => openViewerToolPanel(context, ViewerToolId.extract),
+        ),
         viewerPageToolButton(
           icon: Icons.rotate_left_rounded,
           label: 'Left',

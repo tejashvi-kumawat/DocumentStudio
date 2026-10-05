@@ -10,7 +10,11 @@ class PdfViewerLeftIconRail extends StatelessWidget {
     required this.onContentChanged,
     this.onToggleExpanded,
     this.expanded = true,
+    this.controls,
   });
+
+  /// Page / zoom / view controls shown under the panel icons.
+  final Widget? controls;
 
   final PdfViewerSidebarContent content;
   final ValueChanged<PdfViewerSidebarContent> onContentChanged;
@@ -18,7 +22,7 @@ class PdfViewerLeftIconRail extends StatelessWidget {
   final bool expanded;
 
   @visibleForTesting
-  static const railWidth = 40.0;
+  static const railWidth = 48.0;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +62,23 @@ class PdfViewerLeftIconRail extends StatelessWidget {
               onTap: () =>
                   onContentChanged(PdfViewerSidebarContent.attachments),
             ),
-            const Spacer(),
+            _Icon(
+              key: const Key('left_rail_search'),
+              tooltip: 'Search results',
+              icon: Icons.manage_search,
+              selected: content == PdfViewerSidebarContent.search,
+              onTap: () => onContentChanged(PdfViewerSidebarContent.search),
+            ),
+            if (controls case final c?) ...[
+              Divider(height: 12, indent: 8, endIndent: 8, color: borderColor),
+              Expanded(
+                child: SingleChildScrollView(
+                  primary: false,
+                  child: c,
+                ),
+              ),
+            ] else
+              const Spacer(),
             if (onToggleExpanded != null)
               IconButton(
                 key: const Key('left_rail_toggle'),

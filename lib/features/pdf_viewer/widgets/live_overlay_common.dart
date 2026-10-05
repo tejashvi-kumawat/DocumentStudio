@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 
 /// Selection frame / handle color (neutral blue so it never reads as an error
 /// against the red brand accent).
-const Color kLiveSelectionColor = Color(0xFF2B6FE6);
+/// Acrobat selection blue (design standard).
+const Color kLiveSelectionColor = Color(0xFF1473E6);
 
 /// Display pixels per PDF point for a page painted at [pagePx].
 double livePxPerPt(Size pagePx, double pageWidthPt) {
@@ -22,12 +23,22 @@ TextStyle liveHelveticaStyle({
   required double fontPx,
   required Color color,
   bool bold = false,
+  bool italic = false,
+  String family = 'sans',
+  double lineHeightEm = kTextLineHeightEm,
+  String? customFamily,
 }) {
+  final flutterFamily = customFamily ?? switch (family) {
+    'serif' => 'DS Serif',
+    'mono' => 'DS Mono',
+    _ => kHelveticaCompatibleFontFamily,
+  };
   return TextStyle(
-    fontFamily: kHelveticaCompatibleFontFamily,
+    fontFamily: flutterFamily,
+    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
     fontFamilyFallback: kHelveticaCompatibleFontFallback,
     fontSize: fontPx,
-    height: kTextLineHeightEm,
+    height: lineHeightEm,
     leadingDistribution: TextLeadingDistribution.even,
     fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
     color: color,
@@ -54,11 +65,23 @@ void paintHelveticaLine(
   required double fontPx,
   required Color color,
   bool bold = false,
+  bool italic = false,
+  String family = 'sans',
+  double lineHeightEm = kTextLineHeightEm,
+  String? customFamily,
 }) {
   if (text.isEmpty || fontPx <= 0.5) return;
   final tp = _layoutLine(
     text,
-    liveHelveticaStyle(fontPx: fontPx, color: color, bold: bold),
+    liveHelveticaStyle(
+      fontPx: fontPx,
+      color: color,
+      bold: bold,
+      italic: italic,
+      family: family,
+      lineHeightEm: lineHeightEm,
+      customFamily: customFamily,
+    ),
   );
   final base = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
   tp.paint(canvas, Offset(leftBaseline.dx, leftBaseline.dy - base));
@@ -75,9 +98,14 @@ void paintLiveTextBox(
   required Color color,
   required bool bold,
   required LiveMarginAlign align,
+  bool italic = false,
+  String family = 'sans',
+  double lineHeightEm = kTextLineHeightEm,
+  String? customFamily,
 }) {
   final fontPx = fontSizePt * pxPerPt;
-  final leadingPx = fontSizePt * kTextLineHeightEm * pxPerPt;
+  final leadingPx = fontSizePt * lineHeightEm * pxPerPt;
+  final halfExtraPx = (lineHeightEm - kTextLineHeightEm) / 2 * fontPx;
   final boxWPt = boxPx.width / pxPerPt;
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i];
@@ -94,11 +122,15 @@ void paintLiveTextBox(
       line,
       leftBaseline: Offset(
         boxPx.left + dxPt * pxPerPt,
-        boxPx.top + i * leadingPx + fontPx * kHelveticaBaselineFromLineTopEm,
+        boxPx.top + i * leadingPx + halfExtraPx + fontPx * kHelveticaBaselineFromLineTopEm,
       ),
       fontPx: fontPx,
       color: color,
       bold: bold,
+      italic: italic,
+      family: family,
+      lineHeightEm: lineHeightEm,
+      customFamily: customFamily,
     );
   }
 }
@@ -286,9 +318,17 @@ class LiveHintChip extends StatelessWidget {
               Icon(icon, size: 14, color: Colors.white),
               const SizedBox(width: 6),
             ],
-            Text(
-              text,
-              style: const TextStyle(color: Colors.white, fontSize: 12, height: 1.2),
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  height: 1.2,
+                ),
+              ),
             ),
           ],
         ),

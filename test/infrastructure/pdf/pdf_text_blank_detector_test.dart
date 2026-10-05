@@ -4,6 +4,7 @@ import 'package:document_studio/features/pdf_viewer/widgets/viewer_live_page_ove
 import 'package:document_studio/infrastructure/pdf/pdf_form_spot_detector.dart';
 import 'package:document_studio/infrastructure/pdf/pdf_text_blank_detector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Rect _glyph(double x, double y, double w, double h, {double page = 1000}) {
@@ -155,9 +156,11 @@ void main() {
     session.setDetectedTextBlanks(1, const []);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ViewerLiveToolOverlaySurface(session: session),
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: ViewerLiveToolOverlaySurface(session: session),
+          ),
         ),
       ),
     );

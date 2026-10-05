@@ -216,4 +216,54 @@ class CompressService {
       } catch (_) {}
     }
   }
+
+  /// Finds the gentlest preset whose output fits [targetBytes] (Acrobat-style
+  /// "reduce to about N MB"). Tries lossless → recommended → extreme →
+  /// smallest → a harsher last resort, measuring each, and reports progress.
+  /// Returns the options to use plus whether the target was reached.
+  Future<({PdfCompressOptions options, bool reached, int? bestBytes})>
+      chooseOptionsForTarget({
+    required LocalFileRef input,
+    required int targetBytes,
+    String? password,
+    void Function(JobProgress)? onProgress,
+  }) async {
+    final ladder = <PdfCompressOptions>[
+      PdfCompressOptions.fromProfile(CompressProfile.highQuality),
+      PdfCompressOptions.fromProfile(CompressProfile.balanced),
+      PdfCompressOptions.fromProfile(CompressProfile.extreme),
+      PdfCompressOptions.fromProfile(CompressProfile.smallest),
+      const PdfCompressOptions(
+        profile: CompressProfile.custom,
+        recompressFlate: true,
+        optimizeImages: true,
+        jpegQuality: 30,
+        downsampleMaxPx: 800,
+        targetDpi: 72,
+      ),
+    ];
+    PdfCompressOptions best = ladder.first;
+    int? bestBytes;
+    for (var i = 0; i < ladder.length; i++) {
+      onProgress?.call(
+        JobProgress(
+          fraction: 0.05 + 0.6 * i / ladder.length,
+          message: 'Trying level ${i + 1} of ${ladder.length}…',
+        ),
+      );
+      final r = await estimateCompress(
+        input: input,
+        options: ladder[i],
+        password: password,
+      );
+      if (bestBytes == null || r.afterBytes < bestBytes) {
+        bestBytes = r.afterBytes;
+        best = ladder[i];
+      }
+      if (r.afterBytes <= targetBytes) {
+        return (options: ladder[i], reached: true, bestBytes: r.afterBytes);
+      }
+    }
+    return (options: best, reached: false, bestBytes: bestBytes);
+  }
 }

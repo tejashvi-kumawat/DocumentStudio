@@ -5,6 +5,7 @@ import 'package:document_studio/features/pdf_viewer/viewer_live_tool_session.dar
 import 'package:document_studio/features/pdf_viewer/widgets/page_placement_canvas.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/page_placement_math.dart';
 import 'package:document_studio/infrastructure/pdf/pdf_helvetica_metrics.dart';
+import 'package:document_studio/infrastructure/pdf/ttf_font.dart';
 import 'package:document_studio/infrastructure/pdf/pdf_overlay_text_builder.dart';
 
 /// Minimum normalized width when dragging a new text box on the page.
@@ -17,10 +18,11 @@ double liveTextBoxHeightNorm({
   required double fontSizePt,
   required double pageHeightPt,
   int lineCount = 1,
+  double lineHeightEm = kTextLineHeightEm,
 }) {
   final h = pageHeightPt > 1 ? pageHeightPt : 792.0;
   final lines = math.max(1, lineCount);
-  return ((fontSizePt * kTextLineHeightEm * lines) / h).clamp(0.004, 1.0);
+  return ((fontSizePt * lineHeightEm * lines) / h).clamp(0.004, 1.0);
 }
 
 /// Drag-create a text box: [originNorm] is pointer-down, [currentNorm] is tip.
@@ -53,10 +55,12 @@ List<String> wrapPlainTextToWidth({
   required double maxWidthPt,
   required double fontSizePt,
   bool bold = false,
+  double Function(String text)? measure,
 }) {
   final cleaned = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
   if (cleaned.isEmpty) return const [''];
-  double w(String s) => helveticaTextWidthPt(s, fontSizePt, bold: bold);
+  double w(String s) =>
+      measure != null ? measure(s) : helveticaTextWidthPt(s, fontSizePt, bold: bold);
   final maxW = math.max(1.0, maxWidthPt);
   final out = <String>[];
   for (final paragraph in cleaned.split('\n')) {
@@ -144,8 +148,11 @@ double alignedLineOffsetPt({
   required double fontSizePt,
   required bool bold,
   required LiveMarginAlign align,
+  double Function(String text)? measure,
 }) {
-  final lineW = helveticaTextWidthPt(line, fontSizePt, bold: bold);
+  final lineW = measure != null
+      ? measure(line)
+      : helveticaTextWidthPt(line, fontSizePt, bold: bold);
   return switch (align) {
     LiveMarginAlign.left => 0.0,
     LiveMarginAlign.center => (boxWidthPt - lineW) / 2,
@@ -164,11 +171,16 @@ List<PdfOverlayTextLine> overlayTextLinesForBox({
   required bool bold,
   required (double r, double g, double b) fillRgb,
   LiveMarginAlign align = LiveMarginAlign.left,
+  String? fontBase,
+  double lineHeightEm = kTextLineHeightEm,
+  TtfFont? ttf,
 }) {
   final boxW = boxNorm.width * pageWidthPt;
   final leftPt = boxNorm.left * pageWidthPt;
   final topPt = boxNorm.top * pageHeightPt;
-  final leading = fontSizePt * kTextLineHeightEm;
+  final leading = fontSizePt * lineHeightEm;
+  // Extra leading is split above and below the line, as the editor draws it.
+  final halfExtra = (lineHeightEm - kTextLineHeightEm) / 2 * fontSizePt;
   final result = <PdfOverlayTextLine>[];
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i];
@@ -180,9 +192,10 @@ List<PdfOverlayTextLine> overlayTextLinesForBox({
           fontSizePt: fontSizePt,
           bold: bold,
           align: align,
+          measure: ttf == null ? null : (t) => ttf.textWidthPt(t, fontSizePt),
         );
     final baselineFromTop =
-        topPt + i * leading + fontSizePt * kHelveticaBaselineFromLineTopEm;
+        topPt + i * leading + halfExtra + fontSizePt * kHelveticaBaselineFromLineTopEm;
     result.add(
       PdfOverlayTextLine(
         text: line,
@@ -190,6 +203,8 @@ List<PdfOverlayTextLine> overlayTextLinesForBox({
         yPt: pageHeightPt - baselineFromTop,
         fontSizePt: fontSizePt,
         bold: bold,
+        fontBase: fontBase,
+        ttf: ttf,
         fillRgb: fillRgb,
       ),
     );

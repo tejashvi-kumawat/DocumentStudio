@@ -1,3 +1,4 @@
+import 'package:document_studio/features/annotations/markup/markup_tool_icon.dart';
 import 'dart:math' as math;
 
 import 'package:document_studio/design_system/ds_colors.dart';
@@ -57,14 +58,14 @@ class PdfViewerMarkupPalette extends StatefulWidget {
   /// Extra gap at the bottom of the page (in addition to the edge inset).
   final double pageBottomInset;
 
-  static const railWidth = 44.0;
+  static const railWidth = 46.0;
   static const dockTop = 12.0;
 
   /// Remembered for the app session. Not written to disk.
   /// Starts collapsed: one button, until the user expands it.
-  static bool sessionCollapsed = true;
+  static bool sessionCollapsed = false;
 
-  static final ValueNotifier<bool> collapsed = ValueNotifier<bool>(true);
+  static final ValueNotifier<bool> collapsed = ValueNotifier<bool>(false);
 
   /// Top-left of the bar after the user drags it. Null keeps the right dock.
   static Offset? sessionOrigin;
@@ -317,42 +318,66 @@ class _Bar extends StatelessWidget {
                         selected: armed == MarkupTool.select,
                         onPressed: () => onSelect(MarkupTool.select),
                       ),
-                      _IconTool(
-                        tool: MarkupTool.text,
-                        enabled: enabled,
-                        selected: armed == MarkupTool.text,
-                        onPressed: () => onSelect(MarkupTool.text),
-                      ),
-                      _MarkGroup(
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
-                      _IconTool(
-                        tool: MarkupTool.pen,
-                        tooltip: 'Draw',
-                        enabled: enabled,
-                        selected:
-                            armed == MarkupTool.pen ||
-                            armed == MarkupTool.highlighter,
-                        onPressed: () => onSelect(MarkupTool.pen),
-                      ),
-                      _ShapeButton(
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
+                      const _Sep(),
                       _IconTool(
                         tool: MarkupTool.note,
+                        tooltip: 'Add a sticky note',
                         enabled: enabled,
                         selected: armed == MarkupTool.note,
                         onPressed: () => onSelect(MarkupTool.note),
                       ),
-                      _IconTool(
-                        tool: MarkupTool.eraser,
+                      _GroupButton(
+                        label: 'Text',
+                        tools: const [MarkupTool.text, MarkupTool.callout],
                         enabled: enabled,
-                        selected: armed == MarkupTool.eraser,
-                        onPressed: () => onSelect(MarkupTool.eraser),
+                        armed: armed,
+                        onSelect: onSelect,
+                      ),
+                      _GroupButton(
+                        label: 'Mark up text',
+                        tools: const [
+                          MarkupTool.highlight,
+                          MarkupTool.underline,
+                          MarkupTool.strikeout,
+                          MarkupTool.squiggly,
+                        ],
+                        enabled: enabled,
+                        armed: armed,
+                        onSelect: onSelect,
+                      ),
+                      const _Sep(),
+                      _GroupButton(
+                        label: 'Draw',
+                        tools: const [
+                          MarkupTool.pen,
+                          MarkupTool.highlighter,
+                          MarkupTool.eraser,
+                        ],
+                        enabled: enabled,
+                        armed: armed,
+                        onSelect: onSelect,
+                      ),
+                      _GroupButton(
+                        label: 'Shapes',
+                        tools: const [
+                          MarkupTool.line,
+                          MarkupTool.arrow,
+                          MarkupTool.rectangle,
+                          MarkupTool.ellipse,
+                          MarkupTool.polygon,
+                          MarkupTool.cloud,
+                        ],
+                        enabled: enabled,
+                        armed: armed,
+                        onSelect: onSelect,
+                      ),
+                      const _Sep(),
+                      _GroupButton(
+                        label: 'Insert',
+                        tools: const [MarkupTool.link, MarkupTool.image],
+                        enabled: enabled,
+                        armed: armed,
+                        onSelect: onSelect,
                       ),
                     ],
                   ),
@@ -364,6 +389,16 @@ class _Bar extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Sep extends StatelessWidget {
+  const _Sep();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
+        child: Divider(height: 1, color: DsColors.border(Theme.of(context).brightness)),
+      );
 }
 
 class _DragGrip extends StatelessWidget {
@@ -425,45 +460,6 @@ class _CollapseButton extends StatelessWidget {
   }
 }
 
-class _MarkGroup extends StatelessWidget {
-  const _MarkGroup({
-    required this.enabled,
-    required this.armed,
-    required this.onSelect,
-  });
-
-  final bool enabled;
-  final MarkupTool? armed;
-  final ValueChanged<MarkupTool> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final border = DsColors.border(Theme.of(context).brightness);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: border),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final tool in _markTools)
-              _IconTool(
-                tool: tool,
-                enabled: enabled,
-                selected: armed == tool,
-                onPressed: () => onSelect(tool),
-                tight: true,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _IconTool extends StatelessWidget {
   const _IconTool({
     required this.tool,
@@ -485,14 +481,13 @@ class _IconTool extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       key: Key('pdf_viewer_markup_palette_${tool.name}'),
-      tooltip: tooltip ?? tool.label,
+      tooltip: tool.shortcutHint == null
+          ? (tooltip ?? tool.label)
+          : '${tooltip ?? tool.label}  (${tool.shortcutHint})',
       visualDensity: VisualDensity.compact,
-      iconSize: 20,
+      iconSize: 22,
       padding: EdgeInsets.zero,
-      constraints: BoxConstraints(
-        minWidth: tight ? 36 : PdfViewerMarkupPalette.railWidth,
-        minHeight: tight ? 32 : 36,
-      ),
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 36),
       onPressed: enabled ? onPressed : null,
       style: IconButton.styleFrom(
         foregroundColor: selected
@@ -503,212 +498,156 @@ class _IconTool extends StatelessWidget {
             : Colors.transparent,
         shape: const RoundedRectangleBorder(),
       ),
-      icon: Icon(tool.icon),
+      icon: MarkupToolIcon(tool, size: 22),
     );
   }
 }
 
-class _ShapeButton extends StatefulWidget {
-  const _ShapeButton({
+
+/// A tool button with a small ▾ that opens the rest of its group, like
+/// Acrobat's comment bar. The button repeats the last tool used from the
+/// group; the arrow (or a right-click) lists every tool with its shortcut.
+class _GroupButton extends StatefulWidget {
+  const _GroupButton({
+    required this.label,
+    required this.tools,
     required this.enabled,
     required this.armed,
     required this.onSelect,
   });
 
+  final String label;
+  final List<MarkupTool> tools;
   final bool enabled;
   final MarkupTool? armed;
   final ValueChanged<MarkupTool> onSelect;
 
   @override
-  State<_ShapeButton> createState() => _ShapeButtonState();
+  State<_GroupButton> createState() => _GroupButtonState();
 }
 
-class _ShapeButtonState extends State<_ShapeButton> {
-  final _link = LayerLink();
-  OverlayEntry? _entry;
-  bool _openUp = false;
-  bool _openRight = false;
+class _GroupButtonState extends State<_GroupButton> {
+  late MarkupTool _last = widget.tools.first;
 
-  bool get _shapeArmed =>
-      widget.armed != null && pdfViewerMarkupShapeTools.contains(widget.armed);
+  MarkupTool get _shown =>
+      widget.armed != null && widget.tools.contains(widget.armed)
+          ? widget.armed!
+          : _last;
 
-  @override
-  void didUpdateWidget(_ShapeButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _entry?.markNeedsBuild();
-  }
-
-  @override
-  void dispose() {
-    _entry?.remove();
-    _entry = null;
-    super.dispose();
-  }
-
-  void _close() {
-    _entry?.remove();
-    _entry = null;
-    if (mounted) setState(() {});
-  }
-
-  void _toggle() {
-    if (_entry != null) {
-      _close();
-      return;
-    }
+  Future<void> _openMenu() async {
     final box = context.findRenderObject()! as RenderBox;
-    final origin = box.localToGlobal(Offset.zero);
-    final screen = MediaQuery.sizeOf(context);
-    final menuH = pdfViewerMarkupShapeTools.length * 40.0 + 8;
-    _openUp = origin.dy + menuH > screen.height - 12;
-    // The menu is ~200dp. Open toward the side of the screen that has room
-    // so a phone button near the left edge does not paint off-screen.
-    _openRight = origin.dx < 220;
-    _entry = OverlayEntry(
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final surface = isDark
-            ? DsColors.surfaceContainerDark
-            : DsColors.surfaceLight;
-        final border = DsColors.border(Theme.of(context).brightness);
-        return Positioned.fill(
+    final overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final topLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
+    final pos = RelativeRect.fromLTRB(
+      topLeft.dx - 190,
+      topLeft.dy,
+      overlay.size.width - topLeft.dx,
+      0,
+    );
+    final picked = await showMenu<MarkupTool>(
+      context: context,
+      position: pos,
+      constraints: const BoxConstraints(minWidth: 190),
+      items: [
+        for (final t in widget.tools)
+          PopupMenuItem<MarkupTool>(
+            value: t,
+            height: 34,
+            child: Row(
+              children: [
+                MarkupToolIcon(t, size: 16),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(_shapeLabel(t), style: const TextStyle(fontSize: 13)),
+                ),
+                if (t.shortcutHint != null)
+                  Text(
+                    t.shortcutHint!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+    if (picked != null) {
+      setState(() => _last = picked);
+      widget.onSelect(picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tool = _shown;
+    final on = widget.armed != null && widget.tools.contains(widget.armed);
+    final color =
+        on ? DsColors.primary : Theme.of(context).colorScheme.onSurface;
+    final hint = tool.shortcutHint;
+    return Tooltip(
+      message: hint == null
+          ? _shapeLabel(tool)
+          : '${_shapeLabel(tool)}  ($hint)',
+      child: GestureDetector(
+        onSecondaryTap: widget.enabled ? _openMenu : null,
+        child: SizedBox(
+          width: 40,
+          height: 36,
           child: Stack(
             children: [
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _close,
-                child: const SizedBox.expand(),
+              Positioned.fill(
+                child: InkWell(
+                  onTap: widget.enabled
+                      ? () {
+                          setState(() => _last = tool);
+                          widget.onSelect(tool);
+                        }
+                      : null,
+                  child: Container(
+                    color: on ? DsColors.primary.withValues(alpha: 0.12) : null,
+                    alignment: Alignment.center,
+                    child: MarkupToolIcon(tool, size: 22, color: color),
+                  ),
+                ),
               ),
-              CompositedTransformFollower(
-                link: _link,
-                showWhenUnlinked: false,
-                targetAnchor: _openRight
-                    ? (_openUp ? Alignment.bottomRight : Alignment.topRight)
-                    : (_openUp ? Alignment.bottomLeft : Alignment.topLeft),
-                followerAnchor: _openRight
-                    ? (_openUp ? Alignment.bottomLeft : Alignment.topLeft)
-                    : (_openUp ? Alignment.bottomRight : Alignment.topRight),
-                offset: Offset(_openRight ? 6 : -6, 0),
-                child: Material(
-                  elevation: 8,
-                  color: surface,
-                  shadowColor: const Color(0x330F172A),
-                  borderRadius: BorderRadius.circular(8),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: border),
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minWidth: 196,
-                        maxWidth: 240,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (final tool in pdfViewerMarkupShapeTools)
-                            _ShapeRow(
-                              tool: tool,
-                              selected: widget.armed == tool,
-                              onPressed: widget.enabled
-                                  ? () {
-                                      widget.onSelect(tool);
-                                      _close();
-                                    }
-                                  : null,
-                            ),
-                        ],
-                      ),
-                    ),
+              // Acrobat-style corner marker: opens the rest of the group.
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: InkWell(
+                  onTap: widget.enabled ? _openMenu : null,
+                  child: SizedBox(
+                    width: 11,
+                    height: 11,
+                    child: CustomPaint(painter: _CornerTriangle(color)),
                   ),
                 ),
               ),
             ],
           ),
-        );
-      },
-    );
-    Overlay.of(context, rootOverlay: true).insert(_entry!);
-    setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final on = _shapeArmed || _entry != null;
-    final icon = _shapeArmed ? widget.armed!.icon : Icons.category_outlined;
-    return CompositedTransformTarget(
-      link: _link,
-      child: IconButton(
-        key: const Key('pdf_viewer_markup_palette_shapes'),
-        tooltip: 'Shapes',
-        visualDensity: VisualDensity.compact,
-        iconSize: 20,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(
-          minWidth: PdfViewerMarkupPalette.railWidth,
-          minHeight: 36,
         ),
-        onPressed: widget.enabled ? _toggle : null,
-        style: IconButton.styleFrom(
-          foregroundColor: on
-              ? DsColors.primary
-              : Theme.of(context).colorScheme.onSurface,
-          backgroundColor: on
-              ? DsColors.primary.withValues(alpha: 0.12)
-              : Colors.transparent,
-        ),
-        icon: Icon(icon),
       ),
     );
   }
 }
 
-class _ShapeRow extends StatelessWidget {
-  const _ShapeRow({
-    required this.tool,
-    required this.selected,
-    required this.onPressed,
-  });
-
-  final MarkupTool tool;
-  final bool selected;
-  final VoidCallback? onPressed;
+class _CornerTriangle extends CustomPainter {
+  _CornerTriangle(this.color);
+  final Color color;
 
   @override
-  Widget build(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final color = selected ? DsColors.primary : onSurface;
-    return InkWell(
-      key: Key('pdf_viewer_markup_palette_${tool.name}'),
-      onTap: onPressed,
-      child: ColoredBox(
-        color: selected
-            ? DsColors.primary.withValues(alpha: 0.12)
-            : Colors.transparent,
-        child: SizedBox(
-          height: 40,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Icon(tool.icon, size: 18, color: color),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    _shapeLabel(tool),
-                    style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: color),
-                  ),
-                ),
-                if (selected)
-                  const Icon(Icons.check, size: 16, color: DsColors.primary),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width, size.height * 0.35)
+      ..lineTo(size.width, size.height)
+      ..lineTo(size.width * 0.35, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color.withValues(alpha: 0.85));
   }
+
+  @override
+  bool shouldRepaint(_CornerTriangle old) => old.color != color;
 }

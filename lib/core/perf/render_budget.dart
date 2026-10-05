@@ -1,6 +1,8 @@
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 
 enum DeviceTier { low, mid, high }
@@ -20,6 +22,8 @@ class RenderBudget {
     required this.limitPdfiumImageCache,
     required this.thumbnailMemoryBytes,
     required this.renderConcurrency,
+    required this.oversample,
+    required this.maxRenderLongEdgePx,
   });
 
   final DeviceTier tier;
@@ -45,9 +49,43 @@ class RenderBudget {
   /// Parallel thumbnail renders.
   final int renderConcurrency;
 
+  /// Minimum pixels per screen pixel for page bitmaps. Above 1 keeps text
+  /// crisp at fractional zooms, where a 1:1 bitmap is resampled and softens.
+  final double oversample;
+
+  /// Long-edge cap of a whole-page bitmap.
+  final double maxRenderLongEdgePx;
+
   static RenderBudget? _current;
 
+  /// Settings → Viewing → Render quality: `auto`, `high`, `fast`.
+  static String userQuality = 'auto';
+
+  /// Pixels per screen pixel actually used (tier default unless overridden).
+  double get effectiveOversample => switch (userQuality) {
+        'high' => math.max(oversample, 1.5),
+        'fast' => 1.0,
+        _ => oversample,
+      };
+
   static RenderBudget get current => _current ??= _detect();
+
+  /// Fixed 1:1, 4096 px budget so scale tests do not depend on the host.
+  @visibleForTesting
+  static void debugUseFixedBudget() {
+    _current = const RenderBudget._(
+      tier: DeviceTier.mid,
+      totalRamBytes: null,
+      viewerImageCacheBytes: 160 * 1024 * 1024,
+      cacheExtent: 0.75,
+      pageImageCachingDelay: Duration(milliseconds: 20),
+      limitPdfiumImageCache: false,
+      thumbnailMemoryBytes: 32 * 1024 * 1024,
+      renderConcurrency: 2,
+      oversample: 1,
+      maxRenderLongEdgePx: 4096,
+    );
+  }
 
   static const _mb = 1024 * 1024;
 
@@ -73,6 +111,8 @@ class RenderBudget {
           limitPdfiumImageCache: true,
           thumbnailMemoryBytes: 16 * _mb,
           renderConcurrency: 1,
+          oversample: 1.0,
+          maxRenderLongEdgePx: 4096,
         ),
       DeviceTier.mid => RenderBudget._(
           tier: tier,
@@ -83,6 +123,8 @@ class RenderBudget {
           limitPdfiumImageCache: false,
           thumbnailMemoryBytes: 32 * _mb,
           renderConcurrency: 2,
+          oversample: 1.5,
+          maxRenderLongEdgePx: 6144,
         ),
       DeviceTier.high => RenderBudget._(
           tier: tier,
@@ -96,6 +138,8 @@ class RenderBudget {
           limitPdfiumImageCache: false,
           thumbnailMemoryBytes: 64 * _mb,
           renderConcurrency: math.min(3, math.max(2, cpus ~/ 4)),
+          oversample: 1.5,
+          maxRenderLongEdgePx: 8192,
         ),
     };
     if (!kReleaseMode) {
@@ -121,7 +165,27 @@ class RenderBudget {
         final out = Process.runSync('/usr/sbin/sysctl', ['-n', 'hw.memsize']);
         return int.tryParse('${out.stdout}'.trim());
       }
+      if (Platform.isWindows) return _windowsTotalRam();
     } catch (_) {}
     return null;
+  }
+
+  /// `GlobalMemoryStatusEx` (kernel32). Without it Windows fell to the CPU
+  /// heuristic and often landed on the slowest tier.
+  static int? _windowsTotalRam() {
+    final status = calloc<Uint8>(64);
+    try {
+      status.cast<Uint32>().value = 64; // dwLength
+      final kernel = DynamicLibrary.open('kernel32.dll');
+      final call = kernel.lookupFunction<Int32 Function(Pointer<Uint8>),
+          int Function(Pointer<Uint8>)>('GlobalMemoryStatusEx');
+      if (call(status) == 0) return null;
+      // ullTotalPhys sits at byte offset 8.
+      return (status + 8).cast<Uint64>().value;
+    } catch (_) {
+      return null;
+    } finally {
+      calloc.free(status);
+    }
   }
 }

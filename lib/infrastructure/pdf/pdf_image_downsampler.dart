@@ -39,10 +39,9 @@ Future<PdfImageDownsampleResult> downsamplePdfJpegImages({
   final exe = await resolvedQpdfExecutable();
   final pw = [if (password != null && password.isNotEmpty) '--password=$password'];
 
-  final dump = await Process.run(
-    exe,
+  final dump = await runQpdfProtected(
     [...pw, '--json=2', '--json-key=qpdf', '--json-stream-data=none', inputPath],
-    stdoutEncoding: utf8,
+    (a) => Process.run(exe, a, stdoutEncoding: utf8),
   );
   if (dump.exitCode != 0 && dump.exitCode != 3) {
     throw QpdfCliException(
@@ -70,10 +69,9 @@ Future<PdfImageDownsampleResult> downsamplePdfJpegImages({
     final queue = List<_Candidate>.of(plan.candidates);
 
     Future<void> processOne(_Candidate c) async {
-      final raw = await Process.run(
-        exe,
+      final raw = await runQpdfProtected(
         [...pw, inputPath, '--show-object=${c.objectNumber}', '--raw-stream-data'],
-        stdoutEncoding: null,
+        (a) => Process.run(exe, a, stdoutEncoding: null),
       );
       if (raw.exitCode != 0 && raw.exitCode != 3) return;
       final original = Uint8List.fromList(raw.stdout as List<int>);
@@ -128,12 +126,12 @@ Future<PdfImageDownsampleResult> downsamplePdfJpegImages({
         'qpdf': [plan.header, updates],
       }),
     );
-    final result = await Process.run(exe, [
+    final result = await runQpdfProtected([
       ...pw,
       inputPath,
       '--update-from-json=$updatePath',
       outputPath,
-    ]);
+    ], (a) => Process.run(exe, a));
     if (result.exitCode != 0 && result.exitCode != 3) {
       throw QpdfCliException(
         exitCode: result.exitCode,

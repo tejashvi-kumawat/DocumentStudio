@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:document_studio/core/fonts/font_library.dart';
 import 'package:document_studio/app/first_launch_splash.dart';
 import 'package:document_studio/app/keyboard/app_shortcuts.dart';
 import 'package:document_studio/app/providers.dart';
@@ -39,6 +40,9 @@ class _DocumentStudioAppState extends ConsumerState<DocumentStudioApp> {
       ),
     );
     Future.microtask(() => ref.read(themeModeProvider.notifier).load());
+    // Load viewer defaults (zoom, page display, render quality) up front.
+    Future.microtask(() => ref.read(viewerPrefsProvider));
+    Future.microtask(() => FontLibrary.instance.ensureLoaded());
     final afterSplash = desktopEngineSetupWaitAfterSplash();
     unawaited(
       offerLinuxPdfDefaultPrompt(

@@ -66,25 +66,17 @@ class HomeToolsHubGrid extends StatelessWidget {
       return _CompactToolsList(tools: tools);
     }
 
-    final columns = homeToolsHubCrossAxisCount(width);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: homeToolsHubChildAspectRatio(width),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 340,
+        mainAxisExtent: HomeToolsHubCard.height,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
       ),
       itemCount: tools.length,
-      itemBuilder: (context, index) {
-        final tool = tools[index];
-        return HomeToolsHubCard(
-          tool: tool,
-          actionLabel: 'Open',
-          compact: width < DsSpacing.breakpointExpanded,
-        );
-      },
+      itemBuilder: (context, index) => HomeToolsHubCard(tool: tools[index]),
     );
   }
 }

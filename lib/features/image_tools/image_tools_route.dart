@@ -2,6 +2,7 @@ import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:flutter/material.dart';
 import 'package:document_studio/features/image_tools/image_tools_deps.dart';
+import 'package:document_studio/features/image_tools/image_converter_screen.dart';
 import 'package:document_studio/features/image_tools/image_tools_screen.dart';
 import 'package:document_studio/infrastructure/image/image_package_adapter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,22 @@ import 'package:go_router/go_router.dart';
 
 /// Route path for lead to register in [app_router.dart].
 const imageToolsRoutePath = '/image-tools';
+
+/// Batch converter (JPG ⇄ PNG ⇄ GIF ⇄ BMP ⇄ TIFF ⇄ ICO).
+const imageConverterRoutePath = '/image-converter';
+
+GoRoute buildImageConverterRoute({
+  GlobalKey<NavigatorState>? parentNavigatorKey,
+}) {
+  return GoRoute(
+    parentNavigatorKey: parentNavigatorKey,
+    path: imageConverterRoutePath,
+    builder: (context, state) => Consumer(
+      builder: (context, ref, _) =>
+          ImageConverterScreen(deps: imageToolsDepsFromRef(ref)),
+    ),
+  );
+}
 
 ImageToolsDeps imageToolsDepsFromRef(WidgetRef ref) {
   return ImageToolsDeps(

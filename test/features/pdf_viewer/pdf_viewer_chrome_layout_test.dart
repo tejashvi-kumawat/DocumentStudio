@@ -54,13 +54,14 @@ void main() {
     }
 
     const order = <String>[
+      'pdf_viewer_tool_edit',
+      'pdf_viewer_tool_comment',
       'pdf_viewer_tool_organize',
       'pdf_viewer_tool_crop',
       'pdf_viewer_tool_rotate',
-      'pdf_viewer_tool_edit',
       'pdf_viewer_tool_convert',
-      'pdf_viewer_tool_encrypt',
-      'pdf_viewer_tool_decrypt',
+      'pdf_viewer_tool_protect',
+      'pdf_viewer_tool_sign',
       'pdf_viewer_tool_all',
     ];
 

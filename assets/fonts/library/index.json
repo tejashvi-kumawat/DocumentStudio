@@ -1,0 +1,1794 @@
+[
+ {
+  "family": "Carlito",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Carlito-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Carlito-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Carlito-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Carlito-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Caladea",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Caladea-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Caladea-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Caladea-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Caladea-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Gelasio",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Gelasio-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Gelasio-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Gelasio-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Gelasio-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Arimo",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Arimo-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Arimo-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Arimo-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Arimo-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Tinos",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Tinos-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Tinos-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Tinos-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Tinos-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Cousine",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Cousine-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Cousine-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Cousine-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Cousine-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Roboto",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Roboto-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Roboto-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Roboto-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Roboto-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Open Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "OpenSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "OpenSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "OpenSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "OpenSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Lato",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Lato-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Lato-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Lato-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Lato-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Montserrat",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Montserrat-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Montserrat-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Montserrat-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Montserrat-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Poppins",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Poppins-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Poppins-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Poppins-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Poppins-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Inter",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Inter-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Inter-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Inter-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Inter-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Raleway",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Raleway-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Raleway-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Raleway-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Raleway-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Nunito",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Nunito-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Nunito-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Nunito-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Nunito-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Source Sans 3",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "SourceSans3-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "SourceSans3-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "SourceSans3-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "SourceSans3-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Noto Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "NotoSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "NotoSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "NotoSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "NotoSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "PT Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "PTSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "PTSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "PTSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "PTSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Ubuntu",
+  "category": "sans-serif",
+  "license": "UFL-1.0",
+  "files": [
+   {
+    "file": "Ubuntu-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Ubuntu-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Ubuntu-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Ubuntu-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Work Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "WorkSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "WorkSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "WorkSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "WorkSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Fira Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "FiraSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "FiraSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "FiraSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "FiraSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Rubik",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Rubik-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Rubik-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Rubik-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Rubik-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Mulish",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Mulish-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Mulish-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Mulish-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Mulish-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Karla",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Karla-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Karla-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Karla-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Karla-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Barlow",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Barlow-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Barlow-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Barlow-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Barlow-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Cabin",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Cabin-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Cabin-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Cabin-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Cabin-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Josefin Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "JosefinSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "JosefinSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "JosefinSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "JosefinSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "IBM Plex Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "IBMPlexSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "IBMPlexSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "IBMPlexSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "IBMPlexSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Titillium Web",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "TitilliumWeb-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "TitilliumWeb-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "TitilliumWeb-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "TitilliumWeb-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Hind",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Hind-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Hind-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Manrope",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Manrope-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Manrope-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "DM Sans",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "DMSans-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "DMSans-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "DMSans-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "DMSans-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Archivo",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Archivo-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Archivo-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Archivo-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Archivo-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Heebo",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Heebo-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Heebo-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Libre Franklin",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "LibreFranklin-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "LibreFranklin-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "LibreFranklin-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "LibreFranklin-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Assistant",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Assistant-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Assistant-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Exo 2",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Exo2-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Exo2-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Exo2-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Exo2-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Quicksand",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Quicksand-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Quicksand-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Oswald",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Oswald-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Oswald-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Noto Sans Display",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "NotoSansDisplay-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "NotoSansDisplay-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "NotoSansDisplay-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "NotoSansDisplay-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Roboto Condensed",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "RobotoCondensed-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "RobotoCondensed-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "RobotoCondensed-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "RobotoCondensed-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Noto Serif",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "NotoSerif-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "NotoSerif-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "NotoSerif-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "NotoSerif-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "PT Serif",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "PTSerif-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "PTSerif-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "PTSerif-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "PTSerif-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Merriweather",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Merriweather-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Merriweather-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Merriweather-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Merriweather-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Playfair Display",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "PlayfairDisplay-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "PlayfairDisplay-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "PlayfairDisplay-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "PlayfairDisplay-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Lora",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Lora-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Lora-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Lora-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Lora-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Libre Baskerville",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "LibreBaskerville-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "LibreBaskerville-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "LibreBaskerville-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "LibreBaskerville-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Crimson Text",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "CrimsonText-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "CrimsonText-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "CrimsonText-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "CrimsonText-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "EB Garamond",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "EBGaramond-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "EBGaramond-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "EBGaramond-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "EBGaramond-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Cormorant Garamond",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "CormorantGaramond-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "CormorantGaramond-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "CormorantGaramond-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "CormorantGaramond-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Source Serif 4",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "SourceSerif4-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "SourceSerif4-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "SourceSerif4-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "SourceSerif4-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Bitter",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Bitter-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Bitter-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Bitter-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Bitter-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Arvo",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Arvo-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Arvo-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Arvo-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Arvo-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Roboto Slab",
+  "category": "serif",
+  "license": "Apache-2.0",
+  "files": [
+   {
+    "file": "RobotoSlab-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "RobotoSlab-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "IBM Plex Serif",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "IBMPlexSerif-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "IBMPlexSerif-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "IBMPlexSerif-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "IBMPlexSerif-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "DM Serif Display",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "DMSerifDisplay-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "DMSerifDisplay-Italic.ttf",
+    "bold": false,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Domine",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Domine-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Domine-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Spectral",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Spectral-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Spectral-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Spectral-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "Spectral-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Cardo",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Cardo-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Cardo-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "Cardo-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Old Standard TT",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "OldStandardTT-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "OldStandardTT-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "OldStandardTT-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Roboto Mono",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "RobotoMono-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "RobotoMono-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "RobotoMono-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "RobotoMono-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Source Code Pro",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "SourceCodePro-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "SourceCodePro-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "SourceCodePro-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "SourceCodePro-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Inconsolata",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Inconsolata-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Inconsolata-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "JetBrains Mono",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "JetBrainsMono-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "JetBrainsMono-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "JetBrainsMono-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "JetBrainsMono-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "IBM Plex Mono",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "IBMPlexMono-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "IBMPlexMono-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "IBMPlexMono-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "IBMPlexMono-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Fira Mono",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "FiraMono-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "FiraMono-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Space Mono",
+  "category": "monospace",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "SpaceMono-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "SpaceMono-Italic.ttf",
+    "bold": false,
+    "italic": true
+   },
+   {
+    "file": "SpaceMono-Bold.ttf",
+    "bold": true,
+    "italic": false
+   },
+   {
+    "file": "SpaceMono-BoldItalic.ttf",
+    "bold": true,
+    "italic": true
+   }
+  ]
+ },
+ {
+  "family": "Abril Fatface",
+  "category": "display",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "AbrilFatface-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Bebas Neue",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "BebasNeue-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Anton",
+  "category": "sans-serif",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Anton-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Pacifico",
+  "category": "handwriting",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Pacifico-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Caveat",
+  "category": "handwriting",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Caveat-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "Caveat-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Lobster",
+  "category": "display",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "Lobster-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Dancing Script",
+  "category": "handwriting",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "DancingScript-Regular.ttf",
+    "bold": false,
+    "italic": false
+   },
+   {
+    "file": "DancingScript-Bold.ttf",
+    "bold": true,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Great Vibes",
+  "category": "handwriting",
+  "license": "OFL-1.1",
+  "files": [
+   {
+    "file": "GreatVibes-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Satisfy",
+  "category": "handwriting",
+  "license": "Apache-2.0",
+  "files": [
+   {
+    "file": "Satisfy-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ },
+ {
+  "family": "Permanent Marker",
+  "category": "handwriting",
+  "license": "Apache-2.0",
+  "files": [
+   {
+    "file": "PermanentMarker-Regular.ttf",
+    "bold": false,
+    "italic": false
+   }
+  ]
+ }
+]

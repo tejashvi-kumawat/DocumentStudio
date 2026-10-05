@@ -7,6 +7,7 @@ import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dar
 import 'package:document_studio/features/pdf_viewer/pdf_approach_pages.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_thumbnail_page_action.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_thumb_cell.dart';
+import 'package:document_studio/design_system/widgets/ds_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pdfrx/pdfrx.dart';
@@ -332,6 +333,47 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
     );
   }
 
+  void _showPageMenu(int page, Offset at) {
+    final act = widget.onPageAction;
+    if (act == null) return;
+    widget.onPageSelected(page);
+    unawaited(showDsContextMenu(context, at, [
+      DsMenuItem(
+        label: 'Rotate Clockwise',
+        icon: Icons.rotate_right,
+        onTap: () => act(page, PdfThumbnailPageAction.rotateRight),
+      ),
+      DsMenuItem(
+        label: 'Rotate Counterclockwise',
+        icon: Icons.rotate_left,
+        onTap: () => act(page, PdfThumbnailPageAction.rotateLeft),
+      ),
+      const DsMenuDivider(),
+      DsMenuItem(
+        label: 'Insert Blank Page After',
+        icon: Icons.note_add_outlined,
+        onTap: () => act(page, PdfThumbnailPageAction.insertBlankAfter),
+      ),
+      DsMenuItem(
+        label: 'Duplicate Page',
+        icon: Icons.control_point_duplicate,
+        onTap: () => act(page, PdfThumbnailPageAction.duplicate),
+      ),
+      DsMenuItem(
+        label: 'Extract Page…',
+        icon: Icons.content_cut,
+        onTap: () => act(page, PdfThumbnailPageAction.extract),
+      ),
+      const DsMenuDivider(),
+      DsMenuItem(
+        label: 'Delete Page',
+        icon: Icons.delete_outline,
+        destructive: true,
+        onTap: () => act(page, PdfThumbnailPageAction.delete),
+      ),
+    ]));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -383,6 +425,9 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
               final selected = pageNumber == activePage;
               final tile = InkWell(
                 onTap: () => widget.onPageSelected(pageNumber),
+                onSecondaryTapUp: widget.onPageAction == null
+                    ? null
+                    : (d) => _showPageMenu(pageNumber, d.globalPosition),
                 borderRadius: tileRadius,
                 child: DecoratedBox(
                   key: selected ? _activeTileKey : null,

@@ -1,2 +1,2 @@
-/// Left sidebar slot: page thumbnails, outline, or attachments (DS-READ-010).
-enum PdfViewerSidebarContent { thumbnails, outline, attachments }
+/// Left sidebar slot: page thumbnails, outline, attachments, or search results.
+enum PdfViewerSidebarContent { thumbnails, outline, attachments, search }

@@ -1,5 +1,5 @@
+import 'package:document_studio/core/settings/app_prefs.dart';
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:document_studio/core/isolate/run_isolated.dart';
@@ -303,8 +303,8 @@ class MarkupEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  String author =
-      Platform.environment['USER'] ?? Platform.environment['USERNAME'] ?? '';
+  /// Settings → Commenting → Author (falls back to the OS user name).
+  String get author => AppPrefs.effectiveAuthor;
 
   int textMarkupColor(TextMarkupKind kind) => switch (kind) {
     TextMarkupKind.highlight => highlightColor,

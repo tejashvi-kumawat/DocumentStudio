@@ -152,6 +152,34 @@ class DesktopEngineResolver {
 
   Future<String?> resolveFfmpeg() => resolve('ffmpeg');
 
+  /// Ghostscript (`gs`, or `gswin64c` / `gswin32c` on Windows), used for
+  /// PDF/A conversion. Also looks in the default Windows install folders.
+  Future<String?> resolveGhostscript() async {
+    for (final name in ['gs', 'gswin64c', 'gswin32c']) {
+      final path = await resolve(name);
+      if (path != null) return path;
+    }
+    if (Platform.isWindows) {
+      for (final root in [
+        Platform.environment['ProgramFiles'],
+        Platform.environment['ProgramFiles(x86)'],
+      ]) {
+        if (root == null) continue;
+        final gsDir = Directory(p.join(root, 'gs'));
+        if (!gsDir.existsSync()) continue;
+        final versions = gsDir.listSync().whereType<Directory>().toList()
+          ..sort((a, b) => b.path.compareTo(a.path));
+        for (final v in versions) {
+          for (final exe in ['gswin64c.exe', 'gswin32c.exe']) {
+            final f = File(p.join(v.path, 'bin', exe));
+            if (f.existsSync()) return f.path;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /// Directory containing `eng.traineddata` when bundled beside the binary.
   String? resolveTessdataPrefix() {
     final candidates = <String>{

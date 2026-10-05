@@ -1,6 +1,9 @@
+import 'package:document_studio/core/settings/app_prefs.dart';
+import 'package:document_studio/app/cli_launch_args.dart';
 import 'dart:async';
 
 import 'package:document_studio/design_system/brand/ds_brand_assets.dart';
+import 'package:document_studio/design_system/brand/ds_built_by.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:flutter/material.dart';
@@ -8,19 +11,19 @@ import 'package:flutter/material.dart';
 /// Timing for the cold-start brand splash (entrance + hold before fade).
 abstract final class FirstLaunchSplashTiming {
   /// Logo fade / scale / settle.
-  static const logoIntro = Duration(milliseconds: 750);
+  static const logoIntro = Duration(milliseconds: 420);
 
   /// Delay before the brand underline starts drawing.
-  static const underlineDelay = Duration(milliseconds: 550);
+  static const underlineDelay = Duration(milliseconds: 280);
 
   /// Underline width draw.
-  static const underline = Duration(milliseconds: 400);
+  static const underline = Duration(milliseconds: 260);
 
-  /// When the full-window splash begins fading out (~1.6s on screen).
-  static const displayUntilFade = Duration(milliseconds: 1200);
+  /// When the full-window splash begins fading out (~0.9 s on screen).
+  static const displayUntilFade = Duration(milliseconds: 700);
 
   /// Splash dismiss fade.
-  static const fadeOut = Duration(milliseconds: 200);
+  static const fadeOut = Duration(milliseconds: 160);
 
   /// Home content fade + 8px rise after splash starts dismissing.
   static const contentReveal = DsMotion.contentReveal;
@@ -83,7 +86,10 @@ class _FirstLaunchSplashHostState extends State<FirstLaunchSplashHost>
   @override
   void initState() {
     super.initState();
-    _playSplash = !FirstLaunchSplashHost._seenThisProcess;
+    // Off in Settings, or a file was opened from the desktop: go straight in.
+    _playSplash = !FirstLaunchSplashHost._seenThisProcess &&
+        AppPrefs.showSplash &&
+        !CliLaunchArgs.fromProcess().hasWork;
     if (_playSplash) {
       FirstLaunchSplashHost._seenThisProcess = true;
       _overlayVisible = true;
@@ -266,6 +272,15 @@ class _FirstLaunchSplashHostState extends State<FirstLaunchSplashHost>
                                 child: const ColoredBox(
                                   color: DsColors.primary,
                                 ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Opacity(
+                              opacity: _underlineWidth.value,
+                              child: const DsBuiltBy(
+                                fontSize: 12.5,
+                                link: false,
+                                color: Color(0xFF64748B),
                               ),
                             ),
                           ],

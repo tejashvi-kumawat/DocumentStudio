@@ -6,6 +6,25 @@ import 'package:flutter/material.dart';
 /// the full sheet width. Same on Android, Windows, and macOS.
 const double viewerAcrobatOptionsWidth = 380;
 
+/// The width of the resizable tools pane, so forms use it when it is dragged
+/// wider than the default [viewerAcrobatOptionsWidth].
+class ViewerOptionsWidthScope extends InheritedWidget {
+  const ViewerOptionsWidthScope({
+    super.key,
+    required this.width,
+    required super.child,
+  });
+
+  final double width;
+
+  static double? maybeOf(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<ViewerOptionsWidthScope>()
+      ?.width;
+
+  @override
+  bool updateShouldNotify(ViewerOptionsWidthScope old) => old.width != width;
+}
+
 /// Full-width stacking when the window or the column is compact (&lt; 600).
 bool viewerToolFormStacks(BuildContext context, [double? maxWidth]) {
   final width = maxWidth ?? MediaQuery.sizeOf(context).width;
@@ -89,6 +108,7 @@ class ViewerToolFormScaffold extends StatelessWidget {
       child: LayoutBuilder(
       builder: (context, constraints) {
         final centered = _center(
+          context: context,
           compact: compact ||
               (constraints.maxWidth.isFinite &&
                   constraints.maxWidth < DsSpacing.breakpointCompact),
@@ -292,6 +312,7 @@ class _ApplyBar extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.fromLTRB(pad, DsSpacing.sm, pad, DsSpacing.sm),
             child: _center(
+          context: context,
               compact: compact,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -313,6 +334,7 @@ class _ApplyBar extends StatelessWidget {
 }
 
 Widget _center({
+  required BuildContext context,
   required bool compact,
   EdgeInsetsGeometry? padding,
   required Widget child,
@@ -321,7 +343,10 @@ Widget _center({
     alignment: Alignment.topCenter,
     child: ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: compact ? double.infinity : viewerAcrobatOptionsWidth,
+        maxWidth: compact
+            ? double.infinity
+            : (ViewerOptionsWidthScope.maybeOf(context) ??
+                viewerAcrobatOptionsWidth),
       ),
       child: padding == null ? child : Padding(padding: padding, child: child),
     ),

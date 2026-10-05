@@ -21,65 +21,59 @@ enum ViewerToolShortcutId {
   cancelTool,
 }
 
-/// Human-readable activator labels for tooltips.
+/// Tool shortcuts are always Alt+Shift+<letter>. A bare letter never opens a
+/// tool (typing, dialogs and text fields stay safe) and these chords do not
+/// collide with the Ctrl shortcuts (zoom, tabs, save, find).
+const _toolMods = (alt: true, shift: true);
+
+SingleActivator _tool(LogicalKeyboardKey key) =>
+    SingleActivator(key, alt: _toolMods.alt, shift: _toolMods.shift);
+
+String _letter(LogicalKeyboardKey key) => key.keyLabel.toUpperCase();
+
+LogicalKeyboardKey _keyFor(ViewerToolShortcutId id) => switch (id) {
+      ViewerToolShortcutId.addText => LogicalKeyboardKey.keyT,
+      ViewerToolShortcutId.crop => LogicalKeyboardKey.keyC,
+      ViewerToolShortcutId.placeImage => LogicalKeyboardKey.keyI,
+      ViewerToolShortcutId.placeSignature => LogicalKeyboardKey.keyS,
+      ViewerToolShortcutId.draw => LogicalKeyboardKey.keyD,
+      ViewerToolShortcutId.highlight => LogicalKeyboardKey.keyH,
+      ViewerToolShortcutId.underline => LogicalKeyboardKey.keyU,
+      ViewerToolShortcutId.stickyNote => LogicalKeyboardKey.keyN,
+      ViewerToolShortcutId.rectangle => LogicalKeyboardKey.keyR,
+      ViewerToolShortcutId.line => LogicalKeyboardKey.keyL,
+      ViewerToolShortcutId.addLink => LogicalKeyboardKey.keyK,
+      ViewerToolShortcutId.toggleRulers => LogicalKeyboardKey.keyM,
+      ViewerToolShortcutId.rotateRight ||
+      ViewerToolShortcutId.rotateLeft ||
+      ViewerToolShortcutId.cancelTool =>
+        LogicalKeyboardKey.escape,
+    };
+
+/// Human-readable activator labels for tooltips (shown on hover).
 String viewerToolShortcutTooltip(ViewerToolShortcutId id) {
   final meta = defaultTargetPlatform == TargetPlatform.macOS;
-  final mod = meta ? '⌘' : 'Ctrl';
-  return switch (id) {
-    ViewerToolShortcutId.addText => 'T',
-    ViewerToolShortcutId.crop => 'Alt+C',
-    ViewerToolShortcutId.rotateRight => '$mod+R',
-    ViewerToolShortcutId.rotateLeft => '$mod+L',
-    ViewerToolShortcutId.placeImage => 'I',
-    ViewerToolShortcutId.placeSignature => 'S',
-    ViewerToolShortcutId.draw => 'D',
-    ViewerToolShortcutId.highlight => 'H',
-    ViewerToolShortcutId.underline => 'U',
-    ViewerToolShortcutId.stickyNote => 'K',
-    ViewerToolShortcutId.rectangle => 'R',
-    ViewerToolShortcutId.line => 'Shift+L',
-    ViewerToolShortcutId.addLink => 'L',
-    ViewerToolShortcutId.toggleRulers => 'Alt+R',
-    ViewerToolShortcutId.cancelTool => 'Esc',
-  };
-}
-
-ShortcutActivator _primary(LogicalKeyboardKey key, {bool shift = false}) {
-  final useMeta = defaultTargetPlatform == TargetPlatform.macOS;
-  return SingleActivator(
-    key,
-    control: !useMeta,
-    meta: useMeta,
-    shift: shift,
-  );
+  switch (id) {
+    case ViewerToolShortcutId.cancelTool:
+      return 'Esc';
+    case ViewerToolShortcutId.rotateRight:
+      return meta ? '⌘⇧+' : 'Ctrl+Shift++';
+    case ViewerToolShortcutId.rotateLeft:
+      return meta ? '⌘⇧−' : 'Ctrl+Shift+−';
+    default:
+      return meta
+          ? '⌥⇧${_letter(_keyFor(id))}'
+          : 'Alt+Shift+${_letter(_keyFor(id))}';
+  }
 }
 
 /// Canonical map: activator → shortcut id (for tests and CallbackShortcuts).
 Map<ShortcutActivator, ViewerToolShortcutId> get viewerToolShortcutMap => {
-      const SingleActivator(LogicalKeyboardKey.keyT):
-          ViewerToolShortcutId.addText,
-      const SingleActivator(LogicalKeyboardKey.keyC, alt: true):
-          ViewerToolShortcutId.crop,
-      // Fallback when Alt+C is eaten by the compositor / IME.
-      const SingleActivator(LogicalKeyboardKey.keyC, control: true, alt: true):
-          ViewerToolShortcutId.crop,
-      _primary(LogicalKeyboardKey.keyR): ViewerToolShortcutId.rotateRight,
-      _primary(LogicalKeyboardKey.keyL): ViewerToolShortcutId.rotateLeft,
-      const SingleActivator(LogicalKeyboardKey.keyI):
-          ViewerToolShortcutId.placeImage,
-      const SingleActivator(LogicalKeyboardKey.keyS):
-          ViewerToolShortcutId.placeSignature,
-      const SingleActivator(LogicalKeyboardKey.keyD): ViewerToolShortcutId.draw,
-      const SingleActivator(LogicalKeyboardKey.keyH):
-          ViewerToolShortcutId.highlight,
-      const SingleActivator(LogicalKeyboardKey.keyU):
-          ViewerToolShortcutId.underline,
-      const SingleActivator(LogicalKeyboardKey.keyK):
-          ViewerToolShortcutId.stickyNote,
-      const SingleActivator(LogicalKeyboardKey.keyR):
-          ViewerToolShortcutId.rectangle,
-      const SingleActivator(LogicalKeyboardKey.keyL, shift: true):
-          ViewerToolShortcutId.line,
+      for (final id in ViewerToolShortcutId.values)
+        if (id != ViewerToolShortcutId.cancelTool &&
+            id != ViewerToolShortcutId.rotateRight &&
+            id != ViewerToolShortcutId.rotateLeft)
+          _tool(_keyFor(id)): id,
       const SingleActivator(LogicalKeyboardKey.escape):
           ViewerToolShortcutId.cancelTool,
     };

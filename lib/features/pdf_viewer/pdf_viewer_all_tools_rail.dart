@@ -37,6 +37,9 @@ class PdfViewerAllToolsRail extends ConsumerStatefulWidget {
 class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
   String _query = '';
 
+  /// Accordion: one category open at a time, like Acrobat's All tools.
+  String? _open;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -44,7 +47,11 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
     final borderColor = isDark ? DsColors.borderDark : DsColors.borderLight;
     final tools = buildPdfViewerAcrobatToolCatalog(ref);
     final filtered = _filterTools(tools, _query);
-    final groups = _railSections(filtered);
+    final entries = _query.isEmpty
+        ? buildPdfViewerAcrobatRail(tools)
+        : [
+            for (final t in filtered) PdfViewerAcrobatRailEntry.tool(t),
+          ];
     PdfViewerAcrobatToolDefinition? blockedSelection;
     final blockedId = widget.selectedBlockedToolId;
     if (blockedId != null) {
@@ -136,32 +143,24 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
                 scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
                 padding: const EdgeInsets.only(bottom: DsSpacing.lg),
                 children: [
-                  for (var i = 0; i < groups.length; i++) ...[
-                    if (i > 0)
-                      Divider(height: 1, thickness: 1, color: borderColor),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        DsSpacing.md,
-                        10,
-                        DsSpacing.md,
-                        2,
-                      ),
-                      child: Text(
-                        groups[i].title,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
+                  for (final entry in entries)
+                    if (entry.isGroup)
+                      _SectionAccordion(
+                        entry: entry,
+                        expanded: _open == entry.title,
+                        onToggle: () => setState(
+                          () => _open = _open == entry.title ? null : entry.title,
                         ),
+                        borderColor: borderColor,
+                        onToolTap: _onToolTap,
+                      )
+                    else
+                      _ToolTile(
+                        tool: entry.tool!,
+                        onTap: () => _onToolTap(entry.tool!),
+                        indent: 14,
+                        bold: true,
                       ),
-                    ),
-                    ...groups[i].tools.map(
-                      (tool) => _ToolTile(
-                        tool: tool,
-                        onTap: () => _onToolTap(tool),
-                      ),
-                    ),
-                  ],
                   if (filtered.isEmpty)
                     Padding(
                       padding: const EdgeInsets.all(DsSpacing.lg),
@@ -179,16 +178,6 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
         },
       ),
     );
-  }
-
-  List<_RailSection> _railSections(List<PdfViewerAcrobatToolDefinition> tools) {
-    return [
-      for (final group in pdfViewerAcrobatToolGroupsInOrder(tools))
-        _RailSection(
-          title: pdfViewerAcrobatRailSectionTitle(group),
-          tools: pdfViewerAcrobatToolsInGroup(tools, group),
-        ),
-    ];
   }
 
   List<PdfViewerAcrobatToolDefinition> _filterTools(
@@ -221,11 +210,102 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
   }
 }
 
+class _SectionAccordion extends StatelessWidget {
+  const _SectionAccordion({
+    required this.entry,
+    required this.expanded,
+    required this.onToggle,
+    required this.borderColor,
+    required this.onToolTap,
+  });
+
+  final PdfViewerAcrobatRailEntry entry;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final Color borderColor;
+  final void Function(PdfViewerAcrobatToolDefinition tool) onToolTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          key: Key('acrobat_tool_group_${entry.title}'),
+          onTap: onToggle,
+          child: SizedBox(
+            height: 36,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: DsSpacing.md),
+              child: Row(
+                children: [
+                  Icon(
+                    entry.icon,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      entry.title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${entry.tools.length}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    expanded ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: expanded
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final tool in entry.tools)
+                      _ToolTile(tool: tool, onTap: () => onToolTap(tool)),
+                    const SizedBox(height: 4),
+                  ],
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+        Divider(height: 1, thickness: 1, color: borderColor),
+      ],
+    );
+  }
+}
+
+/// Compact tool row; the one-line description is the tooltip.
 class _ToolTile extends StatelessWidget {
-  const _ToolTile({required this.tool, required this.onTap});
+  const _ToolTile({
+    required this.tool,
+    required this.onTap,
+    this.indent = 44,
+    this.bold = false,
+  });
 
   final PdfViewerAcrobatToolDefinition tool;
   final VoidCallback onTap;
+  final double indent;
+  final bool bold;
 
   @override
   Widget build(BuildContext context) {
@@ -237,68 +317,45 @@ class _ToolTile extends StatelessWidget {
         : theme.colorScheme.onSurface;
     final iconColor = blocked ? color : DsColors.primary;
 
-    return InkWell(
-      key: tool.handoffKey,
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 44),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DsSpacing.md,
-            vertical: 6,
-          ),
-          child: Row(
-            children: [
-              Icon(tool.icon, size: 20, color: iconColor),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      tool.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: color,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        height: 1.15,
-                      ),
+    return Tooltip(
+      message: tool.subtitle,
+      waitDuration: const Duration(milliseconds: 500),
+      child: InkWell(
+        key: tool.handoffKey,
+        onTap: onTap,
+        child: SizedBox(
+          height: bold ? 36 : 32,
+          child: Padding(
+            padding: EdgeInsets.only(left: indent, right: DsSpacing.md),
+            child: Row(
+              children: [
+                Icon(tool.icon, size: bold ? 18 : 17, color: iconColor),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    tool.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: color,
+                      fontSize: bold ? 13 : 12.5,
+                      fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
                     ),
-                    Text(
-                      tool.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                        height: 1.2,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              if (blocked)
-                Icon(
-                  Icons.block,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-            ],
+                if (blocked)
+                  Icon(
+                    Icons.block,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-}
-
-class _RailSection {
-  const _RailSection({required this.title, required this.tools});
-
-  final String title;
-  final List<PdfViewerAcrobatToolDefinition> tools;
 }
 
 class _BlockedToolCard extends StatelessWidget {

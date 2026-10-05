@@ -30,13 +30,13 @@ Most “PDF tools” push you into a browser upload. Document Studio is the oppo
 
 ## Current release
 
-**v1.0.3** — [GitHub Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3)
+**v1.1.0** — [GitHub Releases](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0)
 
 | File | Platform |
 | --- | --- |
-| `DocumentStudio-1.0.3-Setup.exe` | Windows |
-| `DocumentStudio-1.0.3-macos.dmg` | macOS |
-| `document-studio_1.0.3_amd64.deb` | Linux |
+| `DocumentStudio-1.1.0-Setup.exe` | Windows |
+| `DocumentStudio-1.1.0-macos.dmg` | macOS |
+| `document-studio_1.1.0_amd64.deb` | Linux |
 
 Next: [Download & install](#/install) · [How to use tools](#/how-to) · [Feature list](#/features).
 

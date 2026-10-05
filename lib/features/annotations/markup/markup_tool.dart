@@ -68,16 +68,17 @@ enum MarkupTool {
       };
 
   String? get shortcutHint => switch (this) {
-        MarkupTool.select => 'V',
-        MarkupTool.text => 'T',
-        MarkupTool.note => 'N',
-        MarkupTool.highlight => 'H',
-        MarkupTool.underline => 'U',
-        MarkupTool.pen => 'D',
-        MarkupTool.rectangle => 'R',
-        MarkupTool.line => 'L',
-        MarkupTool.link => 'K',
-        MarkupTool.image => 'I',
+        MarkupTool.select => 'Alt+Shift+V',
+        MarkupTool.text => 'Alt+Shift+T',
+        MarkupTool.note => 'Alt+Shift+N',
+        MarkupTool.highlight => 'Alt+Shift+H',
+        MarkupTool.underline => 'Alt+Shift+U',
+        MarkupTool.pen => 'Alt+Shift+D',
+        MarkupTool.rectangle => 'Alt+Shift+R',
+        MarkupTool.line => 'Alt+Shift+L',
+        MarkupTool.link => 'Alt+Shift+K',
+        MarkupTool.image => 'Alt+Shift+I',
+        MarkupTool.eraser => 'Alt+Shift+E',
         _ => null,
       };
 

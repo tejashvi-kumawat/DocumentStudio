@@ -33,7 +33,7 @@ void main() {
 
     expect(find.text('Extract pages'), findsOneWidget);
     expect(find.text('Save extracted pages'), findsOneWidget);
-    expect(find.byTooltip('Undo'), findsOneWidget);
+
     expect(
       tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save extracted pages')).onPressed,
       isNull,

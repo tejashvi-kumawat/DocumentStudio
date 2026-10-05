@@ -54,6 +54,10 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
   bool _customLinearize = false;
   bool _customOptimizeImages = false;
   bool _customDownsample = true;
+
+  /// Optional "reduce to about N MB" goal (null = use the chosen level).
+  double? _targetMb;
+  final _targetCtrl = TextEditingController();
   bool _busy = false;
   bool _estimating = false;
   bool? _qpdfAvailable;
@@ -74,6 +78,12 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
         _password = pw;
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _targetCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshQpdf() async {
@@ -176,7 +186,34 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
     setState(() => _activeJob = job);
     try {
       final svc = ref.read(compressServiceProvider);
-      final options = _currentOptions();
+      var options = _currentOptions();
+      final goalMb = _targetMb;
+      if (goalMb != null && goalMb > 0) {
+        final pick = await svc.chooseOptionsForTarget(
+          input: _file!,
+          targetBytes: (goalMb * 1024 * 1024).round(),
+          password: _password,
+          onProgress: (p) {
+            if (mounted) {
+              setState(() {
+                _statusMessage = p.message;
+                _progress = p.fraction;
+              });
+            }
+          },
+        );
+        options = pick.options;
+        if (!pick.reached && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Could not reach ${goalMb.toStringAsFixed(1)} MB — using the '
+                'smallest result (${_fmtBytes(pick.bestBytes ?? 0)}).',
+              ),
+            ),
+          );
+        }
+      }
       if (widget.lockSourceFile) {
         final before = await File(_file!.path).length();
         final session =
@@ -444,6 +481,39 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                         style: theme.textTheme.bodySmall?.copyWith(color: secondary),
                       ),
                     ),
+                    const SizedBox(height: DsSpacing.sm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _targetCtrl,
+                            enabled: !_busy,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              border: OutlineInputBorder(),
+                              labelText: 'Or reduce to about (MB)',
+                              hintText: 'e.g. 5',
+                            ),
+                            onChanged: (v) => setState(() {
+                              _targetMb = double.tryParse(v.trim());
+                              _estimate = null;
+                            }),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_targetMb != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'The gentlest level that fits is chosen automatically.',
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: secondary),
+                        ),
+                      ),
                     TextButton(
                       onPressed: _busy
                           ? null

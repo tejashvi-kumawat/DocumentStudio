@@ -1,6 +1,11 @@
 #include "flutter_window.h"
 
+#include <flutter/event_channel.h>
+#include <flutter/method_channel.h>
+#include <flutter/standard_method_codec.h>
+
 #include <optional>
+#include <sstream>
 
 #include "flutter/generated_plugin_registrant.h"
 
@@ -25,6 +30,9 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  open_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      flutter_controller_->engine()->messenger(), "document_studio/open",
+      &flutter::StandardMethodCodec::GetInstance());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -62,6 +70,22 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   }
 
   switch (message) {
+    case WM_COPYDATA: {
+      auto* cds = reinterpret_cast<COPYDATASTRUCT*>(lparam);
+      if (cds != nullptr && cds->dwData == 0x44535031 && open_channel_) {
+        std::string blob(static_cast<const char*>(cds->lpData), cds->cbData);
+        flutter::EncodableList paths;
+        std::stringstream ss(blob);
+        std::string line;
+        while (std::getline(ss, line, '\n')) {
+          if (!line.empty()) paths.emplace_back(line);
+        }
+        open_channel_->InvokeMethod(
+            "open", std::make_unique<flutter::EncodableValue>(paths));
+        return TRUE;
+      }
+      break;
+    }
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;

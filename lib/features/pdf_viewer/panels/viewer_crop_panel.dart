@@ -1,3 +1,4 @@
+import 'package:document_studio/core/pdf/page_loader.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -108,14 +109,10 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
     _document = null;
     await prev?.dispose();
     try {
-      final doc = await PdfDocument.openFile(
-        widget.handoff.file.path,
-        passwordProvider: widget.handoff.password == null
-            ? null
-            : () async => widget.handoff.password,
-      );
+      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
       _loadedPage = _page;
-      final page = doc.pages[(_page - 1).clamp(0, doc.pages.length - 1)];
+      final page = await loadPageOnDemand(doc, _page.clamp(1, doc.pages.length)) ??
+          doc.pages.first;
       if (!mounted) {
         await doc.dispose();
         return;
@@ -172,6 +169,10 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
   /// original file. Matching pages use one qpdf CropBox; pages whose own
   /// rectangles differ each get that page's CropBox.
   Future<void> _apply() async {
+    if (_live.dragRectNorm == null) {
+      _snack('Drag a rectangle on the page around the area to keep.');
+      return;
+    }
     final pages = _resolvePages();
     if (pages == null) return;
     if (!_fraction.isUsable) {

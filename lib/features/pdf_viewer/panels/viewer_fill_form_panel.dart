@@ -1,3 +1,6 @@
+import 'package:document_studio/core/pdf/page_loader.dart';
+import 'package:document_studio/design_system/ds_colors.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -88,7 +91,30 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
       live.requestFormPageScan(widget.handoff.currentPage1);
       unawaited(_loadAcro());
       unawaited(_pumpScans());
+      unawaited(_queueRestOfDocument());
     });
+  }
+
+  /// After the open page, scan the rest of the document in the background
+  /// (nearest page first, via the scan queue) so fields on every page are
+  /// found, not just the pages that have been on screen.
+  Future<void> _queueRestOfDocument() async {
+    try {
+      final session = ref.read(documentTabsControllerProvider).activeSession;
+      final file = session?.file ?? widget.handoff.file;
+      final password = session?.password ?? widget.handoff.password;
+      final doc = await _openTextDoc(file, password);
+      final live = _live;
+      if (!mounted || live == null) return;
+      final total = doc.pages.length;
+      final center = widget.handoff.currentPage1;
+      // Very long files: a generous window around the open page.
+      final lo = total <= 400 ? 1 : (center - 200).clamp(1, total);
+      final hi = total <= 400 ? total : (center + 200).clamp(1, total);
+      for (var n = lo; n <= hi; n++) {
+        live.requestFormPageScan(n);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -107,7 +133,8 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
 
   void _onLive() {
     final live = _live;
-    if (!mounted || live == null || live.toolId != ViewerToolId.fillForm) return;
+    if (!mounted || live == null || live.toolId != ViewerToolId.fillForm)
+      return;
     _snapSpots = live.formSpots;
     _snapValues = live.formValues;
     final fp = _fingerprint(live.formValues);
@@ -130,11 +157,12 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
   }
 
   String _fingerprint(Map<String, String> values) {
-    final entries = values.entries
-        .where((e) => e.value.trim().isNotEmpty && e.value != 'Off')
-        .map((e) => '${e.key}=${e.value}')
-        .toList()
-      ..sort();
+    final entries =
+        values.entries
+            .where((e) => e.value.trim().isNotEmpty && e.value != 'Off')
+            .map((e) => '${e.key}=${e.value}')
+            .toList()
+          ..sort();
     return entries.join('|');
   }
 
@@ -168,12 +196,16 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
     final epoch = _scanEpoch;
     _scanning = true;
     try {
-      while (mounted && epoch == _scanEpoch && _live?.toolId == ViewerToolId.fillForm) {
+      while (mounted &&
+          epoch == _scanEpoch &&
+          _live?.toolId == ViewerToolId.fillForm) {
         final current = _live!;
         final page = current.takeNextFormScanPage(current.pageIndex1Based);
         if (page == null) break;
         final spots = await _blanksOnPage(page);
-        if (!mounted || epoch != _scanEpoch || _live?.toolId != ViewerToolId.fillForm) {
+        if (!mounted ||
+            epoch != _scanEpoch ||
+            _live?.toolId != ViewerToolId.fillForm) {
           return;
         }
         _live!.setDetectedTextBlanks(page, spots);
@@ -197,7 +229,8 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
       final password = session?.password ?? widget.handoff.password;
       final doc = await _openTextDoc(file, password);
       if (page1 < 1 || page1 > doc.pages.length) return const [];
-      final page = doc.pages[page1 - 1];
+      final page = await loadPageOnDemand(doc, page1);
+      if (page == null) return const [];
       _live?.notePageGeometry(page1, page.width, page.height);
       final raw = await page.loadText();
       if (raw == null) return const [];
@@ -228,11 +261,9 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
     final previous = _textDoc;
     _textDoc = null;
     await previous?.dispose();
-    final doc = await PdfDocument.openFile(
+    final doc = await openPdfLazily(
       file.path,
-      passwordProvider: password == null || password.isEmpty
-          ? null
-          : () async => password,
+      password: (password == null || password.isEmpty) ? null : password,
     );
     _textDoc = doc;
     _textDocPath = file.path;
@@ -299,10 +330,11 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
     if (!detached && mounted) setState(() {});
     try {
       var working = session.file;
-      Future<LocalFileRef> step(
-        Future<void> Function(String out) run,
-      ) async {
-        final out = await storage.createTempFile(prefix: 'form-fill', suffix: '.pdf');
+      Future<LocalFileRef> step(Future<void> Function(String out) run) async {
+        final out = await storage.createTempFile(
+          prefix: 'form-fill',
+          suffix: '.pdf',
+        );
         await run(out);
         return LocalFileRef(path: out, displayName: session.file.displayName);
       }
@@ -422,15 +454,40 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
     }
   }
 
+  void _goToField(ViewerLiveToolSession live, PdfFormSpot spot) {
+    live.pageJumpHandler?.call(spot.pageIndex1Based);
+    live.focusFormSpot(spot.id);
+  }
+
+  /// Next / previous field in reading order across the whole document.
+  void _stepField(
+    ViewerLiveToolSession live,
+    List<PdfFormSpot> all,
+    int delta,
+  ) {
+    if (all.isEmpty) return;
+    var i = all.indexWhere((s) => s.id == live.activeFormSpotId);
+    if (i < 0) {
+      i = delta > 0 ? -1 : all.length;
+    }
+    final next = (i + delta) % all.length;
+    _goToField(live, all[next < 0 ? next + all.length : next]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final live = ref.read(viewerLiveToolSessionProvider);
     final page = live.pageIndex1Based;
-    final onPage = [
+    final all = [
       for (final s in live.formSpots)
-        if (s.pageIndex1Based == page && s.kind != PdfFormSpotKind.signature) s,
+        if (s.kind != PdfFormSpotKind.signature) s,
     ];
+    final onPage = [
+      for (final s in all)
+        if (s.pageIndex1Based == page) s,
+    ];
+    final pagesWithFields = {for (final s in all) s.pageIndex1Based}.length;
     final filled = _fingerprint(live.formValues).isNotEmpty;
     final scanned = live.formPageScanned(page);
     final body = theme.textTheme.bodyMedium?.copyWith(fontSize: 13);
@@ -444,17 +501,70 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
           style: body,
         ),
         const SizedBox(height: DsSpacing.md),
-        if (!scanned && onPage.isEmpty)
+        if (!scanned && all.isEmpty)
           const LinearProgressIndicator(minHeight: 2)
-        else if (onPage.isEmpty)
+        else if (all.isEmpty)
           Text(noFillInBlanksOnPageMessage, style: body)
-        else
-          Text(
-            onPage.length == 1
-                ? '1 blank on this page. Tap it and type.'
-                : '${onPage.length} blanks on this page. Tap one and type.',
-            style: body,
+        else ...[
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${all.length} field${all.length == 1 ? '' : 's'} on '
+                  '$pagesWithFields page${pagesWithFields == 1 ? '' : 's'}'
+                  '${live.hasPendingFormScans ? ' · scanning…' : ''}',
+                  style: body?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Previous field',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.keyboard_arrow_up),
+                onPressed: () => _stepField(live, all, -1),
+              ),
+              IconButton(
+                tooltip: 'Next field',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.keyboard_arrow_down),
+                onPressed: () => _stepField(live, all, 1),
+              ),
+            ],
           ),
+          if (live.hasPendingFormScans)
+            const LinearProgressIndicator(minHeight: 2),
+          const SizedBox(height: DsSpacing.sm),
+          for (final spot in all.take(300))
+            // Own Material: the panel card's decorated background would hide
+            // the tile's selection colour and ink.
+            Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                selected: live.activeFormSpotId == spot.id,
+                leading: Icon(
+                  spot.kind == PdfFormSpotKind.checkbox
+                      ? Icons.check_box_outline_blank
+                      : Icons.text_fields,
+                  size: 18,
+                ),
+                title: Text(
+                  spot.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text('Page ${spot.pageIndex1Based}'),
+                trailing: (live.formValues[spot.id] ?? '').isNotEmpty
+                    ? const Icon(
+                        Icons.check_circle,
+                        size: 16,
+                        color: DsColors.success,
+                      )
+                    : null,
+                onTap: () => _goToField(live, spot),
+              ),
+            ),
+        ],
         const SizedBox(height: DsSpacing.lg),
         DsPrimaryButton(
           label: _busy ? 'Saving…' : 'Save form',

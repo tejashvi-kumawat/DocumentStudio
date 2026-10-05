@@ -1,3 +1,4 @@
+import 'package:document_studio/core/settings/app_prefs.dart';
 import 'dart:io';
 
 import 'package:document_studio/core/errors/document_studio_error.dart';
@@ -31,8 +32,9 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   DocumentSession({
     required LocalFileRef file,
     this._password,
-    this.maxUndoLevels = 10,
-  })  : _sourcePath = LinuxDocumentPortal.resolveSync(file.path),
+    int? maxUndoLevels,
+  })  : maxUndoLevels = maxUndoLevels ?? AppPrefs.undoLevels,
+        _sourcePath = LinuxDocumentPortal.resolveSync(file.path),
         _sourceDisplayName = file.displayName {
     final source = _sourcePath == file.path
         ? file
@@ -42,6 +44,11 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
 
   final int maxUndoLevels;
 
+  /// Called before the working file is overwritten, so helpers that keep it
+  /// open (background text index) can let go — Windows cannot replace an open
+  /// file.
+  Future<void> Function()? onBeforeWrite;
+
   /// Absolute path of the user's original file (Save target / identity).
   String _sourcePath;
   String _sourceDisplayName;
@@ -50,8 +57,10 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   String? _password;
   bool _dirty = false;
   int _revision = 0;
-  final List<Uint8List> _undo = [];
-  final List<Uint8List> _redo = [];
+  final List<_Snapshot> _undo = [];
+  final List<_Snapshot> _redo = [];
+  Directory? _snapDir;
+  int _snapSeq = 0;
 
   Directory? _workingDir;
   String? _workingPath;
@@ -239,10 +248,62 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   /// Public read of the current working (or source) document bytes.
   Future<Uint8List> readCurrentBytes() => _readCurrentBytes();
 
-  void _pushUndoBytes(Uint8List bytes) {
-    _undo.add(bytes);
+  /// Snapshots up to this size stay in memory; larger ones live on disk so a
+  /// big document with several undo levels never multiplies its size in RAM.
+  static const _memorySnapshotLimit = 4 * 1024 * 1024;
+
+  String _newSnapshotPath() {
+    _snapDir ??= Directory.systemTemp.createTempSync('ds_snap_');
+    return p.join(_snapDir!.path, 's${_snapSeq++}.pdf');
+  }
+
+  /// Snapshot of the current working file (copied on disk when large, never
+  /// read whole into memory).
+  Future<_Snapshot> _snapshotCurrent() async {
+    final len = await File(_file.path).length();
+    if (len <= _memorySnapshotLimit) {
+      return _Snapshot.memory(await _readCurrentBytes());
+    }
+    final path = _newSnapshotPath();
+    await File(_file.path).copy(path);
+    return _Snapshot.disk(path);
+  }
+
+  Future<void> _restoreSnapshot(_Snapshot snap) async {
+    final mem = snap.bytes;
+    if (mem != null) {
+      await _writeWorkingBytes(mem);
+      return;
+    }
+    await onBeforeWrite?.call();
+    await _ensureWorkingPath();
+    final work = _workingPath!;
+    final tmp = '$work.restore';
+    await File(snap.path!).copy(tmp);
+    try {
+      await File(tmp).rename(work);
+    } on FileSystemException {
+      await File(snap.path!).copy(work);
+      try {
+        await File(tmp).delete();
+      } catch (_) {}
+    }
+    final st = await File(work).stat();
+    _file = LocalFileRef(
+      path: work,
+      displayName: _sourceDisplayName,
+      sizeBytes: st.size,
+      lastModified: st.modified,
+    );
+  }
+
+  void _pushUndo(_Snapshot snap) {
+    _undo.add(snap);
     while (_undo.length > maxUndoLevels) {
-      _undo.removeAt(0);
+      _undo.removeAt(0).dispose();
+    }
+    for (final r in _redo) {
+      r.dispose();
     }
     _redo.clear();
   }
@@ -302,6 +363,7 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   }
 
   Future<void> _writeWorkingBytes(Uint8List bytes) async {
+    await onBeforeWrite?.call();
     await _ensureWorkingPath();
     final work = _workingPath!;
     await _writeBytesToPath(work, bytes);
@@ -317,14 +379,15 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   ///
   /// Never writes [sourcePath]. Soft-reload the viewer from [file] afterward.
   Future<DocumentSaveOutcome> commitBytes(Uint8List bytes) async {
-    final prior = await _readCurrentBytes();
+    final prior = await _snapshotCurrent();
     try {
       await _writeWorkingBytes(bytes);
     } on DocumentStudioError {
+      prior.dispose();
       pendingReplaceBytes = bytes;
       return DocumentSaveOutcome.needsSaveAs;
     }
-    _pushUndoBytes(prior);
+    _pushUndo(prior);
     pendingReplaceBytes = null;
     _dirty = true;
     _revision++;
@@ -334,13 +397,48 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   }
 
   /// Snapshot current file, then replace working copy with contents of [tempPath].
+  ///
+  /// Streams on disk (rename, or copy across volumes): the new document is
+  /// never held in memory, so a large result costs no RAM.
   Future<DocumentSaveOutcome> commitTempFile(String tempPath) async {
-    final bytes = Uint8List.fromList(await File(tempPath).readAsBytes());
-    final outcome = await commitBytes(bytes);
+    final prior = await _snapshotCurrent();
     try {
-      await File(tempPath).delete();
-    } catch (_) {}
-    return outcome;
+      await onBeforeWrite?.call();
+      await _ensureWorkingPath();
+      final work = _workingPath!;
+      try {
+        await File(tempPath).rename(work);
+      } on FileSystemException {
+        await _copyFileToPath(tempPath, work);
+        try {
+          await File(tempPath).delete();
+        } catch (_) {}
+      }
+      final st = await File(work).stat();
+      _file = LocalFileRef(
+        path: work,
+        displayName: _sourceDisplayName,
+        sizeBytes: st.size,
+        lastModified: st.modified,
+      );
+    } catch (_) {
+      prior.dispose();
+      // Could not write the working copy: keep the result for Save As.
+      try {
+        pendingReplaceBytes = Uint8List.fromList(
+          await File(tempPath).readAsBytes(),
+        );
+        await File(tempPath).delete();
+      } catch (_) {}
+      return DocumentSaveOutcome.needsSaveAs;
+    }
+    _pushUndo(prior);
+    pendingReplaceBytes = null;
+    _dirty = true;
+    _revision++;
+    await _refreshFileMeta();
+    notifyListeners();
+    return DocumentSaveOutcome.savedInPlace;
   }
 
   /// Clears dirty after the user confirms Save (bytes already on source).
@@ -352,24 +450,72 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   }
 
   /// Explicit Save: write working bytes to [sourcePath] and clear dirty.
+  /// Edits that are batched in memory (Edit mode applies moves / deletes a
+  /// moment after the last change) register here so Save, Undo and Redo
+  /// first write them into the document.
+  final List<Future<void> Function()> pendingFlushers = [];
+
+  Future<void> flushPending() async {
+    for (final f in List.of(pendingFlushers)) {
+      try {
+        await f();
+      } catch (_) {}
+    }
+  }
+
   Future<DocumentSaveOutcome> save() async {
+    await flushPending();
     final pending = pendingReplaceBytes;
-    final bytes = pending ?? (_dirty ? await _readCurrentBytes() : null);
-    if (bytes == null) return DocumentSaveOutcome.savedInPlace;
+    if (pending == null && !_dirty) return DocumentSaveOutcome.savedInPlace;
 
     final writable = await _canReplacePath(_sourcePath);
     if (!writable) {
-      pendingReplaceBytes = bytes;
+      pendingReplaceBytes = pending ?? await _readCurrentBytes();
       return DocumentSaveOutcome.needsSaveAs;
     }
     try {
-      await _writeBytesToPath(_sourcePath, bytes);
+      if (pending != null) {
+        await _writeBytesToPath(_sourcePath, pending);
+      } else {
+        // Copy on disk: never hold a whole large document in memory to save.
+        await _copyFileToPath(_file.path, _sourcePath);
+      }
     } on DocumentStudioError {
-      pendingReplaceBytes = bytes;
+      pendingReplaceBytes = pending ?? await _readCurrentBytes();
       return DocumentSaveOutcome.needsSaveAs;
     }
     markSaved();
     return DocumentSaveOutcome.savedInPlace;
+  }
+
+  Future<void> _copyFileToPath(String from, String to) async {
+    final dir = p.dirname(to);
+    await Directory(dir).create(recursive: true);
+    final tempPath = p.join(
+      dir,
+      '.${p.basename(to)}.${DateTime.now().microsecondsSinceEpoch}.tmp',
+    );
+    try {
+      await File(from).copy(tempPath);
+      try {
+        await File(tempPath).rename(to);
+      } on FileSystemException {
+        await File(from).copy(to);
+        try {
+          await File(tempPath).delete();
+        } catch (_) {}
+      }
+    } catch (e) {
+      try {
+        await File(tempPath).delete();
+      } catch (_) {}
+      throw DocumentStudioError(
+        code: DocumentStudioErrorCode.permissionDenied,
+        message: 'Could not write to $to',
+        cause: e,
+        recoveryHint: 'The file may be read-only. Use Save As.',
+      );
+    }
   }
 
   /// Save As: write current (or pending) bytes to a new path and rebind.
@@ -377,9 +523,10 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
     FileStoragePort storage, {
     String? suggestedName,
   }) async {
+    await flushPending();
     final bytes = pendingReplaceBytes ?? await _readCurrentBytes();
     final priorForUndo =
-        pendingReplaceBytes != null ? await _readCurrentBytes() : null;
+        pendingReplaceBytes != null ? await _snapshotCurrent() : null;
     final savePath = await storage.pickSavePath(
       suggestedName: suggestedName ?? _sourceDisplayName,
       bytes: bytes,
@@ -394,7 +541,7 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
       },
     );
     if (priorForUndo != null) {
-      _pushUndoBytes(priorForUndo);
+      _pushUndo(priorForUndo);
     }
     final ref = LocalFileRef(
       path: savePath,
@@ -405,11 +552,13 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   }
 
   Future<bool> undo() async {
+    await flushPending();
     if (_undo.isEmpty) return false;
-    final current = await _readCurrentBytes();
+    final current = await _snapshotCurrent();
     final prior = _undo.removeLast();
     _redo.add(current);
-    await _writeWorkingBytes(prior);
+    await _restoreSnapshot(prior);
+    prior.dispose();
     _dirty = _undo.isNotEmpty;
     pendingReplaceBytes = null;
     _revision++;
@@ -419,14 +568,16 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   }
 
   Future<bool> redo() async {
+    await flushPending();
     if (_redo.isEmpty) return false;
-    final current = await _readCurrentBytes();
+    final current = await _snapshotCurrent();
     final next = _redo.removeLast();
     _undo.add(current);
     while (_undo.length > maxUndoLevels) {
-      _undo.removeAt(0);
+      _undo.removeAt(0).dispose();
     }
-    await _writeWorkingBytes(next);
+    await _restoreSnapshot(next);
+    next.dispose();
     _dirty = true;
     pendingReplaceBytes = null;
     _revision++;
@@ -450,6 +601,28 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   @override
   void dispose() {
     _disposeWorkingDir();
+    try {
+      _snapDir?.deleteSync(recursive: true);
+    } catch (_) {}
+    _snapDir = null;
     super.dispose();
+  }
+}
+
+
+/// One undo/redo state: in memory when small, a file on disk when large.
+class _Snapshot {
+  _Snapshot.memory(Uint8List this.bytes) : path = null;
+  _Snapshot.disk(String this.path) : bytes = null;
+
+  final Uint8List? bytes;
+  final String? path;
+
+  void dispose() {
+    final f = path;
+    if (f == null) return;
+    try {
+      File(f).deleteSync();
+    } catch (_) {}
   }
 }

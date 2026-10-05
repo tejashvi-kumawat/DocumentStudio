@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_vertical_zoom_bar.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_document_workspace.dart';
@@ -50,8 +51,14 @@ class PdfViewerAcrobatShell extends StatefulWidget {
     this.linkHandlerParams,
     this.onControllerReady,
     this.onOpenContextMenu,
+    this.contextMenuBuilder,
+    this.searchPanel,
+    this.bookmarksBuilder,
     this.annotationsPanel,
     this.activeToolPanel,
+    this.editContext,
+    this.editHasSelection,
+    this.railControls,
     this.onCloseToolPanel,
     this.pageCount,
     this.selectedPages1Based = const {},
@@ -80,8 +87,23 @@ class PdfViewerAcrobatShell extends StatefulWidget {
   final PdfLinkHandlerParams? linkHandlerParams;
   final void Function(PdfViewerController controller)? onControllerReady;
   final void Function(Offset globalPosition)? onOpenContextMenu;
+  final PdfViewerContextMenuBuilder? contextMenuBuilder;
+
+  /// Left-rail search results (built by the screen that owns the searcher).
+  final Widget? searchPanel;
+
+  /// Editable bookmarks panel; falls back to the read-only outline.
+  final Widget Function(PdfViewerController controller)? bookmarksBuilder;
   final Widget? annotationsPanel;
   final ViewerToolId? activeToolPanel;
+
+  /// Edit mode shows no side form until an object is selected: this notifies
+  /// when selection changes and [editHasSelection] says whether one exists.
+  final Listenable? editContext;
+
+  /// Page / zoom / view controls for the left icon rail.
+  final Widget? railControls;
+  final bool Function()? editHasSelection;
   final VoidCallback? onCloseToolPanel;
   final int? pageCount;
   final Set<int> selectedPages1Based;
@@ -106,6 +128,16 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
   String? _selectedBlockedToolId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// User-resizable panes (drag the divider). Thumbnails keep their fixed
+  /// width because their layout is sized to it.
+  double _toolsPaneWidth = viewerAcrobatOptionsWidth;
+  double _sidePaneWidth = 280;
+
+  double get _leftWidth =>
+      widget.sidebarContent == PdfViewerSidebarContent.thumbnails
+          ? PdfThumbnailSidebar.sidebarWidth
+          : _sidePaneWidth;
+
   void _handleControllerReady(PdfViewerController controller) {
     setState(() => _controller = controller);
     widget.onControllerReady?.call(controller);
@@ -124,6 +156,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
   Widget _buildLeftRailBody(PdfViewerController controller) {
     switch (widget.sidebarContent) {
       case PdfViewerSidebarContent.outline:
+        final custom = widget.bookmarksBuilder;
+        if (custom != null) return custom(controller);
         return PdfOutlinePanel(
           controller: controller,
           pdfPath: widget.file.path,
@@ -139,6 +173,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
               '${widget.file.sizeBytes ?? 0}:'
               '${widget.file.lastModified?.microsecondsSinceEpoch ?? 0}',
         );
+      case PdfViewerSidebarContent.search:
+        return widget.searchPanel ?? const SizedBox.shrink();
       case PdfViewerSidebarContent.thumbnails:
         return PdfThumbnailSidebar(
           controller: controller,
@@ -158,7 +194,7 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
     final borderColor = isDark ? DsColors.borderDark : DsColors.borderLight;
 
     return SizedBox(
-      width: PdfThumbnailSidebar.sidebarWidth,
+      width: _leftWidth,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -288,9 +324,12 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
   }
 
   Widget? _buildRightToolsPane(bool wide) {
+    // Edit's panel also loads the page objects, so it stays mounted even
+    // with the tools rail switched off.
+    final editing = widget.activeToolPanel == ViewerToolId.editText;
     if (widget.presentationMode ||
         widget.readMode ||
-        !widget.toolsRailEnabled ||
+        (!widget.toolsRailEnabled && !editing) ||
         !wide) {
       return null;
     }
@@ -352,6 +391,7 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
         pageOverlaysBuilder: widget.pageOverlaysBuilder,
         onControllerReady: _handleControllerReady,
         onOpenContextMenu: widget.onOpenContextMenu,
+        contextMenuBuilder: widget.contextMenuBuilder,
         canvasMargin: !widget.presentationMode && !widget.readMode,
         immersiveSinglePage: widget.presentationMode,
         presentationAdvanceOnTap: widget.presentationMode,
@@ -359,12 +399,17 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
     );
 
     final overlay = widget.canvasOverlay;
-    final page = overlay == null
-        ? canvas
-        : Stack(
-            fit: StackFit.expand,
-            children: [canvas, overlay],
-          );
+    final zoomBar = controller != null &&
+            !widget.presentationMode &&
+            !widget.readMode
+        ? PdfViewerVerticalZoomBar(controller: controller)
+        : null;
+    // Always a Stack: switching between canvas-only and Stack when the
+    // controller arrives would remount the viewer.
+    final page = Stack(
+      fit: StackFit.expand,
+      children: [canvas, ?overlay, ?zoomBar],
+    );
 
     // Phone: pages strip + canvas. The tool form is full width and at most
     // half the column, so a short phone (or a short desktop window) still
@@ -412,10 +457,16 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                 PdfViewerLeftIconRail(
                   content: widget.sidebarContent,
                   onContentChanged: (next) {
+                    // Click the active icon again to close the panel.
+                    if (next == widget.sidebarContent && widget.leftRailEnabled) {
+                      widget.onLeftRailEnabledChanged?.call(false);
+                      return;
+                    }
                     widget.onSidebarContentChanged!(next);
                     widget.onLeftRailEnabledChanged?.call(true);
                   },
                   expanded: widget.leftRailEnabled,
+                  controls: widget.railControls,
                   onToggleExpanded: widget.onLeftRailEnabledChanged == null
                       ? null
                       : () => widget.onLeftRailEnabledChanged!(
@@ -425,7 +476,16 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
               if (_buildInlineLeftRail(controller, wideLeft)
                   case final left?) ...[
                 left,
-                VerticalDivider(width: 1, thickness: 1, color: dividerColor),
+                if (widget.sidebarContent == PdfViewerSidebarContent.thumbnails)
+                  VerticalDivider(width: 1, thickness: 1, color: dividerColor)
+                else
+                  _ResizeHandle(
+                    color: dividerColor,
+                    onDrag: (dx) => setState(
+                      () => _sidePaneWidth =
+                          (_sidePaneWidth + dx).clamp(220.0, 520.0),
+                    ),
+                  ),
               ],
               Expanded(
                 key: _canvasSlot,
@@ -457,10 +517,54 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                   },
                 ),
               ),
-              if (_buildRightToolsPane(wideTools) case final tools?) ...[
-                VerticalDivider(width: 1, thickness: 1, color: dividerColor),
-                SizedBox(width: viewerAcrobatOptionsWidth, child: tools),
-              ],
+              if (_buildRightToolsPane(wideTools) case final tools?)
+                ListenableBuilder(
+                  listenable: widget.editContext ?? const _NeverListenable(),
+                  builder: (context, _) {
+                    final editing =
+                        widget.activeToolPanel == ViewerToolId.editText;
+                    final show = !editing ||
+                        (widget.editHasSelection?.call() ?? true);
+                    final paneW =
+                        widget.activeToolPanel == ViewerToolId.workspaceReorder
+                            ? math.max(
+                                _toolsPaneWidth,
+                                (MediaQuery.sizeOf(context).width * 0.58)
+                                    .clamp(420.0, 980.0),
+                              )
+                            : _toolsPaneWidth;
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (show)
+                          _ResizeHandle(
+                            key: const ValueKey('tools-handle'),
+                            color: dividerColor,
+                            onDrag: (dx) => setState(
+                              () => _toolsPaneWidth =
+                                  (_toolsPaneWidth - dx).clamp(300.0, 640.0),
+                            ),
+                          ),
+                        // Stays mounted (Offstage) so Edit keeps loading and
+                        // saving objects while no form is shown.
+                        SizedBox(
+                          key: const ValueKey('tools-pane'),
+                          width: show ? paneW : 0,
+                          child: Offstage(
+                            offstage: !show,
+                            child: ViewerOptionsWidthScope(
+                              width: widget.activeToolPanel ==
+                                      ViewerToolId.workspaceReorder
+                                  ? double.infinity
+                                  : _toolsPaneWidth,
+                              child: tools,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
             ],
           ),
           if (showAllToolsSheet) _buildAllToolsSheet(),
@@ -479,4 +583,50 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
   void openLeftDrawer() {
     if (_wideLeftRail(MediaQuery.sizeOf(context).width)) return;
   }
+}
+
+
+/// Thin draggable divider between panes.
+class _ResizeHandle extends StatefulWidget {
+  const _ResizeHandle({super.key, required this.color, required this.onDrag});
+
+  final Color color;
+  final ValueChanged<double> onDrag;
+
+  @override
+  State<_ResizeHandle> createState() => _ResizeHandleState();
+}
+
+class _ResizeHandleState extends State<_ResizeHandle> {
+  bool _hot = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeColumn,
+      onEnter: (_) => setState(() => _hot = true),
+      onExit: (_) => setState(() => _hot = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragUpdate: (d) => widget.onDrag(d.delta.dx),
+        child: SizedBox(
+          width: 7,
+          child: Center(
+            child: Container(
+              width: _hot ? 3 : 1,
+              color: _hot ? DsColors.primary : widget.color,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NeverListenable implements Listenable {
+  const _NeverListenable();
+  @override
+  void addListener(VoidCallback listener) {}
+  @override
+  void removeListener(VoidCallback listener) {}
 }

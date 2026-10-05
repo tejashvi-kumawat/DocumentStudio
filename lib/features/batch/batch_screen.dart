@@ -1,3 +1,4 @@
+import 'package:document_studio/infrastructure/ocr/ocr_providers.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/core/batch/batch_runner.dart';
 import 'package:document_studio/core/errors/document_studio_error.dart';
@@ -34,6 +35,28 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   bool _cancelling = false;
   bool? _qpdfAvailable;
   BatchToolKind _tool = BatchToolKind.compressBalanced;
+
+  /// Extra steps run after [_tool] (Action Wizard style), in fixed order.
+  final Set<BatchToolKind> _also = {};
+
+  static const _alsoOptions = [
+    BatchToolKind.ocr,
+    BatchToolKind.watermark,
+    BatchToolKind.removeMetadata,
+    BatchToolKind.protect,
+  ];
+
+  final _watermarkCtrl = TextEditingController(text: 'CONFIDENTIAL');
+  bool get _usesWatermark => _steps.contains(BatchToolKind.watermark);
+
+  List<BatchToolKind> get _steps => [
+        _tool,
+        if (_tool.writesFiles)
+          for (final t in _alsoOptions)
+            if (_also.contains(t) && t != _tool) t,
+      ];
+
+  bool get _usesPassword => _steps.contains(BatchToolKind.protect);
   String? _outputDirectory;
   final _suffixCtrl = TextEditingController(
     text: BatchToolKind.compressBalanced.defaultSuffix,
@@ -53,6 +76,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   void dispose() {
     _suffixCtrl.dispose();
     _passwordCtrl.dispose();
+    _watermarkCtrl.dispose();
     super.dispose();
   }
 
@@ -69,7 +93,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
 
   Future<void> _addFilesPicker() async {
     final picked = await ref.read(fileStorageProvider).pickOpenFiles(
-          allowedExtensions: ['pdf'],
+          allowedExtensions: ['pdf', ...kBatchImageExtensions],
           allowMultiple: true,
         );
     _addFiles(picked);
@@ -89,6 +113,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
         _suffixCtrl.text = tool.defaultSuffix;
       }
       _tool = tool;
+      _also.remove(tool);
       _result = null;
     });
   }
@@ -96,7 +121,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   bool get _canRun {
     if (_inputs.isEmpty || _busy) return false;
     if (_tool.needsQpdf && _qpdfAvailable != true) return false;
-    if (_tool == BatchToolKind.protect && _passwordCtrl.text.isEmpty) {
+    if (_usesPassword && _passwordCtrl.text.isEmpty) {
       return false;
     }
     return true;
@@ -117,14 +142,19 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           : _suffixCtrl.text.trim(),
     );
     try {
-      final processor = batchProcessorFor(
-        tool: _tool,
+      final processor = batchPipelineProcessor(
+        steps: _steps,
         storage: ref.read(fileStorageProvider),
         compress: ref.read(compressServiceProvider),
         metadata: ref.read(pdfMetadataPortProvider),
         encrypt: ref.read(pdfEncryptPortProvider),
         password: _passwordCtrl.text,
-        naming: naming,
+        searchable: ref.read(searchablePdfPortProvider),
+        overlay: ref.read(pdfOverlayServiceProvider),
+        watermarkText: _watermarkCtrl.text.trim().isEmpty
+            ? 'CONFIDENTIAL'
+            : _watermarkCtrl.text.trim(),
+        finalNaming: naming,
       );
       final result = await ref.read(batchRunnerProvider).run(
             inputs: List.unmodifiable(_inputs),
@@ -181,12 +211,13 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 ? DsToolFileSource(
                     files: const [],
                     multiple: true,
+                    allowedExtensions: ['pdf', ...kBatchImageExtensions],
                     enabled: !_busy,
                     onPick: _addFilesPicker,
                     onFilesDropped: _addFiles,
-                    emptyTitle: 'Drop PDFs here',
-                    emptySubtitle: 'Add as many files as you like',
-                    pickLabel: 'Choose PDFs',
+                    emptyTitle: 'Drop PDFs or images here',
+                    emptySubtitle: 'Images become PDFs first. Add as many files as you like',
+                    pickLabel: 'Choose files',
                     icon: Icons.library_add_outlined,
                   )
                 : _queue(theme),
@@ -218,7 +249,44 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 tone: DsResultTone.error,
               ),
             ),
-          if (_tool == BatchToolKind.protect)
+          if (_tool.writesFiles)
+            DsToolSection(
+              title: 'Then also',
+              subtitle: 'Chain more steps; each file goes through them in order.',
+              child: Wrap(
+                spacing: DsSpacing.sm,
+                runSpacing: DsSpacing.sm,
+                children: [
+                  for (final t in _alsoOptions)
+                    if (t != _tool)
+                      FilterChip(
+                        avatar: Icon(t.icon, size: 16),
+                        label: Text(t.label),
+                        selected: _also.contains(t),
+                        onSelected: _busy
+                            ? null
+                            : (v) => setState(() {
+                                  v ? _also.add(t) : _also.remove(t);
+                                  _result = null;
+                                }),
+                      ),
+                ],
+              ),
+            ),
+          if (_usesWatermark)
+            DsToolSection(
+              title: 'Watermark text',
+              child: TextField(
+                controller: _watermarkCtrl,
+                enabled: !_busy,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                  hintText: 'CONFIDENTIAL',
+                ),
+              ),
+            ),
+          if (_usesPassword)
             DsToolSection(
               title: 'Open password',
               child: TextField(

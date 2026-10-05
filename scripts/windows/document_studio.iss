@@ -99,6 +99,12 @@ Root: HKCU; Subkey: "Software\Classes\DocumentStudio.pdf\shell\open\command"; Va
 Root: HKCU; Subkey: "Software\Classes\.pdf\OpenWithProgids"; ValueType: string; ValueName: "DocumentStudio.pdf"; ValueData: ""; Flags: uninsdeletevalue; Tasks: fileassoc
 Root: HKCU; Subkey: "Software\Classes\.pdf\OpenWithList\{#MyAppExeName}"; Flags: uninsdeletekey; Tasks: fileassoc
 
+; --- Settings > Default apps registration (user still picks the default) ---
+Root: HKCU; Subkey: "Software\DocumentStudio\Capabilities"; ValueType: string; ValueName: "ApplicationName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey; Tasks: fileassoc
+Root: HKCU; Subkey: "Software\DocumentStudio\Capabilities"; ValueType: string; ValueName: "ApplicationDescription"; ValueData: "Offline PDF workspace"; Tasks: fileassoc
+Root: HKCU; Subkey: "Software\DocumentStudio\Capabilities\FileAssociations"; ValueType: string; ValueName: ".pdf"; ValueData: "DocumentStudio.pdf"; Tasks: fileassoc
+Root: HKCU; Subkey: "Software\RegisteredApplications"; ValueType: string; ValueName: "DocumentStudio"; ValueData: "Software\DocumentStudio\Capabilities"; Flags: uninsdeletevalue; Tasks: fileassoc
+
 ; --- Image ProgID ---
 Root: HKCU; Subkey: "Software\Classes\DocumentStudio.image"; ValueType: string; ValueData: "Image"; Flags: uninsdeletekey; Tasks: fileassoc
 Root: HKCU; Subkey: "Software\Classes\DocumentStudio.image\DefaultIcon"; ValueType: string; ValueData: "{app}\{#MyAppExeName},0"; Tasks: fileassoc

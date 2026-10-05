@@ -1,3 +1,7 @@
+import 'dart:ui' as ui;
+import 'package:document_studio/core/settings/app_prefs.dart';
+import 'package:document_studio/core/fonts/font_library.dart';
+import 'package:document_studio/infrastructure/pdf/edit/pdf_page_editor.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -97,6 +101,12 @@ class LivePendingText {
     required this.bold,
     required this.align,
     this.coverNorm,
+    this.coverRects = const [],
+    this.coverColor,
+    this.italic = false,
+    this.family = 'sans',
+    this.lineHeightEm = 1.2,
+    this.customFamily,
   });
 
   final int id;
@@ -108,8 +118,41 @@ class LivePendingText {
   final bool bold;
   final LiveMarginAlign align;
 
-  /// White cover drawn under replaced text runs.
+  /// Cover drawn under replaced text runs.
   final Rect? coverNorm;
+  final List<Rect> coverRects;
+  final Color? coverColor;
+  final bool italic;
+  final String family;
+  final double lineHeightEm;
+  final String? customFamily;
+}
+
+enum ImageEditKind { move, delete, replace, recolor }
+
+/// What Edit shows for an object change that is not written yet: the old
+/// spot covered and (for a move) the object's picture at its new place.
+class LiveObjectGhost {
+  LiveObjectGhost({required this.page, required this.from, this.to, this.image});
+
+  final int page;
+  final Rect from;
+  final Rect? to;
+  final ui.Image? image;
+}
+
+/// A change the user made to an image in Edit PDF mode.
+class ImageEditRequest {
+  const ImageEditRequest(this.kind, this.image, [this.rect, this.color]);
+
+  final ImageEditKind kind;
+  final EditableImage image;
+
+  /// New rectangle (normalized) for [ImageEditKind.move].
+  final Rect? rect;
+
+  /// New colour for [ImageEditKind.recolor] (vector shapes).
+  final Color? color;
 }
 
 /// Existing link annotation on the active page (normalized top-left rect).
@@ -128,6 +171,12 @@ class LiveTextEditTarget {
     required this.originalText,
     required this.fontSizePt,
     this.coverNorm,
+    this.coverRects = const [],
+    this.coverColor,
+    this.textColor,
+    this.lineCount = 1,
+    this.fontMatch,
+    this.leadingEm = 1.2,
   });
 
   /// Editor line box (top = line top, so the baseline lands on the original).
@@ -137,6 +186,24 @@ class LiveTextEditTarget {
 
   /// Glyph bounds of the original run — hit area and white-out cover.
   final Rect? coverNorm;
+
+  /// Per-line glyph bounds of a grouped block (what gets painted over).
+  final List<Rect> coverRects;
+
+  /// Page background sampled around the block, so the cover matches it.
+  final Color? coverColor;
+
+  /// Ink colour sampled inside the block.
+  final Color? textColor;
+
+  /// Lines in the original block (paragraph grouping).
+  final int lineCount;
+
+  /// Recognized original font (null when unknown).
+  final FontMatch? fontMatch;
+
+  /// Original line spacing in em (1.2 = single-line default).
+  final double leadingEm;
 
   Rect get hitRect => coverNorm ?? normRect;
 }
@@ -279,12 +346,31 @@ class ViewerLiveToolSession extends ChangeNotifier {
   /// the same id is selected again (panel jump-to).
   int _formFocusGeneration = 0;
   bool _textBold = false;
+  bool _textItalic = false;
+  double _textLineHeight = 1.2;
+  InstalledFont? _userFont;
+  bool _embedFonts = AppPrefs.embedFontsByDefault;
+  String _textFamily = 'sans';
+  String? _detectedFont;
   LiveMarginAlign _textAlign = LiveMarginAlign.left;
   bool _creatingTextBox = false;
   bool _textBoxDragMoved = false;
   Offset? _textBoxCreateOriginNorm;
   LiveTextEditTarget? _textEditTarget;
+  LiveTextEditTarget? _selectedRun;
   final List<LiveTextEditTarget> _textRunHits = [];
+  final Map<int, List<LiveTextEditTarget>> _textRunsByPage = {};
+
+  // Edit PDF — images on the page that can be selected and changed.
+  final Map<int, List<EditableImage>> _imagesByPage = {};
+  EditableImage? _selectedImage;
+  Rect? _imageDraft;
+
+  /// Set by the Edit panel: applies move / delete / replace to the document.
+  void Function(ImageEditRequest request)? imageEditHandler;
+
+  /// Set by the viewer screen: scrolls the document to a page.
+  void Function(int page1Based)? pageJumpHandler;
   final List<LivePendingText> _pendingTexts = [];
   int _pendingTextSeq = 0;
   final List<Rect> _redactRectsNorm = [];
@@ -397,11 +483,168 @@ class ViewerLiveToolSession extends ChangeNotifier {
   bool get hasPendingFormScans => _formScanQueue.isNotEmpty;
   int get formFocusGeneration => _formFocusGeneration;
   bool get textBold => _textBold;
+  bool get textItalic => _textItalic;
+
+  /// An installed font chosen for the text (null → standard family).
+  InstalledFont? get textUserFont => _userFont;
+
+  /// Embed the font in the PDF (standard families use the bundled Liberation
+  /// equivalents; installed fonts are always embedded).
+  bool get embedFonts => _embedFonts;
+
+  void setTextUserFont(InstalledFont? font) {
+    if (identical(_userFont, font)) return;
+    _userFont = font;
+    notifyListeners();
+  }
+
+  void setEmbedFonts(bool value) {
+    if (_embedFonts == value) return;
+    _embedFonts = value;
+    notifyListeners();
+  }
+
+  /// Text width for wrapping with the chosen font (null → Helvetica metrics).
+  double Function(String)? textMeasure(double sizePt) {
+    final u = _userFont;
+    return u == null ? null : (s) => u.ttf.textWidthPt(s, sizePt);
+  }
+
+  /// Line height (em) of the block being edited — the original's leading.
+  double get textLineHeightEm => _textLineHeight;
+
+  /// `sans`, `serif` or `mono`.
+  String get textFamily => _textFamily;
+
+  /// Original font of the text being edited, e.g. "Calibri-Bold".
+  String? get detectedFont => _detectedFont;
+
+  /// Standard-14 BaseFont for the current style.
+  String get textFontBase {
+    switch (_textFamily) {
+      case 'serif':
+        if (_textBold && _textItalic) return 'Times-BoldItalic';
+        if (_textBold) return 'Times-Bold';
+        if (_textItalic) return 'Times-Italic';
+        return 'Times-Roman';
+      case 'mono':
+        if (_textBold && _textItalic) return 'Courier-BoldOblique';
+        if (_textBold) return 'Courier-Bold';
+        if (_textItalic) return 'Courier-Oblique';
+        return 'Courier';
+      default:
+        if (_textBold && _textItalic) return 'Helvetica-BoldOblique';
+        if (_textBold) return 'Helvetica-Bold';
+        if (_textItalic) return 'Helvetica-Oblique';
+        return 'Helvetica';
+    }
+  }
+
+  void setTextItalic(bool value) {
+    if (_textItalic == value) return;
+    _textItalic = value;
+    notifyListeners();
+  }
+
+  void setTextFamily(String value) {
+    if (_textFamily == value) return;
+    _textFamily = value;
+    notifyListeners();
+  }
   LiveMarginAlign get textAlign => _textAlign;
   bool get creatingTextBox => _creatingTextBox;
   Offset? get textBoxCreateOriginNorm => _textBoxCreateOriginNorm;
   LiveTextEditTarget? get textEditTarget => _textEditTarget;
   List<LiveTextEditTarget> get textRunHits => List.unmodifiable(_textRunHits);
+
+  /// Text block selected (framed) but not yet being typed into.
+  LiveTextEditTarget? get selectedRun => _selectedRun;
+
+  void selectTextRun(LiveTextEditTarget? run) {
+    if (identical(_selectedRun, run)) return;
+    _selectedRun = run;
+    if (run != null) {
+      _selectedImage = null;
+      _imageDraft = null;
+    }
+    notifyListeners();
+  }
+
+  List<EditableImage> imagesForPage(int page1Based) =>
+      _imagesByPage[page1Based] ?? const [];
+  EditableImage? get selectedImage => _selectedImage;
+
+  /// Renders a page region (normalized rect) [widthPx] wide; set by Edit.
+  Future<ui.Image?> Function(int page, Rect norm, double widthPx)?
+      objectSnapshot;
+
+  final List<LiveObjectGhost> _ghosts = [];
+  List<LiveObjectGhost> ghostsForPage(int page) =>
+      [for (final g in _ghosts) if (g.page == page) g];
+
+  void addGhost(LiveObjectGhost g) {
+    // A later change of an object already moved continues its ghost, so the
+    // original spot stays covered.
+    var next = g;
+    for (final o in _ghosts) {
+      if (o.page == g.page && o.to == g.from) {
+        next = LiveObjectGhost(
+          page: g.page,
+          from: o.from,
+          to: g.to,
+          image: g.image ?? o.image,
+        );
+        _ghosts.remove(o);
+        break;
+      }
+    }
+    _ghosts.add(next);
+    notifyListeners();
+  }
+
+  void clearGhosts(int page) {
+    final before = _ghosts.length;
+    _ghosts.removeWhere((g) => g.page == page);
+    if (_ghosts.length != before) notifyListeners();
+  }
+
+  /// Live rectangle while the selected image is being moved / resized.
+  Rect? get imageDraft => _imageDraft;
+
+  void setImagesForPage(int page1Based, List<EditableImage> images) {
+    _imagesByPage[page1Based] = List.of(images);
+    final sel = _selectedImage;
+    if (sel != null && sel.page == page1Based) {
+      // Re-select the same picture after a reload (offsets change on save).
+      EditableImage? match;
+      for (final i in images) {
+        if ((i.normRect.center - sel.normRect.center).distance < 0.02) {
+          match = i;
+          break;
+        }
+      }
+      _selectedImage = match;
+    }
+    notifyListeners();
+  }
+
+  void selectImage(EditableImage? image) {
+    _selectedImage = image;
+    if (image != null) _selectedRun = null;
+    _imageDraft = null;
+    notifyListeners();
+  }
+
+  /// Live rect while dragging: only the active page repaints (draft
+  /// channel); releasing ([rect] null) tells everyone.
+  void setImageDraft(Rect? rect) {
+    _imageDraft = rect;
+    if (rect == null) {
+      notifyListeners();
+    } else {
+      _notifyDraft();
+    }
+  }
   List<LivePendingText> get pendingTexts => List.unmodifiable(_pendingTexts);
   List<Rect> get redactRectsNorm => List.unmodifiable(_redactRectsNorm);
   List<Rect> get searchHighlightRectsNorm =>
@@ -502,9 +745,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
         _markupColor = kLiveHighlightColor;
       }
     }
-    _dragRectNorm = tool == ViewerToolId.crop || tool == ViewerToolId.redact
-        ? const Rect.fromLTRB(0.08, 0.08, 0.92, 0.92)
-        : null;
+    // Crop / redact start empty: the user drags the area themselves.
+    _dragRectNorm = null;
     _dragOriginNorm = null;
     _cropQuadNorm = tool == ViewerToolId.crop
         ? PageCropQuadNorm.fromRect(
@@ -522,6 +764,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _textBoxCreateOriginNorm = null;
     _textEditTarget = null;
     _textRunHits.clear();
+    _textRunsByPage.clear();
+    _imagesByPage.clear();
+    _selectedImage = null;
+    _imageDraft = null;
     _textAlign = LiveMarginAlign.left;
     _redactRectsNorm.clear();
     _searchHighlightRectsNorm.clear();
@@ -614,6 +860,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _textBoxCreateOriginNorm = null;
     _textEditTarget = null;
     _textRunHits.clear();
+    _textRunsByPage.clear();
+    _imagesByPage.clear();
+    _selectedImage = null;
+    _imageDraft = null;
     _redactRectsNorm.clear();
     _searchHighlightRectsNorm.clear();
     _activeRedactIndex = 0;
@@ -647,7 +897,9 @@ class ViewerLiveToolSession extends ChangeNotifier {
         _selectedLinkIndex = null;
       case ViewerToolId.editText:
         _textEditTarget = null;
-        _textRunHits.clear();
+        _textRunHits
+          ..clear()
+          ..addAll(_textRunsByPage[page1Based] ?? const []);
         _creatingTextBox = false;
         _textBoxDragMoved = false;
         _textBoxCreateOriginNorm = null;
@@ -730,6 +982,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
 
   /// Starts Acrobat-style new-text drag: width comes from the drag, then type.
   void beginCreateTextBoxAtNorm(Offset originNorm, {required double heightNorm}) {
+    _textLineHeight = 1.2;
     _textEditTarget = null;
     _labelText = '';
     _creatingTextBox = true;
@@ -864,6 +1117,12 @@ class ViewerLiveToolSession extends ChangeNotifier {
     required bool bold,
     required LiveMarginAlign align,
     Rect? coverNorm,
+    List<Rect> coverRects = const [],
+    Color? coverColor,
+    bool italic = false,
+    String family = 'sans',
+    double lineHeightEm = 1.2,
+    String? customFamily,
   }) {
     final id = ++_pendingTextSeq;
     _pendingTexts.add(
@@ -877,6 +1136,12 @@ class ViewerLiveToolSession extends ChangeNotifier {
         bold: bold,
         align: align,
         coverNorm: coverNorm,
+        coverRects: coverRects,
+        coverColor: coverColor,
+        italic: italic,
+        family: family,
+        lineHeightEm: lineHeightEm,
+        customFamily: customFamily,
       ),
     );
     notifyListeners();
@@ -938,6 +1203,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
 
   void setTextEditTarget(LiveTextEditTarget? target) {
     _textEditTarget = target;
+    _selectedRun = null;
+    if (target == null) _textLineHeight = 1.2;
     if (target != null) {
       _placement = clampPagePlacement(
         normRectToPlacement(target.normRect),
@@ -945,16 +1212,77 @@ class ViewerLiveToolSession extends ChangeNotifier {
       );
       _labelText = target.originalText;
       _fontSizePt = target.fontSizePt.clamp(6.0, 96.0);
+      _textLineHeight = target.leadingEm.clamp(1.0, 2.6);
+      if (target.textColor != null) _markupColor = target.textColor!;
+      final m = target.fontMatch;
+      if (m != null) {
+        // Font recognition: start from the font the text already uses.
+        _textFamily = m.family;
+        _textBold = m.bold;
+        _textItalic = m.italic;
+        _detectedFont = m.original;
+        _userFont = FontLibrary.instance.matchOriginal(m.original);
+      } else {
+        _detectedFont = null;
+        _userFont = null;
+      }
       _awaitingClickPlacement = false;
       _inlineEditing = true;
     }
+    _editBaseline = target == null ? null : textEditSignature;
     notifyListeners();
   }
+
+  String? _editBaseline;
+
+  /// Everything a commit would write for the open block, as one string.
+  String get textEditSignature => [
+        _labelText ?? '',
+        _placement.left.toStringAsFixed(4),
+        _placement.top.toStringAsFixed(4),
+        _placement.width.toStringAsFixed(4),
+        _fontSizePt.toStringAsFixed(2),
+        _markupColor.toARGB32(),
+        _textBold,
+        _textItalic,
+        _textFamily,
+        _textAlign.name,
+        _textLineHeight.toStringAsFixed(2),
+        _userFont?.id ?? '',
+      ].join('|');
+
+  /// True when the open block was moved, restyled or retyped.
+  bool get textEditChanged =>
+      _textEditTarget == null || _editBaseline != textEditSignature;
 
   void setTextRunHits(List<LiveTextEditTarget> hits) {
     _textRunHits
       ..clear()
       ..addAll(hits);
+    _textRunsByPage[_pageIndex1Based] = List.of(hits);
+    notifyListeners();
+  }
+
+  /// Editable text blocks of any loaded page (not only the focused one).
+  List<LiveTextEditTarget> textRunsForPage(int page1Based) =>
+      _textRunsByPage[page1Based] ?? const [];
+
+  bool hasTextRunsForPage(int page1Based) =>
+      _textRunsByPage.containsKey(page1Based);
+
+  void setTextRunsForPage(int page1Based, List<LiveTextEditTarget> hits) {
+    _textRunsByPage[page1Based] = List.of(hits);
+    if (page1Based == _pageIndex1Based) {
+      _textRunHits
+        ..clear()
+        ..addAll(hits);
+    }
+    notifyListeners();
+  }
+
+  void clearTextRuns() {
+    _textRunsByPage.clear();
+    _textRunHits.clear();
     notifyListeners();
   }
 
@@ -1027,10 +1355,16 @@ class ViewerLiveToolSession extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setLabelText(String? text) {
+  /// [draft]: a keystroke in the on-page editor — only that page repaints
+  /// (panels and other pages do not rebuild per key).
+  void setLabelText(String? text, {bool draft = false}) {
     if (_labelText == text) return;
     _labelText = text;
-    notifyListeners();
+    if (draft) {
+      _notifyDraft();
+    } else {
+      notifyListeners();
+    }
   }
 
   void setMarkupColor(Color color) {

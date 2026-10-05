@@ -6,6 +6,7 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 
 String formatStorageBytes(int bytes) {
@@ -131,6 +132,7 @@ class _StorageSettingsPanelState extends State<StorageSettingsPanel> {
                 limit: StorageCacheManager.limits[area],
               ),
             const SizedBox(height: DsSpacing.sm),
+            _BudgetRow(onChanged: _refresh),
             _LocationRow(path: usage.rootPath),
             if (usage.cacheRootPath != usage.rootPath)
               _LocationRow(path: usage.cacheRootPath, label: 'Cache folder'),
@@ -252,6 +254,67 @@ class _LocationRow extends StatelessWidget {
           icon: const Icon(Icons.copy_outlined),
         ),
       ],
+    );
+  }
+}
+
+/// Cache size limit picker: automatic or a fixed number of GB.
+class _BudgetRow extends StatefulWidget {
+  const _BudgetRow({required this.onChanged});
+
+  final Future<void> Function() onChanged;
+
+  @override
+  State<_BudgetRow> createState() => _BudgetRowState();
+}
+
+class _BudgetRowState extends State<_BudgetRow> {
+  static const _choices = [0, 1, 2, 4, 6, 8, 12, 16, 32];
+  int _gb = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (mounted) {
+        setState(() => _gb = p.getInt(StorageCacheManager.budgetPrefKey) ?? 0);
+      }
+    });
+  }
+
+  Future<void> _set(int gb) async {
+    setState(() => _gb = gb);
+    final p = await SharedPreferences.getInstance();
+    await p.setInt(StorageCacheManager.budgetPrefKey, gb);
+    StorageCacheManager.setUserGb(gb);
+    await StorageCacheManager.instance.startupMaintenance();
+    await widget.onChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text('Cache size limit (rendered pages, OCR, thumbnails)'),
+          ),
+          DropdownButton<int>(
+            value: _choices.contains(_gb) ? _gb : 0,
+            items: [
+              for (final c in _choices)
+                DropdownMenuItem(
+                  value: c,
+                  child: Text(c == 0 ? 'Automatic' : '$c GB'),
+                ),
+            ],
+            onChanged: (v) {
+              if (v != null) _set(v);
+            },
+          ),
+        ],
+      ),
     );
   }
 }

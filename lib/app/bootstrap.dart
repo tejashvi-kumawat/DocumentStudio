@@ -1,3 +1,5 @@
+import 'package:document_studio/core/update/app_updater.dart';
+import 'package:document_studio/core/settings/app_prefs.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -15,8 +17,10 @@ import 'package:document_studio/features/image_viewer/image_viewer_route.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
 import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:document_studio_qpdf/document_studio_qpdf.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:pdfrx/pdfrx.dart';
@@ -50,6 +54,7 @@ Future<void> bootstrap() async {
     );
   }
   await Future.wait([
+    PerfLog.time('startup.prefs', AppPrefs.load),
     PerfLog.time('startup.pdfrxInitialize', pdfrxFlutterInitialize),
     PerfLog.time('startup.windowInitialize', DsWindow.initialize),
   ]);
@@ -67,9 +72,21 @@ Future<void> bootstrap() async {
     _openLaunchArgs(container);
     _devAutoOpen(container);
     // Housekeeping off the startup path.
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        StorageCacheManager.setUserGb(
+          prefs.getInt(StorageCacheManager.budgetPrefKey) ?? 0,
+        );
+      } catch (_) {}
       unawaited(StorageCacheManager.instance.startupMaintenance());
     });
+    // Quiet update check; the title bar shows "Update" when one exists.
+    if (AppPrefs.autoUpdateCheck && !kDebugMode) {
+      Timer(const Duration(seconds: 8), () {
+        unawaited(AppUpdater.instance.check());
+      });
+    }
   });
 }
 
@@ -77,9 +94,28 @@ Future<void> bootstrap() async {
 void _openLaunchArgs(ProviderContainer container) {
   if (kIsWeb) return;
   if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) return;
+  // A second launch (Explorer "Open with") forwards its argv to this process.
+  if (Platform.isWindows) {
+    const MethodChannel('document_studio/open').setMethodCallHandler((call) async {
+      if (call.method != 'open') return;
+      final raw = (call.arguments as List?)?.cast<String>() ?? const <String>[];
+      final forwarded = CliLaunchArgs.parse(raw);
+      if (forwarded.hasWork) {
+        _openLaunch(container, forwarded, delay: Duration.zero);
+      }
+    });
+  }
   final launch = CliLaunchArgs.fromProcess();
   if (!launch.hasWork) return;
-  Future<void>.delayed(const Duration(milliseconds: 350), () async {
+  _openLaunch(container, launch);
+}
+
+void _openLaunch(
+  ProviderContainer container,
+  CliLaunchArgs launch, {
+  Duration delay = const Duration(milliseconds: 350),
+}) {
+  Future<void>.delayed(delay, () async {
     PerfLog.mark('launch.openArgs');
     final tabs = container.read(documentTabsControllerProvider);
     final router = container.read(appRouterProvider);

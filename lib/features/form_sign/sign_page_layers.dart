@@ -479,7 +479,8 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
       c.duplicate(sel.id);
       return KeyEventResult.handled;
     }
-    if (!primary && key == LogicalKeyboardKey.keyR) {
+    // Alt+R rotates (Alt+Shift+R the other way); a bare R does nothing.
+    if (!primary && hw.isAltPressed && key == LogicalKeyboardKey.keyR) {
       c.rotateBy(sel.id, hw.isShiftPressed ? -90 : 90);
       return KeyEventResult.handled;
     }

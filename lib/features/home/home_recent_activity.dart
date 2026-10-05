@@ -1,3 +1,4 @@
+import 'package:document_studio/core/settings/app_prefs.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
@@ -49,7 +50,7 @@ class _HomeRecentActivityState extends ConsumerState<HomeRecentActivity> {
   void _refresh() {
     _paths = [for (final f in widget.recents) f.path];
     final cache = ref.read(homeThumbnailCacheProvider);
-    final files = widget.recents.take(12).toList();
+    final files = widget.recents.take(AppPrefs.recentCount).toList();
     _future = Future.wait([for (final f in files) cache.load(f)]).then((all) {
       final entries = <_Entry>[
         for (var i = 0; i < files.length; i++)

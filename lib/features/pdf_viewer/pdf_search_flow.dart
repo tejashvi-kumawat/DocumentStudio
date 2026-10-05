@@ -1,3 +1,5 @@
+import 'package:document_studio/core/search/page_text_index.dart';
+import 'package:document_studio/features/pdf_viewer/ds_text_searcher.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_search_match_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -9,13 +11,30 @@ const kPdfSearchQueryDebounce = Duration(milliseconds: 280);
 void applyPdfSearchQuery({
   required PdfTextSearcher searcher,
   required String query,
+  bool matchCase = false,
+  bool wholeWord = false,
 }) {
   final q = query.trim();
   if (q.isEmpty) {
+    if (searcher is DsTextSearcher) searcher.prefilterNeedle = null;
     searcher.resetTextSearch();
     return;
   }
-  searcher.startTextSearch(q, searchImmediately: true);
+  if (searcher is DsTextSearcher) {
+    searcher.prefilterNeedle = PageTextIndex.normalize(q);
+  }
+  if (wholeWord) {
+    searcher.startTextSearch(
+      RegExp('\\b${RegExp.escape(q)}\\b', caseSensitive: matchCase),
+      searchImmediately: true,
+    );
+    return;
+  }
+  searcher.startTextSearch(
+    q,
+    caseInsensitive: !matchCase,
+    searchImmediately: true,
+  );
 }
 
 /// Prompts for query text, runs [PdfTextSearcher], then shows match navigation.

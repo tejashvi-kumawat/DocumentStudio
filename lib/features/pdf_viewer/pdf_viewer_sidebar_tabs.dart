@@ -51,6 +51,13 @@ class PdfViewerSidebarTabs extends StatelessWidget {
                 onTap: () =>
                     onContentChanged(PdfViewerSidebarContent.attachments),
               ),
+              _Tab(
+                key: const Key('pdf_sidebar_tab_search'),
+                tooltip: 'Search results',
+                icon: Icons.manage_search,
+                selected: content == PdfViewerSidebarContent.search,
+                onTap: () => onContentChanged(PdfViewerSidebarContent.search),
+              ),
             ],
           ),
           Divider(height: 1, color: border),

@@ -149,6 +149,7 @@ class _ViewerInsertPagesPanelState extends ConsumerState<ViewerInsertPagesPanel>
             : {source.path: sourcePassword},
         unlockMismatchedPasswords: true,
         successMessage: 'Inserted ${source.displayName} after page $after.',
+        focusPage1Based: after + 1,
       );
     } on DocumentStudioError catch (e) {
       if (mounted) setState(() => _error = e.recoveryHint ?? e.message);

@@ -12,8 +12,9 @@ Security fixes are prioritized for the **latest published release** on [GitHub R
 
 | Version | Supported |
 | --- | --- |
-| **1.0.x** (current: **1.0.3**) | Yes |
-| Older than the latest 1.0.x patch | Best effort — please upgrade |
+| **1.1.x** (current: **1.1.0**) | Yes |
+| **1.0.x** | Best effort — please upgrade |
+| Older than 1.0.x | Best effort — please upgrade |
 | Unreleased `master` / nightlies | Best effort while investigating |
 
 Desktop installers (Windows Setup, macOS DMG, Linux `.deb`) and Homebrew packages tracking those releases are in scope when they ship Document Studio binaries from this project.
@@ -71,7 +72,7 @@ and mark the message as a **security disclosure**.
 
 A useful report typically contains:
 
-1. **Affected version** — release tag (e.g. `v1.0.3`) or commit SHA; OS and CPU arch  
+1. **Affected version** — release tag (e.g. `v1.1.0`) or commit SHA; OS and CPU arch  
 2. **Impact** — confidentiality / integrity / availability in plain language  
 3. **Reproduction** — minimal steps; prefer a **synthetic** fixture, not a real passport or contract  
 4. **Expected vs actual** behavior  

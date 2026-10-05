@@ -26,9 +26,13 @@ class LivePendingTextPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final t in items) {
-      final cover = t.coverNorm;
-      if (cover != null) {
-        canvas.drawRect(geom.rectToPx(cover), Paint()..color = Colors.white);
+      final bg = Paint()..color = t.coverColor ?? Colors.white;
+      if (t.coverRects.isNotEmpty) {
+        for (final r in t.coverRects) {
+          canvas.drawRect(geom.rectToPx(r), bg);
+        }
+      } else if (t.coverNorm != null) {
+        canvas.drawRect(geom.rectToPx(t.coverNorm!), bg);
       }
       paintLiveTextBox(
         canvas,
@@ -39,6 +43,10 @@ class LivePendingTextPainter extends CustomPainter {
         color: t.color,
         bold: t.bold,
         align: t.align,
+        italic: t.italic,
+        family: t.family,
+        lineHeightEm: t.lineHeightEm,
+        customFamily: t.customFamily,
       );
     }
   }
@@ -76,6 +84,7 @@ class LiveTextLayer extends StatefulWidget {
 class _LiveTextLayerState extends State<LiveTextLayer> {
   late final TextEditingController _ctrl;
   final FocusNode _textFocus = FocusNode(debugLabel: 'live-text');
+  final FocusNode _selFocus = FocusNode(debugLabel: 'live-text-selection');
   _TextDrag _drag = _TextDrag.none;
   bool _armMove = false;
   bool _hideFieldGestures = false;
@@ -83,6 +92,9 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
   PagePlacementNorm? _base;
   Offset? _hover;
   int _focusRequestedFor = -1;
+  bool _selPending = false;
+  Offset? _selStart;
+  LiveTextEditTarget? _selRun;
 
   static const _palette = <Color>[
     Color(0xFF1A1A1A),
@@ -111,6 +123,7 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
   void dispose() {
     _ctrl.dispose();
     _textFocus.dispose();
+    _selFocus.dispose();
     super.dispose();
   }
 
@@ -144,32 +157,45 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
   }
 
   double get _lineHeightNorm =>
-      _g.ptToNormY(_live.fontSizePt * kTextLineHeightEm);
+      _g.ptToNormY(_live.fontSizePt * _live.textLineHeightEm);
 
   Rect get _boxPx => _g.rectToPx(_live.placement.rect);
 
   /// Grows / shrinks the box to the wrapped line count (same wrap as writer).
-  void _fitHeight(String text) {
+  void _fitHeight(String text, {bool draft = false}) {
     final boxWPt = _live.placement.width * _g.pageWidthPt;
     final lines = wrapPlainTextToWidth(
       text: text.isEmpty ? ' ' : text,
       maxWidthPt: boxWPt,
       fontSizePt: _live.fontSizePt,
       bold: _live.textBold,
+      measure: _live.textMeasure(_live.fontSizePt),
     );
     final h = liveTextBoxHeightNorm(
       fontSizePt: _live.fontSizePt,
       pageHeightPt: _g.pageHeightPt,
       lineCount: lines.length,
+      lineHeightEm: _live.textLineHeightEm,
     );
     if ((_live.placement.height - h).abs() < 1e-5) return;
-    _live.setPlacement(_live.placement.copyWith(height: h));
+    _live.setPlacement(_live.placement.copyWith(height: h), draft: draft);
+  }
+
+  Rect? _selectedOnThisPage(ViewerLiveToolSession live) {
+    final sel = live.selectedRun;
+    if (sel == null) return null;
+    for (final r in live.textRunsForPage(_g.pageNumber)) {
+      if (r.originalText == sel.originalText &&
+          (r.hitRect.center - sel.hitRect.center).distance < 1e-4) {
+        return _g.rectToPx(r.hitRect);
+      }
+    }
+    return null;
   }
 
   LiveTextEditTarget? _runAt(Offset local) {
-    if (!_onThisPage) return null;
     final n = Offset(local.dx / _g.pagePx.width, local.dy / _g.pagePx.height);
-    for (final hit in _live.textRunHits) {
+    for (final hit in _live.textRunsForPage(_g.pageNumber)) {
       if (hit.hitRect.contains(n)) return hit;
     }
     return null;
@@ -179,6 +205,17 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
     if (!_editing) return _TextDrag.none;
     final box = _boxPx;
     final frame = box.inflate(7);
+    // Corner handles resize the box width from that side (height follows
+    // the text), like the side handles.
+    final f3 = box.inflate(3);
+    for (final (c, zone) in [
+      (f3.topLeft, _TextDrag.resizeLeft),
+      (f3.bottomLeft, _TextDrag.resizeLeft),
+      (f3.topRight, _TextDrag.resizeRight),
+      (f3.bottomRight, _TextDrag.resizeRight),
+    ]) {
+      if ((local - c).distance <= kLiveHandleHitPad) return zone;
+    }
     if ((local - box.centerLeft.translate(-7, 0)).distance <=
         kLiveHandleHitPad) {
       return _TextDrag.resizeLeft;
@@ -193,6 +230,7 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
 
   bool _claims(Offset local) {
     if (_drag != _TextDrag.none || _armMove) return true;
+    if (!_editing && _runAt(local) != null) return true;
     if (!_onThisPage) return false;
     if (_live.creatingTextBox || _live.awaitingClickPlacement || _editing) {
       return true;
@@ -236,11 +274,35 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
     }
     if (!_onThisPage) _live.focusPage(_g.pageNumber);
     final run = _runAt(local);
-    if (run != null) {
-      _live.setTextEditTarget(run);
-      _fitHeight(run.originalText);
+    // Canvas-style: a click on empty space first just clears the selection.
+    if (run == null &&
+        (_live.selectedImage != null || _live.selectedRun != null)) {
+      _live.selectImage(null);
+      _live.selectTextRun(null);
       return;
     }
+    if (run != null) {
+      if (_live.selectedImage != null) _live.selectImage(null);
+      final sel = _live.selectedRun;
+      final alreadySelected =
+          sel != null &&
+          sel.originalText == run.originalText &&
+          (sel.hitRect.center - run.hitRect.center).distance < 1e-4;
+      if (alreadySelected) {
+        // Second click on the selected block: type into it.
+        _live.setTextEditTarget(run);
+        _fitHeight(run.originalText);
+        return;
+      }
+      // First click selects (Acrobat); a drag from here moves the block.
+      _live.selectTextRun(run);
+      _selFocus.requestFocus();
+      _selPending = true;
+      _selStart = local;
+      _selRun = run;
+      return;
+    }
+    _live.selectTextRun(null);
     final n = _g.toNorm(local);
     final lineH = _lineHeightNorm;
     final origin = Offset(n.dx, (n.dy - lineH / 2).clamp(0.0, 1.0 - lineH));
@@ -251,6 +313,19 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
 
   void _move(PointerMoveEvent e) {
     final local = e.localPosition;
+    if (_selPending && _selRun != null && _selStart != null) {
+      if ((local - _selStart!).distance < 8) return;
+      final run = _selRun!;
+      _selPending = false;
+      _live.setTextEditTarget(run);
+      _fitHeight(run.originalText);
+      _drag = _TextDrag.move;
+      _startLocal = _selStart;
+      _base = _live.placement;
+      if (!_hideFieldGestures && mounted) {
+        setState(() => _hideFieldGestures = true);
+      }
+    }
     if (_armMove && _drag == _TextDrag.none) {
       final start = _startLocal;
       if (start == null || (local - start).distance < 8) return;
@@ -296,6 +371,8 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
   }
 
   void _up(PointerEvent e) {
+    _selPending = false;
+    final start = _startLocal;
     final was = _drag;
     _drag = _TextDrag.none;
     _armMove = false;
@@ -305,6 +382,13 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
       setState(() => _hideFieldGestures = false);
     }
     if (was == _TextDrag.create) {
+      // Edit mode: a plain click on empty space only clears; dragging out a
+      // width adds a new text box there.
+      final dragged = start != null && (e.localPosition - start).distance >= 8;
+      if (!dragged) {
+        _live.finishCreateTextBox(commit: false);
+        return;
+      }
       _live.finishCreateTextBox(
         defaultWidthNorm: _g.ptToNormX(kLiveNewTextWidthPt).clamp(0.05, 1.0),
       );
@@ -312,6 +396,32 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
       return;
     }
     if (was != _TextDrag.none) _live.commitDraft();
+  }
+
+  /// Keys for a selected (not yet opened) block: Delete removes it, Enter
+  /// opens it for typing, Esc deselects.
+  KeyEventResult _onSelectionKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final sel = _live.selectedRun;
+    if (sel == null || _editing) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.delete ||
+        key == LogicalKeyboardKey.backspace) {
+      _live.setTextEditTarget(sel);
+      _live.setLabelText('');
+      _live.requestTextCommit();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter) {
+      _live.setTextEditTarget(sel);
+      _fitHeight(sel.originalText);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.escape) {
+      _live.selectTextRun(null);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   KeyEventResult _onFieldKey(FocusNode node, KeyEvent event) {
@@ -385,12 +495,16 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
                     fontPx: fontPx,
                     color: live.markupColor,
                     bold: live.textBold,
+                    italic: live.textItalic,
+                    family: live.textFamily,
+                    lineHeightEm: live.textLineHeightEm,
+                    customFamily: live.textUserFont?.flutterFamily,
                   ),
                   strutStyle: StrutStyle(
                     fontFamily: kHelveticaCompatibleFontFamily,
                     fontFamilyFallback: kHelveticaCompatibleFontFallback,
                     fontSize: fontPx,
-                    height: kTextLineHeightEm,
+                    height: live.textLineHeightEm,
                     leadingDistribution: TextLeadingDistribution.even,
                     forceStrutHeight: true,
                   ),
@@ -407,130 +521,194 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
                     ),
                   ),
                   onChanged: (v) {
-                    live.setLabelText(v);
-                    _fitHeight(v);
-                  },
+                      live.setLabelText(v, draft: true);
+                      _fitHeight(v, draft: true);
+                    },
                 ),
               ),
             ),
           )
         : null;
 
-    return MouseRegion(
-      cursor: _cursorAt(_hover),
-      onHover: (e) => setState(() => _hover = e.localPosition),
-      onExit: (_) => setState(() => _hover = null),
-      child: Stack(
-        fit: StackFit.expand,
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: PointerClaimRegion(
-              claims: _claims,
-              child: Listener(
-                behavior: HitTestBehavior.opaque,
-                onPointerDown: _down,
-                onPointerMove: _move,
-                onPointerUp: _up,
-                onPointerCancel: _up,
-                child: Stack(
-                  fit: StackFit.expand,
-                  clipBehavior: Clip.none,
-                  children: [
-                    if (pending.isNotEmpty)
-                      CustomPaint(
-                        painter: LivePendingTextPainter(
-                          items: pending,
-                          geom: _g,
-                        ),
-                      ),
-                    if (_onThisPage && !editing)
-                      IgnorePointer(
-                        child: CustomPaint(
-                          painter: _RunsPainter(
-                            runs: [
-                              for (final r in live.textRunHits)
-                                _g.rectToPx(r.hitRect),
-                            ],
-                            hovered: hoverRun == null
-                                ? null
-                                : _g.rectToPx(hoverRun.hitRect),
+    return Focus(
+      focusNode: _selFocus,
+      onKeyEvent: _onSelectionKey,
+      child: MouseRegion(
+        hitTestBehavior: HitTestBehavior.deferToChild,
+        cursor: _cursorAt(_hover),
+        onHover: (e) => setState(() => _hover = e.localPosition),
+        onExit: (_) => setState(() => _hover = null),
+        child: Stack(
+          fit: StackFit.expand,
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: PointerClaimRegion(
+                claims: _claims,
+                child: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: _down,
+                  onPointerMove: _move,
+                  onPointerUp: _up,
+                  onPointerCancel: _up,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    clipBehavior: Clip.none,
+                    children: [
+                      if (pending.isNotEmpty)
+                        CustomPaint(
+                          painter: LivePendingTextPainter(
+                            items: pending,
+                            geom: _g,
                           ),
                         ),
-                      ),
-                    if (editing && target?.coverNorm != null)
-                      Positioned.fromRect(
-                        rect: _g.rectToPx(target!.coverNorm!),
-                        child: const IgnorePointer(
-                          child: ColoredBox(color: Colors.white),
-                        ),
-                      ),
-                    if (editing || creating)
-                      IgnorePointer(
-                        child: CustomPaint(
-                          painter: LiveSelectionPainter(
-                            boxPx: box.inflate(creating ? 0 : 3),
-                            showHandles: !creating,
-                            edgeHandlesOnly: true,
-                            dashed: creating,
+                      if (!editing)
+                        IgnorePointer(
+                          child: CustomPaint(
+                            painter: _RunsPainter(
+                              runs: [
+                                for (final r in live.textRunsForPage(
+                                  _g.pageNumber,
+                                ))
+                                  _g.rectToPx(r.hitRect),
+                              ],
+                              hovered: hoverRun == null
+                                  ? null
+                                  : _g.rectToPx(hoverRun.hitRect),
+                              selected: _selectedOnThisPage(live),
+                            ),
                           ),
                         ),
-                      ),
-                    ?field,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (editing)
-            _TextFormatBar(
-              anchor: box,
-              pageSize: _g.pagePx,
-              session: live,
-              palette: _palette,
-              onChanged: () {
-                _fitHeight(_ctrl.text);
-                _textFocus.requestFocus();
-              },
-            ),
-          if (showHint)
-            Positioned(
-              top: 12,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: Center(
-                  child: DsMotion.fadeRiseIn(
-                    child: LiveHintChip(
-                      icon: Icons.text_fields,
-                      text: live.textRunHits.isEmpty
-                          ? 'Click to add text · drag to set its width'
-                          : 'Click text to edit it · click empty space to add text',
-                    ),
+                      if (editing && target?.coverNorm != null)
+                        for (final r
+                            in target!.coverRects.isNotEmpty
+                                ? target.coverRects
+                                : [target.coverNorm!])
+                          Positioned.fromRect(
+                            rect: _g.rectToPx(r),
+                            child: IgnorePointer(
+                              child: ColoredBox(
+                                color: target.coverColor ?? Colors.white,
+                              ),
+                            ),
+                          ),
+                      if (editing || creating)
+                        IgnorePointer(
+                          child: CustomPaint(
+                            painter: LiveSelectionPainter(
+                              boxPx: box.inflate(creating ? 0 : 3),
+                              showHandles: !creating,
+                              edgeHandlesOnly: false,
+                              dashed: creating,
+                            ),
+                          ),
+                        ),
+                      ?field,
+                    ],
                   ),
                 ),
               ),
             ),
-        ],
+            if (!editing && _selectedOnThisPage(live) != null)
+              _SelectionBar(
+                anchor: _selectedOnThisPage(live)!,
+                pageSize: _g.pagePx,
+                onEdit: () {
+                  final sel = live.selectedRun;
+                  if (sel == null) return;
+                  live.setTextEditTarget(sel);
+                  _fitHeight(sel.originalText);
+                },
+                onDelete: () {
+                  final sel = live.selectedRun;
+                  if (sel == null) return;
+                  live.setTextEditTarget(sel);
+                  live.setLabelText('');
+                  live.requestTextCommit();
+                },
+                onDeselect: () => live.selectTextRun(null),
+              ),
+            if (editing)
+              _TextFormatBar(
+                anchor: box,
+                pageSize: _g.pagePx,
+                session: live,
+                palette: _palette,
+                onChanged: () {
+                  _fitHeight(_ctrl.text);
+                  _textFocus.requestFocus();
+                },
+              ),
+            if (showHint)
+              Positioned(
+                top: 12,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Center(
+                    child: DsMotion.fadeRiseIn(
+                      child: LiveHintChip(
+                        icon: Icons.text_fields,
+                        text: live.textRunsForPage(_g.pageNumber).isEmpty
+                            ? 'Drag on the page to add a text box'
+                            : 'Click to select · click again to type · drag on empty space to add text',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _RunsPainter extends CustomPainter {
-  _RunsPainter({required this.runs, this.hovered});
+  _RunsPainter({required this.runs, this.hovered, this.selected});
 
   final List<Rect> runs;
   final Rect? hovered;
+  final Rect? selected;
 
   @override
   void paint(Canvas canvas, Size size) {
     final faint = Paint()
-      ..color = kLiveSelectionColor.withValues(alpha: 0.22)
+      ..color = kLiveSelectionColor.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     for (final r in runs) {
       canvas.drawRect(r.inflate(1), faint);
+    }
+    final sel = selected;
+    if (sel != null) {
+      canvas.drawRect(
+        sel.inflate(2),
+        Paint()..color = kLiveSelectionColor.withValues(alpha: 0.08),
+      );
+      canvas.drawRect(
+        sel.inflate(2),
+        Paint()
+          ..color = kLiveSelectionColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6,
+      );
+      for (final c in [
+        sel.inflate(2).topLeft,
+        sel.inflate(2).topRight,
+        sel.inflate(2).bottomLeft,
+        sel.inflate(2).bottomRight,
+      ]) {
+        final r = Rect.fromCenter(center: c, width: 8, height: 8);
+        canvas.drawRect(r, Paint()..color = Colors.white);
+        canvas.drawRect(
+          r,
+          Paint()
+            ..color = kLiveSelectionColor
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.3,
+        );
+      }
     }
     final h = hovered;
     if (h != null) {
@@ -550,7 +728,9 @@ class _RunsPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RunsPainter old) =>
-      old.hovered != hovered || old.runs.length != runs.length;
+      old.hovered != hovered ||
+      old.selected != selected ||
+      old.runs.length != runs.length;
 }
 
 class _TextFormatBar extends StatelessWidget {
@@ -569,7 +749,7 @@ class _TextFormatBar extends StatelessWidget {
   final VoidCallback onChanged;
 
   static const double _barH = 36;
-  static const double _barW = 372;
+  static const double _barW = 404;
 
   Widget _icon({
     required Key key,
@@ -725,6 +905,19 @@ class _TextFormatBar extends StatelessWidget {
                   ),
                 const _Divider(),
                 _icon(
+                  key: const Key('live_text_delete'),
+                  icon: Icons.delete_outline,
+                  tip: 'Delete this text (removes it from the page)',
+                  onTap: () {
+                    if (s.textEditTarget == null) {
+                      s.requestTextCancel();
+                      return;
+                    }
+                    s.setLabelText('');
+                    s.requestTextCommit();
+                  },
+                ),
+                _icon(
                   key: const Key('live_text_cancel'),
                   icon: Icons.close,
                   tip: 'Discard (Esc)',
@@ -739,6 +932,96 @@ class _TextFormatBar extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Floating bar over a selected (not yet opened) text block.
+class _SelectionBar extends StatelessWidget {
+  const _SelectionBar({
+    required this.anchor,
+    required this.pageSize,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onDeselect,
+  });
+
+  final Rect anchor;
+  final Size pageSize;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onDeselect;
+
+  static const double _w = 236;
+  static const double _h = 34;
+
+  static Rect rectFor(Rect anchor, Size pageSize) {
+    var top = anchor.top - _h - 10;
+    if (top < 2) top = anchor.bottom + 8;
+    final left = anchor.left
+        .clamp(2.0, math.max(2.0, pageSize.width - _w - 2))
+        .toDouble();
+    return Rect.fromLTWH(left, top, _w, _h);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget btn(Key key, IconData icon, String label, VoidCallback onTap) =>
+        InkWell(
+          key: key,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 16, color: const Color(0xFF333333)),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+    final r = rectFor(anchor, pageSize);
+    return Positioned(
+      left: r.left,
+      top: r.top,
+      height: _h,
+      child: Material(
+        elevation: 4,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            btn(
+              const Key('live_text_sel_edit'),
+              Icons.edit_outlined,
+              'Edit',
+              onEdit,
+            ),
+            btn(
+              const Key('live_text_sel_delete'),
+              Icons.delete_outline,
+              'Delete',
+              onDelete,
+            ),
+            btn(
+              const Key('live_text_sel_close'),
+              Icons.close,
+              'Done',
+              onDeselect,
+            ),
+          ],
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:document_studio/features/annotations/markup/markup_tool_icon.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/domain/pdf_markup/markup_fonts.dart';
 import 'package:document_studio/domain/pdf_markup/markup_objects.dart';
@@ -259,8 +260,8 @@ class _ToolChip extends StatelessWidget {
           child: SizedBox(
             width: 44,
             height: 40,
-            child: Icon(
-              tool.icon,
+            child: MarkupToolIcon(
+              tool,
               size: 20,
               color: selected ? cs.primary : cs.onSurface,
             ),

@@ -38,6 +38,7 @@ class PdfDocumentWorkspace extends StatefulWidget {
     this.sidebarContent,
     this.pageOverlaysBuilder,
     this.onOpenContextMenu,
+    this.contextMenuBuilder,
     this.canvasMargin = true,
   });
 
@@ -60,6 +61,7 @@ class PdfDocumentWorkspace extends StatefulWidget {
   final PdfViewerSidebarContent? sidebarContent;
   final PdfPageOverlaysBuilder? pageOverlaysBuilder;
   final void Function(Offset globalPosition)? onOpenContextMenu;
+  final PdfViewerContextMenuBuilder? contextMenuBuilder;
   final bool canvasMargin;
 
   @override
@@ -429,6 +431,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
             immersiveSinglePage: widget.immersiveSinglePage,
             presentationAdvanceOnTap: widget.presentationAdvanceOnTap,
             pageOverlaysBuilder: widget.pageOverlaysBuilder,
+            contextMenuBuilder: widget.contextMenuBuilder,
           ),
         );
         final freeze = _freezeFrame;

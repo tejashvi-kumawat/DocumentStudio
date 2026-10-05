@@ -188,8 +188,16 @@ Uint8List aesEncryptPdfContent(Uint8List key, Uint8List data, {Uint8List? iv}) {
   return Uint8List.fromList([...useIv, ...encrypted]);
 }
 
+/// What the writer needs from any Standard Security Handler revision.
+abstract class PdfSecurityMaterial {
+  int get permissions;
+  Uint8List get fileId;
+  Uint8List encryptString(Uint8List data, int objectNumber, int generation);
+  Uint8List encryptStream(Uint8List data, int objectNumber, int generation);
+}
+
 /// Holds computed Standard Security Handler revision-4 (AES-128) material.
-class PdfAes128SecurityMaterial {
+class PdfAes128SecurityMaterial implements PdfSecurityMaterial {
   PdfAes128SecurityMaterial({
     required this.fileKey,
     required this.ownerEntry,
@@ -201,9 +209,12 @@ class PdfAes128SecurityMaterial {
   final Uint8List fileKey;
   final Uint8List ownerEntry;
   final Uint8List userEntry;
+  @override
   final int permissions;
+  @override
   final Uint8List fileId;
 
+  @override
   Uint8List encryptString(Uint8List data, int objectNumber, int generation) {
     final key = objectEncryptionKey(
       fileKey: fileKey,
@@ -214,6 +225,7 @@ class PdfAes128SecurityMaterial {
     return aesEncryptPdfContent(key, data);
   }
 
+  @override
   Uint8List encryptStream(Uint8List data, int objectNumber, int generation) =>
       encryptString(data, objectNumber, generation);
 }

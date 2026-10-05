@@ -240,7 +240,33 @@ class ViewerPageThumbTile extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
             child: Column(
               children: [
-                Expanded(child: child),
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      child,
+                      if (selected)
+                        const Positioned(
+                          top: 4,
+                          right: 4,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: DsColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(2),
+                              child: Icon(
+                                Icons.check,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   label,

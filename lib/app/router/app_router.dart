@@ -1,3 +1,5 @@
+import 'package:document_studio/features/compose/compose_model.dart';
+import 'package:document_studio/features/compose/compose_screen.dart';
 import 'package:document_studio/app/shell/ds_document_tab_shell.dart';
 import 'package:document_studio/design_system/shell/ds_app_shell.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
@@ -89,10 +91,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       buildCompressRoute(parentNavigatorKey: rootNavigatorKey),
       buildImageToolsRoute(parentNavigatorKey: rootNavigatorKey),
+      buildImageConverterRoute(parentNavigatorKey: rootNavigatorKey),
       buildImageViewerRoute(parentNavigatorKey: rootNavigatorKey),
       ...buildOrganizeRoutes(parentNavigatorKey: rootNavigatorKey),
       ...buildDocumentWorkspaceRoutes(parentNavigatorKey: rootNavigatorKey),
       buildCreatePdfRoute(parentNavigatorKey: rootNavigatorKey),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: composeRoutePath,
+        builder: (context, state) => ComposeScreen(
+          language: ComposeLanguage.values.firstWhere(
+            (l) => l.extension == state.uri.queryParameters['lang'],
+            orElse: () => ComposeLanguage.markdown,
+          ),
+        ),
+      ),
       buildImagesToPdfRoute(parentNavigatorKey: rootNavigatorKey),
       buildPdfToImagesRoute(parentNavigatorKey: rootNavigatorKey),
       buildOfficeConvertRoute(parentNavigatorKey: rootNavigatorKey),

@@ -36,6 +36,7 @@ class PdfViewerAcrobatTopChrome extends StatelessWidget
     this.signDoneEnabled = true,
     this.signStatusLabel,
     this.toolRow,
+    this.showTitleRow = true,
   });
 
   static const tabBarHeight = 36.0;
@@ -64,13 +65,18 @@ class PdfViewerAcrobatTopChrome extends StatelessWidget
   /// Organize, Crop, Rotate, Edit, Convert, Encrypt, Decrypt, Tools.
   final Widget? toolRow;
 
+  /// File name, page box, zoom and find. Off on desktop, where the tab shows
+  /// the name and the bottom bar carries the rest.
+  final bool showTitleRow;
+
   @override
   Size get preferredSize {
     final tabH = (showDocumentTabs && tabs.hasTabs) ? tabBarHeight : 0.0;
     final toolsH = (!signPlacementActive && toolRow != null)
         ? PdfViewerToolRow.height
         : 0.0;
-    return Size.fromHeight(tabH + barHeight + toolsH);
+    final titleH = (showTitleRow || signPlacementActive) ? barHeight : 0.0;
+    return Size.fromHeight(tabH + titleH + toolsH);
   }
 
   @override
@@ -103,6 +109,7 @@ class PdfViewerAcrobatTopChrome extends StatelessWidget
                   ),
                 ),
               ),
+            if (showTitleRow || signPlacementActive)
             DecoratedBox(
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: border)),

@@ -4,6 +4,12 @@ import 'package:document_studio/core/storage/file_storage_port.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/infrastructure/image/image_processing_port.dart';
 
+/// Image types the converter can read.
+const kImageInputExtensions = [
+  'png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'tif', 'tiff', 'ico', 'tga',
+  'pnm', 'pgm', 'ppm', 'psd', 'exr',
+];
+
 /// Injected dependencies for [ImageToolsScreen] so the feature avoids new Riverpod providers.
 class ImageToolsDeps {
   const ImageToolsDeps({
@@ -16,7 +22,7 @@ class ImageToolsDeps {
 
   Future<LocalFileRef?> pickOpenImage() {
     return fileStorage.pickOpenFile(
-      allowedExtensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'],
+      allowedExtensions: kImageInputExtensions,
     );
   }
 
@@ -29,14 +35,11 @@ class ImageToolsDeps {
     required Uint8List bytes,
     required ImageOutputFormat format,
   }) {
-    final ext = format == ImageOutputFormat.png ? 'png' : 'jpg';
-    final mime =
-        format == ImageOutputFormat.png ? 'image/png' : 'image/jpeg';
     return fileStorage.pickSavePath(
       suggestedName: suggestedName,
       bytes: bytes,
-      allowedExtensions: [ext],
-      mimeType: mime,
+      allowedExtensions: [format.extension],
+      mimeType: format.mimeType,
     );
   }
 }

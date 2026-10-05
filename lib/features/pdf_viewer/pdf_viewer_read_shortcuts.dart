@@ -36,10 +36,11 @@ Map<ShortcutActivator, Intent> pdfViewerReadShortcutBindings({
   return {
     _viewerPrimary(LogicalKeyboardKey.digit0): const PdfViewerFitPageIntent(),
     _viewerPrimary(LogicalKeyboardKey.numpad0): const PdfViewerFitPageIntent(),
-    _viewerPrimary(LogicalKeyboardKey.digit1): const PdfViewerFitWidthIntent(),
-    _viewerPrimary(LogicalKeyboardKey.numpad1): const PdfViewerFitWidthIntent(),
-    _viewerPrimary(LogicalKeyboardKey.digit2): const PdfViewerFitHeightIntent(),
-    _viewerPrimary(LogicalKeyboardKey.numpad2):
+    // Acrobat: Ctrl+1 actual size, Ctrl+2 fit width (Ctrl+3 fit height here).
+    _viewerPrimary(LogicalKeyboardKey.digit2): const PdfViewerFitWidthIntent(),
+    _viewerPrimary(LogicalKeyboardKey.numpad2): const PdfViewerFitWidthIntent(),
+    _viewerPrimary(LogicalKeyboardKey.digit3): const PdfViewerFitHeightIntent(),
+    _viewerPrimary(LogicalKeyboardKey.numpad3):
         const PdfViewerFitHeightIntent(),
     if (findBarVisible) ...{
       const SingleActivator(LogicalKeyboardKey.f3):

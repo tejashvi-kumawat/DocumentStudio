@@ -9,18 +9,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// Most-used groups first. Rows are only tools this app ships.
 enum PdfViewerAcrobatToolGroup {
-  pages('Pages'),
-  comment('Comment'),
-  combine('Combine'),
-  convert('Convert'),
-  security('Security'),
-  optimize('Optimize'),
-  sign('Sign'),
-  edit('Edit'),
-  create('Create');
+  pages('Organize pages', Icons.view_module_outlined),
+  comment('Comment', Icons.mode_comment_outlined),
+  combine('Combine', Icons.merge_type),
+  convert('Export & convert', Icons.import_export),
+  security('Protect', Icons.lock_outline),
+  optimize('Optimize', Icons.tune),
+  sign('Fill & sign', Icons.draw_outlined),
+  edit('Edit', Icons.edit_outlined),
+  create('Create', Icons.note_add_outlined);
 
-  const PdfViewerAcrobatToolGroup(this.title);
+  const PdfViewerAcrobatToolGroup(this.title, this.icon);
   final String title;
+  final IconData icon;
 }
 
 enum PdfViewerAcrobatToolAvailability { available, blocked }
@@ -384,15 +385,16 @@ List<PdfViewerAcrobatToolDefinition> buildPdfViewerAcrobatToolCatalog(
   ];
 }
 
+/// Acrobat's All tools order: edit first, then comment and page work.
 const _acrobatRailGroupOrder = <PdfViewerAcrobatToolGroup>[
-  PdfViewerAcrobatToolGroup.pages,
+  PdfViewerAcrobatToolGroup.edit,
   PdfViewerAcrobatToolGroup.comment,
+  PdfViewerAcrobatToolGroup.pages,
   PdfViewerAcrobatToolGroup.combine,
   PdfViewerAcrobatToolGroup.convert,
+  PdfViewerAcrobatToolGroup.sign,
   PdfViewerAcrobatToolGroup.security,
   PdfViewerAcrobatToolGroup.optimize,
-  PdfViewerAcrobatToolGroup.sign,
-  PdfViewerAcrobatToolGroup.edit,
   PdfViewerAcrobatToolGroup.create,
 ];
 
@@ -419,4 +421,195 @@ List<PdfViewerAcrobatToolDefinition> pdfViewerAcrobatToolsInGroup(
   PdfViewerAcrobatToolGroup group,
 ) {
   return tools.where((t) => t.group == group).toList();
+}
+
+/// A row in the All tools pane: one tool, or a named group of tools.
+class PdfViewerAcrobatRailEntry {
+  const PdfViewerAcrobatRailEntry.tool(this.tool)
+      : title = '',
+        icon = null,
+        tools = const [];
+  const PdfViewerAcrobatRailEntry.group({
+    required this.title,
+    required this.icon,
+    required this.tools,
+  }) : tool = null;
+
+  final PdfViewerAcrobatToolDefinition? tool;
+  final String title;
+  final IconData? icon;
+  final List<PdfViewerAcrobatToolDefinition> tools;
+
+  bool get isGroup => tool == null;
+}
+
+/// Adobe-style names and icons for individual tools (the catalog keeps the
+/// feature wording; the pane uses Acrobat's).
+const _acrobatToolNames = <String, (String, IconData)>{
+  'edit_text': ('Edit a PDF', Icons.edit_document),
+  'compress': ('Compress a PDF', Icons.compress),
+  'redact': ('Redact a PDF', Icons.hide_source),
+  'compare': ('Compare files', Icons.difference_outlined),
+  'organize_merge': ('Combine files', Icons.file_copy_outlined),
+  'organize_insert': ('Insert pages', Icons.note_add_outlined),
+  'organize_replace': ('Replace pages', Icons.find_replace),
+  'organize_move_between': ('Move pages between files', Icons.swap_horiz),
+  'export_images': ('Images (all formats)', Icons.photo_library_outlined),
+  'export_jpg': ('JPEG', Icons.photo_outlined),
+  'export_png': ('PNG', Icons.image_outlined),
+  'office_convert': ('Microsoft Word / Excel / PowerPoint', Icons.description_outlined),
+  'create_pdf': ('From text', Icons.picture_as_pdf_outlined),
+  'images_to_pdf': ('From images', Icons.collections_outlined),
+  'office_to_pdf': ('From Microsoft Office', Icons.description_outlined),
+  'insert_scan': ('From scanner / camera', Icons.document_scanner_outlined),
+  'visual_sign': ('Sign yourself', Icons.draw_outlined),
+  'fill_form': ('Fill a form', Icons.checklist_rtl),
+  'stamps': ('Stamp', Icons.approval),
+  'digital_sign': ('Certificates', Icons.workspace_premium_outlined),
+  'ocr_image': ('Recognize text in an image', Icons.image_search_outlined),
+  'ocr_searchable_pdf': ('Recognize text in this file', Icons.text_snippet_outlined),
+  'protect': ('Encrypt with password', Icons.lock_outline),
+  'unlock': ('Remove password', Icons.lock_open_outlined),
+  'accessibility_tags': ('Accessibility', Icons.accessibility_new),
+  'metadata': ('Document properties', Icons.info_outline),
+  'remove_metadata': ('Sanitize document', Icons.cleaning_services_outlined),
+  'watermark': ('Watermark', Icons.branding_watermark_outlined),
+  'headers_footers': ('Header & footer', Icons.vertical_align_center),
+  'page_numbers': ('Bates / page numbers', Icons.format_list_numbered),
+  'place_image': ('Add image', Icons.add_photo_alternate_outlined),
+  'add_link': ('Add link', Icons.link),
+  'batch': ('Action wizard (batch)', Icons.playlist_play),
+  'markup_text': ('Add text box', Icons.text_fields),
+  'comment_highlight': ('Highlight text', Icons.highlight_outlined),
+  'comment_underline': ('Underline text', Icons.format_underlined),
+  'comment_strikeout': ('Strikethrough text', Icons.format_strikethrough),
+  'comment_note': ('Add sticky note', Icons.sticky_note_2_outlined),
+  'ink': ('Draw freehand', Icons.gesture),
+  'comment_callout': ('Add callout', Icons.chat_bubble_outline),
+};
+
+PdfViewerAcrobatToolDefinition _renamed(PdfViewerAcrobatToolDefinition t) {
+  final n = _acrobatToolNames[t.id];
+  if (n == null) return t;
+  return PdfViewerAcrobatToolDefinition(
+    id: t.id,
+    label: n.$1,
+    subtitle: t.subtitle,
+    icon: n.$2,
+    group: t.group,
+    availability: t.availability,
+    blockedReason: t.blockedReason,
+    alternativeActionLabel: t.alternativeActionLabel,
+  );
+}
+
+/// Acrobat's All tools order: the everyday tools stand alone, the rest sit
+/// under the Acrobat headings. Tools not listed fall into "More tools".
+List<PdfViewerAcrobatRailEntry> buildPdfViewerAcrobatRail(
+  List<PdfViewerAcrobatToolDefinition> tools,
+) {
+  final byId = {for (final t in tools) t.id: _renamed(t)};
+  final used = <String>{};
+
+  PdfViewerAcrobatToolDefinition? take(String id) {
+    final t = byId[id];
+    if (t == null) return null;
+    used.add(id);
+    return t;
+  }
+
+  List<PdfViewerAcrobatToolDefinition> takeAll(List<String> ids) =>
+      [for (final id in ids) ?take(id)];
+
+  PdfViewerAcrobatRailEntry? group(
+    String title,
+    IconData icon,
+    List<PdfViewerAcrobatToolDefinition> list,
+  ) =>
+      list.isEmpty
+          ? null
+          : PdfViewerAcrobatRailEntry.group(
+              title: title,
+              icon: icon,
+              tools: list,
+            );
+
+  PdfViewerAcrobatRailEntry? single(String id) {
+    final t = take(id);
+    return t == null ? null : PdfViewerAcrobatRailEntry.tool(t);
+  }
+
+  final organizeIds = [
+    for (final id in byId.keys)
+      if (id.startsWith('organize_') &&
+          !const {
+            'organize_merge',
+            'organize_insert',
+            'organize_replace',
+            'organize_move_between',
+          }.contains(id))
+        id,
+  ];
+
+  final entries = <PdfViewerAcrobatRailEntry?>[
+    single('edit_text'),
+    group('Export a PDF', Icons.ios_share, takeAll(
+      ['export_images', 'export_jpg', 'export_png', 'office_convert'],
+    )),
+    group('Create a PDF', Icons.note_add_outlined, takeAll(
+      ['create_pdf', 'images_to_pdf', 'office_to_pdf', 'insert_scan'],
+    )),
+    group('Combine files', Icons.file_copy_outlined, takeAll([
+      'organize_merge',
+      'organize_insert',
+      'organize_replace',
+      'organize_move_between',
+    ])),
+    group('Organize pages', Icons.auto_awesome_mosaic_outlined, [
+      ...takeAll(organizeIds),
+      ...takeAll(['headers_footers', 'page_numbers']),
+    ]),
+    group('Add comments', Icons.add_comment_outlined, takeAll([
+      'markup_text',
+      'comment_highlight',
+      'comment_underline',
+      'comment_strikeout',
+      'comment_note',
+      'comment_callout',
+      'ink',
+    ])),
+    group('Fill & Sign', Icons.history_edu_outlined, takeAll(
+      ['visual_sign', 'fill_form', 'stamps', 'digital_sign'],
+    )),
+    group('Scan & OCR', Icons.document_scanner_outlined, takeAll(
+      ['ocr_searchable_pdf', 'ocr_image'],
+    )),
+    group('Protect a PDF', Icons.shield_outlined, takeAll(
+      ['protect', 'unlock', 'accessibility_tags'],
+    )),
+    single('redact'),
+    single('compress'),
+    single('compare'),
+    group('Customize', Icons.tune, takeAll([
+      'watermark',
+      'place_image',
+      'add_link',
+      'metadata',
+      'remove_metadata',
+      'batch',
+    ])),
+  ];
+  final rest = [
+    for (final t in tools)
+      if (!used.contains(t.id)) _renamed(t),
+  ];
+  return [
+    for (final e in entries) ?e,
+    if (rest.isNotEmpty)
+      PdfViewerAcrobatRailEntry.group(
+        title: 'More tools',
+        icon: Icons.more_horiz,
+        tools: rest,
+      ),
+  ];
 }

@@ -1,9 +1,12 @@
+import 'package:document_studio/core/errors/document_studio_error.dart';
+import 'package:document_studio/core/pdf/large_doc_policy.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:document_studio/domain/models/local_file_ref.dart';
+import 'package:document_studio/infrastructure/pdf/edit/pdf_content_stream.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_edit_document.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_objects.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_parser.dart';
@@ -56,6 +59,15 @@ class DartPdfCompress {
     PdfCompressOptions options = const PdfCompressOptions(),
     String? password,
   }) async {
+    if (await File(input.path).length() > LargeDocPolicy.inMemoryCompressLimit) {
+      throw const DocumentStudioError(
+        code: DocumentStudioErrorCode.outOfMemory,
+        message: 'This file is too large to compress without the qpdf engine.',
+        recoveryHint:
+            'Install the qpdf engine from Settings → Document tools; it '
+            'streams large files instead of loading them into memory.',
+      );
+    }
     final raw = await File(input.path).readAsBytes();
     final outBytes = await compressBytes(
       Uint8List.fromList(raw),
@@ -137,6 +149,11 @@ class DartPdfCompress {
     final quality = (options.jpegQuality ?? 60).clamp(1, 100);
     final pages = _inspectPages(doc);
     final smasks = _softMaskObjectNumbers(doc);
+    // Per-image pixel need from where each picture is drawn (target ppi).
+    final dpi = options.targetDpi;
+    final needed = (lossy && dpi != null)
+        ? imageNeededPixels(doc, dpi.toDouble())
+        : const <int, int>{};
 
     final shrunk = <int>{};
     for (final num in doc.liveObjectNumbers) {
@@ -147,9 +164,13 @@ class DartPdfCompress {
 
       if (obj.dict.nameOf('Subtype') == 'Image') {
         if (lossy && !smasks.contains(num)) {
+          final need = needed[num];
+          final cap = need == null
+              ? maxPx
+              : (maxPx == null ? need : math.min(maxPx, need));
           final next = _compressImageStream(
             obj,
-            maxSidePx: maxPx,
+            maxSidePx: cap == null ? null : math.max(cap, 64),
             jpegQuality: quality,
           );
           if (next != null && next.data.length < obj.data.length) {

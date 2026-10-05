@@ -1,3 +1,4 @@
+import 'package:document_studio/core/storage/recent_tools_repository.dart';
 import 'package:document_studio/features/batch/batch_route.dart';
 import 'package:document_studio/features/pdf_markup/pdf_markup_route.dart';
 import 'package:document_studio/features/security/security_route.dart';
@@ -26,7 +27,7 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
     pushHomeToolRoute(context, ref, path, documentEntry: entry);
   }
 
-  return [
+  final tools = <HomeTool>[
     HomeTool(
       id: 'create_pdf',
       label: 'Create PDF',
@@ -248,9 +249,19 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       onTap: () => go(imageViewerRoutePath, HomeToolDocumentEntry.standalone),
     ),
     HomeTool(
+      id: 'image_converter',
+      label: 'Image converter',
+      subtitle: 'JPG, PNG, GIF, BMP, TIFF, ICO — in bulk',
+      icon: Icons.transform,
+      category: HomeToolCategory.createConvert,
+      availability: HomeToolAvailability.available,
+      documentEntry: HomeToolDocumentEntry.standalone,
+      onTap: () => go(imageConverterRoutePath, HomeToolDocumentEntry.standalone),
+    ),
+    HomeTool(
       id: 'image',
-      label: 'Image tools',
-      subtitle: 'Resize & convert images',
+      label: 'Image editor',
+      subtitle: 'Rotate, flip, resize one image',
       icon: Icons.photo_size_select_large_outlined,
       category: HomeToolCategory.createConvert,
       availability: HomeToolAvailability.available,
@@ -295,6 +306,25 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       documentEntry: HomeToolDocumentEntry.pickFile,
       onTap: () => go(batchRoutePath, HomeToolDocumentEntry.pickFile),
     ),
+  ];
+  // Remember what the user opens so the sidebar can list recent tools.
+  return [
+    for (final t in tools)
+      t.onTap == null
+          ? t
+          : HomeTool(
+              id: t.id,
+              label: t.label,
+              subtitle: t.subtitle,
+              icon: t.icon,
+              category: t.category,
+              availability: t.availability,
+              documentEntry: t.documentEntry,
+              onTap: () {
+                ref.read(recentToolsProvider.notifier).record(t.id);
+                t.onTap!();
+              },
+            ),
   ];
 }
 

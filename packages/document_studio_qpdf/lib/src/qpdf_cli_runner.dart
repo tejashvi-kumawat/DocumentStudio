@@ -1,3 +1,4 @@
+import 'qpdf_secure_args.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -417,7 +418,7 @@ class QpdfCliRunner {
 
   /// Page count via `--show-npages`, or null when qpdf cannot open the file.
   Future<int?> pageCount(String inputPath, {String? password}) async {
-    final result = await Process.run(await _exe(), [
+    final result = await _runProtected([
       if (password != null && password.isNotEmpty) '--password=$password',
       '--show-npages',
       inputPath,
@@ -620,8 +621,24 @@ class QpdfCliRunner {
   /// qpdf exit `3` means success with warnings and is treated as OK.
   Future<void> runRaw(List<String> args) => _run(args);
 
+  /// Process.run with passwords moved off the command line (see
+  /// [runQpdfProtected]). Falls back to plain arguments only if this qpdf
+  /// does not understand argument files.
+  Future<ProcessResult> _runProtected(List<String> args) async {
+    final exe = await _exe();
+    return runQpdfProtected(args, (safe) async {
+      final r = await Process.run(exe, safe);
+      if (!identical(safe, args) &&
+          r.exitCode == 2 &&
+          '${r.stderr}'.contains('@')) {
+        return Process.run(exe, args);
+      }
+      return r;
+    });
+  }
+
   Future<void> _run(List<String> args) async {
-    final result = await Process.run(await _exe(), args);
+    final result = await _runProtected(args);
     // qpdf: 0 = ok, 3 = warnings but output written. Other codes are errors.
     if (result.exitCode != 0 && result.exitCode != 3) {
       throw QpdfCliException(

@@ -14,8 +14,8 @@ Upload `dist/linux/document-studio_<version>_amd64.deb` to tag `v<version>`.
 Users install with:
 
 ```bash
-wget https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb
-sudo apt install ./document-studio_1.0.3_amd64.deb
+wget https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/document-studio_1.1.0_amd64.deb
+sudo apt install ./document-studio_1.1.0_amd64.deb
 ```
 
 GNOME Software / KDE Discover can install the same file with a GUI.

@@ -177,6 +177,9 @@ class DocumentTabsController extends ChangeNotifier {
   void closeTab(int index) {
     if (index < 0 || index >= _tabs.length) return;
     final removed = _tabs.removeAt(index);
+    // Remember it so Ctrl+Shift+T can bring it back.
+    _recentlyClosed.add(removed.file);
+    if (_recentlyClosed.length > 10) _recentlyClosed.removeAt(0);
     // Drop the working-copy temp after the tab is gone.
     removed.session.dispose();
     if (_tabs.isEmpty) {
@@ -191,6 +194,24 @@ class DocumentTabsController extends ChangeNotifier {
   }
 
   void closeActiveTab() => closeTab(_activeIndex);
+
+  final List<LocalFileRef> _recentlyClosed = [];
+
+  bool get canReopenClosedTab => _recentlyClosed.isNotEmpty;
+
+  /// Reopens the most recently closed document.
+  Future<void> reopenLastClosed() async {
+    if (_recentlyClosed.isEmpty) return;
+    final file = _recentlyClosed.removeLast();
+    await openDocument(file);
+  }
+
+  /// Next / previous tab (wraps), like Ctrl+Tab.
+  void cycleTab(int delta) {
+    if (_tabs.length < 2) return;
+    final next = (_activeIndex + delta) % _tabs.length;
+    activateTab(next < 0 ? next + _tabs.length : next);
+  }
 
   /// Moves the tab at [from] so it ends up at index [to]; keeps the active tab.
   void moveTab(int from, int to) {

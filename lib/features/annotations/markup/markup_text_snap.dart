@@ -55,6 +55,33 @@ class MarkupPageText {
     return best;
   }
 
+  /// Line rects covering characters [start, end) — for markup applied to an
+  /// existing text selection.
+  List<Rect> linesForRange(int start, int end) {
+    final lines = <Rect>[];
+    Rect? cur;
+    for (var i = math.max(0, start); i < math.min(end, rects.length); i++) {
+      final r = rects[i];
+      if (r.isEmpty || r.width <= 0 || r.height <= 0) continue;
+      final c = cur;
+      if (c == null) {
+        cur = r;
+        continue;
+      }
+      final overlap = math.min(c.bottom, r.bottom) - math.max(c.top, r.top);
+      final sameLine = overlap > math.min(c.height, r.height) * 0.5 &&
+          r.left >= c.left - r.height;
+      if (sameLine) {
+        cur = c.expandToInclude(r);
+      } else {
+        lines.add(c);
+        cur = r;
+      }
+    }
+    if (cur != null) lines.add(cur);
+    return lines;
+  }
+
   /// Line rects + text covered by a drag from [a] to [b] (reading order).
   (List<Rect>, String)? selection(Offset a, Offset b) {
     final i0 = _indexNear(a);

@@ -11,7 +11,7 @@ import 'package:path/path.dart' as p;
 class LibreOfficeHeadless {
   LibreOfficeHeadless._();
 
-  static const timeout = Duration(seconds: 90);
+  static const timeout = Duration(seconds: 240);
 
   static const diskFullUserMessage = 'Not enough disk space to convert';
 
@@ -19,64 +19,190 @@ class LibreOfficeHeadless {
   static Future<Directory> createWorkDir({String prefix = 'office-'}) =>
       StoragePaths.createTempDir(prefix);
 
-  /// Runs `soffice` with a private UserInstallation under app temp.
+  // One soffice at a time may own a profile, so runs are queued. The profile
+  // is kept between runs: creating it is what made every conversion take
+  // many extra seconds.
+  static Future<void> _queue = Future.value();
+  static Directory? _profile;
+
+  static Future<Directory> _sharedProfile() async {
+    final cached = _profile;
+    if (cached != null && cached.existsSync()) return cached;
+    final root = StoragePaths.maybeInstance?.root.path ?? Directory.systemTemp.path;
+    final dir = Directory(p.join(root, 'engines', 'lo_profile'));
+    await dir.create(recursive: true);
+    return _profile = dir;
+  }
+
+  static Future<void> _resetProfile() async {
+    final dir = _profile;
+    _profile = null;
+    try {
+      await dir?.delete(recursive: true);
+    } catch (_) {}
+  }
+
+  /// Starts LibreOffice once in the background so the first real conversion
+  /// does not pay the first-launch cost. Safe to call repeatedly.
+  static Future<void> prewarm(String exe) async {
+    if (_warmed) return;
+    _warmed = true;
+    try {
+      final dir = await createWorkDir(prefix: 'office-warm-');
+      await run(
+        exe: exe,
+        args: const ['--terminate_after_init'],
+        workDir: dir.path,
+        runTimeout: const Duration(seconds: 60),
+      );
+      deleteQuietly(dir);
+    } catch (_) {
+      _warmed = false;
+    }
+  }
+
+  static bool _warmed = false;
+
+  /// Runs `soffice` with the shared profile (queued; one at a time).
   static Future<ProcessResult> run({
     required String exe,
     required List<String> args,
     required String workDir,
     Duration runTimeout = LibreOfficeHeadless.timeout,
-  }) async {
-    final profile = await StoragePaths.createTempDir('ds_lo_profile_');
+  }) {
+    final done = Completer<ProcessResult>();
+    _queue = _queue.then((_) async {
+      try {
+        var result = await _runOnce(exe, args, workDir, runTimeout);
+        // A profile damaged by a killed run makes soffice exit at once with
+        // nothing produced; rebuild it and try one more time.
+        if (result.exitCode != 0 &&
+            !looksLikeDiskFull(result.stderr.toString())) {
+          await _resetProfile();
+          result = await _runOnce(exe, args, workDir, runTimeout);
+        }
+        done.complete(result);
+      } catch (e, st) {
+        if (e is TimeoutException) await _resetProfile();
+        done.completeError(e, st);
+      }
+    });
+    return done.future;
+  }
+
+  static Future<ProcessResult> _runOnce(
+    String exe,
+    List<String> args,
+    String workDir,
+    Duration runTimeout,
+  ) async {
+    final profile = await _sharedProfile();
     // LibreOffice requires a file:// URI with an absolute path (three slashes).
     final userInstallUri = Uri.directory(profile.path).toString();
-    try {
-      final process = await Process.start(
-        exe,
-        [
-          '--headless',
-          '--norestore',
-          '--nolockcheck',
-          '--nodefault',
-          '--nofirststartwizard',
-          '-env:UserInstallation=$userInstallUri',
-          ...args,
-        ],
-        workingDirectory: workDir,
-        environment: {
-          ...Platform.environment,
-          'SAL_USE_VCLPLUGIN': 'svp',
-          'SAL_NO_QUERYIME': '1',
-          'DBUS_SESSION_BUS_ADDRESS': 'disabled:',
-        },
+    final process = await Process.start(
+      exe,
+      [
+        '--headless',
+        '--norestore',
+        '--nolockcheck',
+        '--nodefault',
+        '--nologo',
+        '--nofirststartwizard',
+        '-env:UserInstallation=$userInstallUri',
+        ...args,
+      ],
+      workingDirectory: workDir,
+      environment: {
+        ...Platform.environment,
+        'SAL_USE_VCLPLUGIN': 'svp',
+        'SAL_NO_QUERYIME': '1',
+        'DBUS_SESSION_BUS_ADDRESS': 'disabled:',
+      },
+    );
+    final stdoutBuf = StringBuffer();
+    final stderrBuf = StringBuffer();
+    process.stdout.transform(SystemEncoding().decoder).listen(stdoutBuf.write);
+    process.stderr.transform(SystemEncoding().decoder).listen(stderrBuf.write);
+    final exitCode = await process.exitCode.timeout(
+      runTimeout,
+      onTimeout: () {
+        process.kill(ProcessSignal.sigkill);
+        return -1;
+      },
+    );
+    if (exitCode == -1) {
+      throw TimeoutException(
+        'LibreOffice timed out after ${runTimeout.inSeconds}s.\n'
+        '${stderrBuf.toString().trim()}',
       );
-      final stdoutBuf = StringBuffer();
-      final stderrBuf = StringBuffer();
-      process.stdout.transform(SystemEncoding().decoder).listen(stdoutBuf.write);
-      process.stderr.transform(SystemEncoding().decoder).listen(stderrBuf.write);
-      final exitCode = await process.exitCode.timeout(
-        runTimeout,
-        onTimeout: () {
-          process.kill(ProcessSignal.sigkill);
-          return -1;
-        },
-      );
-      if (exitCode == -1) {
-        throw TimeoutException(
-          'LibreOffice timed out after ${runTimeout.inSeconds}s.\n'
-          '${stderrBuf.toString().trim()}',
-        );
-      }
-      return ProcessResult(
-        process.pid,
-        exitCode,
-        stdoutBuf.toString(),
-        stderrBuf.toString(),
-      );
-    } finally {
-      try {
-        await profile.delete(recursive: true);
-      } catch (_) {}
     }
+    return ProcessResult(
+      process.pid,
+      exitCode,
+      stdoutBuf.toString(),
+      stderrBuf.toString(),
+    );
+  }
+
+  /// PDF → Word / Excel / PowerPoint with the import filter each target
+  /// needs (Writer for docx, Impress for pptx, HTML→Calc for xlsx). Returns
+  /// the produced file; throws [StateError] with a readable message.
+  static Future<File> convertPdf({
+    required String exe,
+    required String pdfPath,
+    required String target, // docx | xlsx | pptx
+    required String outDir,
+  }) async {
+    final stem = p.basenameWithoutExtension(pdfPath);
+    Future<ProcessResult> go(List<String> args) =>
+        run(exe: exe, workDir: outDir, args: args);
+
+    Never fail(ProcessResult r, String what) => throw StateError(
+          formatConvertError(
+            'LibreOffice $what failed (exit ${r.exitCode})',
+            stderr: r.stderr.toString(),
+            exitCode: r.exitCode,
+          ),
+        );
+
+    if (target == 'xlsx') {
+      // Calc cannot open a PDF as a spreadsheet: go through HTML tables.
+      final r1 = await go([
+        pdfWriterInfilter,
+        '--convert-to',
+        'html:HTML (StarWriter)',
+        '--outdir',
+        outDir,
+        pdfPath,
+      ]);
+      final html = await findProduced(outDir, stem, 'html');
+      if (r1.exitCode != 0 || html == null) fail(r1, 'PDF read');
+      final r2 = await go([
+        '--infilter=HTML (StarCalc)',
+        '--convert-to',
+        'xlsx:Calc MS Excel 2007 XML',
+        '--outdir',
+        outDir,
+        html.path,
+      ]);
+      final out = await findProduced(outDir, stem, 'xlsx');
+      if (r2.exitCode != 0 || out == null) fail(r2, 'spreadsheet export');
+      return out;
+    }
+    final isDoc = target == 'docx';
+    final r = await go([
+      isDoc ? pdfWriterInfilter : '--infilter=impress_pdf_import',
+      '--convert-to',
+      isDoc
+          ? 'docx:MS Word 2007 XML'
+          : 'pptx:Impress MS PowerPoint 2007 XML',
+      '--outdir',
+      outDir,
+      pdfPath,
+    ]);
+    final out = await findProduced(outDir, stem, target);
+    if (r.exitCode != 0 || out == null) fail(r, 'conversion');
+    return out;
   }
 
   /// PDF import filter so Writer (not Draw) owns the document before DOCX export.

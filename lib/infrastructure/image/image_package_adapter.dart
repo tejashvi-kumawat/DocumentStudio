@@ -161,18 +161,37 @@ img.Image _resize(img.Image image, int width, int height) {
 }
 
 Uint8List _encode(img.Image src, ImageOutputFormat format, int jpegQuality) {
+  img.Image flat(img.Image image) {
+    if (!image.hasAlpha) return image;
+    final bg = img.Image(width: image.width, height: image.height);
+    img.fill(bg, color: img.ColorRgb8(255, 255, 255));
+    return img.compositeImage(bg, image);
+  }
+
   switch (format) {
     case ImageOutputFormat.png:
       return Uint8List.fromList(img.encodePng(src, level: 6));
     case ImageOutputFormat.jpeg:
-      var image = src;
-      if (image.hasAlpha) {
-        final flat = img.Image(width: image.width, height: image.height);
-        img.fill(flat, color: img.ColorRgb8(255, 255, 255));
-        image = img.compositeImage(flat, image);
-      }
       return Uint8List.fromList(
-        img.encodeJpg(image, quality: jpegQuality.clamp(1, 100)),
+        img.encodeJpg(flat(src), quality: jpegQuality.clamp(1, 100)),
       );
+    case ImageOutputFormat.gif:
+      return Uint8List.fromList(img.encodeGif(src));
+    case ImageOutputFormat.bmp:
+      return Uint8List.fromList(img.encodeBmp(flat(src)));
+    case ImageOutputFormat.tiff:
+      return Uint8List.fromList(img.encodeTiff(src));
+    case ImageOutputFormat.ico:
+      var icon = src;
+      final longest = icon.width > icon.height ? icon.width : icon.height;
+      if (longest > 256) {
+        final k = 256 / longest;
+        icon = _resize(
+          icon,
+          (icon.width * k).round().clamp(1, 256),
+          (icon.height * k).round().clamp(1, 256),
+        );
+      }
+      return Uint8List.fromList(img.encodeIco(icon));
   }
 }

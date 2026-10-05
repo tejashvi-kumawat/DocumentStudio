@@ -58,9 +58,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Every N'), findsOneWidget);
-    expect(find.text('One / page'), findsOneWidget);
+    expect(find.text('One per page'), findsOneWidget);
     expect(find.text('Ranges'), findsOneWidget);
-    expect(find.text('Selected'), findsOneWidget);
     expect(find.text('Pages per file'), findsOneWidget);
 
     await tester.tap(find.text('Ranges'));

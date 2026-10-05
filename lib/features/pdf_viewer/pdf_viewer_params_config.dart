@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:document_studio/app/keyboard/text_input_guard.dart';
@@ -16,9 +17,13 @@ import 'package:pdfrx/pdfrx.dart';
 /// pdfrx renders only the visible region at real pixel size on top.
 const double kPdfSettledRenderLongEdgePx = 4096;
 
+/// Long-edge cap for the current device tier (see [RenderBudget]).
+double get _renderCapPx =>
+    math.max(kPdfSettledRenderLongEdgePx, RenderBudget.current.maxRenderLongEdgePx);
+
 /// A zoom-in must grow the needed scale by this much before an already
 /// screen-quality page is decoded again. Zooming out keeps the sharper bitmap.
-const double kPdfZoomRerenderFactor = 1.35;
+const double kPdfZoomRerenderFactor = 1.03;
 
 /// A held bitmap under this fraction of the screen scale would look soft.
 /// It is left on screen until a decode at [pdfViewerSettledRenderScale] arrives.
@@ -121,8 +126,12 @@ double pdfViewerSettledRenderScale({
 }) {
   final longPt = math.max(pageWidth, pageHeight);
   if (longPt <= 1 || !zoom.isFinite || zoom <= 0) return 1;
-  final screen = zoom * (devicePixelRatio > 0 ? devicePixelRatio : 1);
-  return math.min(screen, kPdfSettledRenderLongEdgePx / longPt);
+  // Never decode below the tier's oversample: a 1:1 bitmap is resampled at
+  // fractional zooms and the text softens.
+  final dpr = math.max(devicePixelRatio > 0 ? devicePixelRatio : 1,
+      RenderBudget.current.effectiveOversample);
+  final screen = zoom * dpr;
+  return math.min(screen, _renderCapPx / longPt);
 }
 
 /// [scale] with a sub-pixel fingerprint of the page geometry.
@@ -174,6 +183,9 @@ PdfViewerParams buildPdfViewerParams({
       PdfViewerScrollLayoutMode.continuous,
   double viewportHeight = 0,
   PdfPageOverlaysBuilder? pageOverlaysBuilder,
+
+  /// Replaces pdfrx's Copy / Select all menu (right-click on desktop).
+  PdfViewerContextMenuBuilder? contextMenuBuilder,
 
   /// Presentation: one-page layout without remounting (not part of PdfViewer key).
   bool immersiveSinglePage = false,
@@ -244,9 +256,12 @@ PdfViewerParams buildPdfViewerParams({
     matchTextColor: DsColors.warning.withValues(alpha: 0.35),
     activeMatchTextColor: DsColors.primary.withValues(alpha: 0.45),
     // DS-READ-008-A — pdfrx text selection (enabled by default; set explicitly).
+    buildContextMenu: contextMenuBuilder,
     textSelectionParams: PdfTextSelectionParams(
       enabled: !presentationAdvanceOnTap,
-      showContextMenuAutomatically: !presentationAdvanceOnTap,
+      // Desktop: the menu opens on right-click only, not after every drag.
+      showContextMenuAutomatically: !presentationAdvanceOnTap &&
+          !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
     ),
     panEnabled: !presentationAdvanceOnTap,
     // DS-READ-004-D — pinch + Ctrl+wheel zoom (pdfrx default wheel handler).

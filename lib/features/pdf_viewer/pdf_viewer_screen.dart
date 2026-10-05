@@ -1,3 +1,16 @@
+import 'package:document_studio/features/pdf_viewer/live_page_text_loader.dart';
+import 'package:document_studio/core/pdf/large_doc_policy.dart';
+import 'package:document_studio/features/pdf_viewer/ds_text_searcher.dart';
+import 'package:document_studio/features/document_lifecycle/document_close_guard.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_acrobat_keys.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_viewer_bottom_bar.dart';
+import 'package:document_studio/features/pdf_viewer/context_menu/pdf_context_menu.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_bookmarks_panel.dart';
+import 'package:document_studio/features/pdf_viewer/pdf_search_results_panel.dart';
+import 'package:document_studio/features/pdf_viewer/viewer_pending_page.dart';
+import 'package:document_studio/features/pdf_viewer/widgets/live_media_layer.dart';
+import 'package:document_studio/features/image_tools/image_tools_route.dart';
+import 'package:go_router/go_router.dart';
 import 'package:document_studio/app/keyboard/text_input_guard.dart';
 
 import 'dart:async';
@@ -60,6 +73,7 @@ import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_loading_placeholder.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_tab_open_session.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
+import 'package:document_studio/core/settings/app_prefs.dart';
 import 'package:flutter/services.dart';
 import 'package:document_studio/infrastructure/ocr/pdf_background_ocr_index.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/viewer_live_page_overlay.dart';
@@ -71,7 +85,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 class PdfViewerScreen extends ConsumerStatefulWidget {
@@ -102,7 +115,10 @@ class PdfViewerScreen extends ConsumerStatefulWidget {
 
 class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   PdfViewerController? _controller;
-  PdfTextSearcher? _searcher;
+  DsTextSearcher? _searcher;
+  bool _searchMatchCase = false;
+  bool _ocrRequested = false;
+  bool _searchWholeWord = false;
   List<PdfViewerPagePaintCallback>? _searchPagePaintCallbacks;
   bool _searchPaintCallbacksRebuildScheduled = false;
   bool _tabsRebuildScheduled = false;
@@ -121,6 +137,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   PdfViewerSidebarContent _sidebarContent = PdfViewerSidebarContent.thumbnails;
   final _acrobatShellKeysByTabId =
       <String, GlobalKey<PdfViewerAcrobatShellState>>{};
+  final PdfMediaIndex _media = PdfMediaIndex();
   PdfLinkHandlerParams? _linkHandlerParams;
 
   /// While a page tool is active, existing links sit under its overlay so
@@ -134,8 +151,11 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
 
   /// Read mode: hide tools rail + thumbnails; page fills canvas.
   bool _readMode = false;
-  final PdfViewerScrollLayoutMode _scrollLayoutMode =
-      PdfViewerScrollLayoutMode.continuous;
+  late PdfViewerScrollLayoutMode _scrollLayoutMode = switch (ref.read(viewerPrefsProvider).display) {
+    'singlePage' => PdfViewerScrollLayoutMode.singlePage,
+    'twoPage' => PdfViewerScrollLayoutMode.twoPage,
+    _ => PdfViewerScrollLayoutMode.continuous,
+  };
   final PdfViewerViewRotation _viewRotation = PdfViewerViewRotation.degrees0;
   final Map<String, PdfViewerTabOpenSession> _openSessions = {};
   int? _lastSoftReloadRevision;
@@ -220,7 +240,6 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
 
   static MarkupTool? _markupToolFor(ViewerToolId tool, LiveDrawTool? draw) {
     return switch (tool) {
-      ViewerToolId.editText => MarkupTool.text,
       ViewerToolId.addLink => MarkupTool.link,
       ViewerToolId.placeImage => MarkupTool.image,
       ViewerToolId.ink => switch (draw) {
@@ -239,7 +258,6 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   static bool _isMarkupTool(ViewerToolId? tool) =>
       tool == ViewerToolId.markupBurn ||
       tool == ViewerToolId.ink ||
-      tool == ViewerToolId.editText ||
       tool == ViewerToolId.addLink ||
       tool == ViewerToolId.placeImage;
 
@@ -255,6 +273,28 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _markup.keyboardFocus.requestFocus();
     });
+  }
+
+  /// Edit PDF (Acrobat "Edit a PDF"): click any text or image on the page to
+  /// change it. A second click on the button leaves the mode.
+  void _toggleEditMode() {
+    if (_activeViewerTool == ViewerToolId.editText) {
+      _closeActiveToolPanel();
+      return;
+    }
+    _openViewerTool(ViewerToolId.editText);
+  }
+
+  /// Comment bar on / off.
+  void _toggleCommentMode() {
+    if (_markup.editMode) {
+      _markup.exitEditMode();
+      setState(() {
+        if (_isMarkupTool(_activeViewerTool)) _activeViewerTool = null;
+      });
+      return;
+    }
+    _armPageMarkup(MarkupTool.select);
   }
 
   /// Arms a pencil/edit markup tool on the open page. Does not open a side
@@ -338,11 +378,19 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   @override
   void initState() {
     super.initState();
-    _linkHandlerParams = PdfLinkHandlerParams(onLinkTap: _onPdfLinkTap);
+    _linkHandlerParams = PdfLinkHandlerParams(
+      onLinkTap: _onPdfLinkTap,
+      // pdfrx paints links translucent blue by default; Acrobat shows none.
+      linkColor: Colors.transparent,
+    );
     _linkHandlerParamsUnderTools = PdfLinkHandlerParams(
       onLinkTap: _onPdfLinkTap,
+      linkColor: Colors.transparent,
       laidOverPageOverlays: false,
     );
+    _media.addListener(() {
+      if (mounted) setState(() {});
+    });
     _viewerShortcutsNotifier = ref.read(viewerShortcutActionsProvider.notifier);
     _markup.addListener(_onMarkupChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -661,6 +709,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     // Do not clear viewerShortcutActionsProvider here — shell may still need
     // Ctrl+F / Save until another viewer registers or the tab shell clears.
     _tabsController?.removeListener(_onTabsChanged);
+    _media.dispose();
     _markup.removeListener(_onMarkupChanged);
     _markup.onMultiplyChanged = null;
     final markup = _markup;
@@ -829,14 +878,35 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       _searcher = null;
       _searchPagePaintCallbacks = null;
       _controller = controller;
+      ref.read(viewerLiveToolSessionProvider).pageJumpHandler = (page) {
+        if (controller.isReady) {
+          unawaited(controller.goToPage(pageNumber: page.clamp(1, controller.pageCount)));
+        }
+      };
       // Viewer holds its own cache lease now; drop the validation pin.
       final tab = _activeTab;
       if (tab != null) _sessionFor(tab).releaseWarmLease();
       void syncSearcher() {
         if (!mounted || !controller.isReady) return;
         if (_searcher != null) return;
-        final searcher = PdfTextSearcher(controller);
+        final tab = _activeTab;
+        final searcher = DsTextSearcher(
+          controller,
+          path: tab?.file.path ?? widget.file?.path ?? '',
+          password: tab == null ? null : _passwordForTab(tab),
+          // Background indexing waits while the user scrolls or zooms.
+          isBusy: () =>
+              PdfViewerRenderPace.lookup(controller)?.isMoving ?? false,
+        );
         _searcher = searcher;
+        // Let the background index close the file before it is rewritten.
+        tab?.session.onBeforeWrite = () async {
+          await searcher.index.release();
+          await releaseEditDocCache();
+        };
+        _applyDefaultZoomOnce(controller);
+        // Index page text in the background so the first search is quick.
+        searcher.startIndexing();
         _syncSearchPagePaintCallbacks();
         if (_searchPaintCallbacksRebuildScheduled) return;
         _searchPaintCallbacksRebuildScheduled = true;
@@ -847,6 +917,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       }
 
       _controllerReadyListener = syncSearcher;
+      unawaited(_maybeAutoOcr());
       controller.addListener(syncSearcher);
       if (controller.isReady) {
         syncSearcher();
@@ -855,6 +926,29 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   }
 
   VoidCallback? _controllerReadyListener;
+  PdfViewerController? _zoomDefaultAppliedFor;
+
+  /// Settings → Viewing: opening zoom (fit width / fit page / 100 %).
+  void _applyDefaultZoomOnce(PdfViewerController controller) {
+    if (identical(_zoomDefaultAppliedFor, controller)) return;
+    _zoomDefaultAppliedFor = controller;
+    final mode = ref.read(viewerPrefsProvider).zoom;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !controller.isReady) return;
+      switch (mode) {
+        case 'fitPage':
+          await pdfViewerApplyFitPage(controller);
+        case 'actual':
+          await controller.setZoom(
+            controller.centerPosition,
+            1,
+            duration: Duration.zero,
+          );
+        default:
+          await pdfViewerApplyFitWidth(controller);
+      }
+    });
+  }
 
   void _detachControllerListener() {
     final listener = _controllerReadyListener;
@@ -980,29 +1074,64 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     return _sessionFor(tab).resolvedPassword ?? tab.password;
   }
 
-  void _openViewerContextMenu(Offset globalPosition) {
-    final active = _activeTab;
-    if (active == null) return;
-    final password = _passwordForTab(active);
-    final handoff = PdfViewerDocumentHandoff(
-      file: active.file,
-      password: password,
-      currentPage1: _currentPage1Safe(),
-    );
-    showPdfViewerCanvasContextMenu(
-      context: context,
-      globalPosition: globalPosition,
-      handoff: handoff,
-      onDocumentInfo: () => _showInfo(context, active.file, password: password),
-      onPrint: () => _printActive(active.file),
-      onCompress: () {
-        // Menu context sits above the tool-panel scope, so open the rail
-        // directly on this document instead of the file-picker route.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _openViewerTool(ViewerToolId.compress);
-        });
+  /// Play badges for video / audio annotations (read mode only).
+  List<Widget> _mediaOverlays(PdfViewerTab active, Rect pageRect, PdfPage page) {
+    unawaited(_media.sync(active.session));
+    if (_activeViewerTool != null || _isMarkupTool(_activeViewerTool)) {
+      return const [];
+    }
+    final badge = buildMediaPageOverlay(
+      pageSize: Size(pageRect.width, pageRect.height),
+      annotations: _media.forPage(page.pageNumber),
+      onPlay: (a) async {
+        final err = await _media.play(a);
+        if (err != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+        }
       },
+    );
+    return [?badge];
+  }
+
+  /// Right-click menu on the page: depends on what is under the pointer.
+  Widget? _buildViewerContextMenu(
+    BuildContext menuContext,
+    PdfViewerContextMenuBuilderParams params,
+  ) {
+    final active = _activeTab;
+    if (active == null || _presentationMode) return null;
+    final password = _passwordForTab(active);
+    return buildPdfViewerContextMenu(
+      menuContext,
+      params,
+      PdfContextMenuHost(
+        controller: _controller,
+        markup: _markup,
+        openTool: (tool) => WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _openViewerTool(tool);
+        }),
+        armMarkup: (tool) => WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _armPageMarkup(tool);
+        }),
+        find: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showSearch(context);
+        }),
+        goToPage: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+          final c = _controller;
+          if (mounted && c != null) {
+            showPdfGoToPageDialog(context: context, controller: c);
+          }
+        }),
+        print: () => _printActive(active.file),
+        documentProperties: () =>
+            _showInfo(context, active.file, password: password),
+        rotatePage: (deg) => unawaited(_rotateCurrentPage(deg)),
+        snack: (m) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+          }
+        },
+      ),
     );
   }
 
@@ -1172,6 +1301,12 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     final c = _controller;
     if (c == null || !c.isReady) return;
     if (_softReloadInFlight) return;
+    // Page-list edit: show where the user's page (or the new one) now is.
+    final pending = ViewerPendingPage.take();
+    if (pending != null) {
+      preferredPage = pending;
+      preferredCenter = null;
+    }
     _softReloadInFlight = true;
     // Burned stamps are in the bytes this reload reads. Drop the overlay
     // so they are not drawn twice.
@@ -1190,10 +1325,12 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       }
     } finally {
       _softReloadInFlight = false;
+      _searcher?.clearCache();
       // Bytes changed in place — drop stale OCR text without remounting PdfViewer.
       // Re-index only if Find is open so ink strokes don't thrash tesseract.
       _backgroundOcr?.clear();
-      if (_searchUiVisible) {
+      // OCR only when the user asked for it (Find bar → "Scan with OCR").
+      if (_searchUiVisible && _ocrRequested) {
         _ocrIndexedPath = null;
         final session = ref.read(documentTabsControllerProvider).activeSession;
         if (session != null) {
@@ -1346,6 +1483,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   Future<void> _commitOrganizePageList({
     required List<OrganizePageRef> pages,
     required String successMessage,
+    int? focusPage,
   }) async {
     final tabs = ref.read(documentTabsControllerProvider);
     final session = tabs.activeSession;
@@ -1358,6 +1496,14 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
           : {session.file.path: session.password!},
     );
     if (!mounted) return;
+    ViewerPendingPage.set(
+      focusPage ??
+          remapPageAfterOrganize(
+            pages: pages,
+            sourcePath: session.file.path,
+            oldPage: _currentPage1Safe(),
+          ),
+    );
     await commitBytesToSession(
       context: context,
       storage: ref.read(fileStorageProvider),
@@ -1414,6 +1560,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       await _commitOrganizePageList(
         pages: pagesForBlankInsertAfter(session.file, total, {page1}, blank),
         successMessage: 'Inserted blank after page $page1.',
+        focusPage: page1 + 1,
       );
     } catch (e) {
       if (!mounted) return;
@@ -1579,6 +1726,28 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
     }
   }
 
+  /// User pressed "Scan with OCR": index scanned pages in the background.
+  /// Settings → "Make scanned pages searchable": OCR starts by itself, a few
+  /// seconds after opening so page rendering keeps priority. Off by default.
+  Future<void> _maybeAutoOcr() async {
+    if (!AppPrefs.autoOcr) return;
+    final path = _activeTab?.file.path;
+    await Future<void>.delayed(const Duration(seconds: 4));
+    if (!mounted || _activeTab?.file.path != path || _ocrRequested) return;
+    _runOcrOnDemand();
+  }
+
+  void _runOcrOnDemand() {
+    final active = _activeTab;
+    if (active == null) return;
+    setState(() => _ocrRequested = true);
+    _ocrIndexedPath = null;
+    _startBackgroundOcr(
+      active.file,
+      _sessionFor(active).resolvedPassword ?? active.password,
+    );
+  }
+
   void _showSearch(BuildContext context) {
     final controller = _controller;
     final searcher = _searcher;
@@ -1589,19 +1758,17 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       return;
     }
     final alreadyOpen = _searchUiVisible;
-    final active = _activeTab;
-    if (active != null) {
-      _startBackgroundOcr(
-        active.file,
-        _sessionFor(active).resolvedPassword ?? active.password,
-      );
-    }
     setState(() => _searchUiVisible = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _findFocusNode.requestFocus();
     });
     if (_searchQuery.isNotEmpty) {
-      applyPdfSearchQuery(searcher: searcher, query: _searchQuery);
+      applyPdfSearchQuery(
+        searcher: searcher,
+        query: _searchQuery,
+        matchCase: _searchMatchCase,
+        wholeWord: _searchWholeWord,
+      );
       if (alreadyOpen && searcher.matches.isEmpty) {
         unawaited(_applyOcrFindForQuery(_searchQuery));
       }
@@ -1635,15 +1802,46 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
           onPrevious: _goToPrevFindMatch,
           onNext: _goToNextFindMatch,
           onClose: _closeSearch,
+          onRunOcr: _ocrRequested ? null : _runOcrOnDemand,
+          matchCase: _searchMatchCase,
+          wholeWord: _searchWholeWord,
+          onOptionsChanged: (c, w) {
+            setState(() {
+              _searchMatchCase = c;
+              _searchWholeWord = w;
+            });
+            if (_searchQuery.trim().isNotEmpty) {
+              applyPdfSearchQuery(
+                searcher: searcher,
+                query: _searchQuery,
+                matchCase: c,
+                wholeWord: w,
+              );
+            }
+          },
+          onShowResults: () => setState(() {
+            _sidebarContent = PdfViewerSidebarContent.search;
+            _sidebarEnabled = true;
+          }),
           onSearch: (query) async {
             _searchQuery = query;
             if (query.trim().isEmpty) {
               _clearOcrFindHits();
-              applyPdfSearchQuery(searcher: searcher, query: query);
+              applyPdfSearchQuery(
+              searcher: searcher,
+              query: query,
+              matchCase: _searchMatchCase,
+              wholeWord: _searchWholeWord,
+            );
               if (mounted) setState(() {});
               return;
             }
-            applyPdfSearchQuery(searcher: searcher, query: query);
+            applyPdfSearchQuery(
+              searcher: searcher,
+              query: query,
+              matchCase: _searchMatchCase,
+              wholeWord: _searchWholeWord,
+            );
             await Future<void>.delayed(const Duration(milliseconds: 350));
             if (!mounted) return;
             if (searcher.matches.isNotEmpty) {
@@ -1814,7 +2012,9 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
           readMode: _readMode,
           onExit: () => unawaited(_exitPresentationMode()),
           onExitReadMode: _exitReadMode,
-          child: PdfViewerReadShortcuts(
+          child: PdfViewerAcrobatKeys(
+           handlers: _acrobatKeyHandlers(),
+           child: PdfViewerReadShortcuts(
             findBarVisible: _searchUiVisible,
             onFitPage: () => _applyFit(PdfViewerFitDisplay.fitPage),
             onFitWidth: () => _applyFit(PdfViewerFitDisplay.fitWidth),
@@ -1866,6 +2066,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                 !widget.shellEmbedded &&
                                 !hideDocumentTabs,
                             showFind: !compactWidth,
+                            showTitleRow: compactWidth,
                             // A tool or the Tools sheet: Back closes it and
                             // stays on this document. Otherwise phone / Android
                             // app back returns to Home.
@@ -1899,12 +2100,55 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                     enabled: _controller?.isReady ?? false,
                                     markup: _markup,
                                     allToolsOpen: _toolsRailEnabled,
+                                    activeTool: _activeViewerTool,
                                     onArmMarkup: _armPageMarkup,
+                                    onToggleEdit: _toggleEditMode,
+                                    onToggleComment: _toggleCommentMode,
+                                    history: active.session,
+                                    onUndo: () =>
+                                        unawaited(_undoActiveSession()),
+                                    onRedo: () =>
+                                        unawaited(_redoActiveSession()),
+                                    onSave: () =>
+                                        unawaited(_saveActiveSession()),
+                                    onOpenImageConverter: () => GoRouter.of(
+                                      context,
+                                    ).push(imageConverterRoutePath),
                                     onAllTools: () => setState(
                                       () => _toolsRailEnabled =
                                           !_toolsRailEnabled,
                                     ),
                                   ),
+                          )
+                        : null,
+                    // Wide windows: these controls live in the left rail.
+                    bottomNavigationBar:
+                        !compactWidth &&
+                            !_presentationMode &&
+                            !_readMode &&
+                            MediaQuery.sizeOf(context).width <
+                                kPdfViewerThumbnailSidebarBreakpoint
+                        ? PdfViewerBottomBar(
+                            controller: _controller,
+                            scrollMode: _scrollLayoutMode,
+                            onScrollModeChanged: (m) =>
+                                setState(() => _scrollLayoutMode = m),
+                            onGoToPage: () {
+                              final c = _controller;
+                              if (c == null) return;
+                              showPdfGoToPageDialog(
+                                context: context,
+                                controller: c,
+                              );
+                            },
+                            onFind: () => _showSearch(context),
+                            onFitPage: () =>
+                                _applyFit(PdfViewerFitDisplay.fitPage),
+                            onFitWidth: () =>
+                                _applyFit(PdfViewerFitDisplay.fitWidth),
+                            onReadMode: _toggleReadMode,
+                            onPresentation: () =>
+                                unawaited(_togglePresentationMode()),
                           )
                         : null,
                     body: MarkupKeyboardScope(
@@ -1952,6 +2196,42 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                         userToolsRailEnabled: _toolsRailEnabled,
                                       ),
                                       activeToolPanel: _activeViewerTool,
+                                      railControls: PdfViewerBottomBar(
+                            vertical: true,
+                            controller: _controller,
+                            scrollMode: _scrollLayoutMode,
+                            onScrollModeChanged: (m) =>
+                                setState(() => _scrollLayoutMode = m),
+                            onGoToPage: () {
+                              final c = _controller;
+                              if (c == null) return;
+                              showPdfGoToPageDialog(
+                                context: context,
+                                controller: c,
+                              );
+                            },
+                            onFind: () => _showSearch(context),
+                            onFitPage: () =>
+                                _applyFit(PdfViewerFitDisplay.fitPage),
+                            onFitWidth: () =>
+                                _applyFit(PdfViewerFitDisplay.fitWidth),
+                            onReadMode: _toggleReadMode,
+                            onPresentation: () =>
+                                unawaited(_togglePresentationMode()),
+                          ),
+                                      editContext: ref.read(
+                                        viewerLiveToolSessionProvider,
+                                      ),
+                                      editHasSelection: () {
+                                        final l = ref.read(
+                                          viewerLiveToolSessionProvider,
+                                        );
+                                        // Pictures, shapes and comments use
+                                        // their floating toolbar instead.
+                                        return l.selectedRun != null ||
+                                            l.inlineEditing ||
+                                            l.textEditTarget != null;
+                                      },
                                       onCloseToolPanel: _closeActiveToolPanel,
                                       pageCount: () {
                                         final c = _controller;
@@ -2000,6 +2280,7 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                                   actions: _markupActions,
                                                   viewerController: _controller,
                                                 ),
+                                              ..._mediaOverlays(active, pageRect, page),
                                               ...buildViewerLivePageOverlays(
                                                 context: context,
                                                 pageRect: pageRect,
@@ -2027,9 +2308,39 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                                             )
                                           : null,
                                       onControllerReady: _onControllerReady,
-                                      onOpenContextMenu: _presentationMode
-                                          ? null
-                                          : _openViewerContextMenu,
+                                      contextMenuBuilder: _buildViewerContextMenu,
+                                      bookmarksBuilder: (controller) =>
+                                          PdfBookmarksPanel(
+                                            controller: controller,
+                                            reloadToken:
+                                                '${active.session.sourcePath}:'
+                                                '${active.session.revision}',
+                                            readBytes: () async =>
+                                                await LargeDocPolicy.readBounded(
+                                                  active.session,
+                                                ) ??
+                                                Uint8List(0),
+                                            commit: (bytes) async {
+                                              final tabs = ref.read(
+                                                documentTabsControllerProvider,
+                                              );
+                                              await commitBytesToSession(
+                                                context: context,
+                                                storage: ref.read(
+                                                  fileStorageProvider,
+                                                ),
+                                                tabs: tabs,
+                                                session: active.session,
+                                                bytes: bytes,
+                                                successMessage:
+                                                    'Bookmarks updated.',
+                                                silent: true,
+                                              );
+                                            },
+                                          ),
+                                      searchPanel: PdfSearchResultsPanel(
+                                        searcher: _searcher,
+                                      ),
                                       annotationsPanel:
                                           !_presentationMode &&
                                               !_readMode &&
@@ -2108,9 +2419,58 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
                 },
               ),
             ),
+           ),
           ),
         ),
       ),
+    );
+  }
+
+  PdfViewerAcrobatKeyHandlers _acrobatKeyHandlers() {
+    final tabs = ref.read(documentTabsControllerProvider);
+    final c = _controller;
+    bool ready() => c != null && c.isReady;
+    return PdfViewerAcrobatKeyHandlers(
+      onActualSize: () {
+        if (!ready()) return;
+        unawaited(c!.setZoom(c.centerPosition, 1, duration: Duration.zero));
+      },
+      onZoomIn: () {
+        if (ready()) unawaited(pdfViewerZoomIn(c!));
+      },
+      onZoomOut: () {
+        if (ready()) unawaited(pdfViewerZoomOut(c!));
+      },
+      onGoToPage: () {
+        if (ready()) showPdfGoToPageDialog(context: context, controller: c!);
+      },
+      onCloseDocument: () async {
+        final ok = await confirmCloseDocumentTab(
+          context: context,
+          ref: ref,
+          tabs: tabs,
+          index: tabs.activeIndex,
+        );
+        if (ok) tabs.closeActiveTab();
+      },
+      onNextTab: () => tabs.cycleTab(1),
+      onPreviousTab: () => tabs.cycleTab(-1),
+      onReopenTab: () => unawaited(tabs.reopenLastClosed()),
+      onSaveAs: () {
+        final s = tabs.activeSession;
+        if (s != null) unawaited(s.saveAs(ref.read(fileStorageProvider)));
+      },
+      onProperties: () {
+        final a = _activeTab;
+        if (a != null) _showInfo(context, a.file, password: _passwordForTab(a));
+      },
+      onReadMode: _toggleReadMode,
+      onFullScreen: () => unawaited(_togglePresentationMode()),
+      onRotateClockwise: () => unawaited(_rotateCurrentPage(90)),
+      onRotateCounterclockwise: () => unawaited(_rotateCurrentPage(-90)),
+      onToggleEdit: _toggleEditMode,
+      onToggleComment: _toggleCommentMode,
+      onToggleSidebar: () => setState(() => _sidebarEnabled = !_sidebarEnabled),
     );
   }
 }

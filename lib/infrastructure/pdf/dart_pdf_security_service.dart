@@ -1,3 +1,4 @@
+import 'package:document_studio/infrastructure/pdf/pdf_aes256_security.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -48,7 +49,7 @@ class DartPdfSecurityService {
     }
   }
 
-  /// Encrypts [inputPath] with AES-128 (Standard Security Handler R4).
+  /// Encrypts [inputPath] with AES-256 (Standard Security Handler R6).
   ///
   /// Input may already be encrypted when [inputPassword] is supplied; it is
   /// normalized via PDFium first, then rewritten with a new `/Encrypt` dict.
@@ -221,7 +222,8 @@ class DartPdfSecurityService {
 
 enum PdfProtectionProbe { none, restrictionsOnly, openPassword, unknown }
 
-/// Full rewrite of [plainPdf] with AES-128 Standard Security Handler (R4).
+/// Full rewrite of [plainPdf] with AES-256 (Standard Security Handler R6,
+/// PDF 2.0): the strongest encryption PDF offers.
 Uint8List encryptPdfBytes(
   Uint8List plainPdf, {
   required String userPassword,
@@ -238,7 +240,7 @@ Uint8List encryptPdfBytes(
       encrypted: true,
     );
   }
-  final security = buildAes128Security(
+  final security = PdfAes256SecurityMaterial.build(
     userPassword: userPassword,
     ownerPassword: ownerPassword,
     allowPrinting: allowPrinting,
@@ -248,7 +250,7 @@ Uint8List encryptPdfBytes(
   );
 
   final sink = PdfWriterSink();
-  sink.raw('%PDF-1.7\n');
+  sink.raw('%PDF-2.0\n');
   sink.bytes(const [0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]);
 
   final offsets = <int, int>{};
@@ -269,18 +271,21 @@ Uint8List encryptPdfBytes(
 
   final encryptDict = PdfDict({
     'Filter': const PdfName('Standard'),
-    'V': const PdfNum(4),
-    'R': const PdfNum(4),
-    'Length': const PdfNum(128),
+    'V': const PdfNum(5),
+    'R': const PdfNum(6),
+    'Length': const PdfNum(256),
     'P': PdfNum(security.permissions),
-    'O': PdfString(security.ownerEntry, hex: true),
-    'U': PdfString(security.userEntry, hex: true),
+    'O': PdfString(security.o, hex: true),
+    'U': PdfString(security.u, hex: true),
+    'OE': PdfString(security.oe, hex: true),
+    'UE': PdfString(security.ue, hex: true),
+    'Perms': PdfString(security.perms, hex: true),
     'EncryptMetadata': const PdfBool(true),
     'CF': PdfDict({
       'StdCF': PdfDict({
         'AuthEvent': const PdfName('DocOpen'),
-        'CFM': const PdfName('AESV2'),
-        'Length': const PdfNum(16),
+        'CFM': const PdfName('AESV3'),
+        'Length': const PdfNum(32),
       }),
     }),
     'StmF': const PdfName('StdCF'),
@@ -344,7 +349,7 @@ PdfObj _encryptObjectGraph(
   PdfObj object,
   int objectNumber,
   int generation,
-  PdfAes128SecurityMaterial security,
+  PdfSecurityMaterial security,
 ) {
   PdfObj copy(PdfObj value, {PdfDict? parentDict, String? parentKey}) {
     switch (value) {

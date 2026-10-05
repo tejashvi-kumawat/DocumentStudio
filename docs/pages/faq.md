@@ -2,7 +2,7 @@
 
 ## Where do I download?
 
-[GitHub Releases v1.0.3](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.0.3) — or the Download panel on the [home page](#/).
+[GitHub Releases v1.1.0](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0) — or the Download panel on the [home page](#/).
 
 ## Who built this?
 

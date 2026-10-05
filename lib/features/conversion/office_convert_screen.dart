@@ -1,3 +1,4 @@
+import 'package:document_studio/features/conversion/pdf_to_docx_layout.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -84,6 +85,8 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
       return;
     }
     final path = await desktopEngineResolver.resolveSoffice();
+    // Start LibreOffice's first-run work now so the conversion itself is quick.
+    if (path != null) unawaited(LibreOfficeHeadless.prewarm(path));
     if (mounted) {
       setState(() {
         _enginePath = path;
@@ -397,115 +400,10 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
     }
   }
 
-  Future<void> _pdfToOffice() async {
-    if (_useDartPath) {
-      await _pdfToOfficeDart();
-      return;
-    }
-    final exe = _enginePath;
-    final source = _file;
-    if (exe == null || source == null || !_isPdf(source)) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-      _progress = 'Starting LibreOffice…';
-      _fraction = 0.1;
-      _saved = null;
-    });
-    Directory? workDir;
-    try {
-      final storage = ref.read(fileStorageProvider);
-      const ext = 'docx';
-      const filter = 'docx:MS Word 2007 XML';
-      workDir = await LibreOfficeHeadless.createWorkDir();
-      final outDir = workDir.path;
-      final localIn = p.join(
-        outDir,
-        'in-${DateTime.now().microsecondsSinceEpoch}.pdf',
-      );
-      await File(source.path).copy(localIn);
-      setState(() {
-        _progress = 'Converting to .$ext…';
-        _fraction = 0.45;
-      });
-      final result = await LibreOfficeHeadless.run(
-        exe: exe,
-        workDir: outDir,
-        args: [
-          // Without this LibreOffice opens PDFs in Draw, which cannot write DOCX.
-          LibreOfficeHeadless.pdfWriterInfilter,
-          '--convert-to',
-          filter,
-          '--outdir',
-          outDir,
-          localIn,
-        ],
-      );
-      if (result.exitCode != 0) {
-        throw StateError(
-          LibreOfficeHeadless.formatConvertError(
-            'LibreOffice convert failed (exit ${result.exitCode})',
-            stderr: result.stderr.toString(),
-            exitCode: result.exitCode,
-          ),
-        );
-      }
-      final stem = p.basenameWithoutExtension(localIn);
-      final produced =
-          await LibreOfficeHeadless.findProduced(outDir, stem, ext);
-      if (produced == null) {
-        throw StateError(
-          LibreOfficeHeadless.formatConvertError(
-            'LibreOffice did not produce $stem.$ext.',
-            stderr: result.stderr.toString(),
-          ),
-        );
-      }
-      setState(() {
-        _progress = 'Saving…';
-        _fraction = 0.85;
-      });
-      final bytes = await produced.readAsBytes();
-      final saveStem = p.basenameWithoutExtension(source.displayName);
-      final savePath = await storage.pickSavePath(
-        suggestedName: '$saveStem.$ext',
-        bytes: bytes,
-        allowedExtensions: const [ext],
-      );
-      if (savePath == null) return;
-      await storage.writeAtomic(
-        destinationPath: savePath,
-        writeToTemp: (temp) async {
-          await File(temp).writeAsBytes(bytes, flush: true);
-        },
-      );
-      if (!mounted) return;
-      setState(() {
-        _saved = LocalFileRef(
-          path: savePath,
-          displayName: p.basename(savePath),
-          sizeBytes: bytes.length,
-        );
-      });
-    } on TimeoutException catch (e) {
-      if (mounted) {
-        setState(() => _error = _convertError(e, stderr: e.message));
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _error = _convertError(e));
-      }
-    } finally {
-      LibreOfficeHeadless.deleteQuietly(workDir);
-      if (mounted) {
-        setState(() {
-          _busy = false;
-          _progress = null;
-          _fraction = null;
-        });
-      }
-    }
-  }
+  /// Word output is built on-device (layout-aware, no LibreOffice): it keeps
+  /// fonts, sizes, colours, pictures and page breaks, where LibreOffice's PDF
+  /// import turns every line into a floating text box.
+  Future<void> _pdfToOffice() => _pdfToOfficeDart();
 
   Future<void> _pdfToOfficeDart() async {
     final source = _file;
@@ -513,14 +411,14 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
     setState(() {
       _busy = true;
       _error = null;
-      _progress = 'Extracting text…';
+      _progress = 'Reading the PDF…';
       _fraction = 0.1;
       _saved = null;
     });
     try {
       final storage = ref.read(fileStorageProvider);
-      final bytes = await DartOfficeConvertService().pdfToDocx(
-        pdfPath: source.path,
+      final bytes = await pdfToDocxWithLayout(
+        file: source,
         password: _pdfPassword,
         onProgress: (f, msg) {
           if (!mounted) return;

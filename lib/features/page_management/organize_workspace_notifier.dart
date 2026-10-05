@@ -339,6 +339,9 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
     state = state.copyWith(focusPreviewIndex: index);
   }
 
+  bool get canUndo => _undo.isNotEmpty;
+  bool get canRedo => _redo.isNotEmpty;
+
   bool undo() {
     if (_undo.isEmpty) return false;
     _redo.add(List.of(state.pages));

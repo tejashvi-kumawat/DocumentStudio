@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' as math;
 
 import 'package:document_studio/core/pdf/pdf_document_cache.dart';
 import 'package:document_studio/core/perf/perf_log.dart';
@@ -31,15 +32,61 @@ class StorageCacheManager {
 
   static const _mb = 1024 * 1024;
 
-  /// Disk caps for cache areas (LRU-trimmed to 80% when exceeded).
-  static const Map<StorageArea, int> limits = {
-    StorageArea.thumbnails: 128 * _mb,
-    StorageArea.pages: 256 * _mb,
-    // Searchable-PDF results of scans are large; keep a few recent ones.
-    StorageArea.ocr: 256 * _mb,
-    StorageArea.textIndex: 64 * _mb,
-    StorageArea.logs: 16 * _mb,
-  };
+  static const _gb = 1024 * _mb;
+
+  /// SharedPreferences key: user cache budget in GB, 0 / absent = automatic.
+  static const budgetPrefKey = 'cache_budget_gb_v1';
+
+  /// Total disk budget for caches. Automatic = 20% of free space, 1–7 GB.
+  static int budgetBytes = 6 * _gb;
+
+  /// Applies the user setting ([gb] 0 = auto) against [freeBytes] of disk.
+  static void configure({required int gb, int? freeBytes}) {
+    final free = freeBytes;
+    var b = gb > 0 ? gb * _gb : (free == null ? 6 * _gb : (free ~/ 5));
+    if (gb <= 0) b = b.clamp(1 * _gb, 7 * _gb);
+    if (free != null && b > free ~/ 2) b = math.max(512 * _mb, free ~/ 2);
+    budgetBytes = b;
+  }
+
+  /// Free bytes on the volume holding [path], or null when unknown.
+  static Future<int?> freeDiskBytes(String path) async {
+    try {
+      if (Platform.isWindows) {
+        final drive = path.length > 1 && path[1] == ':' ? path[0] : 'C';
+        final r = await Process.run('powershell', [
+          '-NoProfile',
+          '-Command',
+          '(Get-PSDrive -Name $drive).Free',
+        ]);
+        return int.tryParse(r.stdout.toString().trim());
+      }
+      final r = await Process.run('df', ['-Pk', path]);
+      final lines = r.stdout.toString().trim().split('\n');
+      if (lines.length < 2) return null;
+      final cols = lines.last.split(RegExp(r'\s+'));
+      final kb = int.tryParse(cols[3]);
+      return kb == null ? null : kb * 1024;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Disk caps for cache areas (LRU-trimmed to 80% when exceeded), carved out
+  /// of [budgetBytes].
+  static Map<StorageArea, int> get limits => {
+        StorageArea.thumbnails: budgetBytes ~/ 10,
+        StorageArea.pages: budgetBytes * 4 ~/ 10,
+        // Searchable-PDF results of scans are large.
+        StorageArea.ocr: budgetBytes * 4 ~/ 10,
+        StorageArea.textIndex: budgetBytes ~/ 10,
+        StorageArea.logs: 32 * _mb,
+      };
+
+  static int _userGb = 0;
+
+  /// Called at startup and when the user changes the budget in Settings.
+  static void setUserGb(int gb) => _userGb = gb;
 
   final List<void Function()> _memoryCaches = [];
 
@@ -51,6 +98,10 @@ class StorageCacheManager {
     final paths = StoragePaths.maybeInstance;
     if (paths == null) return;
     final sw = Stopwatch()..start();
+    configure(
+      gb: _userGb,
+      freeBytes: await freeDiskBytes(paths.root.path),
+    );
     final removed = await paths.cleanTemp();
     var freed = 0;
     for (final e in limits.entries) {

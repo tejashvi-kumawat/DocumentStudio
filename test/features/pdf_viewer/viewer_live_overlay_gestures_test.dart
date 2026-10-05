@@ -12,11 +12,12 @@ import 'package:document_studio/features/pdf_viewer/widgets/viewer_live_page_ove
 import 'package:document_studio/infrastructure/pdf/pdf_form_spot_detector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 Widget _pumpSurface(ViewerLiveToolSession session, {Size size = const Size(400, 560)}) {
-  return MaterialApp(
+  return ProviderScope(child: MaterialApp(
     home: Scaffold(
       body: Center(
         child: ViewerLiveToolOverlaySurface(
@@ -26,7 +27,7 @@ Widget _pumpSurface(ViewerLiveToolSession session, {Size size = const Size(400, 
         ),
       ),
     ),
-  );
+  ));
 }
 
 Future<void> _dragLocal(
@@ -56,7 +57,7 @@ Offset _surfaceOrigin(WidgetTester tester) {
 
 void main() {
   group('Text (T) live overlay gestures', () {
-    testWidgets('tap text run selects that run for edit', (tester) async {
+    testWidgets('tap selects a text run, a second tap opens it', (tester) async {
       final session = ViewerLiveToolSession();
       session.setPageGeometryPt(widthPt: 612, heightPt: 792);
       session.activate(ViewerToolId.editText, pageIndex1Based: 1);
@@ -73,6 +74,11 @@ void main() {
 
       final origin = _surfaceOrigin(tester);
       // Center of the highlighted run (norm 0.25, 0.13) on 400×560.
+      await tester.tapAt(origin + const Offset(100, 72.8));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(session.selectedRun?.originalText, 'Hello run');
+      expect(session.textEditTarget, isNull);
+
       await tester.tapAt(origin + const Offset(100, 72.8));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
@@ -101,10 +107,7 @@ void main() {
       expect(session.inlineEditing, isFalse);
       expect(session.awaitingClickPlacement, isTrue);
       expect(find.byType(TextField), findsNothing);
-      expect(
-        find.text('Click a run to edit, or drag to set text width'),
-        findsOneWidget,
-      );
+      expect(find.text('Drag on the page to add a text box'), findsOneWidget);
     });
 
     testWidgets('drag empty space sets width then opens typing', (tester) async {
@@ -270,40 +273,36 @@ void main() {
   });
 
   group('Sign (S) live overlay', () {
-    testWidgets('signature hint not text caret; place drops object', (tester) async {
+    testWidgets('signature layer is not a text tool', (tester) async {
       final session = ViewerLiveToolSession();
       session.activate(
         ViewerToolId.visualSign,
         pageIndex1Based: 1,
         imageBytes: Uint8List.fromList([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
       );
-      // Visual sign stays awaiting click until place.
-      session.setAwaitingClickPlacement(true);
 
       await tester.pumpWidget(_pumpSurface(session));
       await tester.pump();
       while (tester.takeException() != null) {}
 
-      expect(find.text('Click to place signature'), findsOneWidget);
+      // Placement belongs to the sign controller (hint on hover); the page
+      // must never offer a text caret or click-to-type copy.
       expect(find.byType(TextField), findsNothing);
       expect(
         find.textContaining('click the page to type', findRichText: true),
         findsNothing,
       );
-
       final origin = _surfaceOrigin(tester);
       await tester.tapAt(origin + const Offset(200, 280));
       await tester.pump();
       while (tester.takeException() != null) {}
-
-      expect(session.awaitingClickPlacement, isFalse);
       expect(session.inlineEditing, isFalse);
       expect(find.byType(TextField), findsNothing);
     });
   });
 
   group('Crop (Alt+C) live overlay', () {
-    testWidgets('shows crop rect not a text tool', (tester) async {
+    testWidgets('starts empty; dragging draws the area to keep', (tester) async {
       final session = ViewerLiveToolSession();
       session.activate(ViewerToolId.crop, pageIndex1Based: 1);
 
@@ -312,9 +311,22 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(session.toolId, ViewerToolId.crop);
-      expect(session.dragRectNorm, isNotNull);
+      expect(session.dragRectNorm, isNull);
+      expect(
+        find.text('Drag a rectangle around the area to keep'),
+        findsOneWidget,
+      );
       expect(find.byType(TextField), findsNothing);
-      expect(find.textContaining('type', findRichText: true), findsNothing);
+
+      final origin = _surfaceOrigin(tester);
+      await _dragLocal(
+        tester,
+        origin + const Offset(40, 56),
+        origin + const Offset(360, 504),
+      );
+      final r = session.dragRectNorm!;
+      expect(r.left, closeTo(0.1, 0.01));
+      expect(r.bottom, closeTo(0.9, 0.01));
     });
   });
 

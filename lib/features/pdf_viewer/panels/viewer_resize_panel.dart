@@ -1,3 +1,4 @@
+import 'package:document_studio/core/pdf/page_loader.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -77,14 +78,13 @@ class _ViewerResizePanelState extends ConsumerState<ViewerResizePanel> {
     _document = null;
     await prev?.dispose();
     try {
-      final doc = await PdfDocument.openFile(
-        widget.handoff.file.path,
-        passwordProvider: widget.handoff.password == null
-            ? null
-            : () async => widget.handoff.password,
-      );
+      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
       final pageIndex = math.max(0, widget.handoff.currentPage1 - 1);
-      final page = doc.pages[pageIndex.clamp(0, doc.pages.length - 1)];
+      final page = await loadPageOnDemand(
+            doc,
+            (pageIndex + 1).clamp(1, doc.pages.length),
+          ) ??
+          doc.pages.first;
       if (!mounted) {
         await doc.dispose();
         return;

@@ -5,8 +5,6 @@ import 'package:document_studio/app/keyboard/text_input_guard.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/core/errors/document_studio_error.dart';
 import 'package:document_studio/core/storage/linux_document_portal.dart';
-import 'package:document_studio/design_system/ds_colors.dart';
-import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_shell_page.dart';
 import 'package:document_studio/design_system/shell/ds_status_bar.dart';
 import 'package:document_studio/design_system/shell/ds_toolbar.dart';
@@ -15,13 +13,14 @@ import 'package:document_studio/features/command_palette/ds_command_palette.dart
 import 'package:document_studio/features/document_workspace/workspace_document_tool_launch.dart';
 import 'package:document_studio/features/document_workspace/workspace_inspector_panel.dart';
 import 'package:document_studio/features/document_workspace/workspace_page_grid.dart';
+import 'package:document_studio/features/document_workspace/workspace_landing.dart';
 import 'package:document_studio/features/document_workspace/workspace_sidebar.dart';
+import 'package:document_studio/features/document_workspace/workspace_toolbar.dart';
 import 'package:document_studio/features/page_management/organize_pdf_import.dart';
 import 'package:document_studio/features/page_management/organize_workspace_notifier.dart';
 import 'package:document_studio/features/page_management/pdf_password_prompt.dart';
 import 'package:document_studio/features/page_management/shared/organize_busy_overlay.dart';
 import 'package:document_studio/features/page_management/shared/organize_document_source_chips.dart';
-import 'package:document_studio/features/page_management/shared/organize_drop_zone.dart';
 import 'package:document_studio/features/page_management/widgets/organize_drop_target.dart';
 import 'package:document_studio/features/pdf_viewer/shell_pdf_open.dart';
 import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
@@ -182,6 +181,69 @@ class _DocumentWorkspaceScreenState
       return;
     }
     _openFile(file, tool: tool);
+  }
+
+  Future<void> _insertBlank() async {
+    final blank = await ref.read(blankPageFactoryProvider).blankPageFile();
+    if (!mounted) return;
+    _ws.insertBlankAfterSelection(blank);
+  }
+
+  void _moveSelected(int delta) {
+    final st = ref.read(documentWorkspaceProvider);
+    final idx = [
+      for (var i = 0; i < st.pages.length; i++)
+        if (st.selectedIds.contains(st.pages[i].id)) i,
+    ];
+    if (idx.isEmpty) return;
+    // Move the group as one: step the first (or last) element repeatedly.
+    final ordered = delta < 0 ? idx : idx.reversed.toList();
+    for (final i in ordered) {
+      _ws.moveByDelta(i, delta);
+    }
+  }
+
+  /// Writes the workspace (or just the selected pages) as a new PDF.
+  Future<void> _save({required bool selectionOnly}) async {
+    final st = ref.read(documentWorkspaceProvider);
+    final pages = selectionOnly
+        ? [
+            for (final p in st.pages)
+              if (st.selectedIds.contains(p.id)) p,
+          ]
+        : st.pages;
+    if (pages.isEmpty) return;
+    final base = st.importedFiles.isEmpty
+        ? 'workspace'
+        : st.importedFiles.first.displayName.replaceFirst(
+            RegExp(r'\.pdf$', caseSensitive: false),
+            '',
+          );
+    _ws.setBusy(true, message: 'Preparing PDF…', fraction: 0.05);
+    try {
+      final out = await ref.read(pageOrganizeServiceProvider).exportWorkspace(
+            pages: pages,
+            suggestedName: selectionOnly ? '$base-selection.pdf' : '$base-new.pdf',
+            passwordsByPath: _passwordsByPath,
+            onProgress: (p) => _ws.setBusy(true, message: p.message, fraction: p.fraction),
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Saved ${out.displayName}'),
+          action: SnackBarAction(
+            label: 'Open',
+            onPressed: () => _openFile(out),
+          ),
+        ),
+      );
+    } on DocumentStudioError catch (e) {
+      if (mounted) _snack(e.recoveryHint ?? e.message);
+    } catch (e) {
+      if (mounted) _snack('$e');
+    } finally {
+      _ws.setBusy(false);
+    }
   }
 
   void _onSidebar(WorkspaceSidebarAction action) {
@@ -393,40 +455,42 @@ class _DocumentWorkspaceScreenState
                             }
                           },
                           child: wsState.pages.isEmpty && !_loadingDoc
-                              ? ColoredBox(
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? DsColors.groupedBackgroundDark
-                                      : DsColors.groupedBackgroundLight,
-                                  child: Center(
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxWidth: compact
-                                            ? double.infinity
-                                            : DsSpacing.formMaxWidth,
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(
-                                          compact
-                                              ? DsSpacing.pagePaddingCompact
-                                              : DsSpacing.xl,
-                                        ),
-                                        child: OrganizeDropZone(
-                                          onBrowse: () =>
-                                              _pickPdf(replace: true),
-                                          title: 'Add a PDF',
-                                          subtitle:
-                                              'Drop a PDF here or browse to see its pages',
-                                          compact: compact,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                              ? WorkspaceLanding(
+                                  compact: compact,
+                                  onBrowse: () => _pickPdf(replace: true),
+                                  onPickRecent: (f) =>
+                                      _importFile(f, replace: true),
                                 )
                               : Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
+                                    WorkspaceToolbar(
+                                      pageCount: wsState.pageCount,
+                                      selectedCount: wsState.selectedIds.length,
+                                      busy: busy,
+                                      canUndo: ws.canUndo,
+                                      canRedo: ws.canRedo,
+                                      onAddPdf: () => _pickPdf(replace: false),
+                                      onSelectAll: ws.selectAll,
+                                      onClearSelection: ws.clearSelection,
+                                      onRotateLeft: () =>
+                                          ws.rotateSelected(clockwise: false),
+                                      onRotateRight: () =>
+                                          ws.rotateSelected(clockwise: true),
+                                      onDuplicate: ws.duplicateSelected,
+                                      onDelete: ws.deleteSelected,
+                                      onBlank: _insertBlank,
+                                      onMoveEarlier: () => _moveSelected(-1),
+                                      onMoveLater: () => _moveSelected(1),
+                                      onReverse: ws.reverseAll,
+                                      onUndo: ws.undo,
+                                      onRedo: ws.redo,
+                                      onSave: () => _save(selectionOnly: false),
+                                      onSaveSelection: () =>
+                                          _save(selectionOnly: true),
+                                      documentTools: _documentTools,
+                                    ),
                                     if (compact)
                                       OrganizeDocumentSourceChips(
                                         sources: wsState.importedFiles,
@@ -573,21 +637,10 @@ class _DocumentWorkspaceScreenState
     required bool busy,
   }) {
     if (wsState.importedFiles.isEmpty && !_loadingDoc) {
-      return ColoredBox(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? DsColors.groupedBackgroundDark
-            : DsColors.groupedBackgroundLight,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(DsSpacing.pagePaddingCompact),
-            child: OrganizeDropZone(
-              onBrowse: () => _pickPdf(replace: true),
-              title: 'Add a PDF',
-              subtitle: 'Browse to see pages',
-              compact: true,
-            ),
-          ),
-        ),
+      return WorkspaceLanding(
+        compact: true,
+        onBrowse: () => _pickPdf(replace: true),
+        onPickRecent: (f) => _importFile(f, replace: true),
       );
     }
 

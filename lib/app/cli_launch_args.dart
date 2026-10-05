@@ -58,9 +58,14 @@ class CliLaunchArgs {
   static bool isPdfPath(String path) =>
       p.extension(path).toLowerCase() == '.pdf';
 
-  /// Prefer [Platform.executableArguments]; falls back to [Platform.environment]
+  /// Arguments given to `main` (Flutter desktop embedders put argv here).
+  static List<String> entryArguments = const [];
+
+  /// Prefer [entryArguments], then [Platform.executableArguments]; falls back to [Platform.environment]
   /// `DS_OPEN_FILES` (pipe-separated) for tests / wrappers.
   static CliLaunchArgs fromProcess() {
+    final fromEntry = parse(entryArguments);
+    if (fromEntry.hasWork) return fromEntry;
     final fromArgs = parse(Platform.executableArguments);
     if (fromArgs.hasWork) return fromArgs;
     final env = Platform.environment['DS_OPEN_FILES'];
@@ -91,7 +96,13 @@ class CliLaunchArgs {
       }
       // Flutter / embedder noise
       if (a.startsWith('-') || a.startsWith('--')) continue;
-      final normalized = p.normalize(a);
+      var raw = a;
+      if (raw.startsWith('file:')) {
+        try {
+          raw = Uri.parse(raw).toFilePath(windows: Platform.isWindows);
+        } catch (_) {}
+      }
+      final normalized = p.normalize(raw);
       if (File(normalized).existsSync()) {
         files.add(normalized);
       }

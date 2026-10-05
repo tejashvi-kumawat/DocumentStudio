@@ -1,3 +1,4 @@
+import 'package:document_studio/core/pdf/page_loader.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -246,16 +247,12 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
 
   Future<void> _primePageSize({int? page1Based}) async {
     try {
-      final doc = await PdfDocument.openFile(
-        widget.handoff.file.path,
-        passwordProvider: widget.handoff.password == null
-            ? null
-            : () async => widget.handoff.password,
-      );
+      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
       try {
         final idx = ((page1Based ?? widget.handoff.currentPage1) - 1)
             .clamp(0, doc.pages.length - 1);
-        final page = doc.pages[idx];
+        final page =
+            await loadPageOnDemand(doc, idx + 1) ?? doc.pages.first;
         if (!mounted) return;
         setState(() {
           _pageWidthPt = page.width;

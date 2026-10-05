@@ -52,7 +52,7 @@ void main() {
       allowAnnotate: false,
     );
     expect(String.fromCharCodes(out).contains('/Encrypt'), isTrue);
-    expect(String.fromCharCodes(out).contains('/AESV2'), isTrue);
+    expect(String.fromCharCodes(out).contains('/AESV3'), isTrue);
     expect(
       () => PdfEditDocument.open(out),
       throwsA(

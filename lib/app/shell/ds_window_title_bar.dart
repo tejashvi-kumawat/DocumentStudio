@@ -1,3 +1,6 @@
+import 'package:document_studio/core/update/app_updater.dart';
+import 'package:document_studio/features/settings/update_dialog.dart';
+import 'package:document_studio/design_system/brand/ds_built_by.dart';
 import 'dart:async';
 import 'dart:io' show Platform, exit;
 
@@ -273,8 +276,31 @@ class _DsTitleBar extends ConsumerWidget {
                   router: router,
                   navigatorContext: navigatorContext,
                 ),
-                trailingFill: const DsWindowDragArea(),
+                trailingFill: const _CreditDragArea(),
               ),
+            ),
+            ValueListenableBuilder<AppUpdate?>(
+              valueListenable: AppUpdater.instance.available,
+              builder: (context, u, _) => u == null
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(right: DsSpacing.xs),
+                      child: FilledButton.tonalIcon(
+                        key: const Key('title_bar_update'),
+                        style: FilledButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        onPressed: () {
+                          final ctx = navigatorContext();
+                          if (ctx != null && ctx.mounted) {
+                            showUpdateDialog(ctx, u);
+                          }
+                        },
+                        icon: const Icon(Icons.system_update_alt, size: 16),
+                        label: Text('Update ${u.version}'),
+                      ),
+                    ),
             ),
             _CommandSearchButton(
               compact: width < 900,
@@ -604,6 +630,37 @@ class _CaptionButtonState extends State<_CaptionButton> {
           child: Center(child: visual),
         ),
       ),
+    );
+  }
+}
+
+/// Free space after the tabs: still drags the window, and shows the credit
+/// while there is room for it (it gives way as tabs fill the bar).
+class _CreditDragArea extends StatelessWidget {
+  const _CreditDragArea();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        final room = c.maxWidth >= 250;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            const DsWindowDragArea(),
+            if (room)
+              const IgnorePointer(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Opacity(
+                    opacity: 0.8,
+                    child: DsBuiltBy(fontSize: 11.5, link: false),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

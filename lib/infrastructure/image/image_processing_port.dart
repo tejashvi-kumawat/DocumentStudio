@@ -2,8 +2,25 @@ import 'dart:typed_data';
 
 /// Output format for [ImageProcessingPort.encode].
 enum ImageOutputFormat {
-  png,
-  jpeg,
+  png('PNG', 'png', 'image/png'),
+  jpeg('JPEG', 'jpg', 'image/jpeg'),
+  gif('GIF', 'gif', 'image/gif'),
+  bmp('BMP', 'bmp', 'image/bmp'),
+  tiff('TIFF', 'tif', 'image/tiff'),
+  ico('ICO (icon, max 256 px)', 'ico', 'image/x-icon');
+
+  const ImageOutputFormat(this.label, this.extension, this.mimeType);
+
+  final String label;
+  final String extension;
+  final String mimeType;
+
+  /// Lossy formats expose a quality slider.
+  bool get isLossy => this == ImageOutputFormat.jpeg;
+
+  /// Formats without an alpha channel need a white background.
+  bool get flattensAlpha =>
+      this == ImageOutputFormat.jpeg || this == ImageOutputFormat.bmp;
 }
 
 /// Decoded image handle; [internal] is owned by [ImageProcessingPort] implementations.

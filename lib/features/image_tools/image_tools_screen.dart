@@ -136,7 +136,8 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
         _targetWidth = decoded.width;
         _outputFormat = ext.endsWith('.png') ||
                 ext.endsWith('.gif') ||
-                ext.endsWith('.bmp')
+                ext.endsWith('.bmp') ||
+                ext.endsWith('.webp')
             ? ImageOutputFormat.png
             : ImageOutputFormat.jpeg;
         _result = null;
@@ -248,7 +249,7 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
         if (mounted) setState(() => _saving = false);
         return;
       }
-      final ext = _outputFormat == ImageOutputFormat.png ? 'png' : 'jpg';
+      final ext = _outputFormat.extension;
       final base = p.basenameWithoutExtension(ref.displayName);
       final path = await widget.deps.saveImage(
         suggestedName: '$base-edited.$ext',
@@ -318,14 +319,7 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
                 : DsToolFileSource(
                     key: const ValueKey('empty'),
                     files: const [],
-                    allowedExtensions: const [
-                      'png',
-                      'jpg',
-                      'jpeg',
-                      'webp',
-                      'bmp',
-                      'gif',
-                    ],
+                    allowedExtensions: kImageInputExtensions,
                     enabled: !_busy,
                     loading: _loading,
                     onPick: _openImage,
@@ -604,30 +598,32 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SegmentedButton<ImageOutputFormat>(
-                segments: const [
-                  ButtonSegment(
-                    value: ImageOutputFormat.jpeg,
-                    label: Text('JPEG'),
-                    icon: Icon(Icons.photo_outlined),
-                  ),
-                  ButtonSegment(
-                    value: ImageOutputFormat.png,
-                    label: Text('PNG'),
-                    icon: Icon(Icons.image_outlined),
-                  ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final f in ImageOutputFormat.values)
+                    ChoiceChip(
+                      label: Text(f.label.split(' ').first),
+                      selected: _outputFormat == f,
+                      onSelected: _busy
+                          ? null
+                          : (_) => _changed(() => _outputFormat = f),
+                    ),
                 ],
-                selected: {_outputFormat},
-                showSelectedIcon: false,
-                onSelectionChanged: _busy
-                    ? null
-                    : (s) => _changed(() => _outputFormat = s.first),
               ),
               const SizedBox(height: DsSpacing.xs),
               Text(
-                _outputFormat == ImageOutputFormat.jpeg
-                    ? 'Smaller files, best for photos. Transparency becomes white.'
-                    : 'Lossless and keeps transparency; larger for photos.',
+                switch (_outputFormat) {
+                  ImageOutputFormat.jpeg =>
+                    'Smaller files, best for photos. Transparency becomes white.',
+                  ImageOutputFormat.png =>
+                    'Lossless and keeps transparency; larger for photos.',
+                  ImageOutputFormat.gif => 'Up to 256 colors; wide support.',
+                  ImageOutputFormat.bmp => 'Uncompressed bitmap; large files.',
+                  ImageOutputFormat.tiff => 'Lossless; common for scans and print.',
+                  ImageOutputFormat.ico => 'Windows icon, scaled to 256 px or less.',
+                },
                 style: theme.textTheme.bodySmall?.copyWith(color: secondary),
               ),
               AnimatedSize(

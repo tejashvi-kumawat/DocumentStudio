@@ -7,6 +7,10 @@ import 'package:document_studio/infrastructure/pdf/signing/cms_builder.dart';
 import 'package:document_studio/infrastructure/pdf/signing/x509.dart';
 import 'package:path/path.dart' as p;
 
+/// The PKCS#12 password goes to openssl through the environment, never the
+/// command line (which other local users can read).
+const _pwVar = 'DS_PKI_PASSWORD';
+
 class OpenSslP12Info {
   const OpenSslP12Info({
     required this.commonName,
@@ -87,7 +91,7 @@ class OpenSslPki {
     int days = 825,
   }) async {
     final openssl = await _openssl();
-    final work = await Directory.systemTemp.createTemp('ds_pki_ss_');
+    final work = await _privateTemp('ds_pki_ss_');
     try {
       final key = p.join(work.path, 'key.pem');
       final cert = p.join(work.path, 'cert.pem');
@@ -139,10 +143,10 @@ extendedKeyUsage = emailProtection, clientAuth
         '-out',
         outP12Path,
         '-passout',
-        'pass:$password',
+        'env:$_pwVar',
         '-name',
         cn,
-      ]);
+      ], environment: {_pwVar: password});
       if (r.exitCode != 0) {
         throw StateError('Failed to export PKCS#12: ${r.stderr}');
       }
@@ -173,7 +177,7 @@ extendedKeyUsage = emailProtection, clientAuth
 
   Future<OpenSslIdentity> unpack(String p12Path, String password) async {
     final openssl = await _openssl();
-    final work = await Directory.systemTemp.createTemp('ds_pki_id_');
+    final work = await _privateTemp('ds_pki_id_');
     final key = p.join(work.path, 'key.pem');
     final cert = p.join(work.path, 'cert.pem');
     final derPath = p.join(work.path, 'cert.der');
@@ -183,12 +187,12 @@ extendedKeyUsage = emailProtection, clientAuth
       '-in',
       p12Path,
       '-passin',
-      'pass:$password',
+      'env:$_pwVar',
       '-nocerts',
       '-nodes',
       '-out',
       key,
-    ]);
+    ], environment: {_pwVar: password});
     if (r.exitCode != 0) {
       await work.delete(recursive: true);
       final err = r.stderr.toString();
@@ -204,12 +208,12 @@ extendedKeyUsage = emailProtection, clientAuth
       '-in',
       p12Path,
       '-passin',
-      'pass:$password',
+      'env:$_pwVar',
       '-clcerts',
       '-nokeys',
       '-out',
       cert,
-    ]);
+    ], environment: {_pwVar: password});
     if (r.exitCode != 0) {
       await work.delete(recursive: true);
       throw StateError('Could not read certificate from PKCS#12: ${r.stderr}');
@@ -348,4 +352,17 @@ String describeOpenSslError(Object error) {
   return text
       .replaceFirst(RegExp(r'^Exception:\s*'), '')
       .replaceFirst(RegExp(r'^Bad state:\s*'), '');
+}
+
+
+/// Scratch directory only the current user can enter — private keys are
+/// briefly written here for openssl.
+Future<Directory> _privateTemp(String prefix) async {
+  final dir = await Directory.systemTemp.createTemp(prefix);
+  if (!Platform.isWindows) {
+    try {
+      await Process.run('chmod', ['700', dir.path]);
+    } catch (_) {}
+  }
+  return dir;
 }

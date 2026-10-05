@@ -1,10 +1,10 @@
 import 'package:document_studio/design_system/ds_colors.dart';
-import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/features/home/home_tool.dart';
 import 'package:flutter/material.dart';
 
-/// Tool card with a primary Open action (Tools hub grid).
-class HomeToolsHubCard extends StatelessWidget {
+/// Compact tool tile for the Tools hub: tinted icon, name, one-line summary.
+/// The whole tile opens the tool (no extra Open button).
+class HomeToolsHubCard extends StatefulWidget {
   const HomeToolsHubCard({
     super.key,
     required this.tool,
@@ -14,108 +14,100 @@ class HomeToolsHubCard extends StatelessWidget {
 
   final HomeTool tool;
   final String actionLabel;
-
-  /// Narrow phone density: smaller icon, tighter padding, 40–48dp action.
   final bool compact;
+
+  /// Fixed tile height so grids stay tidy at any width.
+  static const height = 64.0;
+
+  @override
+  State<HomeToolsHubCard> createState() => _HomeToolsHubCardState();
+}
+
+class _HomeToolsHubCardState extends State<HomeToolsHubCard> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final border = isDark ? DsColors.borderDark : DsColors.borderLight;
+    final tool = widget.tool;
+    final dark = theme.brightness == Brightness.dark;
     final secondary = DsColors.textSecondary(theme.brightness);
     final enabled = tool.availability == HomeToolAvailability.available;
-    final iconSize = compact ? 28.0 : 48.0;
-    final pad = compact
-        ? const EdgeInsets.fromLTRB(
-            DsSpacing.sm,
-            DsSpacing.md,
-            DsSpacing.sm,
-            DsSpacing.sm,
-          )
-        : const EdgeInsets.fromLTRB(
-            DsSpacing.md,
-            DsSpacing.lg,
-            DsSpacing.md,
-            DsSpacing.md,
-          );
-
-    return Material(
-      color: isDark ? DsColors.groupedCellDark : DsColors.groupedCellLight,
-      elevation: isDark ? 0 : 0.5,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DsSpacing.radiusCard),
-        side: BorderSide(color: border, width: isDark ? 1 : 0.5),
-      ),
-      child: Padding(
-        padding: pad,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Center(
-                child: Icon(
-                  tool.icon,
-                  size: iconSize,
-                  color: enabled ? theme.colorScheme.primary : secondary,
-                ),
-              ),
-            ),
-            Text(
-              tool.label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: compact
-                  ? theme.textTheme.labelLarge?.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    )
-                  : theme.textTheme.titleSmall,
-            ),
-            if (!compact) ...[
-              const SizedBox(height: DsSpacing.xs),
-              Text(
-                tool.subtitle,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(color: secondary),
-              ),
-            ],
-            SizedBox(height: compact ? DsSpacing.sm : DsSpacing.md),
-            OutlinedButton(
-              onPressed: tool.onTap,
-              style: OutlinedButton.styleFrom(
-                minimumSize: Size.fromHeight(compact ? 40 : 36),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.symmetric(
-                  horizontal: compact ? DsSpacing.sm : DsSpacing.md,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      enabled
-                          ? actionLabel
-                          : tool.availability == HomeToolAvailability.blocked
-                              ? 'Unavailable'
-                              : 'Soon',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+    final accent = enabled ? DsColors.primary : secondary;
+    final badge = switch (tool.availability) {
+      HomeToolAvailability.available => null,
+      HomeToolAvailability.blocked => 'Unavailable',
+      HomeToolAvailability.comingSoon => 'Soon',
+    };
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      child: Material(
+        color: dark ? DsColors.groupedCellDark : DsColors.groupedCellLight,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: _hover && enabled
+                ? DsColors.primary.withValues(alpha: 0.55)
+                : DsColors.border(theme.brightness),
+          ),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: enabled ? tool.onTap : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: dark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(9),
                   ),
-                  const SizedBox(width: 2),
-                  const Icon(Icons.arrow_drop_down, size: 18),
-                ],
-              ),
+                  child: Icon(tool.icon, size: 20, color: accent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tool.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: enabled ? null : secondary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        tool.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11.5,
+                          color: secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (badge != null)
+                  Text(
+                    badge,
+                    style: theme.textTheme.labelSmall?.copyWith(color: secondary),
+                  )
+                else
+                  Icon(Icons.chevron_right, size: 18, color: secondary),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

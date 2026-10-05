@@ -219,8 +219,13 @@ class _MarkupKeyboardScopeState extends State<MarkupKeyboardScope> {
         return KeyEventResult.handled;
     }
     if (repeat) return KeyEventResult.ignored;
+    // Tool keys need Alt+Shift so a bare letter never switches tools.
     final hw = HardwareKeyboard.instance;
-    if (hw.isAltPressed || hw.isShiftPressed) return KeyEventResult.ignored;
+    if (!(hw.isAltPressed && hw.isShiftPressed) ||
+        hw.isControlPressed ||
+        hw.isMetaPressed) {
+      return KeyEventResult.ignored;
+    }
     final tool = switch (key) {
       LogicalKeyboardKey.keyV => MarkupTool.select,
       LogicalKeyboardKey.keyT => MarkupTool.text,

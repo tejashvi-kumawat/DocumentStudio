@@ -1,9 +1,12 @@
+import 'package:document_studio/core/perf/render_budget.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_approach_pages.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_params_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUpAll(RenderBudget.debugUseFixedBudget);
+
   test('whole-page scale is capped at 4096px on the long edge', () {
     const wide = 6000.0;
     const tall = 4000.0;
@@ -66,7 +69,7 @@ void main() {
     );
   });
 
-  test('a small zoom-in keeps a screen-scale bitmap', () {
+  test('any visible zoom-in re-renders sharp; a 2 % nudge does not', () {
     const page = 800.0;
     final atFit = pdfViewerSettledRenderScale(
       pageWidth: page,
@@ -82,7 +85,9 @@ void main() {
     );
     expect(atFit, 1);
     expect(slight, 1.1);
-    expect(pdfViewerKeepsRenderedScale(held: atFit, target: slight), isTrue);
+    // Upscaling a 1.0 bitmap to 1.1 would soften text: decode again.
+    expect(pdfViewerKeepsRenderedScale(held: atFit, target: slight), isFalse);
+    expect(pdfViewerKeepsRenderedScale(held: atFit, target: 1.02), isTrue);
   });
 
   test('zooming out keeps a sharper bitmap', () {

@@ -1,3 +1,4 @@
+import 'package:document_studio/features/pdf_viewer/widgets/viewer_nav_forwarder.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -733,32 +734,6 @@ class _MarkupPageLayerState extends State<MarkupPageLayer>
     if (_dragging) setState(() => _dragging = false);
   }
 
-  void _onSignal(PointerSignalEvent e) {
-    final vc = widget.viewerController;
-    if (e is! PointerScrollEvent || vc == null || !vc.isReady) return;
-    GestureBinding.instance.pointerSignalResolver.register(e, (event) {
-      final ev = event as PointerScrollEvent;
-      if (HardwareKeyboard.instance.isControlPressed) {
-        final factor = math.pow(1.2, -ev.scrollDelta.dy / 120).toDouble();
-        final pos = vc.globalToDocument(ev.position);
-        if (pos != null) {
-          unawaited(
-            vc.setZoom(pos, vc.currentZoom * factor, duration: Duration.zero),
-          );
-        }
-        return;
-      }
-      var d = -ev.scrollDelta * 0.6;
-      if (HardwareKeyboard.instance.isShiftPressed && d.dx == 0) {
-        d = Offset(d.dy, 0);
-      }
-      final m = vc.value.clone();
-      final t = m.getTranslation();
-      m.setTranslationRaw(t.x + d.dx, t.y + d.dy, t.z);
-      vc.value = m;
-    });
-  }
-
   // ---------------------------------------------------------- actions
 
   void _onTap(Offset p) {
@@ -1391,13 +1366,15 @@ class _MarkupPageLayerState extends State<MarkupPageLayer>
                     });
                   }
                 },
-                child: Listener(
+                child: ViewerNavForwarder(
+                  controller: widget.viewerController,
+                  behavior: HitTestBehavior.opaque,
+                  child: Listener(
                   behavior: HitTestBehavior.opaque,
                   onPointerDown: _onDown,
                   onPointerMove: _onMove,
                   onPointerUp: _onUp,
                   onPointerCancel: _onCancel,
-                  onPointerSignal: _onSignal,
                   child: RepaintBoundary(
                     child: CustomPaint(
                       size: size,
@@ -1431,6 +1408,7 @@ class _MarkupPageLayerState extends State<MarkupPageLayer>
                         ]),
                       ),
                     ),
+                  ),
                   ),
                 ),
               ),

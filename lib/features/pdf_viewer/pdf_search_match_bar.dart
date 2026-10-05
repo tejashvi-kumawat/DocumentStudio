@@ -16,6 +16,11 @@ class PdfSearchMatchBar extends StatefulWidget {
     required this.onNext,
     required this.onClose,
     required this.onSearch,
+    this.onShowResults,
+    this.onRunOcr,
+    this.matchCase = false,
+    this.wholeWord = false,
+    this.onOptionsChanged,
     this.initialQuery = '',
     this.autofocus = true,
     this.focusNode,
@@ -30,6 +35,17 @@ class PdfSearchMatchBar extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onClose;
   final ValueChanged<String> onSearch;
+
+  /// Opens the whole-document results list (left panel).
+  final VoidCallback? onShowResults;
+
+  /// Offered when nothing was found: OCR never runs unless asked.
+  final VoidCallback? onRunOcr;
+
+  /// Find options. [onOptionsChanged] gets (matchCase, wholeWord).
+  final bool matchCase;
+  final bool wholeWord;
+  final void Function(bool matchCase, bool wholeWord)? onOptionsChanged;
   final String initialQuery;
   final bool autofocus;
 
@@ -148,6 +164,26 @@ class _PdfSearchMatchBarState extends State<PdfSearchMatchBar> {
                   ),
                 ),
               ),
+              if (widget.onOptionsChanged != null) ...[
+                _OptionToggle(
+                  label: 'Aa',
+                  tooltip: 'Match case',
+                  on: widget.matchCase,
+                  onTap: () => widget.onOptionsChanged!(
+                    !widget.matchCase,
+                    widget.wholeWord,
+                  ),
+                ),
+                _OptionToggle(
+                  label: 'W',
+                  tooltip: 'Whole words only',
+                  on: widget.wholeWord,
+                  onTap: () => widget.onOptionsChanged!(
+                    widget.matchCase,
+                    !widget.wholeWord,
+                  ),
+                ),
+              ],
               IconButton(
                 tooltip: 'Previous match',
                 visualDensity: VisualDensity.compact,
@@ -160,8 +196,70 @@ class _PdfSearchMatchBarState extends State<PdfSearchMatchBar> {
                 onPressed: hasMatches ? widget.onNext : null,
                 icon: const Icon(Icons.keyboard_arrow_down),
               ),
+              if (widget.onRunOcr != null &&
+                  !hasMatches &&
+                  !widget.isSearching &&
+                  _queryController.text.trim().length >= 2)
+                TextButton.icon(
+                  onPressed: widget.onRunOcr,
+                  icon: const Icon(Icons.document_scanner_outlined, size: 16),
+                  label: const Text('Scan with OCR'),
+                ),
+              if (widget.onShowResults != null)
+                IconButton(
+                  tooltip: 'Show all results',
+                  onPressed: widget.matchCount > 0 ? widget.onShowResults : null,
+                  icon: const Icon(Icons.format_list_bulleted),
+                ),
               TextButton(onPressed: widget.onClose, child: const Text('Close')),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+class _OptionToggle extends StatelessWidget {
+  const _OptionToggle({
+    required this.label,
+    required this.tooltip,
+    required this.on,
+    required this.onTap,
+  });
+
+  final String label;
+  final String tooltip;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(5),
+        onTap: onTap,
+        child: Container(
+          width: 28,
+          height: 26,
+          margin: const EdgeInsets.only(left: 2),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: on ? DsColors.primary.withValues(alpha: 0.14) : null,
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(
+              color: on ? DsColors.primary : Colors.transparent,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: on ? DsColors.primary : null,
+            ),
           ),
         ),
       ),

@@ -2,13 +2,14 @@ import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/app/shell/ds_sidebar_state.dart';
 import 'package:document_studio/app/shell/window/ds_window.dart';
 import 'package:document_studio/core/errors/document_studio_error.dart';
+import 'package:document_studio/core/storage/recent_tools_repository.dart';
 import 'package:document_studio/core/errors/document_studio_error_ui.dart';
 import 'package:document_studio/design_system/brand/ds_brand_assets.dart';
+import 'package:document_studio/design_system/brand/ds_built_by.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
-import 'package:document_studio/features/document_lifecycle/document_close_guard.dart';
 import 'package:document_studio/features/document_lifecycle/document_session.dart';
 import 'package:document_studio/features/command_palette/ds_command_palette.dart';
 import 'package:document_studio/features/conversion/conversion_route.dart';
@@ -217,7 +218,6 @@ class _FullContent extends ConsumerWidget {
         const <LocalFileRef>[];
     final collapsed = ref.watch(dsSidebarProvider).collapsedSections;
     final tools = buildHomeToolCatalog(context, ref);
-    final openTabs = tabs.tabs;
     final dests = sidebar.destinations;
 
     Widget section(
@@ -235,10 +235,12 @@ class _FullContent extends ConsumerWidget {
       );
     }
 
-    final byCategory = <HomeToolCategory, List<HomeTool>>{};
-    for (final t in tools) {
-      byCategory.putIfAbsent(t.category, () => []).add(t);
-    }
+    final recentIds = ref.watch(recentToolsProvider);
+    final recentTools = [
+      for (final id in recentIds)
+        for (final t in tools)
+          if (t.id == id) t,
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -274,36 +276,6 @@ class _FullContent extends ConsumerWidget {
                       onTap: () => sidebar.onNavigate(i),
                     ),
               ]),
-              if (openTabs.isNotEmpty)
-                section(
-                  'open',
-                  'Open documents',
-                  [
-                    for (var i = 0; i < openTabs.length; i++)
-                      _SidebarItem(
-                        key: ValueKey('sidebar_tab_${openTabs[i].id}'),
-                        icon: Icons.picture_as_pdf_rounded,
-                        iconColor: DsColors.primary,
-                        label: openTabs[i].file.displayName,
-                        tooltip: openTabs[i].session.sourcePath,
-                        dirty: openTabs[i].session,
-                        selected: sidebar.documentsVisible &&
-                            !tabs.isHomeActive &&
-                            tabs.activeIndex == i,
-                        onTap: () => _activateTab(sidebar, tabs, i),
-                        onClose: () async {
-                          final ok = await confirmCloseDocumentTab(
-                            context: context,
-                            ref: ref,
-                            tabs: tabs,
-                            index: i,
-                          );
-                          if (ok) tabs.closeTab(i);
-                        },
-                      ),
-                  ],
-                  action: _CountBadge(count: openTabs.length),
-                ),
               section(
                 'pinned',
                 'Pinned',
@@ -345,28 +317,29 @@ class _FullContent extends ConsumerWidget {
                           ),
                       ],
               ),
-              for (final category in HomeToolCategory.values)
-                if (byCategory[category] case final list? when list.isNotEmpty)
-                  section(
-                    'tools_${category.name}',
-                    category.title,
-                    [
-                      for (final t in list)
-                        _SidebarItem(
-                          icon: t.icon,
-                          label: t.label,
-                          tooltip: t.subtitle,
-                          enabled: t.availability ==
-                                  HomeToolAvailability.available &&
-                              t.onTap != null,
-                          trailingText: t.availability ==
-                                  HomeToolAvailability.comingSoon
-                              ? 'Soon'
-                              : null,
-                          onTap: t.onTap ?? () {},
+              section(
+                'recent_tools',
+                'Recent tools',
+                recentTools.isEmpty
+                    ? [
+                        const _SidebarHint(
+                          icon: Icons.apps_outlined,
+                          text: 'Tools you use appear here. Open Tools for all.',
                         ),
-                    ],
-                  ),
+                      ]
+                    : [
+                        for (final t in recentTools)
+                          _SidebarItem(
+                            icon: t.icon,
+                            label: t.label,
+                            tooltip: t.subtitle,
+                            enabled: t.availability ==
+                                    HomeToolAvailability.available &&
+                                t.onTap != null,
+                            onTap: t.onTap ?? () {},
+                          ),
+                      ],
+              ),
             ],
           ),
         ),
@@ -932,37 +905,6 @@ class _SidebarHint extends StatelessWidget {
   }
 }
 
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return AnimatedSwitcher(
-      duration: DsMotion.switchDuration,
-      transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
-      child: Container(
-        key: ValueKey(count),
-        margin: const EdgeInsets.only(right: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-        decoration: BoxDecoration(
-          color: DsColors.primary.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          '$count',
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: DsColors.primary,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _StorageFooter extends StatelessWidget {
   const _StorageFooter({
@@ -1048,6 +990,8 @@ class _StorageFooter extends StatelessWidget {
             selected: settingsSelected,
             onTap: onSettings,
           ),
+          const SizedBox(height: 4),
+          const Center(child: DsBuiltBy(fontSize: 10.5)),
         ],
       ),
     );
@@ -1123,7 +1067,6 @@ class _RailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dests = sidebar.destinations;
-    final openTabs = tabs.tabs;
     final settings = dests[DsWorkspaceSidebar._settingsIndex];
     final brightness = Theme.of(context).brightness;
 
@@ -1171,20 +1114,6 @@ class _RailContent extends ConsumerWidget {
                         !(i == 0 && sidebar.documentsVisible),
                     onTap: () => sidebar.onNavigate(i),
                   ),
-              if (openTabs.isNotEmpty) divider(),
-              for (var i = 0; i < openTabs.length; i++)
-                _SidebarItem(
-                  key: ValueKey('rail_tab_${openTabs[i].id}'),
-                  iconOnly: true,
-                  icon: Icons.picture_as_pdf_rounded,
-                  iconColor: DsColors.primary,
-                  label: openTabs[i].file.displayName,
-                  dirty: openTabs[i].session,
-                  selected: sidebar.documentsVisible &&
-                      !tabs.isHomeActive &&
-                      tabs.activeIndex == i,
-                  onTap: () => _activateTab(sidebar, tabs, i),
-                ),
             ],
           ),
         ),

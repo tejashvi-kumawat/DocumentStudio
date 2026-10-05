@@ -1,3 +1,4 @@
+import 'package:document_studio/core/pdf/page_loader.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -380,12 +381,13 @@ class LiveDrawBurner {
     int page1Based,
     String? password,
   ) async {
-    final doc = await PdfDocument.openFile(
-      input.path,
-      passwordProvider: password == null ? null : () async => password,
-    );
+    final doc = await openPdfLazily(input.path, password: password);
     try {
-      final page = doc.pages[(page1Based - 1).clamp(0, doc.pages.length - 1)];
+      final page = await loadPageOnDemand(
+            doc,
+            page1Based.clamp(1, doc.pages.length),
+          ) ??
+          doc.pages.first;
       return Size(page.width, page.height);
     } finally {
       await doc.dispose();

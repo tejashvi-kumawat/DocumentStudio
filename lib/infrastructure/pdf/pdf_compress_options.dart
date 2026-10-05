@@ -31,6 +31,7 @@ class PdfCompressOptions {
     this.optimizeImages = false,
     this.jpegQuality,
     this.downsampleMaxPx,
+    this.targetDpi,
   });
 
   final CompressProfile profile;
@@ -41,6 +42,11 @@ class PdfCompressOptions {
 
   /// Longest edge cap for image XObjects, in pixels.
   final int? downsampleMaxPx;
+
+  /// Resolution images are reduced to where they are drawn (like Acrobat's
+  /// "downsample to N ppi"). Applied per image from its on-page size, on top
+  /// of [downsampleMaxPx].
+  final int? targetDpi;
 
   /// True when this preset re-encodes images (every preset except lossless).
   bool get lossyImages =>
@@ -54,6 +60,7 @@ class PdfCompressOptions {
           optimizeImages: true,
           jpegQuality: 40,
           downsampleMaxPx: 1000,
+          targetDpi: 96,
         ),
       CompressProfile.extreme => const PdfCompressOptions(
           profile: CompressProfile.extreme,
@@ -61,6 +68,7 @@ class PdfCompressOptions {
           optimizeImages: true,
           jpegQuality: 45,
           downsampleMaxPx: 1200,
+          targetDpi: 110,
         ),
       CompressProfile.balanced => const PdfCompressOptions(
           profile: CompressProfile.balanced,
@@ -68,6 +76,7 @@ class PdfCompressOptions {
           optimizeImages: true,
           jpegQuality: 60,
           downsampleMaxPx: 1600,
+          targetDpi: 150,
         ),
       CompressProfile.highQuality => const PdfCompressOptions(
           profile: CompressProfile.highQuality,
