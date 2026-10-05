@@ -9,9 +9,9 @@
 class DocumentStudio < Formula
   desc "Offline PDF workspace with merge, OCR, encryption, and Office conversion"
   homepage "https://github.com/tejashvi-kumawat/DocumentStudio"
-  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.0.3/document-studio_1.0.3_amd64.deb"
-  sha256 "cd86f5087d3971f8441afb8c942f6faa26e78b25a62c36416b9438dfc8550f94"
-  version "1.0.3"
+  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/document-studio_1.1.0_amd64.deb"
+  sha256 "496194f336ad033e898f7ccf7315e926dea0f6c9d2eed53b24833fdeac2c0b83"
+  version "1.1.0"
   license :cannot_represent
 
   depends_on :linux

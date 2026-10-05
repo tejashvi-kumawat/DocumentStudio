@@ -4,10 +4,10 @@
 # Install: brew tap tejashvi-kumawat/tap && brew install --cask document-studio
 
 cask "document-studio" do
-  version "1.0.3"
-  sha256 "e4bee7d80a70d23fc9d7a8e1a5b2daa812c742c45766c87914b6c01b59399242"
+  version "1.1.0"
+  sha256 "9a6d6cdf3645d637587df1315bad4f32434e17ea0a1939a1937f7d4ebc839412"
 
-  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v#{version}/DocumentStudio-#{version}-macos.dmg"
+  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-macos.dmg"
   name "Document Studio"
   desc "Offline PDF workspace with merge, OCR, encryption, and Office conversion"
   homepage "https://github.com/tejashvi-kumawat/DocumentStudio"
