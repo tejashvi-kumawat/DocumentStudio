@@ -21,9 +21,23 @@ cask "document-studio" do
 
   app "Document Studio.app"
 
+  # Document Studio is not notarized by Apple yet, so Gatekeeper may block the
+  # first launch. Ask the user; only on an explicit "y" is the quarantine flag
+  # cleared. Non-interactive installs (no terminal) never change anything.
+  postflight do
+    if $stdin.tty?
+      print "Document Studio is not notarized by Apple. Remove macOS's quarantine flag so it " \
+            "opens without the Gatekeeper warning? [y/N] "
+      if %w[y yes].include?($stdin.gets.to_s.strip.downcase)
+        system_command "/usr/bin/xattr",
+                       args: ["-dr", "com.apple.quarantine", "#{appdir}/Document Studio.app"]
+      end
+    end
+  end
+
   caveats <<~EOS
     Document Studio is not notarized by Apple yet, so macOS may say the app
-    cannot be opened. Right-click the app and choose Open once to allow it.
+    cannot be opened. If you answered no, right-click the app and choose Open once to allow it.
   EOS
 
   zap trash: [

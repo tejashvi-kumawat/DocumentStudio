@@ -10,7 +10,11 @@ Future<void> main(List<String> args) async {
   // prefer explicit main args when the embedder passes them.
   final argv = args.isNotEmpty ? args : Platform.executableArguments;
   if (await tryHandleMaintenanceArgs(argv)) {
-    return;
+    // The native shell keeps the process alive after Dart's main returns, so
+    // `--version` / `--update` must exit explicitly instead of lingering.
+    await stdout.flush();
+    await stderr.flush();
+    exit(exitCode);
   }
   // On Windows the shell's "Open with" path arrives only in main's args.
   CliLaunchArgs.entryArguments = argv;

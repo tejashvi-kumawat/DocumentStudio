@@ -92,7 +92,7 @@ Future<void> _runUpdate({required bool checkOnly}) async {
 
   // Prefer channel the user already installed from.
   if (Platform.isWindows && await _tryWingetUpgrade()) return;
-  if (Platform.isMacOS && await _tryBrewUpgrade()) return;
+  if ((Platform.isMacOS || Platform.isLinux) && await _tryBrewUpgrade()) return;
   if (Platform.isLinux && await _tryLinuxPackageUpgrade(latest.version)) return;
 
   await _updateFromGitHubAsset(latest);
@@ -164,20 +164,25 @@ Future<bool> _tryWingetUpgrade() async {
   return false;
 }
 
+/// Homebrew installs: the cask on macOS, the formula on Linux (Linuxbrew).
 Future<bool> _tryBrewUpgrade() async {
   if (!await _commandExists('brew')) return false;
-  // Only use brew if the cask is actually installed.
+  final kind = Platform.isMacOS ? '--cask' : '--formula';
+  final what = Platform.isMacOS ? 'cask' : 'formula';
+  // Only use brew if Document Studio is actually installed through it.
   final list = await Process.run('brew', [
     'list',
-    '--cask',
+    kind,
     kBrewCask,
   ], runInShell: true);
   if (list.exitCode != 0) return false;
 
-  stdout.writeln('Updating via Homebrew cask (in place)…');
+  stdout.writeln('Updating via Homebrew $what (in place)…');
+  // Refresh the tap first so the new version is visible.
+  await Process.run('brew', ['update'], runInShell: true);
   final r = await Process.run('brew', [
     'upgrade',
-    '--cask',
+    kind,
     kBrewCask,
   ], runInShell: true);
   stdout.write(r.stdout);
