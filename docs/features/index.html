@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feature list · Document Studio</title>
+  <meta name="description" content="Everything below runs offline on your device. Desktop release builds bundle the engines they need (qpdf, Tesseract, LibreOffice, signing helpers, …)." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://tejashvi-kumawat.github.io/DocumentStudio/features/" />
+  <meta property="og:site_name" content="Document Studio" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Feature list · Document Studio" />
+  <meta property="og:description" content="Everything below runs offline on your device. Desktop release builds bundle the engines they need (qpdf, Tesseract, LibreOffice, signing helpers, …)." />
+  <meta property="og:url" content="https://tejashvi-kumawat.github.io/DocumentStudio/features/" />
+  <meta property="og:image" content="https://tejashvi-kumawat.github.io/DocumentStudio/assets/img/logo.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#0f1115" />
+  <link rel="icon" href="../assets/img/icon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>.prose img{max-width:100%;height:auto}</style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Feature list", "description": "Everything below runs offline on your device. Desktop release builds bundle the engines they need (qpdf, Tesseract, LibreOffice, signing helpers, …).", "url": "https://tejashvi-kumawat.github.io/DocumentStudio/features/", "inLanguage": "en", "isPartOf": {"@type": "WebSite", "name": "Document Studio", "url": "https://tejashvi-kumawat.github.io/DocumentStudio/"}, "author": {"@type": "Person", "name": "Tejashvi Kumawat", "url": "https://tejashvi-kumawat.github.io/"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../">
+      <img class="brand-logo" src="../assets/img/icon.png" width="36" height="36" alt="" />
+      <span class="brand-text"><strong>Document Studio</strong><em>Offline PDF</em></span>
+    </a>
+    <nav class="top-nav" aria-label="Primary">
+      <a href="../#downloadPanel">Download</a>
+      <a href="../how-to/">How to</a>
+      <a href="../overview/">Docs</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn solid" href="../#downloadPanel">Download</a>
+      <a class="btn ghost top-github" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"><nav id="navRoot" aria-label="Documentation"><div class="nav-section"><h2>Start</h2><a href="../overview/" data-id="overview">Overview</a><a href="../install/" data-id="install">Download &amp; install</a><a href="../quick-start/" data-id="quick-start">Quick start</a><a href="../updates/" data-id="updates">Updates</a></div><div class="nav-section"><h2>Product</h2><a href="../features/" data-id="features" class="active">Feature list</a><a href="../how-to/" data-id="how-to">How to use tools</a><a href="../platforms/" data-id="platforms">Platforms</a><a href="../privacy/" data-id="privacy">Privacy</a><a href="../security/" data-id="security">Security</a></div><div class="nav-section"><h2>Guides</h2><a href="../pdf-tools/" data-id="pdf-tools">PDF tools deep dive</a><a href="../ocr/" data-id="ocr">OCR &amp; searchable PDF</a><a href="../office-conversion/" data-id="office-conversion">Office conversion</a><a href="../cli/" data-id="cli">CLI &amp; Windows shell</a></div><div class="nav-section"><h2>Developers</h2><a href="../architecture/" data-id="architecture">Architecture</a><a href="../engines/" data-id="engines">Bundled engines</a><a href="../building/" data-id="building">Build from source</a><a href="../contributing/" data-id="contributing">Contributing</a></div><div class="nav-section"><h2>About</h2><a href="../about/" data-id="about">About</a><a href="../author/" data-id="author">Author</a><a href="../licenses/" data-id="licenses">Licenses</a><a href="../faq/" data-id="faq">FAQ</a></div></nav></aside>
+    <main class="main" id="main">
+      <article class="doc">
+        <header class="doc-head">
+          <p class="crumb">Product</p>
+          <h1>Feature list</h1>
+        </header>
+        <div class="doc-body prose">
+<p>Everything below runs <strong>offline</strong> on your device. Desktop release builds bundle the engines they need (qpdf, Tesseract, LibreOffice, signing helpers, …).</p>
+<p>Screenshots below are from the real app. Tools without a screenshot are still available — see the text sections.</p>
+<p><img alt="Tools home — Create PDF, Organize, PDF to images, Compress, Encrypt, Scan" src="../images/tools-home.png" /></p>
+<p><img alt="Full tools catalog — Optimize, Sign, Edit, Create" src="../images/tools-catalog.png" /></p>
+<hr />
+<h2>Home &amp; library</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Open PDF</td>
+<td>Open from disk, drag-and-drop, or Browse</td>
+</tr>
+<tr>
+<td>Create PDF</td>
+<td>Blank / from plain text</td>
+</tr>
+<tr>
+<td>Images to PDF</td>
+<td>Combine photos &amp; scans into one PDF</td>
+</tr>
+<tr>
+<td>PDF to images</td>
+<td>Export pages as PNG or JPEG</td>
+</tr>
+<tr>
+<td>Pinned &amp; recent</td>
+<td>Local library only — no cloud sync</td>
+</tr>
+<tr>
+<td>Workspace</td>
+<td>Multi-document desktop shell</td>
+</tr>
+<tr>
+<td>Tools hub</td>
+<td>Searchable grid of every tool</td>
+</tr>
+<tr>
+<td>Strict offline</td>
+<td>Blocks optional downloads when enabled</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Document Studio home dashboard" src="../images/image.png" /></p>
+<hr />
+<h2>Organize pages</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Organize</td>
+<td>Drag thumbnails · rotate · duplicate · delete · reverse · Apply</td>
+</tr>
+<tr>
+<td>Merge</td>
+<td>Add PDFs in order · Save / Save as</td>
+</tr>
+<tr>
+<td>Split</td>
+<td>Every N · after pages · custom ranges · odd/even · each page</td>
+</tr>
+<tr>
+<td>Extract pages</td>
+<td>This page / selected / all / range · optional delete after extract</td>
+</tr>
+<tr>
+<td>Insert pages</td>
+<td>Insert every page of another PDF after a chosen page</td>
+</tr>
+<tr>
+<td>Crop</td>
+<td>Full page / small / wide margins · live crop box</td>
+</tr>
+<tr>
+<td>Resize pages</td>
+<td>LETTER / A4 / LEGAL (MediaBox / CropBox; content not scaled)</td>
+</tr>
+<tr>
+<td>Rotate</td>
+<td>Ribbon rotate or organize actions</td>
+</tr>
+<tr>
+<td>Add blank page</td>
+<td>Insert empty pages</td>
+</tr>
+<tr>
+<td>Move between docs</td>
+<td>Dual-document move in Workspace</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Organize — reorder and rotate pages" src="../images/organize.png" /></p>
+<p><img alt="Merge PDFs" src="../images/merge.png" /></p>
+<p><img alt="Split PDF with result preview" src="../images/split.png" /></p>
+<p><img alt="Extract pages" src="../images/extract-pages.png" /></p>
+<p><img alt="Crop pages" src="../images/crop.png" /></p>
+<p><img alt="Resize pages" src="../images/resize-pages.png" /></p>
+<p><img alt="Insert pages from another PDF" src="../images/insert-pages.png" /></p>
+<hr />
+<h2>Optimize</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compress PDF</td>
+<td>Reduce file size with quality tradeoffs</td>
+</tr>
+<tr>
+<td>Watermark</td>
+<td>Text or image · opacity · rotation · position grid · tokens</td>
+</tr>
+<tr>
+<td>Batch</td>
+<td>One operation on many files</td>
+</tr>
+<tr>
+<td>Edit metadata</td>
+<td>Title, author, properties</td>
+</tr>
+<tr>
+<td>Remove metadata</td>
+<td>Strip Info and XMP before sharing</td>
+</tr>
+<tr>
+<td>Repair PDF</td>
+<td>Structure repair via engines</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Watermark — text, opacity, rotation, position" src="../images/watermark.png" /></p>
+<hr />
+<h2>Protect &amp; stamp</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encrypt</td>
+<td>Open password · owner password · print/copy/modify/annotate permissions</td>
+</tr>
+<tr>
+<td>Decrypt</td>
+<td>Unlock when you know the password (no cracking)</td>
+</tr>
+<tr>
+<td>Header &amp; footer</td>
+<td>Templates · position grid · <code>{page}</code> <code>{pages}</code> <code>{date}</code> <code>{file}</code> <code>{title}</code> <code>{bates}</code></td>
+</tr>
+<tr>
+<td>Page numbers</td>
+<td>Style · prefix · start · sectioning</td>
+</tr>
+<tr>
+<td>Redact</td>
+<td>Remove underlying content — not paint-only</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Encrypt with passwords and permissions" src="../images/encrypt.png" /></p>
+<p><img alt="Header and footer templates" src="../images/header-footer.png" /></p>
+<p><img alt="Page numbers" src="../images/page-numbers.png" /></p>
+<hr />
+<h2>Sign &amp; forms</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Visual Sign</td>
+<td>Draw / type signatures &amp; initials · drag onto page · resize/rotate</td>
+</tr>
+<tr>
+<td>Stamps</td>
+<td>Approved, dates, custom stamps</td>
+</tr>
+<tr>
+<td>Certificate signature</td>
+<td>Digital IDs · import <code>.p12</code> · create self-signed · USB token / NSS stores · validate</td>
+</tr>
+<tr>
+<td>Fill form</td>
+<td>Fill AcroForm fields and save</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Sign PDF — digital certificates and validation" src="../images/sign-digital.png" /></p>
+<p><img alt="Sign PDF — visual signatures and initials" src="../images/sign-visual.png" /></p>
+<hr />
+<h2>Edit &amp; markup</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Edit text</td>
+<td>Select / replace existing text · font · size · alignment · line spacing</td>
+</tr>
+<tr>
+<td>Highlight / underline / strikethrough / squiggly</td>
+<td>Text markup</td>
+</tr>
+<tr>
+<td>Freehand / eraser</td>
+<td>Ink draw</td>
+</tr>
+<tr>
+<td>Shapes</td>
+<td>Rectangle, circle, line, arrow, pentagon, cloud, …</td>
+</tr>
+<tr>
+<td>Comments</td>
+<td>Sticky notes</td>
+</tr>
+<tr>
+<td>Add image</td>
+<td>Stamp an image onto a page</td>
+</tr>
+<tr>
+<td>Link</td>
+<td>URI or internal page links</td>
+</tr>
+<tr>
+<td>Smart guides</td>
+<td>Snap for clean alignment</td>
+</tr>
+<tr>
+<td>Compare PDFs</td>
+<td>Diff text, images, and pages</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Edit &amp; markup tools" src="../images/edit-markup.png" /></p>
+<p><img alt="Pages tools list in the Tools panel" src="../images/tools-pages.png" /></p>
+<hr />
+<h2>Word &amp; PowerPoint editors</h2>
+<ul>
+<li><strong>Word (<code>.docx</code>):</strong> headers and footers, tables, images you can select, resize and move, comments, and a <strong>suggesting mode</strong> with tracked changes you can accept or reject. Saves back to <code>.docx</code>.</li>
+<li><strong>PowerPoint (<code>.pptx</code>):</strong> text, shapes and images, <strong>animations and transitions</strong>, speaker notes and slideshow mode.</li>
+<li><strong>Quick Tools bar:</strong> a slim floating bar you can customize; pin any tool to it and reorder.</li>
+<li><strong>Tabs:</strong> PDFs opened from your file manager open as a new tab in the running app.</li>
+</ul>
+<h2>Capture &amp; OCR</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insert scan</td>
+<td>Open camera or choose images</td>
+</tr>
+<tr>
+<td>Searchable PDF (OCR)</td>
+<td>Local Tesseract — text layer for scans</td>
+</tr>
+<tr>
+<td>Image OCR</td>
+<td>OCR on standalone images</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Insert scan — camera or choose images" src="../images/insert-scan.png" /></p>
+<hr />
+<h2>Convert &amp; create</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>From Office</td>
+<td>Word / Excel / PowerPoint → PDF (desktop, bundled LibreOffice)</td>
+</tr>
+<tr>
+<td>Images to PDF</td>
+<td>Multi-image compose</td>
+</tr>
+<tr>
+<td>PDF to images</td>
+<td>PNG / JPEG export</td>
+</tr>
+<tr>
+<td>Create PDF</td>
+<td>From plain text</td>
+</tr>
+<tr>
+<td>Place image</td>
+<td>Stamp image into PDF</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Platform extras</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLI</td>
+<td><code>document_studio</code> open / <code>--tool</code> / <code>--update</code></td>
+</tr>
+<tr>
+<td>Windows shell</td>
+<td>Start Menu · Open with · context menus after Setup.exe</td>
+</tr>
+<tr>
+<td>App search</td>
+<td>Start / Spotlight / Activities after proper install</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Intentionally not included</h2>
+<table>
+<thead>
+<tr>
+<th>Not a feature</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Upload PDF to our cloud</td>
+<td>Privacy — we don’t run that</td>
+</tr>
+<tr>
+<td>Crack PDF passwords</td>
+<td>Illegal / dishonest</td>
+</tr>
+<tr>
+<td>Fake redaction</td>
+<td>Leaves text in the file</td>
+</tr>
+<tr>
+<td>Ads / account wall</td>
+<td>Product principle</td>
+</tr>
+</tbody>
+</table>
+<p>Step-by-step for each major tool: <a href="../how-to/">How to use tools</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand"><strong>Document Studio</strong><span>Offline PDF workspace · local engines · no account</span></div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../">Home</a>
+        <a href="../install/">Install</a>
+        <a href="../privacy/">Privacy</a>
+        <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases" target="_blank" rel="noopener">Releases</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

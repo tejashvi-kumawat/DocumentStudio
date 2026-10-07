@@ -126,6 +126,13 @@ Screenshots below are from the real app. Tools without a screenshot are still av
 
 ---
 
+## Word & PowerPoint editors
+
+- **Word (`.docx`):** headers and footers, tables, images you can select, resize and move, comments, and a **suggesting mode** with tracked changes you can accept or reject. Saves back to `.docx`.
+- **PowerPoint (`.pptx`):** text, shapes and images, **animations and transitions**, speaker notes and slideshow mode.
+- **Quick Tools bar:** a slim floating bar you can customize; pin any tool to it and reorder.
+- **Tabs:** PDFs opened from your file manager open as a new tab in the running app.
+
 ## Capture & OCR
 
 | Feature | Notes |

@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to use tools · Document Studio</title>
+  <meta name="description" content="Exact labels can vary slightly by platform, but the flow is always: open → choose tool → set options → Apply / Save . Everything below runs offline on your machine." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://tejashvi-kumawat.github.io/DocumentStudio/how-to/" />
+  <meta property="og:site_name" content="Document Studio" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to use tools · Document Studio" />
+  <meta property="og:description" content="Exact labels can vary slightly by platform, but the flow is always: open → choose tool → set options → Apply / Save . Everything below runs offline on your machine." />
+  <meta property="og:url" content="https://tejashvi-kumawat.github.io/DocumentStudio/how-to/" />
+  <meta property="og:image" content="https://tejashvi-kumawat.github.io/DocumentStudio/assets/img/logo.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#0f1115" />
+  <link rel="icon" href="../assets/img/icon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>.prose img{max-width:100%;height:auto}</style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "How to use tools", "description": "Exact labels can vary slightly by platform, but the flow is always: open → choose tool → set options → Apply / Save . Everything below runs offline on your machine.", "url": "https://tejashvi-kumawat.github.io/DocumentStudio/how-to/", "inLanguage": "en", "isPartOf": {"@type": "WebSite", "name": "Document Studio", "url": "https://tejashvi-kumawat.github.io/DocumentStudio/"}, "author": {"@type": "Person", "name": "Tejashvi Kumawat", "url": "https://tejashvi-kumawat.github.io/"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../">
+      <img class="brand-logo" src="../assets/img/icon.png" width="36" height="36" alt="" />
+      <span class="brand-text"><strong>Document Studio</strong><em>Offline PDF</em></span>
+    </a>
+    <nav class="top-nav" aria-label="Primary">
+      <a href="../#downloadPanel">Download</a>
+      <a href="../how-to/">How to</a>
+      <a href="../overview/">Docs</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn solid" href="../#downloadPanel">Download</a>
+      <a class="btn ghost top-github" href="https://github.com/tejashvi-kumawat/DocumentStudio" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"><nav id="navRoot" aria-label="Documentation"><div class="nav-section"><h2>Start</h2><a href="../overview/" data-id="overview">Overview</a><a href="../install/" data-id="install">Download &amp; install</a><a href="../quick-start/" data-id="quick-start">Quick start</a><a href="../updates/" data-id="updates">Updates</a></div><div class="nav-section"><h2>Product</h2><a href="../features/" data-id="features">Feature list</a><a href="../how-to/" data-id="how-to" class="active">How to use tools</a><a href="../platforms/" data-id="platforms">Platforms</a><a href="../privacy/" data-id="privacy">Privacy</a><a href="../security/" data-id="security">Security</a></div><div class="nav-section"><h2>Guides</h2><a href="../pdf-tools/" data-id="pdf-tools">PDF tools deep dive</a><a href="../ocr/" data-id="ocr">OCR &amp; searchable PDF</a><a href="../office-conversion/" data-id="office-conversion">Office conversion</a><a href="../cli/" data-id="cli">CLI &amp; Windows shell</a></div><div class="nav-section"><h2>Developers</h2><a href="../architecture/" data-id="architecture">Architecture</a><a href="../engines/" data-id="engines">Bundled engines</a><a href="../building/" data-id="building">Build from source</a><a href="../contributing/" data-id="contributing">Contributing</a></div><div class="nav-section"><h2>About</h2><a href="../about/" data-id="about">About</a><a href="../author/" data-id="author">Author</a><a href="../licenses/" data-id="licenses">Licenses</a><a href="../faq/" data-id="faq">FAQ</a></div></nav></aside>
+    <main class="main" id="main">
+      <article class="doc">
+        <header class="doc-head">
+          <p class="crumb">Product</p>
+          <h1>How to use tools</h1>
+        </header>
+        <div class="doc-body prose">
+<p>Exact labels can vary slightly by platform, but the flow is always: <strong>open → choose tool → set options → Apply / Save</strong>. Everything below runs <strong>offline</strong> on your machine.</p>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why">Start here if you are new: install once, open any PDF, then pick a tool from Home, the tools hub, or the viewer ribbon.</p>
+<ol>
+<li>Install Document Studio from <a href="../install/">Download &amp; install</a>.</li>
+<li>Open a PDF from Home, drag-and-drop, Browse, or “Open with”.</li>
+<li>Save exports to a folder you control.</li>
+<li>Keep passwords ready for encrypted PDFs — the app never cracks them.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Prefer the full Setup / DMG / <code>.deb</code> so engines (qpdf, Tesseract, LibreOffice) are bundled.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-home.png" alt="Tools hub" class="tool-thumb" />
+<figcaption>Tools hub</figcaption>
+</figure>
+</div>
+
+<h2>Jump to a tool</h2>
+<ul class="tool-toc">
+<li><a href="#home--library">Home &amp; library</a></li>
+<li><a href="#create--convert-in">Create &amp; convert in</a></li>
+<li><a href="#organize-pages">Organize pages</a></li>
+<li><a href="#optimize">Optimize</a></li>
+<li><a href="#protect--security">Protect &amp; security</a></li>
+<li><a href="#sign--forms">Sign &amp; forms</a></li>
+<li><a href="#edit--markup">Edit &amp; markup</a></li>
+<li><a href="#capture--ocr">Capture &amp; OCR</a></li>
+<li><a href="#export--batch">Export &amp; batch</a></li>
+<li><a href="#from-the-command-line">CLI</a></li>
+<li><a href="#if-something-fails">Troubleshooting</a></li>
+</ul>
+
+<hr />
+<h2>Home &amp; library</h2>
+<h3>Open PDF</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Get a file into Document Studio so every other tool can run on it — without uploading anywhere.</p>
+<ol>
+<li>Launch <strong>Document Studio</strong>.</li>
+<li>Click <strong>Open PDF</strong>, or drag a file onto the drop zone, or use Browse.</li>
+<li>On Windows after Setup.exe you can also right-click a PDF → Open with Document Studio.</li>
+<li>The PDF opens in the viewer; use the ribbon / Tools panel for the next action.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Encrypted PDFs ask for a password once; wrong password simply fails — nothing is brute-forced.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/image.png" alt="Home dashboard" class="tool-thumb" />
+<figcaption>Home — Open PDF</figcaption>
+</figure>
+</div>
+
+<h3>Pinned &amp; recent</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Jump back to files you use often without hunting through folders. Pins and recents stay <strong>local only</strong> — no cloud sync.</p>
+<ol>
+<li>Open a PDF from Home.</li>
+<li>Click the <strong>star</strong> (pin) on the file card or in the library row.</li>
+<li>Pinned files stay at the top; recent files appear as you open them.</li>
+<li>Unpin anytime — this only changes local library state, not the PDF on disk.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Clearing recent/pins does not delete your documents from disk.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/image.png" alt="Pinned and recent on Home" class="tool-thumb" />
+<figcaption>Pinned &amp; recent</figcaption>
+</figure>
+</div>
+
+<h3>All tools / tools hub</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> One searchable grid for every job category — faster than hunting menus when you know the tool name.</p>
+<ol>
+<li>From Home click <strong>All tools</strong>, or open the Tools panel in the viewer.</li>
+<li>Use the search box at the top of the grid (e.g. type “merge”, “ocr”, “encrypt”).</li>
+<li>Browse sections: Create, Organize, Optimize, Protect, Sign, Edit, Convert.</li>
+<li>Click a tool card to launch it with the current document (when required).</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Same hub appears from Home and from inside an open PDF — pick whichever is closer.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Full tools catalog" class="tool-thumb" />
+<figcaption>Full tools catalog</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Create &amp; convert in</h2>
+<h3>Create PDF (blank / from text)</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Start a new document when you do not already have a PDF — notes, cover pages, or a blank sheet to insert later.</p>
+<ol>
+<li>Home → <strong>Create PDF</strong> (or All tools → Create PDF).</li>
+<li>Choose blank page(s) or paste / type plain text.</li>
+<li>Confirm page size if prompted.</li>
+<li><strong>Create</strong> → the new PDF opens; <strong>Save</strong> it to disk.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For rich Word layouts, prefer <strong>From Office</strong> instead of plain-text create.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-home.png" alt="Create PDF on tools home" class="tool-thumb" />
+<figcaption>Create PDF</figcaption>
+</figure>
+</div>
+
+<h3>Images to PDF</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Turn photos, phone scans, or screenshots into a single shareable PDF — still fully offline.</p>
+<ol>
+<li>Home → <strong>Images to PDF</strong>.</li>
+<li><strong>Add images</strong> (multi-select). Drag rows to set page order.</li>
+<li>Optional: page size / fit options if shown.</li>
+<li><strong>Export / Create PDF</strong> → choose the output path → open to verify.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For camera capture straight into an existing PDF, use <strong>Insert scan</strong> instead.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-home.png" alt="Images to PDF" class="tool-thumb" />
+<figcaption>Images to PDF</figcaption>
+</figure>
+</div>
+
+<h3>From Office (Word / Excel / PowerPoint → PDF)</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Convert Office files to PDF on your machine with the bundled LibreOffice engine — no upload, no Microsoft account.</p>
+<ol>
+<li>Desktop only: Home / All tools → <strong>From Office</strong> (Office convert).</li>
+<li>Pick a <code>.docx</code>, <code>.xlsx</code>, <code>.pptx</code> (and related formats the dialog lists).</li>
+<li>Wait for local conversion (first run can be slower while LibreOffice starts).</li>
+<li>Open the result PDF and check layout, fonts, and page breaks.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Needs the full desktop installer (engines included). Details: <a href="../office-conversion/">Office conversion</a>.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Convert tools" class="tool-thumb" />
+<figcaption>From Office</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Organize pages</h2>
+<h3>Organize (reorder, rotate, duplicate, delete, reverse)</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Fix page order and orientation before you share — the everyday “clean this PDF up” workspace.</p>
+<ol>
+<li>Open a PDF → <strong>Organize</strong> (or Edit pages / Organize hub).</li>
+<li>Click thumbnails to select; drag to reorder.</li>
+<li>Use toolbar actions: rotate Left/Right, Duplicate, Delete, Reverse.</li>
+<li>Review the sequence, then <strong>Apply</strong> and <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For multi-file combine jobs, jump to Merge / Insert / Split from the same organize family.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Organize panel" class="tool-thumb" />
+<figcaption>Organize pages</figcaption>
+</figure>
+</div>
+
+<h3>Merge PDFs</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Combine several PDFs into one packet (course pack, application bundle, scanned chapters) without an online merge site.</p>
+<ol>
+<li>Open <strong>Merge</strong> from tools or the organize hub.</li>
+<li>Click <strong>+ Add PDFs</strong> and stack files in the order you want.</li>
+<li>Drag rows to reorder sources if needed.</li>
+<li><strong>Save</strong> or <strong>Save as</strong> the merged result.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Encrypted sources show a lock — unlock / enter the password before they can merge.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/merge.png" alt="Merge PDFs" class="tool-thumb" />
+<figcaption>Merge</figcaption>
+</figure>
+</div>
+
+<h3>Split PDF</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Break a large PDF into smaller files for email limits, chapter handouts, or separating forms from attachments.</p>
+<ol>
+<li>Open the PDF → <strong>Split</strong>.</li>
+<li>Choose a mode: Every N pages · After specific pages · Custom ranges · Odd/even · Each page as its own file.</li>
+<li>Check the <strong>Result</strong> preview list before you commit.</li>
+<li>Click <strong>Split</strong> and pick an output folder. The original open document stays intact.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Custom ranges are best when chapters are uneven (e.g. <code>1-12, 13-40, 41-end</code>).</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/split.png" alt="Split PDF" class="tool-thumb" />
+<figcaption>Split</figcaption>
+</figure>
+</div>
+
+<h3>Extract pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Pull out only the pages you need into a new PDF — share a subset without sending the whole file.</p>
+<ol>
+<li>Open <strong>Extract pages</strong>.</li>
+<li>Choose scope: This page / Selected / All / Range.</li>
+<li>Optional: enable <strong>Delete after extract</strong> if you want those pages removed from the source.</li>
+<li><strong>Extract</strong> → save the new PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Leave “Delete after extract” off unless you intend to rewrite the source document.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/extract-pages.png" alt="Extract pages" class="tool-thumb" />
+<figcaption>Extract pages</figcaption>
+</figure>
+</div>
+
+<h3>Extract odd / even pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Separate duplex scans or print odd/even sides — common when a scanner or printer handled sides differently.</p>
+<ol>
+<li>From Organize hub open <strong>Extract odd pages</strong> or <strong>Extract even pages</strong>.</li>
+<li>Confirm the source PDF is correct.</li>
+<li>Run extract → save the new file (pages 1,3,5… or 2,4,6…).</li>
+<li>Optionally merge the two results later if you were fixing duplex order.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Split’s odd/even mode is similar; use Extract odd/even when you only need one side as a new file.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/split.png" alt="Odd and even extract" class="tool-thumb" />
+<figcaption>Odd / even extract</figcaption>
+</figure>
+</div>
+
+<h3>Insert pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Splice another PDF’s pages into the current document (cover sheet, appendix, signed page) at an exact position.</p>
+<ol>
+<li>Open the target PDF → <strong>Insert pages</strong>.</li>
+<li>Choose the page after which new pages should appear.</li>
+<li>Pick the source PDF; every page from that file is inserted.</li>
+<li><strong>Insert</strong> → review thumbnails → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> To swap pages instead of appending, use <strong>Replace pages</strong>.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/insert-pages.png" alt="Insert pages" class="tool-thumb" />
+<figcaption>Insert pages</figcaption>
+</figure>
+</div>
+
+<h3>Replace pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Swap one or more pages with pages from another PDF (wrong scan, updated form page) without rebuilding the whole file.</p>
+<ol>
+<li>Open the PDF → <strong>Replace pages</strong> (Organize hub).</li>
+<li>Select the page(s) in the current document to replace.</li>
+<li>Choose the replacement PDF and which of its pages to use.</li>
+<li>Confirm → <strong>Apply</strong> → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Keep a copy of the original until you verify the replacement visually.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/insert-pages.png" alt="Replace pages" class="tool-thumb" />
+<figcaption>Replace pages</figcaption>
+</figure>
+</div>
+
+<h3>Move between documents</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> In Workspace, move pages from one open PDF into another — useful when sorting a mixed scan pile into separate files.</p>
+<ol>
+<li>Open <strong>Workspace</strong> / dual-document view with two PDFs.</li>
+<li>Launch <strong>Move between documents</strong>.</li>
+<li>Select pages in the source document.</li>
+<li>Choose destination position → move → save both files.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> If you only need a copy as a new file, <strong>Extract</strong> is simpler than move.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Move between documents" class="tool-thumb" />
+<figcaption>Move between docs</figcaption>
+</figure>
+</div>
+
+<h3>Reorder pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Dedicated reorder flow when you only need to drag thumbnails and export a new order.</p>
+<ol>
+<li>Organize hub → <strong>Reorder pages</strong>.</li>
+<li>Drag thumbnails into the correct sequence.</li>
+<li>Export / Apply the new order.</li>
+<li>Save the PDF under a clear name if you keep both versions.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Same drag behavior exists inside the general <strong>Organize</strong> panel.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Reorder pages" class="tool-thumb" />
+<figcaption>Reorder</figcaption>
+</figure>
+</div>
+
+<h3>Reverse order</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Flip a whole document end-to-end — common after ADF scanners deliver pages last-to-first.</p>
+<ol>
+<li>Organize → <strong>Reverse order</strong> (or Reverse in Organize).</li>
+<li>Confirm the preview shows last page first.</li>
+<li><strong>Apply</strong> → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Combine with Rotate if pages are also upside-down.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Reverse page order" class="tool-thumb" />
+<figcaption>Reverse order</figcaption>
+</figure>
+</div>
+
+<h3>Duplicate pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Copy selected pages inside the same PDF (extra signature pages, duplicate worksheets).</p>
+<ol>
+<li>In Organize, select the page(s).</li>
+<li>Click <strong>Duplicate</strong>.</li>
+<li>Drag duplicates to the desired position if needed.</li>
+<li><strong>Apply</strong> → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Duplicating increases file size roughly with the copied page content.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Duplicate pages" class="tool-thumb" />
+<figcaption>Duplicate</figcaption>
+</figure>
+</div>
+
+<h3>Delete pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Remove blank, wrong, or sensitive pages before sharing.</p>
+<ol>
+<li>Select the unwanted thumbnail(s) in Organize.</li>
+<li>Click <strong>Delete</strong> (or Delete pages tool).</li>
+<li>Confirm you still have at least one page left.</li>
+<li><strong>Apply</strong> → <strong>Save</strong> (or Save as to keep the original).</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For hiding confidential text on a page you must keep, use <strong>Redact</strong> — not Delete.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Delete pages" class="tool-thumb" />
+<figcaption>Delete pages</figcaption>
+</figure>
+</div>
+
+<h3>Rotate pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Fix sideways phone scans and landscape pages so readers do not tilt their heads.</p>
+<ol>
+<li>Select page(s) in Organize or use Rotate on the ribbon.</li>
+<li>Rotate 90° left or right (repeat for 180°).</li>
+<li><strong>Apply</strong> → check the page visually.</li>
+<li><strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Rotation changes page orientation metadata; pair with Crop if margins look wrong after rotate.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/organize.png" alt="Rotate pages" class="tool-thumb" />
+<figcaption>Rotate</figcaption>
+</figure>
+</div>
+
+<h3>Add blank page</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Insert empty pages for notes, signatures, or duplex print alignment.</p>
+<ol>
+<li>Organize hub → <strong>Add blank page</strong>.</li>
+<li>Choose where to insert (before/after a page).</li>
+<li>Set how many blank pages if offered.</li>
+<li><strong>Apply</strong> → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Blank pages inherit a standard media size; use <strong>Resize page</strong> if you need LETTER vs A4 specifically.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-pages.png" alt="Add blank page" class="tool-thumb" />
+<figcaption>Add blank page</figcaption>
+</figure>
+</div>
+
+<h3>Crop pages</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Trim scanner black borders or excess whitespace so the PDF looks clean when printed or shared.</p>
+<ol>
+<li>Open <strong>Crop</strong>.</li>
+<li>Pick a preset (Full page / Small margins / Wide margins) or drag the crop box.</li>
+<li>Choose scope: This page / Selected / All / Range.</li>
+<li><strong>Crop</strong> → review → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Cropping changes visible boxes; always spot-check text near edges.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/crop.png" alt="Crop pages" class="tool-thumb" />
+<figcaption>Crop</figcaption>
+</figure>
+</div>
+
+<h3>Resize page</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Normalize mixed scans to LETTER / A4 / LEGAL media boxes for consistent printing.</p>
+<ol>
+<li>Open <strong>Resize page</strong>.</li>
+<li>Choose LETTER, A4, or LEGAL.</li>
+<li>Set scope (this page / selection / all / range).</li>
+<li><strong>Apply</strong> → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> This sets MediaBox &amp; CropBox — content is <strong>not</strong> scaled like a printer “fit to page”. Use Crop if you need to trim instead.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/resize-pages.png" alt="Resize pages" class="tool-thumb" />
+<figcaption>Resize page</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Optimize</h2>
+<h3>Compress PDF</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Shrink large scan-heavy PDFs for email, LMS uploads, or limited disk — without sending the file to a website.</p>
+<ol>
+<li>Open the PDF → <strong>Compress</strong> / Compress PDF.</li>
+<li>Pick a quality / size preset (stronger compression = smaller file, more image loss).</li>
+<li>Run compression and wait for the local job to finish.</li>
+<li>Save the smaller file. Open it and check critical pages before deleting the original.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Keep the original until you verify text and images still look acceptable.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-home.png" alt="Compress PDF" class="tool-thumb" />
+<figcaption>Compress</figcaption>
+</figure>
+</div>
+
+<h3>Watermark</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Mark drafts, ownership, or confidentiality (e.g. “DRAFT”, “CONFIDENTIAL”) across pages.</p>
+<ol>
+<li>Open <strong>Watermark</strong>.</li>
+<li>Choose <strong>Text</strong> or <strong>Image</strong> tab.</li>
+<li>Enter text (tokens like <code>{page}</code> <code>{date}</code> work where supported) · set font, size, color, opacity, rotation, position grid.</li>
+<li>Optional: replace an existing watermark.</li>
+<li><strong>Apply</strong> → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Lower opacity for readability; use image watermarks for logos.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/watermark.png" alt="Watermark tool" class="tool-thumb" />
+<figcaption>Watermark</figcaption>
+</figure>
+</div>
+
+<h3>Edit metadata</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Set Title, Author, and document properties so files sort correctly in libraries and look professional when shared.</p>
+<ol>
+<li>Tools → <strong>Edit metadata</strong>.</li>
+<li>Update Title, Author, Subject, Keywords, and other Info fields shown.</li>
+<li>Apply changes.</li>
+<li><strong>Save</strong> the PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Before publishing publicly, consider <strong>Remove metadata</strong> if you do not want author/tool traces.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Edit metadata" class="tool-thumb" />
+<figcaption>Edit metadata</figcaption>
+</figure>
+</div>
+
+<h3>Remove metadata</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Strip Info and XMP before sharing so author names, software tags, and other properties do not travel with the file.</p>
+<ol>
+<li>Tools → <strong>Remove metadata</strong>.</li>
+<li>Confirm you want Info / XMP stripped.</li>
+<li>Run the removal job.</li>
+<li><strong>Save as</strong> a new file if you still need a metadata-rich master copy.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Removing metadata is not redaction of page content — use <strong>Redact</strong> for text/images on the page.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Remove metadata" class="tool-thumb" />
+<figcaption>Remove metadata</figcaption>
+</figure>
+</div>
+
+<h3>Batch</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Run one operation across many files (compress a folder, watermark a set) without opening each PDF by hand.</p>
+<ol>
+<li>Home / tools → <strong>Batch</strong>.</li>
+<li>Choose the operation (e.g. compress, watermark — whatever the batch UI lists).</li>
+<li>Add a file list or folder of PDFs.</li>
+<li>Set shared options → <strong>Run</strong> → collect outputs from the destination folder.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Spot-check 1–2 outputs before trusting a huge batch overnight.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Batch operations" class="tool-thumb" />
+<figcaption>Batch</figcaption>
+</figure>
+</div>
+
+<h3>Repair PDF</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Attempt structure repair when a PDF fails to open cleanly or tools choke on a damaged file — using local engines.</p>
+<ol>
+<li>Open or select the problematic PDF.</li>
+<li>Run <strong>Repair</strong> from tools / optimize (where available).</li>
+<li>Save the repaired copy under a new name.</li>
+<li>Re-open and retry the tool that previously failed.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Repair cannot recover every corrupted byte stream. Keep backups of critical originals.</p>
+</div>
+<figure class="tool-guide-shot placeholder">
+<figcaption>Repair · local structure fix</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Protect &amp; security</h2>
+<h3>Encrypt</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Password-protect a PDF and optionally restrict printing, copying, modifying, or annotating — for contracts and private docs.</p>
+<ol>
+<li>Open <strong>Encrypt</strong>.</li>
+<li>Set a password to open; optionally set an owner password.</li>
+<li>Toggle permissions: Allow printing / copying / modifying / annotating.</li>
+<li><strong>Encrypt</strong> → <strong>Save</strong>.</li>
+<li>Store the password somewhere safe — Document Studio <strong>cannot recover</strong> it.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Test-open the encrypted file once before deleting the unprotected original.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/encrypt.png" alt="Encrypt PDF" class="tool-thumb" />
+<figcaption>Encrypt</figcaption>
+</figure>
+</div>
+
+<h3>Decrypt</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Remove a password you already know so the file can be edited, merged, or shared unlocked.</p>
+<ol>
+<li>Open <strong>Decrypt</strong> / Unlock.</li>
+<li>Enter the correct password.</li>
+<li>Export an unprotected copy if prompted.</li>
+<li>Save the unlocked PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> No password → no unlock. The app will not crack encryption.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/encrypt.png" alt="Decrypt PDF" class="tool-thumb" />
+<figcaption>Decrypt / unlock</figcaption>
+</figure>
+</div>
+
+<h3>Header &amp; footer</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Add consistent titles, dates, or Bates-style labels without manually typing on every page.</p>
+<ol>
+<li>Open <strong>Header and footer</strong>.</li>
+<li>Pick a template (Minimal page number, Page X of Y, Corporate, Legal Bates, …).</li>
+<li>Click a position on the 2×3 grid.</li>
+<li>Edit text; insert variables: Page, Date, File, Title, Bates.</li>
+<li>Set font / bold / size → <strong>Apply</strong> (or Save as template).</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For numbers only, <strong>Page numbers</strong> is a faster focused tool.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/header-footer.png" alt="Header and footer" class="tool-thumb" />
+<figcaption>Header &amp; footer</figcaption>
+</figure>
+</div>
+
+<h3>Page numbers</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Number pages for print packets, theses, and filings with style / prefix / start controls.</p>
+<ol>
+<li>Open <strong>Page numbers</strong>.</li>
+<li>Choose All pages or a From–to range.</li>
+<li>Set style (Arabic / Roman where offered), prefix, start number, section options.</li>
+<li><strong>Apply</strong> → spot-check first/last pages → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Restart numbering per section when combining front-matter + body.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/page-numbers.png" alt="Page numbers" class="tool-thumb" />
+<figcaption>Page numbers</figcaption>
+</figure>
+</div>
+
+<h3>Redact</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Permanently remove sensitive content (IDs, account numbers) — not a black rectangle that still hides selectable text underneath.</p>
+<ol>
+<li>Open <strong>Redact</strong>.</li>
+<li>Mark regions or text to remove.</li>
+<li>Review every mark carefully.</li>
+<li>Apply redaction and <strong>Save as</strong> a new file.</li>
+<li>Re-open and search for the secret string to confirm it is gone.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Always keep an unredacted master offline. Fake “draw black box” markup is not redaction.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-pages.png" alt="Redact" class="tool-thumb" />
+<figcaption>Redact</figcaption>
+</figure>
+</div>
+
+<h3>Accessibility</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Set language, MarkInfo, and reading-order related options so assistive tech and validators have better document structure.</p>
+<ol>
+<li>Tools → <strong>Accessibility</strong>.</li>
+<li>Set document language and MarkInfo options offered in the dialog.</li>
+<li>Adjust reading-order related controls where available.</li>
+<li>Apply → <strong>Save</strong> → re-check with your usual accessibility checker if required.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Accessibility tagging depth varies by PDF; complex remediations may still need a specialist workflow.</p>
+</div>
+<figure class="tool-guide-shot placeholder">
+<figcaption>Accessibility · language &amp; MarkInfo</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Sign &amp; forms</h2>
+<h3>Visual Sign (signatures &amp; initials)</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Place a drawn or typed signature / initials on the page for everyday approvals — local only, no e-sign cloud.</p>
+<ol>
+<li>Open <strong>Sign PDF</strong> → <strong>Sign</strong> tab.</li>
+<li>Click <strong>+ New</strong> to create a signature or initials (draw or type).</li>
+<li>Select a card, then drag a box on the page (or long-press and drag on touch).</li>
+<li>Move / resize / rotate the appearance → Apply.</li>
+<li><strong>Save</strong> the signed PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Visual signatures are appearance marks. For cryptographic proof, use <strong>Certificate signature</strong>.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/sign-visual.png" alt="Visual signatures" class="tool-thumb" />
+<figcaption>Visual Sign</figcaption>
+</figure>
+</div>
+
+<h3>Stamps</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Drop Approved / date / custom stamps for review workflows without redesigning the page.</p>
+<ol>
+<li>Open Sign PDF → <strong>Stamps</strong> tab.</li>
+<li>Pick a built-in stamp or add a custom one.</li>
+<li>Place it on the page; resize as needed.</li>
+<li>Apply → <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Combine stamps with Watermark when you need both a status mark and a full-page draft banner.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/sign-visual.png" alt="Stamps" class="tool-thumb" />
+<figcaption>Stamps</figcaption>
+</figure>
+</div>
+
+<h3>Certificate / digital signature</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Cryptographically sign a PDF with a Digital ID so recipients can validate authenticity and integrity.</p>
+<ol>
+<li>Open <strong>Sign PDF</strong> → <strong>Digital</strong> tab.</li>
+<li>Review validation status of any existing signatures.</li>
+<li><strong>Draw new signature field</strong> if the form does not already have one.</li>
+<li>Pick a Digital ID from USB token / smart card / browser &amp; system (NSS) stores — or <strong>Import .p12</strong> / <strong>Create self-signed</strong>.</li>
+<li>Complete the sign flow and <strong>Save</strong>.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> After signing, avoid “flattening” edits that would invalidate the signature unless you intend to re-sign.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/sign-digital.png" alt="Digital certificate signature" class="tool-thumb" />
+<figcaption>Certificate signature</figcaption>
+</figure>
+</div>
+
+<h3>Fill form</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Fill AcroForm fields (applications, HR forms, government PDFs) and save values in the file.</p>
+<ol>
+<li>Open the form PDF → <strong>Fill form</strong> / Fill PDF form.</li>
+<li>Click each field and type (or choose options in dropdowns/checkboxes).</li>
+<li>Tab through fields to move quickly.</li>
+<li><strong>Save</strong> so filled values persist when you reopen.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Flat/scanned “forms” with no fields need Edit text / Add text instead of Fill form.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/sign-digital.png" alt="Fill form" class="tool-thumb" />
+<figcaption>Fill form</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Edit &amp; markup</h2>
+<h3>Edit text</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Fix typos or update short runs of existing text without rebuilding the whole PDF in another app.</p>
+<ol>
+<li>Open the PDF → click <strong>Edit</strong> on the ribbon (or Edit text).</li>
+<li>Click a text run to select it.</li>
+<li>Replace text; adjust font, size, bold/italic, alignment, line spacing as offered.</li>
+<li>Confirm the “Saved in the PDF” status → <strong>Save</strong> the file.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Scanned pages are images — run <strong>Searchable PDF (OCR)</strong> first, or use Add text as an overlay.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Edit text and markup" class="tool-thumb" />
+<figcaption>Edit text</figcaption>
+</figure>
+</div>
+
+<h3>Add text</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Place a new text box on the page for captions, corrections, or fill-ins on non-form PDFs.</p>
+<ol>
+<li>Edit / Comment tools → <strong>Add text</strong>.</li>
+<li>Click on the page to place a text box.</li>
+<li>Type content; style font/size as needed.</li>
+<li>Drag to position → save.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Use smart guides (when shown) to align text boxes cleanly with other elements.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Add text" class="tool-thumb" />
+<figcaption>Add text</figcaption>
+</figure>
+</div>
+
+<h3>Highlight / Underline / Strikethrough / Squiggly</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Mark up reviews like a paper highlighter — feedback stays in the PDF for collaborators.</p>
+<ol>
+<li>Open Edit / Comment tools.</li>
+<li>Choose Highlight, Underline, Strikethrough, or Squiggly.</li>
+<li>Select the text span to mark.</li>
+<li>Change color if the palette offers it → save.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Markup is not redaction. Secrets still exist in the file until you Redact.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Text markup tools" class="tool-thumb" />
+<figcaption>Text markup</figcaption>
+</figure>
+</div>
+
+<h3>Draw / freehand &amp; eraser</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Sketch, circle issues, or initial by hand on a tablet/trackpad.</p>
+<ol>
+<li>Choose <strong>Draw</strong> / pen from Comment tools.</li>
+<li>Stroke on the page; adjust thickness/color if available.</li>
+<li>Use the eraser tool to remove strokes.</li>
+<li>Save the PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For neat diagrams, prefer Shapes over freehand.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Draw tool" class="tool-thumb" />
+<figcaption>Draw</figcaption>
+</figure>
+</div>
+
+<h3>Shapes</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Add rectangles, circles, lines, arrows, polygons, clouds, and other shapes for structured markup.</p>
+<ol>
+<li>Open shapes from the Edit / Insert markup set.</li>
+<li>Pick a shape → drag on the page.</li>
+<li>Resize with handles; use smart guides to align.</li>
+<li>Save.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Arrows + sticky notes are a clear review combo for design PDFs.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Shapes" class="tool-thumb" />
+<figcaption>Shapes</figcaption>
+</figure>
+</div>
+
+<h3>Sticky note / callout</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Leave comments anchored to a spot on the page without covering the content permanently.</p>
+<ol>
+<li>Choose <strong>Sticky note</strong> or <strong>Callout</strong>.</li>
+<li>Click the page location.</li>
+<li>Type the comment text.</li>
+<li>Save so notes persist for the next reader.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Callouts are better when the note must visually point at a region.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Sticky notes and callouts" class="tool-thumb" />
+<figcaption>Comments</figcaption>
+</figure>
+</div>
+
+<h3>Add image / Place image</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Stamp a logo, photo, or diagram onto a page of an existing PDF.</p>
+<ol>
+<li>Tools → <strong>Add image</strong> / Place image.</li>
+<li>Choose an image file from disk.</li>
+<li>Position and resize on the page.</li>
+<li>Save the PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> For many photos → one PDF, use <strong>Images to PDF</strong> instead.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Add image" class="tool-thumb" />
+<figcaption>Add image</figcaption>
+</figure>
+</div>
+
+<h3>Link</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Make clickable URI links or internal page jumps for navigation inside long PDFs.</p>
+<ol>
+<li>Edit tools → <strong>Link</strong>.</li>
+<li>Draw the link rectangle on the page.</li>
+<li>Choose URI or internal page target.</li>
+<li>Save and test the link in the viewer.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Internal page links beat “see page 47” footnotes in handbooks.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/edit-markup.png" alt="Link tool" class="tool-thumb" />
+<figcaption>Link</figcaption>
+</figure>
+</div>
+
+<h3>Compare PDFs</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Diff two versions of a document — text, images, and pages — before approving a revision.</p>
+<ol>
+<li>Open <strong>Compare PDFs</strong>.</li>
+<li>Choose document A (old) and document B (new).</li>
+<li>Run compare and review the change list / overlays.</li>
+<li>Export a comparison report if offered → archive with the decision.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Compare works best when both files share similar layout; total redesigns produce noisy diffs.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-pages.png" alt="Compare PDFs" class="tool-thumb" />
+<figcaption>Compare PDFs</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Capture &amp; OCR</h2>
+<h3>Insert scan</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Append camera captures or chosen images as new pages in the current PDF (receipts, whiteboard, ID pages).</p>
+<ol>
+<li>Open the PDF → <strong>Insert scan</strong>.</li>
+<li>Choose <strong>Open camera</strong> (platform permitting) or <strong>Choose images…</strong>.</li>
+<li>Place the new page(s) after the chosen location.</li>
+<li>Save the updated PDF.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> After inserting a photo of text, run <strong>Searchable PDF</strong> so Find works.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/insert-scan.png" alt="Insert scan" class="tool-thumb" />
+<figcaption>Insert scan</figcaption>
+</figure>
+</div>
+
+<h3>Searchable PDF (OCR)</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Add a local text layer to scanned PDFs with Tesseract so you can search, select, and copy text — no cloud OCR.</p>
+<ol>
+<li>Open a scanned PDF → <strong>Searchable PDF</strong>.</li>
+<li>Pick OCR language(s) if prompted.</li>
+<li>Run OCR (CPU-heavy on long books — let it finish).</li>
+<li>Export / save, then try Find (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>F</kbd>).</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Full walkthrough: <a href="../ocr/">OCR guide</a>. Needs Tesseract from the desktop bundle.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/insert-scan.png" alt="Searchable PDF OCR" class="tool-thumb" />
+<figcaption>Searchable PDF</figcaption>
+</figure>
+</div>
+
+<h3>Image OCR</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Extract text from a standalone image (screenshot, photo) via local Tesseract without creating a PDF first.</p>
+<ol>
+<li>Home / tools → <strong>Image OCR</strong> (or open Image tools).</li>
+<li>Choose the image file.</li>
+<li>Pick language if asked → run OCR.</li>
+<li>Copy the recognized text or save the result the dialog offers.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> If Image OCR is blocked, reinstall the full desktop build so Tesseract is present.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Image OCR" class="tool-thumb" />
+<figcaption>Image OCR</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>Export &amp; batch</h2>
+<h3>PDF to images / Export to PNG or JPG</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Turn pages into PNG (lossless) or JPEG for slides, web, or image editors — still offline.</p>
+<ol>
+<li>Open the PDF → <strong>PDF to images</strong> / Export to PNG or Export to JPG.</li>
+<li>Choose format and DPI / quality if offered.</li>
+<li>Pick page range (all or subset).</li>
+<li>Export to a folder and open a sample image to verify sharpness.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> PNG for diagrams/text; JPEG for photo-heavy pages when size matters.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-home.png" alt="PDF to images" class="tool-thumb" />
+<figcaption>PDF → images</figcaption>
+</figure>
+</div>
+
+<h3>Convert to Office</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> When you need an editable Word/Excel/PowerPoint starting point from a PDF (desktop conversion path).</p>
+<ol>
+<li>Open the PDF → <strong>Convert to Office</strong> (where listed under Convert).</li>
+<li>Choose the target Office type offered by the dialog.</li>
+<li>Run the local conversion and wait for output.</li>
+<li>Open the Office file and fix layout — PDF→Office is rarely pixel-perfect.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Round-trip fidelity varies. For publishing the other direction, prefer <strong>From Office</strong> → PDF.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-catalog.png" alt="Convert to Office" class="tool-thumb" />
+<figcaption>Convert to Office</figcaption>
+</figure>
+</div>
+
+<h3>Image viewer &amp; image tools</h3>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Inspect or lightly process images alongside your PDF workflow (preview, basic image jobs) without leaving Document Studio.</p>
+<ol>
+<li>From Home open <strong>Image viewer</strong> or <strong>Image tools</strong>.</li>
+<li>Open an image from disk.</li>
+<li>Use the available viewer / tool actions (preview, export helpers).</li>
+<li>Send results into <strong>Images to PDF</strong> when you need a document.</li>
+</ol>
+<p class="tool-tips"><strong>Tip:</strong> Heavy photo editing still belongs in a dedicated image editor; Document Studio focuses on document pipelines.</p>
+</div>
+<figure class="tool-guide-shot">
+<img src="../images/tools-home.png" alt="Image tools" class="tool-thumb" />
+<figcaption>Image tools</figcaption>
+</figure>
+</div>
+
+<hr />
+<h2>From the command line</h2>
+<div class="tool-guide">
+<div class="tool-guide-body">
+<p class="tool-why"><strong>Why:</strong> Script opens, tools, and updates from a terminal — useful for power users and campus labs.</p>
+<ol>
+<li>Install so <code>document_studio</code> / <code>document-studio</code> is on your <code>PATH</code>.</li>
+<li>Open a file or invoke a tool flag.</li>
+<li>Use update flags to check for newer builds.</li>
+</ol>
+</div>
+<figure class="tool-guide-shot placeholder">
+<figcaption>CLI · document_studio</figcaption>
+</figure>
+</div>
+
+<pre><code class="language-bash">document_studio ~/file.pdf
+document_studio --tool compress ~/file.pdf
+document_studio --tool merge a.pdf b.pdf
+document_studio --update
+</code></pre>
+<p>More: <a href="../cli/">CLI &amp; Windows shell</a>.</p>
+<hr />
+<h2>If something fails</h2>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Try</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tool missing from hub</td>
+<td>Reinstall full release (not a slim skip-engines build)</td>
+</tr>
+<tr>
+<td>Office convert missing</td>
+<td>Desktop only · confirm LibreOffice bundled</td>
+</tr>
+<tr>
+<td>OCR blocked / slow</td>
+<td>Install full build · large scans are CPU-heavy — normal</td>
+</tr>
+<tr>
+<td>App not in Start / Spotlight</td>
+<td>Reinstall Setup / DMG / <code>.deb</code> — <a href="../faq/">FAQ</a></td>
+</tr>
+<tr>
+<td>Password errors</td>
+<td>Caps Lock · correct password · Decrypt will not guess</td>
+</tr>
+<tr>
+<td>Merge refuses a file</td>
+<td>Unlock encrypted sources first</td>
+</tr>
+<tr>
+<td>Redact still searchable</td>
+<td>Confirm you applied real redaction and saved a new file</td>
+</tr>
+</tbody>
+</table>
+<p>Still stuck? <a href="https://github.com/tejashvi-kumawat/DocumentStudio/issues">Open an issue</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand"><strong>Document Studio</strong><span>Offline PDF workspace · local engines · no account</span></div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../">Home</a>
+        <a href="../install/">Install</a>
+        <a href="../privacy/">Privacy</a>
+        <a href="https://github.com/tejashvi-kumawat/DocumentStudio/releases" target="_blank" rel="noopener">Releases</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

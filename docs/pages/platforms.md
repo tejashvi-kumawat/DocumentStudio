@@ -4,9 +4,9 @@
 
 | OS | Installer | Appears as |
 | --- | --- | --- |
-| Windows 10/11 | [Setup.exe](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-Setup.exe) | Start Menu app + optional context menus |
-| macOS 12+ | [DMG](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-macos.dmg) / Homebrew cask | Applications + Spotlight |
-| Linux amd64 | [.deb](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/document-studio_1.1.0_amd64.deb) / Homebrew formula | App menu via `.desktop` |
+| Windows 10/11 | [Setup.exe](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.2.0/DocumentStudio-1.2.0-Setup.exe) | Start Menu app + optional context menus |
+| macOS 12+ | [DMG](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.2.0/DocumentStudio-1.2.0-macos.dmg) / Homebrew cask | Applications + Spotlight |
+| Linux amd64 | [.deb](https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.2.0/document-studio_1.2.0_amd64.deb) / Homebrew formula | App menu via `.desktop` |
 
 Desktop releases **bundle engines** so you are not asked to install qpdf/LibreOffice yourself.
 
