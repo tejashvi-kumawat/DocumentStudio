@@ -88,13 +88,14 @@ List<HomeSuggestedToolTile> buildHomeSuggestedTools(
       description: ocr?.subtitle ?? 'Recognize text offline',
       icon: ocr?.icon ?? Icons.document_scanner_outlined,
       enabled: ocr?.availability == HomeToolAvailability.available,
-      onTap: ocr?.onTap ??
+      onTap:
+          ocr?.onTap ??
           () => pushHomeToolRoute(
-                context,
-                ref,
-                imageOcrRoutePath,
-                documentEntry: HomeToolDocumentEntry.pickFile,
-              ),
+            context,
+            ref,
+            imageOcrRoutePath,
+            documentEntry: HomeToolDocumentEntry.pickFile,
+          ),
     ),
   ].map((tile) {
     if (tile.label == 'Edit pages') {
@@ -111,16 +112,14 @@ List<HomeSuggestedToolTile> buildHomeSuggestedTools(
 
 /// Equal-height tool cards for Home suggested tools.
 class HomeSuggestedToolsRow extends StatelessWidget {
-  const HomeSuggestedToolsRow({
-    super.key,
-    required this.tiles,
-  });
+  const HomeSuggestedToolsRow({super.key, required this.tiles});
 
   final List<HomeSuggestedToolTile> tiles;
 
   static const _minTileWidth = 148.0;
   static const _maxColumns = 6;
   static const _cardMinHeight = 112.0;
+
   /// Compact cell: 8+8 padding leaves [mainAxisExtent]-16 for the tile Column.
   /// Was 72 → Column h=56 (overflow). 56px-safe content + this taller cell.
   static const _cardMinHeightCompact = 64.0;
@@ -163,10 +162,7 @@ class HomeSuggestedToolsRow extends StatelessWidget {
 }
 
 class _SuggestedTile extends StatelessWidget {
-  const _SuggestedTile({
-    required this.tile,
-    this.compact = false,
-  });
+  const _SuggestedTile({required this.tile, this.compact = false});
 
   final HomeSuggestedToolTile tile;
   final bool compact;

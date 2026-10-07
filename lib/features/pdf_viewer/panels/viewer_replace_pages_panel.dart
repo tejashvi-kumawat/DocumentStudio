@@ -41,15 +41,12 @@ class _ViewerReplacePagesPanelState
   String? _error;
 
   Future<void> _pick() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFile(
-          allowedExtensions: const ['pdf'],
-        );
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(allowedExtensions: const ['pdf']);
     if (picked == null || !mounted) return;
-    final openPath = ref
-            .read(documentTabsControllerProvider)
-            .activeSession
-            ?.file
-            .path ??
+    final openPath =
+        ref.read(documentTabsControllerProvider).activeSession?.file.path ??
         widget.handoff.file.path;
     if (picked.path == openPath) {
       setState(() => _error = 'Choose a different PDF.');
@@ -71,10 +68,9 @@ class _ViewerReplacePagesPanelState
 
   Future<void> _loadSource(LocalFileRef picked) async {
     try {
-      final info = await ref.read(pdfRenderPortProvider).loadInfo(
-            picked,
-            password: _sourcePassword,
-          );
+      final info = await ref
+          .read(pdfRenderPortProvider)
+          .loadInfo(picked, password: _sourcePassword);
       if (!mounted) return;
       setState(() => _sourcePages = info.pageCount);
     } on DocumentStudioError catch (e) {
@@ -112,10 +108,9 @@ class _ViewerReplacePagesPanelState
   }
 
   List<int> _slots(int total, int sourceCount) {
-    final selected = widget.selectedPages1Based
-        .where((n) => n >= 1 && n <= total)
-        .toList()
-      ..sort();
+    final selected =
+        widget.selectedPages1Based.where((n) => n >= 1 && n <= total).toList()
+          ..sort();
     if (selected.isNotEmpty) return selected;
     final start = widget.handoff.currentPage1.clamp(1, total);
     final end = start + sourceCount - 1;
@@ -183,8 +178,8 @@ class _ViewerReplacePagesPanelState
     final sourceLabel = source == null
         ? 'No PDF chosen'
         : _sourcePages == null
-            ? source.displayName
-            : '${source.displayName} · $_sourcePages pages';
+        ? source.displayName
+        : '${source.displayName} · $_sourcePages pages';
     final selected = widget.selectedPages1Based.isNotEmpty;
     return ViewerToolFormScaffold(
       primaryKey: const Key('viewer_replace_pages_apply'),
@@ -206,11 +201,11 @@ class _ViewerReplacePagesPanelState
         Text(
           selected
               ? 'Replaces the selected pages, in order, with pages from another PDF. '
-                  'Extra source pages are added after the last replaced page. '
-                  'The open copy updates. Save writes the original file.'
+                    'Extra source pages are added after the last replaced page. '
+                    'The open copy updates. Save writes the original file.'
               : 'Replaces pages starting at the current page with pages from another PDF. '
-                  'Extra source pages are added after those. '
-                  'The open copy updates. Save writes the original file.',
+                    'Extra source pages are added after those. '
+                    'The open copy updates. Save writes the original file.',
           style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
         ),
         const SizedBox(height: 8),

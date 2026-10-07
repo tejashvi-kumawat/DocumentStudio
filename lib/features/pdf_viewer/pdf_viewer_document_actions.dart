@@ -57,34 +57,22 @@ class PdfViewerDocumentActions {
     openViewerToolPanelOr(
       context,
       ViewerToolId.compress,
-      () => pushCompressForPdf(
-        context,
-        file: doc.file,
-        password: doc.password,
-      ),
+      () => pushCompressForPdf(context, file: doc.file, password: doc.password),
     );
   }
 
   static void protect(BuildContext context, PdfViewerDocumentHandoff doc) {
-    openViewerToolPanelOr(
-      context,
-      ViewerToolId.protect,
-      () {
-        rememberViewerToolReturnFromContext(context, doc.documentArgs);
-        context.push(protectRoutePath, extra: doc.documentArgs);
-      },
-    );
+    openViewerToolPanelOr(context, ViewerToolId.protect, () {
+      rememberViewerToolReturnFromContext(context, doc.documentArgs);
+      context.push(protectRoutePath, extra: doc.documentArgs);
+    });
   }
 
   static void unlock(BuildContext context, PdfViewerDocumentHandoff doc) {
-    openViewerToolPanelOr(
-      context,
-      ViewerToolId.unlock,
-      () {
-        rememberViewerToolReturnFromContext(context, doc.documentArgs);
-        context.push(unlockRoutePath, extra: doc.documentArgs);
-      },
-    );
+    openViewerToolPanelOr(context, ViewerToolId.unlock, () {
+      rememberViewerToolReturnFromContext(context, doc.documentArgs);
+      context.push(unlockRoutePath, extra: doc.documentArgs);
+    });
   }
 
   static void editMetadata(BuildContext context, PdfViewerDocumentHandoff doc) {
@@ -92,28 +80,20 @@ class PdfViewerDocumentActions {
       file: doc.file,
       password: doc.password,
     );
-    openViewerToolPanelOr(
-      context,
-      ViewerToolId.metadata,
-      () {
-        rememberViewerToolReturnFromContext(context, args);
-        context.push(metadataRoutePath, extra: args);
-      },
-    );
+    openViewerToolPanelOr(context, ViewerToolId.metadata, () {
+      rememberViewerToolReturnFromContext(context, args);
+      context.push(metadataRoutePath, extra: args);
+    });
   }
 
   static void removeMetadata(
     BuildContext context,
     PdfViewerDocumentHandoff doc,
   ) {
-    openViewerToolPanelOr(
-      context,
-      ViewerToolId.removeMetadata,
-      () {
-        rememberViewerToolReturnFromContext(context, doc.documentArgs);
-        context.push(removeMetadataRoutePath, extra: doc.documentArgs);
-      },
-    );
+    openViewerToolPanelOr(context, ViewerToolId.removeMetadata, () {
+      rememberViewerToolReturnFromContext(context, doc.documentArgs);
+      context.push(removeMetadataRoutePath, extra: doc.documentArgs);
+    });
   }
 
   static void exportToImages(
@@ -229,7 +209,10 @@ class PdfViewerDocumentActions {
     );
   }
 
-  static void headersFooters(BuildContext context, PdfViewerDocumentHandoff doc) {
+  static void headersFooters(
+    BuildContext context,
+    PdfViewerDocumentHandoff doc,
+  ) {
     openViewerToolPanelOr(
       context,
       ViewerToolId.headersFooters,
@@ -338,12 +321,14 @@ class PdfViewerFileMenuButton extends StatelessWidget {
         _ViewerMenuItem(
           label: 'Watermark…',
           icon: Icons.branding_watermark_outlined,
-          onSelected: () => PdfViewerDocumentActions.watermark(context, handoff),
+          onSelected: () =>
+              PdfViewerDocumentActions.watermark(context, handoff),
         ),
         _ViewerMenuItem(
           label: 'Page numbers…',
           icon: Icons.format_list_numbered,
-          onSelected: () => PdfViewerDocumentActions.pageNumbers(context, handoff),
+          onSelected: () =>
+              PdfViewerDocumentActions.pageNumbers(context, handoff),
         ),
         const PopupMenuDivider(),
         _ViewerMenuItem(
@@ -444,9 +429,8 @@ class PdfViewerToolsMenuButton extends StatelessWidget {
               ? () {
                   final reason = ocrBlockedReason;
                   if (reason == null) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(reason)),
-                  );
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(reason)));
                 }
               : () => PdfViewerDocumentActions.openImageOcr(context, handoff),
         ),
@@ -490,10 +474,7 @@ class PdfViewerToolsMenuButton extends StatelessWidget {
                   ),
                 );
               } else if (tool.id == 'move_between') {
-                context.push(
-                  '/organize/move-between',
-                  extra: [handoff.file],
-                );
+                context.push('/organize/move-between', extra: [handoff.file]);
               } else {
                 PdfViewerDocumentActions.organizeTool(
                   context,

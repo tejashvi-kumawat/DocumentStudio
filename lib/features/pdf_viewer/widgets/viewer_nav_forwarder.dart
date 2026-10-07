@@ -69,7 +69,11 @@ class _ViewerNavForwarderState extends State<ViewerNavForwarder> {
       final ev = event as PointerScrollEvent;
       if (HardwareKeyboard.instance.isControlPressed ||
           HardwareKeyboard.instance.isMetaPressed) {
-        _zoomAt(vc, ev.position, math.pow(1.2, -ev.scrollDelta.dy / 120).toDouble());
+        _zoomAt(
+          vc,
+          ev.position,
+          math.pow(1.2, -ev.scrollDelta.dy / 120).toDouble(),
+        );
         return;
       }
       var d = -ev.scrollDelta * 0.6;

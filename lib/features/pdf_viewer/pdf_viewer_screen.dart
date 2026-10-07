@@ -1,3 +1,4 @@
+import 'package:document_studio/features/pdf_viewer/panels/pdf_layers_panel.dart';
 import 'package:document_studio/features/pdf_viewer/live_page_text_loader.dart';
 import 'package:document_studio/core/pdf/large_doc_policy.dart';
 import 'package:document_studio/features/pdf_viewer/ds_text_searcher.dart';
@@ -151,7 +152,9 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
 
   /// Read mode: hide tools rail + thumbnails; page fills canvas.
   bool _readMode = false;
-  late PdfViewerScrollLayoutMode _scrollLayoutMode = switch (ref.read(viewerPrefsProvider).display) {
+  late PdfViewerScrollLayoutMode _scrollLayoutMode = switch (ref
+      .read(viewerPrefsProvider)
+      .display) {
     'singlePage' => PdfViewerScrollLayoutMode.singlePage,
     'twoPage' => PdfViewerScrollLayoutMode.twoPage,
     _ => PdfViewerScrollLayoutMode.continuous,
@@ -277,12 +280,25 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
 
   /// Edit PDF (Acrobat "Edit a PDF"): click any text or image on the page to
   /// change it. A second click on the button leaves the mode.
+  PdfViewerSidebarContent? _sidebarBeforeEdit;
+
   void _toggleEditMode() {
     if (_activeViewerTool == ViewerToolId.editText) {
       _closeActiveToolPanel();
+      final back = _sidebarBeforeEdit;
+      if (back != null && _sidebarContent == PdfViewerSidebarContent.layers) {
+        setState(() => _sidebarContent = back);
+      }
+      _sidebarBeforeEdit = null;
       return;
     }
     _openViewerTool(ViewerToolId.editText);
+    // Edit shows the page's layers in the left panel, like Canva.
+    setState(() {
+      _sidebarBeforeEdit = _sidebarContent;
+      _sidebarContent = PdfViewerSidebarContent.layers;
+      _sidebarEnabled = true;
+    });
   }
 
   /// Comment bar on / off.
@@ -302,10 +318,14 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   void _armPageMarkup(MarkupTool tool) {
     ref.read(viewerLiveToolSessionProvider).deactivate();
     _markup.setTool(tool);
-    setState(() {
-      _activeViewerTool = null;
-      _readMode = false;
-    });
+    // Rebuilding the whole viewer is only needed when something changed:
+    // arming the next tool is then just the bar repainting.
+    if (_activeViewerTool != null || _readMode) {
+      setState(() {
+        _activeViewerTool = null;
+        _readMode = false;
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _markup.keyboardFocus.requestFocus();
     });
@@ -880,7 +900,11 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       _controller = controller;
       ref.read(viewerLiveToolSessionProvider).pageJumpHandler = (page) {
         if (controller.isReady) {
-          unawaited(controller.goToPage(pageNumber: page.clamp(1, controller.pageCount)));
+          unawaited(
+            controller.goToPage(
+              pageNumber: page.clamp(1, controller.pageCount),
+            ),
+          );
         }
       };
       // Viewer holds its own cache lease now; drop the validation pin.
@@ -1075,7 +1099,11 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   }
 
   /// Play badges for video / audio annotations (read mode only).
-  List<Widget> _mediaOverlays(PdfViewerTab active, Rect pageRect, PdfPage page) {
+  List<Widget> _mediaOverlays(
+    PdfViewerTab active,
+    Rect pageRect,
+    PdfPage page,
+  ) {
     unawaited(_media.sync(active.session));
     if (_activeViewerTool != null || _isMarkupTool(_activeViewerTool)) {
       return const [];
@@ -1086,7 +1114,8 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
       onPlay: (a) async {
         final err = await _media.play(a);
         if (err != null && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(err)));
         }
       },
     );
@@ -1128,7 +1157,8 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
         rotatePage: (deg) => unawaited(_rotateCurrentPage(deg)),
         snack: (m) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(m)));
           }
         },
       ),
@@ -1828,11 +1858,11 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
             if (query.trim().isEmpty) {
               _clearOcrFindHits();
               applyPdfSearchQuery(
-              searcher: searcher,
-              query: query,
-              matchCase: _searchMatchCase,
-              wholeWord: _searchWholeWord,
-            );
+                searcher: searcher,
+                query: query,
+                matchCase: _searchMatchCase,
+                wholeWord: _searchWholeWord,
+              );
               if (mounted) setState(() {});
               return;
             }
@@ -2013,413 +2043,444 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
           onExit: () => unawaited(_exitPresentationMode()),
           onExitReadMode: _exitReadMode,
           child: PdfViewerAcrobatKeys(
-           handlers: _acrobatKeyHandlers(),
-           child: PdfViewerReadShortcuts(
-            findBarVisible: _searchUiVisible,
-            onFitPage: () => _applyFit(PdfViewerFitDisplay.fitPage),
-            onFitWidth: () => _applyFit(PdfViewerFitDisplay.fitWidth),
-            onFitHeight: () => _applyFit(PdfViewerFitDisplay.fitHeight),
-            onFindNext: _goToNextFindMatch,
-            onFindPrevious: _goToPrevFindMatch,
-            child: PdfViewerPageShortcuts(
-              onNavigate: _navigatePage,
-              child: ListenableBuilder(
-                listenable: signPlacement,
-                builder: (context, _) {
-                  final signActive = signPlacement.isPageInteractionActive;
-                  final toolsCover =
-                      _toolsRailEnabled &&
-                      MediaQuery.sizeOf(context).width <
-                          kPdfViewerAcrobatToolsRailBreakpoint &&
-                      _activeViewerTool == null;
-                  final VoidCallback? chromeBack;
-                  if (_activeViewerTool != null) {
-                    chromeBack = _closeActiveToolPanel;
-                  } else if (toolsCover) {
-                    chromeBack = () =>
-                        setState(() => _toolsRailEnabled = false);
-                  } else if (widget.shellEmbedded && !hideDocumentTabs) {
-                    chromeBack = null;
-                  } else {
-                    chromeBack = _leaveViewer;
-                  }
-                  final showMarkup =
-                      !signActive && !_presentationMode && !_readMode;
-                  // On the page itself, so it stays left of the Tools rail
-                  // and under the tool row. Hidden while the tools sheet
-                  // covers the page.
-                  final showMarkupBar = showMarkup && !toolsCover;
-                  return Scaffold(
-                    appBar:
-                        pdfViewerShowsAppBar(
-                          presentationMode: _presentationMode,
-                          readMode: _readMode,
-                        )
-                        ? PdfViewerAcrobatTopChrome(
-                            tabs: tabs,
-                            documentTitle: active.file.displayName,
-                            viewerController: _controller,
-                            // Shell embeds tabs in desktop chrome. Phone and
-                            // Android have no document tab strip.
-                            showDocumentTabs:
-                                !compactWidth &&
-                                !widget.shellEmbedded &&
-                                !hideDocumentTabs,
-                            showFind: !compactWidth,
-                            showTitleRow: compactWidth,
-                            // A tool or the Tools sheet: Back closes it and
-                            // stays on this document. Otherwise phone / Android
-                            // app back returns to Home.
-                            onBack: chromeBack,
-                            backTooltip: _activeViewerTool != null || toolsCover
-                                ? 'Back to document'
-                                : 'Back',
-                            onOpenAnother: _openAnotherPdfInTab,
-                            onGoToPage: () {
-                              final c = _controller;
-                              if (c == null) return;
-                              showPdfGoToPageDialog(
-                                context: context,
-                                controller: c,
-                              );
-                            },
-                            onFind: () => _showSearch(context),
-                            onFitWidth: () =>
-                                _applyFit(PdfViewerFitDisplay.fitWidth),
-                            onFitPage: () =>
-                                _applyFit(PdfViewerFitDisplay.fitPage),
-                            signPlacementActive: signActive,
-                            onSignCancel: _onSignPlacementCancel,
-                            onSignDone: _onSignPlacementDone,
-                            signStatusLabel: signActive
-                                ? _signPlacementStatusLabel(signPlacement)
-                                : null,
-                            toolRow: signActive
-                                ? null
-                                : PdfViewerToolRow(
-                                    enabled: _controller?.isReady ?? false,
-                                    markup: _markup,
-                                    allToolsOpen: _toolsRailEnabled,
-                                    activeTool: _activeViewerTool,
-                                    onArmMarkup: _armPageMarkup,
-                                    onToggleEdit: _toggleEditMode,
-                                    onToggleComment: _toggleCommentMode,
-                                    history: active.session,
-                                    onUndo: () =>
-                                        unawaited(_undoActiveSession()),
-                                    onRedo: () =>
-                                        unawaited(_redoActiveSession()),
-                                    onSave: () =>
-                                        unawaited(_saveActiveSession()),
-                                    onOpenImageConverter: () => GoRouter.of(
-                                      context,
-                                    ).push(imageConverterRoutePath),
-                                    onAllTools: () => setState(
-                                      () => _toolsRailEnabled =
-                                          !_toolsRailEnabled,
-                                    ),
-                                  ),
+            handlers: _acrobatKeyHandlers(),
+            child: PdfViewerReadShortcuts(
+              findBarVisible: _searchUiVisible,
+              onFitPage: () => _applyFit(PdfViewerFitDisplay.fitPage),
+              onFitWidth: () => _applyFit(PdfViewerFitDisplay.fitWidth),
+              onFitHeight: () => _applyFit(PdfViewerFitDisplay.fitHeight),
+              onFindNext: _goToNextFindMatch,
+              onFindPrevious: _goToPrevFindMatch,
+              child: PdfViewerPageShortcuts(
+                onNavigate: _navigatePage,
+                child: ListenableBuilder(
+                  listenable: signPlacement,
+                  builder: (context, _) {
+                    final signActive = signPlacement.isPageInteractionActive;
+                    final toolsCover =
+                        _toolsRailEnabled &&
+                        MediaQuery.sizeOf(context).width <
+                            kPdfViewerAcrobatToolsRailBreakpoint &&
+                        _activeViewerTool == null;
+                    final VoidCallback? chromeBack;
+                    if (_activeViewerTool != null) {
+                      chromeBack = _closeActiveToolPanel;
+                    } else if (toolsCover) {
+                      chromeBack = () =>
+                          setState(() => _toolsRailEnabled = false);
+                    } else if (widget.shellEmbedded && !hideDocumentTabs) {
+                      chromeBack = null;
+                    } else {
+                      chromeBack = _leaveViewer;
+                    }
+                    final showMarkup =
+                        !signActive && !_presentationMode && !_readMode;
+                    // On the page itself, so it stays left of the Tools rail
+                    // and under the tool row. Hidden while the tools sheet
+                    // covers the page.
+                    final showMarkupBar = showMarkup && !toolsCover;
+                    return Scaffold(
+                      appBar:
+                          pdfViewerShowsAppBar(
+                            presentationMode: _presentationMode,
+                            readMode: _readMode,
                           )
-                        : null,
-                    // Wide windows: these controls live in the left rail.
-                    bottomNavigationBar:
-                        !compactWidth &&
-                            !_presentationMode &&
-                            !_readMode &&
-                            MediaQuery.sizeOf(context).width <
-                                kPdfViewerThumbnailSidebarBreakpoint
-                        ? PdfViewerBottomBar(
-                            controller: _controller,
-                            scrollMode: _scrollLayoutMode,
-                            onScrollModeChanged: (m) =>
-                                setState(() => _scrollLayoutMode = m),
-                            onGoToPage: () {
-                              final c = _controller;
-                              if (c == null) return;
-                              showPdfGoToPageDialog(
-                                context: context,
-                                controller: c,
-                              );
-                            },
-                            onFind: () => _showSearch(context),
-                            onFitPage: () =>
-                                _applyFit(PdfViewerFitDisplay.fitPage),
-                            onFitWidth: () =>
-                                _applyFit(PdfViewerFitDisplay.fitWidth),
-                            onReadMode: _toggleReadMode,
-                            onPresentation: () =>
-                                unawaited(_togglePresentationMode()),
-                          )
-                        : null,
-                    body: MarkupKeyboardScope(
-                      controller: _markup,
-                      currentPage: _currentPage1Safe,
-                      onUndo: () => unawaited(_undoActiveSession()),
-                      onRedo: () => unawaited(_redoActiveSession()),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              ?_buildSearchMatchBar(),
-                              Expanded(
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    PdfViewerAcrobatShell(
-                                      key: _acrobatShellKeyFor(active.id),
-                                      documentTabId: active.id,
-                                      file: active.file,
-                                      viewerIdentityPath:
-                                          active.session.sourcePath,
-                                      handoff: PdfViewerDocumentHandoff(
-                                        file: active.file,
-                                        password: activePassword,
-                                        currentPage1: _currentPage1Safe(),
+                          ? PdfViewerAcrobatTopChrome(
+                              tabs: tabs,
+                              documentTitle: active.file.displayName,
+                              viewerController: _controller,
+                              // Shell embeds tabs in desktop chrome. Phone and
+                              // Android have no document tab strip.
+                              showDocumentTabs:
+                                  !compactWidth &&
+                                  !widget.shellEmbedded &&
+                                  !hideDocumentTabs,
+                              showFind: !compactWidth,
+                              showTitleRow: compactWidth,
+                              // A tool or the Tools sheet: Back closes it and
+                              // stays on this document. Otherwise phone / Android
+                              // app back returns to Home.
+                              onBack: chromeBack,
+                              backTooltip:
+                                  _activeViewerTool != null || toolsCover
+                                  ? 'Back to document'
+                                  : 'Back',
+                              onOpenAnother: _openAnotherPdfInTab,
+                              onGoToPage: () {
+                                final c = _controller;
+                                if (c == null) return;
+                                showPdfGoToPageDialog(
+                                  context: context,
+                                  controller: c,
+                                );
+                              },
+                              onFind: () => _showSearch(context),
+                              onFitWidth: () =>
+                                  _applyFit(PdfViewerFitDisplay.fitWidth),
+                              onFitPage: () =>
+                                  _applyFit(PdfViewerFitDisplay.fitPage),
+                              signPlacementActive: signActive,
+                              onSignCancel: _onSignPlacementCancel,
+                              onSignDone: _onSignPlacementDone,
+                              signStatusLabel: signActive
+                                  ? _signPlacementStatusLabel(signPlacement)
+                                  : null,
+                              toolRow: signActive
+                                  ? null
+                                  : PdfViewerToolRow(
+                                      enabled: _controller?.isReady ?? false,
+                                      markup: _markup,
+                                      allToolsOpen: _toolsRailEnabled,
+                                      activeTool: _activeViewerTool,
+                                      onArmMarkup: _armPageMarkup,
+                                      onToggleEdit: _toggleEditMode,
+                                      onToggleComment: _toggleCommentMode,
+                                      history: active.session,
+                                      onUndo: () =>
+                                          unawaited(_undoActiveSession()),
+                                      onRedo: () =>
+                                          unawaited(_redoActiveSession()),
+                                      onSave: () =>
+                                          unawaited(_saveActiveSession()),
+                                      onOpenImageConverter: () =>
+                                          GoRouter.of(context)
+                                              .push(imageConverterRoutePath),
+                                      onAllTools: () => setState(
+                                        () => _toolsRailEnabled =
+                                            !_toolsRailEnabled,
                                       ),
-                                      password: activePassword,
-                                      presentationMode: _presentationMode,
-                                      readMode: _readMode,
-                                      leftRailEnabled: pdfViewerSidebarVisible(
-                                        presentationMode: _presentationMode,
-                                        readMode: _readMode,
-                                        // Keep the rails. Removing the leading
-                                        // row children disposes PdfViewer
-                                        // (page 1 again) and unmounts the sign
-                                        // panel, which used to wipe the stamp.
-                                        userSidebarEnabled: _sidebarEnabled,
-                                      ),
-                                      toolsRailEnabled: pdfViewerShowsToolsRail(
-                                        presentationMode: _presentationMode,
-                                        readMode: _readMode,
-                                        userToolsRailEnabled: _toolsRailEnabled,
-                                      ),
-                                      activeToolPanel: _activeViewerTool,
-                                      railControls: PdfViewerBottomBar(
-                            vertical: true,
-                            controller: _controller,
-                            scrollMode: _scrollLayoutMode,
-                            onScrollModeChanged: (m) =>
-                                setState(() => _scrollLayoutMode = m),
-                            onGoToPage: () {
-                              final c = _controller;
-                              if (c == null) return;
-                              showPdfGoToPageDialog(
-                                context: context,
-                                controller: c,
-                              );
-                            },
-                            onFind: () => _showSearch(context),
-                            onFitPage: () =>
-                                _applyFit(PdfViewerFitDisplay.fitPage),
-                            onFitWidth: () =>
-                                _applyFit(PdfViewerFitDisplay.fitWidth),
-                            onReadMode: _toggleReadMode,
-                            onPresentation: () =>
-                                unawaited(_togglePresentationMode()),
-                          ),
-                                      editContext: ref.read(
-                                        viewerLiveToolSessionProvider,
-                                      ),
-                                      editHasSelection: () {
-                                        final l = ref.read(
-                                          viewerLiveToolSessionProvider,
-                                        );
-                                        // Pictures, shapes and comments use
-                                        // their floating toolbar instead.
-                                        return l.selectedRun != null ||
-                                            l.inlineEditing ||
-                                            l.textEditTarget != null;
-                                      },
-                                      onCloseToolPanel: _closeActiveToolPanel,
-                                      pageCount: () {
-                                        final c = _controller;
-                                        if (c == null) return null;
-                                        final snap =
-                                            PdfViewerControllerNavSnapshot.of(
-                                              c,
-                                            );
-                                        return snap.isReady
-                                            ? snap.pageCount
-                                            : null;
-                                      }(),
-                                      selectedPages1Based: const {},
-                                      sidebarContent: _sidebarContent,
-                                      onSidebarContentChanged:
-                                          _onSidebarContentChanged,
-                                      onLeftRailEnabledChanged: (enabled) =>
-                                          setState(
-                                            () => _sidebarEnabled = enabled,
-                                          ),
-                                      onToolsRailEnabledChanged: (enabled) =>
-                                          setState(
-                                            () => _toolsRailEnabled = enabled,
-                                          ),
-                                      scrollLayoutMode: _scrollLayoutMode,
-                                      viewRotation: _viewRotation,
-                                      pagePaintCallbacks: _pagePaintCallbacks,
-                                      linkHandlerParams:
-                                          viewerToolUsesLivePageOverlay(
-                                                _activeViewerTool,
-                                              ) ||
-                                              _isMarkupTool(_activeViewerTool)
-                                          ? _linkHandlerParamsUnderTools
-                                          : _linkHandlerParams,
-                                      pageOverlaysBuilder:
-                                          (context, pageRect, page) {
-                                            return [
-                                              if (identical(
-                                                _markup.session,
-                                                active.session,
-                                              ))
-                                                buildMarkupPageLayer(
-                                                  controller: _markup,
-                                                  page: page,
-                                                  pageRect: pageRect,
-                                                  actions: _markupActions,
-                                                  viewerController: _controller,
-                                                ),
-                                              ..._mediaOverlays(active, pageRect, page),
-                                              ...buildViewerLivePageOverlays(
-                                                context: context,
-                                                pageRect: pageRect,
-                                                page: page,
-                                                session: ref.read(
-                                                  viewerLiveToolSessionProvider,
-                                                ),
-                                                showRulers: ref.watch(
-                                                  viewerRulersVisibleProvider,
-                                                ),
-                                                controller: _controller,
-                                                signDocumentPath:
-                                                    active.session.sourcePath,
-                                              ),
-                                            ];
-                                          },
-                                      onReorderPages: _reorderViewerPages,
-                                      onPageAction: _onThumbnailPageAction,
-                                      canvasOverlay: showMarkupBar
-                                          ? PdfViewerMarkupPalette(
-                                              enabled:
-                                                  _controller?.isReady ?? false,
-                                              markup: _markup,
-                                              onSelect: _armPageMarkup,
-                                            )
-                                          : null,
-                                      onControllerReady: _onControllerReady,
-                                      contextMenuBuilder: _buildViewerContextMenu,
-                                      bookmarksBuilder: (controller) =>
-                                          PdfBookmarksPanel(
-                                            controller: controller,
-                                            reloadToken:
-                                                '${active.session.sourcePath}:'
-                                                '${active.session.revision}',
-                                            readBytes: () async =>
-                                                await LargeDocPolicy.readBounded(
-                                                  active.session,
-                                                ) ??
-                                                Uint8List(0),
-                                            commit: (bytes) async {
-                                              final tabs = ref.read(
-                                                documentTabsControllerProvider,
-                                              );
-                                              await commitBytesToSession(
-                                                context: context,
-                                                storage: ref.read(
-                                                  fileStorageProvider,
-                                                ),
-                                                tabs: tabs,
-                                                session: active.session,
-                                                bytes: bytes,
-                                                successMessage:
-                                                    'Bookmarks updated.',
-                                                silent: true,
-                                              );
-                                            },
-                                          ),
-                                      searchPanel: PdfSearchResultsPanel(
-                                        searcher: _searcher,
-                                      ),
-                                      annotationsPanel:
-                                          !_presentationMode &&
-                                              !_readMode &&
-                                              wideLayout &&
-                                              _annotationsPanelEnabled &&
-                                              _controller != null
-                                          ? MarkupLayersPanel(
-                                              controller: _markup,
-                                              onReveal: (page, bounds) =>
-                                                  unawaited(
-                                                    _revealMarkup(page, bounds),
-                                                  ),
-                                              onClose: () => setState(
-                                                () => _annotationsPanelEnabled =
-                                                    false,
-                                              ),
-                                            )
-                                          : null,
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (_presentationMode)
-                            SafeArea(
-                              child: Align(
-                                alignment: Alignment.topRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Material(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withValues(alpha: 0.92),
-                                    elevation: 2,
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: IconButton(
-                                      tooltip: 'Exit presentation',
-                                      icon: const Icon(Icons.fullscreen_exit),
-                                      onPressed: () =>
-                                          unawaited(_exitPresentationMode()),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (!wideLayout &&
+                            )
+                          : null,
+                      // Wide windows: these controls live in the left rail.
+                      bottomNavigationBar:
+                          !compactWidth &&
                               !_presentationMode &&
                               !_readMode &&
-                              !signActive)
-                            SafeArea(
-                              child: Align(
-                                alignment: Alignment.bottomLeft,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 8,
-                                    bottom: 8,
+                              MediaQuery.sizeOf(context).width <
+                                  kPdfViewerThumbnailSidebarBreakpoint
+                          ? PdfViewerBottomBar(
+                              controller: _controller,
+                              scrollMode: _scrollLayoutMode,
+                              onScrollModeChanged: (m) =>
+                                  setState(() => _scrollLayoutMode = m),
+                              onGoToPage: () {
+                                final c = _controller;
+                                if (c == null) return;
+                                showPdfGoToPageDialog(
+                                  context: context,
+                                  controller: c,
+                                );
+                              },
+                              onFind: () => _showSearch(context),
+                              onFitPage: () =>
+                                  _applyFit(PdfViewerFitDisplay.fitPage),
+                              onFitWidth: () =>
+                                  _applyFit(PdfViewerFitDisplay.fitWidth),
+                              onReadMode: _toggleReadMode,
+                              onPresentation: () =>
+                                  unawaited(_togglePresentationMode()),
+                            )
+                          : null,
+                      body: MarkupKeyboardScope(
+                        controller: _markup,
+                        currentPage: _currentPage1Safe,
+                        onUndo: () => unawaited(_undoActiveSession()),
+                        onRedo: () => unawaited(_redoActiveSession()),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ?_buildSearchMatchBar(),
+                                Expanded(
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      PdfViewerAcrobatShell(
+                                        key: _acrobatShellKeyFor(active.id),
+                                        documentTabId: active.id,
+                                        file: active.file,
+                                        viewerIdentityPath:
+                                            active.session.sourcePath,
+                                        handoff: PdfViewerDocumentHandoff(
+                                          file: active.file,
+                                          password: activePassword,
+                                          currentPage1: _currentPage1Safe(),
+                                        ),
+                                        password: activePassword,
+                                        presentationMode: _presentationMode,
+                                        readMode: _readMode,
+                                        leftRailEnabled:
+                                            pdfViewerSidebarVisible(
+                                              presentationMode:
+                                                  _presentationMode,
+                                              readMode: _readMode,
+                                              // Keep the rails. Removing the leading
+                                              // row children disposes PdfViewer
+                                              // (page 1 again) and unmounts the sign
+                                              // panel, which used to wipe the stamp.
+                                              userSidebarEnabled:
+                                                  _sidebarEnabled,
+                                            ),
+                                        toolsRailEnabled:
+                                            pdfViewerShowsToolsRail(
+                                              presentationMode:
+                                                  _presentationMode,
+                                              readMode: _readMode,
+                                              userToolsRailEnabled:
+                                                  _toolsRailEnabled,
+                                            ),
+                                        activeToolPanel: _activeViewerTool,
+                                        layersPanel: PdfLayersPanel(
+                                          session: ref.read(
+                                            viewerLiveToolSessionProvider,
+                                          ),
+                                          onEnableEdit: _toggleEditMode,
+                                        ),
+                                        railControls: PdfViewerBottomBar(
+                                          vertical: true,
+                                          controller: _controller,
+                                          scrollMode: _scrollLayoutMode,
+                                          onScrollModeChanged: (m) => setState(
+                                            () => _scrollLayoutMode = m,
+                                          ),
+                                          onGoToPage: () {
+                                            final c = _controller;
+                                            if (c == null) return;
+                                            showPdfGoToPageDialog(
+                                              context: context,
+                                              controller: c,
+                                            );
+                                          },
+                                          onFind: () => _showSearch(context),
+                                          onFitPage: () => _applyFit(
+                                            PdfViewerFitDisplay.fitPage,
+                                          ),
+                                          onFitWidth: () => _applyFit(
+                                            PdfViewerFitDisplay.fitWidth,
+                                          ),
+                                          onReadMode: _toggleReadMode,
+                                          onPresentation: () => unawaited(
+                                            _togglePresentationMode(),
+                                          ),
+                                        ),
+                                        editContext: ref.read(
+                                          viewerLiveToolSessionProvider,
+                                        ),
+                                        editHasSelection: () {
+                                          final l = ref.read(
+                                            viewerLiveToolSessionProvider,
+                                          );
+                                          // Pictures, shapes and comments use
+                                          // their floating toolbar instead.
+                                          return l.selectedRun != null ||
+                                              l.inlineEditing ||
+                                              l.textEditTarget != null;
+                                        },
+                                        onCloseToolPanel: _closeActiveToolPanel,
+                                        pageCount: () {
+                                          final c = _controller;
+                                          if (c == null) return null;
+                                          final snap =
+                                              PdfViewerControllerNavSnapshot.of(
+                                                c,
+                                              );
+                                          return snap.isReady
+                                              ? snap.pageCount
+                                              : null;
+                                        }(),
+                                        selectedPages1Based: const {},
+                                        sidebarContent: _sidebarContent,
+                                        onSidebarContentChanged:
+                                            _onSidebarContentChanged,
+                                        onLeftRailEnabledChanged: (enabled) =>
+                                            setState(
+                                              () => _sidebarEnabled = enabled,
+                                            ),
+                                        onToolsRailEnabledChanged: (enabled) =>
+                                            setState(
+                                              () => _toolsRailEnabled = enabled,
+                                            ),
+                                        scrollLayoutMode: _scrollLayoutMode,
+                                        viewRotation: _viewRotation,
+                                        pagePaintCallbacks: _pagePaintCallbacks,
+                                        linkHandlerParams:
+                                            viewerToolUsesLivePageOverlay(
+                                                  _activeViewerTool,
+                                                ) ||
+                                                _isMarkupTool(_activeViewerTool)
+                                            ? _linkHandlerParamsUnderTools
+                                            : _linkHandlerParams,
+                                        pageOverlaysBuilder:
+                                            (context, pageRect, page) {
+                                              return [
+                                                if (identical(
+                                                  _markup.session,
+                                                  active.session,
+                                                ))
+                                                  buildMarkupPageLayer(
+                                                    controller: _markup,
+                                                    page: page,
+                                                    pageRect: pageRect,
+                                                    actions: _markupActions,
+                                                    viewerController:
+                                                        _controller,
+                                                  ),
+                                                ..._mediaOverlays(
+                                                  active,
+                                                  pageRect,
+                                                  page,
+                                                ),
+                                                ...buildViewerLivePageOverlays(
+                                                  context: context,
+                                                  pageRect: pageRect,
+                                                  page: page,
+                                                  session: ref.read(
+                                                    viewerLiveToolSessionProvider,
+                                                  ),
+                                                  showRulers: ref.watch(
+                                                    viewerRulersVisibleProvider,
+                                                  ),
+                                                  controller: _controller,
+                                                  signDocumentPath:
+                                                      active.session.sourcePath,
+                                                ),
+                                              ];
+                                            },
+                                        onReorderPages: _reorderViewerPages,
+                                        onPageAction: _onThumbnailPageAction,
+                                        canvasOverlay: showMarkupBar
+                                            ? PdfViewerMarkupPalette(
+                                                enabled:
+                                                    _controller?.isReady ??
+                                                    false,
+                                                markup: _markup,
+                                                onSelect: _armPageMarkup,
+                                                onViewerTool: _openViewerTool,
+                                                activeViewerTool:
+                                                    _activeViewerTool,
+                                              )
+                                            : null,
+                                        onControllerReady: _onControllerReady,
+                                        contextMenuBuilder:
+                                            _buildViewerContextMenu,
+                                        bookmarksBuilder: (controller) =>
+                                            PdfBookmarksPanel(
+                                              controller: controller,
+                                              reloadToken:
+                                                  '${active.session.sourcePath}:'
+                                                  '${active.session.revision}',
+                                              readBytes: () async =>
+                                                  await LargeDocPolicy.readBounded(
+                                                    active.session,
+                                                  ) ??
+                                                  Uint8List(0),
+                                              commit: (bytes) async {
+                                                final tabs = ref.read(
+                                                  documentTabsControllerProvider,
+                                                );
+                                                await commitBytesToSession(
+                                                  context: context,
+                                                  storage: ref.read(
+                                                    fileStorageProvider,
+                                                  ),
+                                                  tabs: tabs,
+                                                  session: active.session,
+                                                  bytes: bytes,
+                                                  successMessage:
+                                                      'Bookmarks updated.',
+                                                  silent: true,
+                                                );
+                                              },
+                                            ),
+                                        searchPanel: PdfSearchResultsPanel(
+                                          searcher: _searcher,
+                                        ),
+                                        annotationsPanel:
+                                            !_presentationMode &&
+                                                !_readMode &&
+                                                wideLayout &&
+                                                _annotationsPanelEnabled &&
+                                                _controller != null
+                                            ? MarkupLayersPanel(
+                                                controller: _markup,
+                                                onReveal: (page, bounds) =>
+                                                    unawaited(
+                                                      _revealMarkup(
+                                                        page,
+                                                        bounds,
+                                                      ),
+                                                    ),
+                                                onClose: () => setState(
+                                                  () =>
+                                                      _annotationsPanelEnabled =
+                                                          false,
+                                                ),
+                                              )
+                                            : null,
+                                      ),
+                                    ],
                                   ),
-                                  child: Material(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withValues(alpha: 0.92),
-                                    elevation: 2,
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: _buildThumbnailToggleButton(),
+                                ),
+                              ],
+                            ),
+                            if (_presentationMode)
+                              SafeArea(
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Material(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest
+                                          .withValues(alpha: 0.92),
+                                      elevation: 2,
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: IconButton(
+                                        tooltip: 'Exit presentation',
+                                        icon: const Icon(Icons.fullscreen_exit),
+                                        onPressed: () =>
+                                            unawaited(_exitPresentationMode()),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                            if (!wideLayout &&
+                                !_presentationMode &&
+                                !_readMode &&
+                                !signActive)
+                              SafeArea(
+                                child: Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 8,
+                                      bottom: 8,
+                                    ),
+                                    child: Material(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest
+                                          .withValues(alpha: 0.92),
+                                      elevation: 2,
+                                      borderRadius: BorderRadius.circular(24),
+                                      child: _buildThumbnailToggleButton(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-           ),
           ),
         ),
       ),

@@ -13,7 +13,8 @@ Future<String?> promptPdfPasswordAfterRejection(
     final message = isOrganizeImportPasswordError(rejected)
         ? organizeImportPasswordFailureMessage(rejected)
         : rejected.userFacingMessage;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
   if (!context.mounted) return null;
   return promptPdfPassword(context);

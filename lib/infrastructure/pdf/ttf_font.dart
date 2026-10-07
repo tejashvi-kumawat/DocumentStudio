@@ -18,12 +18,10 @@ class TtfFont {
     required this.italic,
     required this.family,
     required this.postScriptName,
-    required Map<int, int> cmap,
-    required List<int> advances,
-    required int numHMetrics,
-  })  : _cmap = cmap,
-        _advances = advances,
-        _numHMetrics = numHMetrics;
+    required this._cmap,
+    required this._advances,
+    required this._numHMetrics,
+  });
 
   final Uint8List bytes;
   final int unitsPerEm;
@@ -77,8 +75,18 @@ class TtfFont {
   }
 
   static const _keepTables = {
-    'head', 'hhea', 'maxp', 'hmtx', 'loca', 'glyf', 'cmap', 'cvt ', 'fpgm',
-    'prep', 'OS/2', 'gasp',
+    'head',
+    'hhea',
+    'maxp',
+    'hmtx',
+    'loca',
+    'glyf',
+    'cmap',
+    'cvt ',
+    'fpgm',
+    'prep',
+    'OS/2',
+    'gasp',
   };
 
   Uint8List _subset(Iterable<int> codePoints) {
@@ -87,8 +95,10 @@ class TtfFont {
     final tables = <String, (int, int)>{};
     for (var i = 0; i < n; i++) {
       final o = 12 + i * 16;
-      tables[latin1.decode(bytes.sublist(o, o + 4))] =
-          (d.getUint32(o + 8), d.getUint32(o + 12));
+      tables[latin1.decode(bytes.sublist(o, o + 4))] = (
+        d.getUint32(o + 8),
+        d.getUint32(o + 12),
+      );
     }
     final head = tables['head']!;
     final maxp = tables['maxp']!;
@@ -102,10 +112,7 @@ class TtfFont {
 
     // Glyphs to keep, following composite references.
     final keep = <int>{0};
-    final todo = <int>[
-      for (final c in codePoints)
-        if (_cmap[c] case final g?) g,
-    ];
+    final todo = <int>[for (final c in codePoints) ?_cmap[c]];
     while (todo.isNotEmpty) {
       final g = todo.removeLast();
       if (g >= numGlyphs || !keep.add(g) && g != 0) continue;
@@ -219,9 +226,9 @@ class TtfFont {
 
   /// Widths for WinAnsi codes 32..255 (the PDF `/Widths` array).
   List<int> winAnsiWidths() => [
-        for (var code = 32; code <= 255; code++)
-          advance1000(_winAnsiToUnicode(code)).round(),
-      ];
+    for (var code = 32; code <= 255; code++)
+      advance1000(_winAnsiToUnicode(code)).round(),
+  ];
 
   static int _winAnsiToUnicode(int code) {
     if (code >= 128 && code <= 159) {
@@ -231,10 +238,38 @@ class TtfFont {
   }
 
   static const _cp1252 = <int>[
-    0x20AC, 0x0020, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
-    0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x0020, 0x017D, 0x0020,
-    0x0020, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
-    0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x0020, 0x017E, 0x0178,
+    0x20AC,
+    0x0020,
+    0x201A,
+    0x0192,
+    0x201E,
+    0x2026,
+    0x2020,
+    0x2021,
+    0x02C6,
+    0x2030,
+    0x0160,
+    0x2039,
+    0x0152,
+    0x0020,
+    0x017D,
+    0x0020,
+    0x0020,
+    0x2018,
+    0x2019,
+    0x201C,
+    0x201D,
+    0x2022,
+    0x2013,
+    0x2014,
+    0x02DC,
+    0x2122,
+    0x0161,
+    0x203A,
+    0x0153,
+    0x0020,
+    0x017E,
+    0x0178,
   ];
 
   /// Parses [data]; null when it is not a usable TrueType font.
@@ -243,7 +278,7 @@ class TtfFont {
       final d = ByteData.sublistView(data);
       if (data.length < 12) return null;
       final tag = d.getUint32(0);
-      if (tag == 0x4F54544F /* OTTO */ || tag == 0x74746366 /* ttcf */) {
+      if (tag == 0x4F54544F /* OTTO */ || tag == 0x74746366 /* ttcf */ ) {
         return null;
       }
       final n = d.getUint16(4);
@@ -336,12 +371,12 @@ class TtfFont {
       final rank = (platform == 3 && enc == 10)
           ? 4
           : (platform == 0 && enc >= 4)
-              ? 4
-              : (platform == 3 && enc == 1)
-                  ? 3
-                  : (platform == 0)
-                      ? 2
-                      : -1;
+          ? 4
+          : (platform == 3 && enc == 1)
+          ? 3
+          : (platform == 0)
+          ? 2
+          : -1;
       if (rank > bestRank) {
         bestRank = rank;
         best = base + off;
@@ -413,7 +448,8 @@ class TtfFont {
       String s;
       if (platform == 3 || platform == 0) {
         final units = <int>[
-          for (var k = 0; k + 1 < raw.length; k += 2) (raw[k] << 8) | raw[k + 1],
+          for (var k = 0; k + 1 < raw.length; k += 2)
+            (raw[k] << 8) | raw[k + 1],
         ];
         s = String.fromCharCodes(units);
       } else {

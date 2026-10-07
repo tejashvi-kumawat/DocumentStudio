@@ -1,3 +1,6 @@
+import 'package:document_studio/app/providers.dart';
+import 'package:document_studio/features/office/office_route.dart';
+import 'package:go_router/go_router.dart';
 import 'package:document_studio/core/storage/recent_tools_repository.dart';
 import 'package:document_studio/features/batch/batch_route.dart';
 import 'package:document_studio/features/pdf_markup/pdf_markup_route.dart';
@@ -29,9 +32,55 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
 
   final tools = <HomeTool>[
     HomeTool(
+      id: 'word_new',
+      label: 'Word document',
+      subtitle: 'Write and format a .docx',
+      icon: Icons.description_outlined,
+      category: HomeToolCategory.createConvert,
+      availability: HomeToolAvailability.available,
+      documentEntry: HomeToolDocumentEntry.standalone,
+      onTap: () => context.push(officeLocation(kind: 'docx')),
+    ),
+    HomeTool(
+      id: 'pptx_new',
+      label: 'Presentation',
+      subtitle: 'Build slides, present, export PDF',
+      icon: Icons.slideshow_outlined,
+      category: HomeToolCategory.createConvert,
+      availability: HomeToolAvailability.available,
+      documentEntry: HomeToolDocumentEntry.standalone,
+      onTap: () => context.push(officeLocation(kind: 'pptx')),
+    ),
+    HomeTool(
+      id: 'office_open',
+      label: 'Open Word / PowerPoint',
+      subtitle: 'Edit .docx and .pptx files',
+      icon: Icons.file_open_outlined,
+      category: HomeToolCategory.createConvert,
+      availability: HomeToolAvailability.available,
+      documentEntry: HomeToolDocumentEntry.standalone,
+      onTap: () async {
+        final f = await ref
+            .read(fileStorageProvider)
+            .pickOpenFile(allowedExtensions: officeExtensions);
+        if (f != null && context.mounted)
+          context.push(officeLocation(path: f.path));
+      },
+    ),
+    HomeTool(
+      id: 'compose_latex',
+      label: 'LaTeX / Markdown',
+      subtitle: 'Write with live PDF preview',
+      icon: Icons.code_rounded,
+      category: HomeToolCategory.createConvert,
+      availability: HomeToolAvailability.available,
+      documentEntry: HomeToolDocumentEntry.standalone,
+      onTap: () => context.push('/compose?lang=tex'),
+    ),
+    HomeTool(
       id: 'create_pdf',
       label: 'Create PDF',
-      subtitle: 'From plain text',
+      subtitle: 'Text, Markdown, HTML, LaTeX, blank',
       icon: Icons.note_add_outlined,
       category: HomeToolCategory.createConvert,
       availability: HomeToolAvailability.available,
@@ -56,7 +105,8 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       category: HomeToolCategory.createConvert,
       availability: HomeToolAvailability.available,
       documentEntry: HomeToolDocumentEntry.requiresOpenPdf,
-      onTap: () => go(pdfToImagesRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
+      onTap: () =>
+          go(pdfToImagesRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
     ),
     HomeTool(
       id: 'scan',
@@ -106,7 +156,8 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       category: HomeToolCategory.createConvert,
       availability: HomeToolAvailability.available,
       documentEntry: HomeToolDocumentEntry.requiresOpenPdf,
-      onTap: () => go(placeImageRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
+      onTap: () =>
+          go(placeImageRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
     ),
     HomeTool(
       id: 'edit_text',
@@ -176,7 +227,8 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       category: HomeToolCategory.optimizeProtect,
       availability: HomeToolAvailability.available,
       documentEntry: HomeToolDocumentEntry.requiresOpenPdf,
-      onTap: () => go(headersFootersRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
+      onTap: () =>
+          go(headersFootersRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
     ),
     HomeTool(
       id: 'page_numbers',
@@ -186,7 +238,8 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       category: HomeToolCategory.optimizeProtect,
       availability: HomeToolAvailability.available,
       documentEntry: HomeToolDocumentEntry.requiresOpenPdf,
-      onTap: () => go(pageNumbersRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
+      onTap: () =>
+          go(pageNumbersRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
     ),
     HomeTool(
       id: 'watermark',
@@ -236,7 +289,8 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       category: HomeToolCategory.optimizeProtect,
       availability: HomeToolAvailability.available,
       documentEntry: HomeToolDocumentEntry.requiresOpenPdf,
-      onTap: () => go(removeMetadataRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
+      onTap: () =>
+          go(removeMetadataRoutePath, HomeToolDocumentEntry.requiresOpenPdf),
     ),
     HomeTool(
       id: 'image_viewer',
@@ -256,7 +310,8 @@ List<HomeTool> buildHomeToolCatalog(BuildContext context, WidgetRef ref) {
       category: HomeToolCategory.createConvert,
       availability: HomeToolAvailability.available,
       documentEntry: HomeToolDocumentEntry.standalone,
-      onTap: () => go(imageConverterRoutePath, HomeToolDocumentEntry.standalone),
+      onTap: () =>
+          go(imageConverterRoutePath, HomeToolDocumentEntry.standalone),
     ),
     HomeTool(
       id: 'image',

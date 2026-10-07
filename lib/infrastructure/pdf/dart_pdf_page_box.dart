@@ -31,8 +31,7 @@ class PdfVisibleFraction {
   final double right;
   final double bottom;
 
-  bool get isUsable =>
-      right - left > 0.01 && bottom - top > 0.01;
+  bool get isUsable => right - left > 0.01 && bottom - top > 0.01;
 }
 
 /// On-device CropBox / MediaBox edits (Android and desktop without qpdf).
@@ -323,7 +322,10 @@ class DartPdfPageBox {
     page[key] = PdfArray.nums([llx, lly, urx, ury]);
   }
 
-  static Future<PdfEditDocument> _open(Uint8List input, String? password) async {
+  static Future<PdfEditDocument> _open(
+    Uint8List input,
+    String? password,
+  ) async {
     try {
       return PdfEditDocument.open(input);
     } on PdfEditException catch (e) {

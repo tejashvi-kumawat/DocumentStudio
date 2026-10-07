@@ -1,3 +1,5 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -16,7 +18,6 @@ import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
 import 'package:document_studio/features/pdf_viewer/widgets/watermark_preview_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 /// Watermark tool. Inside the viewer it is the options panel with the live
@@ -116,75 +117,75 @@ class _WatermarkScreenState extends ConsumerState<WatermarkScreen> {
 
     final theme = Theme.of(context);
     Widget panel() => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                dsUseCompactToolLayout(context)
-                    ? DsSpacing.pagePaddingCompact
-                    : DsSpacing.xl,
-                DsSpacing.lg,
-                dsUseCompactToolLayout(context)
-                    ? DsSpacing.pagePaddingCompact
-                    : DsSpacing.xl,
-                0,
-              ),
-              child: dsUseCompactToolLayout(context)
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          file?.displayName ?? 'No PDF selected',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: DsSpacing.sm),
-                        SizedBox(
-                          height: DsSpacing.controlHeightComfortable,
-                          child: DsSecondaryButton(
-                            label: file == null ? 'Choose PDF' : 'Change',
-                            icon: Icons.folder_open,
-                            onPressed: _pick,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            file?.displayName ?? 'No PDF selected',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall,
-                          ),
-                        ),
-                        const SizedBox(width: DsSpacing.md),
-                        DsSecondaryButton(
-                          label: file == null ? 'Choose PDF' : 'Change',
-                          icon: Icons.folder_open,
-                          onPressed: _pick,
-                        ),
-                      ],
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            dsUseCompactToolLayout(context)
+                ? DsSpacing.pagePaddingCompact
+                : DsSpacing.xl,
+            DsSpacing.lg,
+            dsUseCompactToolLayout(context)
+                ? DsSpacing.pagePaddingCompact
+                : DsSpacing.xl,
+            0,
+          ),
+          child: dsUseCompactToolLayout(context)
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      file?.displayName ?? 'No PDF selected',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall,
                     ),
-            ),
-            if (file != null)
-              Expanded(
-                child: ViewerWatermarkPanel(
-                  key: ValueKey('${file.path}#$_revision'),
-                  handoff: PdfViewerDocumentHandoff(
-                    file: file,
-                    password: _password,
-                    currentPage1: _page,
-                  ),
-                  livePreview: false,
-                  previewSink: _preview,
-                  onDeliver: _saveAs,
+                    const SizedBox(height: DsSpacing.sm),
+                    SizedBox(
+                      height: DsSpacing.controlHeightComfortable,
+                      child: DsSecondaryButton(
+                        label: file == null ? 'Choose PDF' : 'Change',
+                        icon: Icons.folder_open,
+                        onPressed: _pick,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        file?.displayName ?? 'No PDF selected',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall,
+                      ),
+                    ),
+                    const SizedBox(width: DsSpacing.md),
+                    DsSecondaryButton(
+                      label: file == null ? 'Choose PDF' : 'Change',
+                      icon: Icons.folder_open,
+                      onPressed: _pick,
+                    ),
+                  ],
                 ),
+        ),
+        if (file != null)
+          Expanded(
+            child: ViewerWatermarkPanel(
+              key: ValueKey('${file.path}#$_revision'),
+              handoff: PdfViewerDocumentHandoff(
+                file: file,
+                password: _password,
+                currentPage1: _page,
               ),
-          ],
-        );
+              livePreview: false,
+              previewSink: _preview,
+              onDeliver: _saveAs,
+            ),
+          ),
+      ],
+    );
 
     Widget preview() => file == null
         ? DsEmptyState(
@@ -232,17 +233,12 @@ class _WatermarkScreenState extends ConsumerState<WatermarkScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text('Watermark'),
+      appBar: const DsToolAppBar(
+        title: 'Watermark',
+        subtitle: 'Stamp text or a picture on your pages',
+        icon: Icons.branding_watermark_outlined,
       ),
-      body: SafeArea(
-        top: false,
-        child: DsMotion.fadeRiseIn(child: body),
-      ),
+      body: SafeArea(top: false, child: DsMotion.fadeRiseIn(child: body)),
     );
   }
 }
@@ -270,8 +266,9 @@ class _WatermarkPagePreview extends StatefulWidget {
 class _WatermarkPagePreviewState extends State<_WatermarkPagePreview> {
   late final PdfDocumentRefFile _ref = PdfDocumentRefFile(
     widget.file.path,
-    passwordProvider:
-        widget.password == null ? null : () async => widget.password,
+    passwordProvider: widget.password == null
+        ? null
+        : () async => widget.password,
   );
 
   @override
@@ -333,15 +330,17 @@ class _WatermarkPagePreviewState extends State<_WatermarkPagePreview> {
                   children: [
                     IconButton(
                       tooltip: 'Previous page',
-                      onPressed:
-                          page > 1 ? () => widget.onPage(page - 1) : null,
+                      onPressed: page > 1
+                          ? () => widget.onPage(page - 1)
+                          : null,
                       icon: const Icon(Icons.chevron_left),
                     ),
                     Text('Page $page of $count'),
                     IconButton(
                       tooltip: 'Next page',
-                      onPressed:
-                          page < count ? () => widget.onPage(page + 1) : null,
+                      onPressed: page < count
+                          ? () => widget.onPage(page + 1)
+                          : null,
                       icon: const Icon(Icons.chevron_right),
                     ),
                   ],

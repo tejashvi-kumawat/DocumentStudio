@@ -133,8 +133,9 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
 
   void _onLive() {
     final live = _live;
-    if (!mounted || live == null || live.toolId != ViewerToolId.fillForm)
+    if (!mounted || live == null || live.toolId != ViewerToolId.fillForm) {
       return;
+    }
     _snapSpots = live.formSpots;
     _snapValues = live.formValues;
     final fp = _fingerprint(live.formValues);
@@ -482,10 +483,6 @@ class _ViewerFillFormPanelState extends ConsumerState<ViewerFillFormPanel> {
     final all = [
       for (final s in live.formSpots)
         if (s.kind != PdfFormSpotKind.signature) s,
-    ];
-    final onPage = [
-      for (final s in all)
-        if (s.pageIndex1Based == page) s,
     ];
     final pagesWithFields = {for (final s in all) s.pageIndex1Based}.length;
     final filled = _fingerprint(live.formValues).isNotEmpty;

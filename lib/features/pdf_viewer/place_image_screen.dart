@@ -124,9 +124,8 @@ class _PlaceImageScreenState extends ConsumerState<PlaceImageScreen> {
                     Text(
                       _pickError!,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFFE4002B),
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: const Color(0xFFE4002B)),
                     ),
                   ],
                   const SizedBox(height: DsSpacing.lg),
@@ -158,10 +157,7 @@ class _PlaceImageScreenState extends ConsumerState<PlaceImageScreen> {
       );
     }
 
-    final handoff = PdfViewerDocumentHandoff(
-      file: file,
-      password: _password,
-    );
+    final handoff = PdfViewerDocumentHandoff(file: file, password: _password);
     return Scaffold(
       appBar: DsToolbar(
         leading: IconButton(

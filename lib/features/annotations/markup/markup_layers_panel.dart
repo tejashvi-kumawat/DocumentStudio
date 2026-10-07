@@ -5,26 +5,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 IconData markupTypeIcon(MarkupObject o) => switch (o) {
-      TextBoxMarkup() => o.isCallout ? Icons.chat_bubble_outline : Icons.text_fields,
-      ImageMarkup() => Icons.image_outlined,
-      InkMarkup() => o.highlighter ? Icons.border_color_outlined : Icons.draw_outlined,
-      ShapeMarkup() => switch (o.kind) {
-          ShapeKind.rectangle => Icons.crop_square,
-          ShapeKind.ellipse => Icons.circle_outlined,
-          ShapeKind.line => Icons.horizontal_rule,
-          ShapeKind.arrow => Icons.arrow_right_alt,
-          ShapeKind.polygon => Icons.pentagon_outlined,
-          ShapeKind.cloud => Icons.cloud_outlined,
-        },
-      TextMarkupMarkup() => switch (o.kind) {
-          TextMarkupKind.highlight => Icons.highlight,
-          TextMarkupKind.underline => Icons.format_underline,
-          TextMarkupKind.strikeout => Icons.format_strikethrough,
-          TextMarkupKind.squiggly => Icons.waves,
-        },
-      NoteMarkup() => Icons.sticky_note_2_outlined,
-      LinkMarkup() => Icons.link,
-    };
+  TextBoxMarkup() =>
+    o.isCallout ? Icons.chat_bubble_outline : Icons.text_fields,
+  ImageMarkup() => Icons.image_outlined,
+  InkMarkup() =>
+    o.highlighter ? Icons.border_color_outlined : Icons.draw_outlined,
+  ShapeMarkup() => switch (o.kind) {
+    ShapeKind.rectangle => Icons.crop_square,
+    ShapeKind.ellipse => Icons.circle_outlined,
+    ShapeKind.line => Icons.horizontal_rule,
+    ShapeKind.arrow => Icons.arrow_right_alt,
+    ShapeKind.polygon => Icons.pentagon_outlined,
+    ShapeKind.cloud => Icons.cloud_outlined,
+  },
+  TextMarkupMarkup() => switch (o.kind) {
+    TextMarkupKind.highlight => Icons.highlight,
+    TextMarkupKind.underline => Icons.format_underline,
+    TextMarkupKind.strikeout => Icons.format_strikethrough,
+    TextMarkupKind.squiggly => Icons.waves,
+  },
+  NoteMarkup() => Icons.sticky_note_2_outlined,
+  LinkMarkup() => Icons.link,
+};
 
 /// Layers: every object grouped by page (top of the stack first). Click to
 /// select and scroll to it; rename, hide, lock, delete, drag to reorder.
@@ -57,8 +59,7 @@ class MarkupLayersPanel extends StatelessWidget {
     final pages = {
       ...c.pagesWithObjects,
       for (final f in c.foreign) f.page,
-    }.toList()
-      ..sort();
+    }.toList()..sort();
     final count = c.objectCount;
     return Material(
       color: theme.colorScheme.surface,
@@ -95,13 +96,13 @@ class MarkupLayersPanel extends StatelessWidget {
             child: c.loading && count == 0
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
                 : pages.isEmpty
-                    ? _empty(context)
-                    : ListView(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        children: [
-                          for (final p in pages) ..._pageSection(context, p),
-                        ],
-                      ),
+                ? _empty(context)
+                : ListView(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    children: [
+                      for (final p in pages) ..._pageSection(context, p),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -115,13 +116,13 @@ class MarkupLayersPanel extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.layers_clear_outlined,
-              size: 36, color: theme.colorScheme.outline),
-          const SizedBox(height: 10),
-          Text(
-            'No markup yet',
-            style: theme.textTheme.titleSmall,
+          Icon(
+            Icons.layers_clear_outlined,
+            size: 36,
+            color: theme.colorScheme.outline,
           ),
+          const SizedBox(height: 10),
+          Text('No markup yet', style: theme.textTheme.titleSmall),
           const SizedBox(height: 4),
           Text(
             'Text, images, shapes, highlights, notes and links you add appear '
@@ -179,8 +180,10 @@ class MarkupLayersPanel extends StatelessWidget {
               onTap: () {
                 onReveal(o.page, o.bounds);
                 if (!o.hidden) {
-                  c.select(o.id,
-                      additive: HardwareKeyboard.instance.isShiftPressed);
+                  c.select(
+                    o.id,
+                    additive: HardwareKeyboard.instance.isShiftPressed,
+                  );
                 }
                 c.reveal.value = null;
                 c.reveal.value = o.id;
@@ -221,8 +224,9 @@ class _LayerRow extends StatefulWidget {
 
 class _LayerRowState extends State<_LayerRow> {
   bool _renaming = false;
-  late final TextEditingController _name =
-      TextEditingController(text: widget.object.label);
+  late final TextEditingController _name = TextEditingController(
+    text: widget.object.label,
+  );
   final FocusNode _focus = FocusNode(debugLabel: 'layerRename');
 
   @override
@@ -242,7 +246,10 @@ class _LayerRowState extends State<_LayerRow> {
 
   void _startRename() {
     _name.text = widget.object.label;
-    _name.selection = TextSelection(baseOffset: 0, extentOffset: _name.text.length);
+    _name.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _name.text.length,
+    );
     setState(() => _renaming = true);
     WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
   }
@@ -251,7 +258,10 @@ class _LayerRowState extends State<_LayerRow> {
     final v = _name.text.trim();
     setState(() => _renaming = false);
     if (v != widget.object.label) {
-      widget.controller.rename(widget.object.id, v == widget.object.defaultLabel ? '' : v);
+      widget.controller.rename(
+        widget.object.id,
+        v == widget.object.defaultLabel ? '' : v,
+      );
     }
   }
 
@@ -265,7 +275,9 @@ class _LayerRowState extends State<_LayerRow> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
       child: Material(
-        color: widget.selected ? cs.primary.withValues(alpha: 0.12) : Colors.transparent,
+        color: widget.selected
+            ? cs.primary.withValues(alpha: 0.12)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
@@ -281,7 +293,11 @@ class _LayerRowState extends State<_LayerRow> {
                     cursor: SystemMouseCursors.grab,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Icon(Icons.drag_indicator, size: 16, color: cs.outline),
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: 16,
+                        color: cs.outline,
+                      ),
                     ),
                   ),
                 ),
@@ -309,8 +325,10 @@ class _LayerRowState extends State<_LayerRow> {
                           decoration: const InputDecoration(
                             isDense: true,
                             border: OutlineInputBorder(),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 6,
+                            ),
                           ),
                           onSubmitted: (_) => _commit(),
                         )
@@ -330,19 +348,27 @@ class _LayerRowState extends State<_LayerRow> {
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                   active: o.hidden,
-                  onPressed: c.readOnly ? null : () => c.setHidden(o.id, !o.hidden),
+                  onPressed: c.readOnly
+                      ? null
+                      : () => c.setHidden(o.id, !o.hidden),
                 ),
                 _MiniIcon(
                   tooltip: o.locked ? 'Unlock' : 'Lock',
                   icon: o.locked ? Icons.lock : Icons.lock_open_outlined,
                   active: o.locked,
-                  onPressed: c.readOnly ? null : () => c.setLocked(o.id, !o.locked),
+                  onPressed: c.readOnly
+                      ? null
+                      : () => c.setLocked(o.id, !o.locked),
                 ),
                 PopupMenuButton<String>(
                   tooltip: 'More',
                   iconSize: 16,
                   padding: EdgeInsets.zero,
-                  icon: Icon(Icons.more_horiz, size: 16, color: cs.onSurfaceVariant),
+                  icon: Icon(
+                    Icons.more_horiz,
+                    size: 16,
+                    color: cs.onSurfaceVariant,
+                  ),
                   onSelected: (v) {
                     switch (v) {
                       case 'rename':
@@ -433,7 +459,8 @@ class _ForeignRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Tooltip(
-                  message: 'Created by another app — can be deleted, not edited',
+                  message:
+                      'Created by another app — can be deleted, not edited',
                   child: Text(
                     annotation.label,
                     maxLines: 1,

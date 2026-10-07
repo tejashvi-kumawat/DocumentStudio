@@ -6,10 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Preserves open-document context when switching Home ↔ Tools in the shell.
 @immutable
 class ShellNavigationContext {
-  const ShellNavigationContext({
-    this.activeDocument,
-    this.toolReturnViewer,
-  });
+  const ShellNavigationContext({this.activeDocument, this.toolReturnViewer});
 
   final PdfDocumentRouteArgs? activeDocument;
   final ViewerRouteArgs? toolReturnViewer;
@@ -21,8 +18,9 @@ class ShellNavigationContext {
   }) {
     return ShellNavigationContext(
       activeDocument: activeDocument ?? this.activeDocument,
-      toolReturnViewer:
-          clearToolReturn ? null : (toolReturnViewer ?? this.toolReturnViewer),
+      toolReturnViewer: clearToolReturn
+          ? null
+          : (toolReturnViewer ?? this.toolReturnViewer),
     );
   }
 }
@@ -56,5 +54,5 @@ class ShellNavigationContextNotifier extends Notifier<ShellNavigationContext> {
 
 final shellNavigationContextProvider =
     NotifierProvider<ShellNavigationContextNotifier, ShellNavigationContext>(
-  ShellNavigationContextNotifier.new,
-);
+      ShellNavigationContextNotifier.new,
+    );

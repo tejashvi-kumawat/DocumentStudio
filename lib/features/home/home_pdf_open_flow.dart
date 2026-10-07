@@ -24,10 +24,7 @@ Future<void> homeShowPdfOpenChooserAndNavigate(
   await homeOpenPdfWithMode(context, ref, file, mode);
 }
 
-Future<HomePdfOpenMode> homeLastOpenModeFor(
-  WidgetRef ref,
-  String path,
-) async {
+Future<HomePdfOpenMode> homeLastOpenModeFor(WidgetRef ref, String path) async {
   final repo = await ref.read(homePdfOpenModeRepositoryProvider.future);
   return repo.modeForPath(path);
 }
@@ -79,8 +76,7 @@ Future<void> _openEditPages(
 }) async {
   // Resolve portal → host before workspace/validate so we never open FUSE.
   final host = await LinuxDocumentPortal.resolve(file.path);
-  final resolved =
-      host == file.path ? file : file.copyWithPath(host);
+  final resolved = host == file.path ? file : file.copyWithPath(host);
   final pdf = ref.read(pdfRenderPortProvider);
   try {
     await pdf.validateOpenable(resolved, password: password);
@@ -111,15 +107,10 @@ Future<void> _openRead(
   // entry. Viewer warm-lease is the single open.
   await ref.read(recentsProvider.notifier).addRecent(file);
   if (!context.mounted) return;
-  await openPdfInShellViewer(
-    context,
-    ref,
-    file,
-    password: password,
-  );
+  await openPdfInShellViewer(context, ref, file, password: password);
 }
 
 final homePdfOpenModeRepositoryProvider =
     FutureProvider<HomePdfOpenModeRepository>((ref) async {
-  return HomePdfOpenModeRepository.create();
-});
+      return HomePdfOpenModeRepository.create();
+    });

@@ -21,10 +21,5 @@ Future<void> homeLaunchEditPages(BuildContext context, WidgetRef ref) async {
   final storage = ref.read(fileStorageProvider);
   final picked = await storage.pickOpenFile(allowedExtensions: ['pdf']);
   if (picked == null || !context.mounted) return;
-  await homeOpenPdfWithMode(
-    context,
-    ref,
-    picked,
-    HomePdfOpenMode.editPages,
-  );
+  await homeOpenPdfWithMode(context, ref, picked, HomePdfOpenMode.editPages);
 }

@@ -23,9 +23,7 @@ Future<void> showDocumentProperties({
     );
   } catch (e) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$e')),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
   }
 }
 
@@ -53,10 +51,7 @@ Future<void> showDocumentPropertiesDialog({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DocumentPropertiesPanel(
-                info: info,
-                fileSizeBytes: fileSizeBytes,
-              ),
+              DocumentPropertiesPanel(info: info, fileSizeBytes: fileSizeBytes),
               if (file != null) ...[
                 const SizedBox(height: 16),
                 FilledButton(
@@ -96,10 +91,7 @@ Future<void> showDocumentPropertiesDialog({
               Navigator.pop(ctx);
               context.push(
                 metadataRoutePath,
-                extra: MetadataEditorRouteArgs(
-                  file: file,
-                  password: password,
-                ),
+                extra: MetadataEditorRouteArgs(file: file, password: password),
               );
             },
             child: const Text('Edit metadata'),
@@ -139,10 +131,7 @@ class DocumentPropertiesPanel extends StatelessWidget {
           value: displayDocumentProperty(info.author),
         ),
         const SizedBox(height: 12),
-        _PropertyRow(
-          label: 'Pages',
-          value: '${info.pageCount}',
-        ),
+        _PropertyRow(label: 'Pages', value: '${info.pageCount}'),
         const SizedBox(height: 12),
         _PropertyRow(
           label: 'File size',

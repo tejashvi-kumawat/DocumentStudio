@@ -82,8 +82,7 @@ abstract final class PdfStampEngine {
   static Future<Uint8List> applyWatermark(
     Uint8List pdf,
     WatermarkStampRequest request,
-  ) =>
-      Isolate.run(() => _guard(() => _applyWatermark(pdf, request)));
+  ) => Isolate.run(() => _guard(() => _applyWatermark(pdf, request)));
 
   /// Stamps [spec] as [kind]; always replaces a previous stamp of that kind
   /// (on every page) and stores [spec] in the catalog for later editing.
@@ -93,12 +92,9 @@ abstract final class PdfStampEngine {
     required HfDocInfo info,
     String kind = PdfStampKind.headerFooter,
     String settingsJson = '',
-  }) =>
-      Isolate.run(
-        () => _guard(
-          () => _applyHeaderFooter(pdf, spec, info, kind, settingsJson),
-        ),
-      );
+  }) => Isolate.run(
+    () => _guard(() => _applyHeaderFooter(pdf, spec, info, kind, settingsJson)),
+  );
 
   /// Removes every stamp of [kind]; returns the original bytes if none.
   static Future<Uint8List> remove(Uint8List pdf, String kind) =>
@@ -185,9 +181,9 @@ void _setCatalogSettings(PdfEditDocument doc, String kind, String? json) {
 }
 
 PdfStdFont _stdFont(HfFont f) => PdfStdFont.values.firstWhere(
-      (s) => s.baseFont == f.pdfBaseFont,
-      orElse: () => PdfStdFont.helvetica,
-    );
+  (s) => s.baseFont == f.pdfBaseFont,
+  orElse: () => PdfStdFont.helvetica,
+);
 
 int _removeEverywhere(PdfPageStamper stamper, int pageCount, String kind) {
   var n = 0;
@@ -239,7 +235,10 @@ Uint8List _applyWatermark(Uint8List pdf, WatermarkStampRequest req) {
     );
     if (marks.isEmpty) continue;
     final res = PdfStampResources();
-    res.extGStates['GSw'] = extGStateAlpha(fillAlpha: alpha, strokeAlpha: alpha);
+    res.extGStates['GSw'] = extGStateAlpha(
+      fillAlpha: alpha,
+      strokeAlpha: alpha,
+    );
     final cb = PdfContentBuilder()
       ..save()
       ..gs('GSw');
@@ -326,18 +325,8 @@ Uint8List _applyHeaderFooter(
       batesValue: bates[page],
     );
     if (layout.isEmpty) continue;
-    final content = _headerFooterContent(
-      layout,
-      geo,
-      stamper,
-      fontRefs,
-    );
-    stamper.stamp(
-      page,
-      kind: kind,
-      content: content.$1,
-      resources: content.$2,
-    );
+    final content = _headerFooterContent(layout, geo, stamper, fontRefs);
+    stamper.stamp(page, kind: kind, content: content.$1, resources: content.$2);
   }
   _setCatalogSettings(doc, kind, settingsJson.isEmpty ? null : settingsJson);
   return doc.save();
@@ -354,10 +343,10 @@ Uint8List _applyHeaderFooter(
   final cb = PdfContentBuilder()..save();
   final gsNames = <double, String>{};
   void rgb(int c) => cb.fillRgb(
-        ((c >> 16) & 0xFF) / 255,
-        ((c >> 8) & 0xFF) / 255,
-        (c & 0xFF) / 255,
-      );
+    ((c >> 16) & 0xFF) / 255,
+    ((c >> 8) & 0xFF) / 255,
+    (c & 0xFF) / 255,
+  );
   for (final r in layout.rects) {
     cb.save();
     final a = r.opacity.clamp(0.0, 1.0).toDouble();
@@ -373,7 +362,10 @@ Uint8List _applyHeaderFooter(
       ..restore();
   }
   for (final t in layout.texts) {
-    final ref = fontRefs.putIfAbsent(t.font, () => stamper.font(_stdFont(t.font)));
+    final ref = fontRefs.putIfAbsent(
+      t.font,
+      () => stamper.font(_stdFont(t.font)),
+    );
     final name = 'F${t.font.index}';
     res.fonts[name] = ref;
     rgb(t.colorRgb);

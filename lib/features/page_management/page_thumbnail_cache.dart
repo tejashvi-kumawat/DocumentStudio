@@ -36,12 +36,10 @@ class PageThumbJob {
   PageThumbJob(
     this.future,
     this._cancel, {
-    required bool Function() isDecoding,
-    required void Function(void Function() listener) listen,
-    required void Function(void Function() listener) unlisten,
-  })  : _isDecoding = isDecoding,
-        _listen = listen,
-        _unlisten = unlisten;
+    required this._isDecoding,
+    required this._listen,
+    required this._unlisten,
+  });
 
   final Future<Uint8List?> future;
   final void Function() _cancel;
@@ -73,13 +71,16 @@ class PageThumbJob {
 /// pixel width (never the full page). [PdfDocumentCache.use] is always called
 /// with `loadAllPages: false`.
 class PageThumbnailCache {
-  PageThumbnailCache({PageThumbRenderGate? gate}) : _gate = gate ?? _defaultGate() {
+  PageThumbnailCache({PageThumbRenderGate? gate})
+    : _gate = gate ?? _defaultGate() {
     StorageCacheManager.instance.registerMemoryCache(clear);
   }
 
   static PageThumbRenderGate _defaultGate() {
     final budget = RenderBudget.current;
-    final hinted = budget.tier == DeviceTier.high ? 3 : budget.renderConcurrency;
+    final hinted = budget.tier == DeviceTier.high
+        ? 3
+        : budget.renderConcurrency;
     return PageThumbRenderGate(concurrency: clampThumbnailConcurrency(hinted));
   }
 
@@ -105,11 +106,7 @@ class PageThumbnailCache {
       '${file.path}#$page1#${password ?? ''}';
 
   /// Sync memory hit for the last successful render of this page.
-  Uint8List? peek(
-    LocalFileRef file,
-    int pageNumber1Based, {
-    String? password,
-  }) {
+  Uint8List? peek(LocalFileRef file, int pageNumber1Based, {String? password}) {
     final id = _identity(file, pageNumber1Based, password);
     final last = _lastKeyByIdentity[id];
     if (last == null) return null;
@@ -133,7 +130,7 @@ class PageThumbnailCache {
         : 's${scale.toStringAsFixed(3)}';
     final group = '${file.path}#$pageNumber1Based#${password ?? ''}@$sizeToken';
     final completer = Completer<Uint8List?>();
-      final existing = _sessions[group];
+    final existing = _sessions[group];
     if (existing != null && !existing.done) {
       existing.add(completer, priority);
       final permit = existing.permit;
@@ -299,11 +296,11 @@ class PageThumbnailCache {
           pdfImage.dispose();
         }
         if (session.abandoned) return null;
-        return runIsolated(
-          encodePageThumbnailPng,
-          (w, h, bgra),
-          debugName: 'thumb-png',
-        );
+        return runIsolated(encodePageThumbnailPng, (
+          w,
+          h,
+          bgra,
+        ), debugName: 'thumb-png');
       },
       password: password,
       loadAllPages: false,

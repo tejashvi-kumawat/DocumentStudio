@@ -110,29 +110,29 @@ class PdfViewerAcrobatTopChrome extends StatelessWidget
                 ),
               ),
             if (showTitleRow || signPlacementActive)
-            DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: border)),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: border)),
+                ),
+                child: signPlacementActive
+                    ? _SignPlacementBar(
+                        statusLabel: signStatusLabel,
+                        onCancel: onSignCancel,
+                        onDone: onSignDone,
+                        doneEnabled: signDoneEnabled,
+                      )
+                    : _TitleRow(
+                        title: documentTitle,
+                        onBack: onBack,
+                        backTooltip: backTooltip,
+                        controller: viewerController,
+                        onGoToPage: onGoToPage,
+                        onFind: showFind ? onFind : null,
+                        onFitWidth: onFitWidth,
+                        onFitPage: onFitPage,
+                        onManualZoom: onManualZoom,
+                      ),
               ),
-              child: signPlacementActive
-                  ? _SignPlacementBar(
-                      statusLabel: signStatusLabel,
-                      onCancel: onSignCancel,
-                      onDone: onSignDone,
-                      doneEnabled: signDoneEnabled,
-                    )
-                  : _TitleRow(
-                      title: documentTitle,
-                      onBack: onBack,
-                      backTooltip: backTooltip,
-                      controller: viewerController,
-                      onGoToPage: onGoToPage,
-                      onFind: showFind ? onFind : null,
-                      onFitWidth: onFitWidth,
-                      onFitPage: onFitPage,
-                      onManualZoom: onManualZoom,
-                    ),
-            ),
             if (!signPlacementActive && toolRow != null) toolRow!,
           ],
         ),

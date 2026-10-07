@@ -44,9 +44,7 @@ class _ToolsHubScreenState extends ConsumerState<ToolsHubScreen> {
         c: homeToolsInCategory(filtered, c),
     };
     final searching = _query.trim().isNotEmpty;
-    final featured = homeToolsHubFeatured(
-      searching ? filtered : allTools,
-    );
+    final featured = homeToolsHubFeatured(searching ? filtered : allTools);
 
     return ColoredBox(
       color: DsColors.groupedBackground(theme.brightness),

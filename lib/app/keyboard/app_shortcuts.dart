@@ -38,6 +38,37 @@ class SaveDocumentIntent extends Intent {
   const SaveDocumentIntent();
 }
 
+/// Tab commands (browser / Safari style).
+class CloseTabIntent extends Intent {
+  const CloseTabIntent();
+}
+
+class NewTabIntent extends Intent {
+  const NewTabIntent();
+}
+
+class ReopenTabIntent extends Intent {
+  const ReopenTabIntent();
+}
+
+class CycleTabIntent extends Intent {
+  const CycleTabIntent(this.delta);
+  final int delta;
+}
+
+class JumpToTabIntent extends Intent {
+  const JumpToTabIntent(this.index); // 0-based; -1 = last
+  final int index;
+}
+
+class OpenSettingsIntent extends Intent {
+  const OpenSettingsIntent();
+}
+
+class NewDocumentIntent extends Intent {
+  const NewDocumentIntent();
+}
+
 ShortcutActivator _primaryModifier(
   LogicalKeyboardKey key, {
   bool shift = false,
@@ -58,6 +89,24 @@ Map<ShortcutActivator, Intent> get appShortcutBindings => {
   const SingleActivator(LogicalKeyboardKey.keyY, control: true):
       const RedoDocumentIntent(),
   _primaryModifier(LogicalKeyboardKey.keyS): const SaveDocumentIntent(),
+  _primaryModifier(LogicalKeyboardKey.keyW): const CloseTabIntent(),
+  _primaryModifier(LogicalKeyboardKey.f4): const CloseTabIntent(),
+  _primaryModifier(LogicalKeyboardKey.keyT): const NewTabIntent(),
+  _primaryModifier(LogicalKeyboardKey.keyT, shift: true):
+      const ReopenTabIntent(),
+  const SingleActivator(LogicalKeyboardKey.tab, control: true):
+      const CycleTabIntent(1),
+  const SingleActivator(LogicalKeyboardKey.tab, control: true, shift: true):
+      const CycleTabIntent(-1),
+  _primaryModifier(LogicalKeyboardKey.pageDown): const CycleTabIntent(1),
+  _primaryModifier(LogicalKeyboardKey.pageUp): const CycleTabIntent(-1),
+  for (var i = 1; i <= 8; i++)
+    _primaryModifier(LogicalKeyboardKey(0x00000000030 + i)): JumpToTabIntent(
+      i - 1,
+    ),
+  _primaryModifier(LogicalKeyboardKey.digit9): const JumpToTabIntent(-1),
+  _primaryModifier(LogicalKeyboardKey.comma): const OpenSettingsIntent(),
+  _primaryModifier(LogicalKeyboardKey.keyN): const NewDocumentIntent(),
 };
 
 /// Wraps [child] with [Shortcuts] and [Actions] for shell-level keyboard commands.
@@ -75,7 +124,22 @@ class AppShortcuts extends StatelessWidget {
     this.onUndo,
     this.onRedo,
     this.onSave,
+    this.onCloseTab,
+    this.onNewTab,
+    this.onReopenTab,
+    this.onCycleTab,
+    this.onJumpToTab,
+    this.onSettings,
+    this.onNewDocument,
   });
+
+  final VoidCallback? onCloseTab;
+  final VoidCallback? onNewTab;
+  final VoidCallback? onReopenTab;
+  final ValueChanged<int>? onCycleTab;
+  final ValueChanged<int>? onJumpToTab;
+  final VoidCallback? onSettings;
+  final VoidCallback? onNewDocument;
 
   final Widget child;
   final VoidCallback? onOpen;
@@ -131,6 +195,55 @@ class AppShortcuts extends StatelessWidget {
       allowWhileTyping: true,
       onInvoke: (_) {
         onSave?.call();
+        return null;
+      },
+    ),
+    CloseTabIntent: GuardedCallbackAction<CloseTabIntent>(
+      allowWhileTyping: true,
+      onInvoke: (_) {
+        onCloseTab?.call();
+        return null;
+      },
+    ),
+    NewTabIntent: GuardedCallbackAction<NewTabIntent>(
+      allowWhileTyping: true,
+      onInvoke: (_) {
+        onNewTab?.call();
+        return null;
+      },
+    ),
+    ReopenTabIntent: GuardedCallbackAction<ReopenTabIntent>(
+      allowWhileTyping: true,
+      onInvoke: (_) {
+        onReopenTab?.call();
+        return null;
+      },
+    ),
+    CycleTabIntent: GuardedCallbackAction<CycleTabIntent>(
+      allowWhileTyping: true,
+      onInvoke: (i) {
+        onCycleTab?.call(i.delta);
+        return null;
+      },
+    ),
+    JumpToTabIntent: GuardedCallbackAction<JumpToTabIntent>(
+      allowWhileTyping: true,
+      onInvoke: (i) {
+        onJumpToTab?.call(i.index);
+        return null;
+      },
+    ),
+    OpenSettingsIntent: GuardedCallbackAction<OpenSettingsIntent>(
+      allowWhileTyping: true,
+      onInvoke: (_) {
+        onSettings?.call();
+        return null;
+      },
+    ),
+    NewDocumentIntent: GuardedCallbackAction<NewDocumentIntent>(
+      allowWhileTyping: true,
+      onInvoke: (_) {
+        onNewDocument?.call();
         return null;
       },
     ),

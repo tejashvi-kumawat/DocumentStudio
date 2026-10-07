@@ -1,0 +1,387 @@
+Font notices for assets/fonts/library/
+
+Each font below is distributed under the license named with it; the
+full texts are in this folder: OFL.txt (SIL Open Font License 1.1),
+Apache-2.0.txt and UFL-1.0.txt (Ubuntu Font Licence). The fonts are
+bundled as published upstream (Google Fonts / Fontsource Latin builds);
+Document Studio only subsets them when embedding text in a PDF.
+
+Abril Fatface
+  License: OFL-1.1
+  Copyright: Copyright (c) 2011, Copyright (c) 2011, TypeTogether (www.type-together.com), with Reserved Font Names "Abril" and "Abril Fatface"
+  Files: AbrilFatface-Regular.ttf
+
+Anton
+  License: OFL-1.1
+  Copyright: Copyright 2020 The Anton Project Authors (https://github.com/googlefonts/AntonFont.git)
+  Files: Anton-Regular.ttf
+
+Archivo SemiBold
+  License: see font
+  Copyright: Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)
+  Files: Archivo-Bold.ttf, Archivo-BoldItalic.ttf, Archivo-Italic.ttf, Archivo-Regular.ttf
+
+Arimo
+  License: OFL-1.1
+  Copyright: Copyright 2020 The Arimo Project Authors (https://github.com/googlefonts/arimo)
+  Files: Arimo-Bold.ttf, Arimo-BoldItalic.ttf, Arimo-Italic.ttf, Arimo-Regular.ttf
+
+Arvo
+  License: OFL-1.1
+  Copyright: Copyright (c) 2010 by Anton Koovit.
+  Files: Arvo-Bold.ttf, Arvo-BoldItalic.ttf, Arvo-Italic.ttf, Arvo-Regular.ttf
+
+Assistant ExtraLight
+  License: see font
+  Copyright: Copyright 2020 The Assistant Project Authors (https://github.com/hafontia/Assistant). Copyright 2010 The Source Sans Pro Authors (https://github.com/adobe-fonts/source-sans-pro), with Reserved Font Name 'Source'. Source is a trademark of Adobe Systems Incorporated in the United States and/or other countries.
+  Files: Assistant-Bold.ttf, Assistant-Regular.ttf
+
+Barlow
+  License: OFL-1.1
+  Copyright: Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+  Files: Barlow-Bold.ttf, Barlow-BoldItalic.ttf, Barlow-Italic.ttf, Barlow-Regular.ttf
+
+Bebas Neue
+  License: OFL-1.1
+  Copyright: Copyright 2019 The Bebas Neue Project Authors (https://github.com/dharmatype/Bebas-Neue)
+  Files: BebasNeue-Regular.ttf
+
+Bitter Thin
+  License: see font
+  Copyright: Copyright 2011 The Bitter Project Authors (https://github.com/solmatas/BitterPro)
+  Files: Bitter-Bold.ttf, Bitter-BoldItalic.ttf, Bitter-Italic.ttf, Bitter-Regular.ttf
+
+Cabin
+  License: OFL-1.1
+  Copyright: Copyright 2018 The Cabin Project Authors (https://github.com/impallari/Cabin)
+  Files: Cabin-Bold.ttf, Cabin-BoldItalic.ttf, Cabin-Italic.ttf, Cabin-Regular.ttf
+
+Caladea
+  License: OFL-1.1
+  Copyright: Copyright 2012 The Caladea Project Authors (https://github.com/huertatipografica/Caladea)
+  Files: Caladea-Bold.ttf, Caladea-BoldItalic.ttf, Caladea-Italic.ttf, Caladea-Regular.ttf
+
+Cardo
+  License: OFL-1.1
+  Copyright: Copyright (c) 2002-2011, David J. Perry (hospes02@scholarsfonts.net)
+  Files: Cardo-Bold.ttf, Cardo-Italic.ttf, Cardo-Regular.ttf
+
+Carlito
+  License: OFL-1.1
+  Copyright: Copyright 2013 The Carlito Project Authors (https://github.com/googlefonts/carlito)
+  Files: Carlito-Bold.ttf, Carlito-BoldItalic.ttf, Carlito-Italic.ttf, Carlito-Regular.ttf
+
+Caveat
+  License: OFL-1.1
+  Copyright: Copyright 2014 The Caveat Project Authors (https://github.com/googlefonts/caveat)
+  Files: Caveat-Bold.ttf, Caveat-Regular.ttf
+
+Cormorant Garamond Light
+  License: see font
+  Copyright: Copyright 2015 The Cormorant Project Authors (github.com/CatharsisFonts/Cormorant)
+  Files: CormorantGaramond-Bold.ttf, CormorantGaramond-BoldItalic.ttf, CormorantGaramond-Italic.ttf, CormorantGaramond-Regular.ttf
+
+Cousine
+  License: OFL-1.1
+  Copyright: Copyright 2026 The Cousine Project Authors (https://github.com/googlefonts/cousine)
+  Files: Cousine-Bold.ttf, Cousine-BoldItalic.ttf, Cousine-Italic.ttf, Cousine-Regular.ttf
+
+Crimson Text
+  License: OFL-1.1
+  Copyright: Copyright 2010 The Crimson Text Project Authors (https://github.com/googlefonts/Crimson)
+  Files: CrimsonText-Bold.ttf, CrimsonText-BoldItalic.ttf, CrimsonText-Italic.ttf, CrimsonText-Regular.ttf
+
+DM Sans 9pt
+  License: see font
+  Copyright: Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
+  Files: DMSans-Bold.ttf, DMSans-BoldItalic.ttf, DMSans-Italic.ttf, DMSans-Regular.ttf
+
+DM Serif Display
+  License: OFL-1.1
+  Copyright: Copyright 2014 - 2017 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name 'Source'. Copyright 2019 Google LLC.
+  Files: DMSerifDisplay-Italic.ttf, DMSerifDisplay-Regular.ttf
+
+Dancing Script
+  License: OFL-1.1
+  Copyright: Copyright 2016 The Dancing Script Project Authors (https://github.com/googlefonts/DancingScript), with Reserved Font Name "Dancing Script".
+  Files: DancingScript-Bold.ttf, DancingScript-Regular.ttf
+
+Domine
+  License: OFL-1.1
+  Copyright: Copyright 2020 The Domine Project Authors (https://github.com/googlefonts/domine)
+  Files: Domine-Bold.ttf, Domine-Regular.ttf
+
+EB Garamond
+  License: OFL-1.1
+  Copyright: Copyright 2017 The EB Garamond Project Authors (https://github.com/octaviopardo/EBGaramond12)
+  Files: EBGaramond-Bold.ttf, EBGaramond-BoldItalic.ttf, EBGaramond-Italic.ttf, EBGaramond-Regular.ttf
+
+Exo 2
+  License: OFL-1.1
+  Copyright: Copyright 2013 The Exo 2 Project Authors (https://github.com/googlefonts/Exo-2.0)
+  Files: Exo2-Bold.ttf, Exo2-BoldItalic.ttf, Exo2-Italic.ttf, Exo2-Regular.ttf
+
+Fira Mono
+  License: OFL-1.1
+  Copyright: Digitized data copyright © 2012-2015, The Mozilla Foundation and Telefonica S.A.
+  Files: FiraMono-Bold.ttf, FiraMono-Regular.ttf
+
+Fira Sans
+  License: OFL-1.1
+  Copyright: Digitized data copyright 2012-2016, The Mozilla Foundation and Telefonica S.A.
+  Files: FiraSans-Bold.ttf, FiraSans-BoldItalic.ttf, FiraSans-Italic.ttf, FiraSans-Regular.ttf
+
+Gelasio
+  License: OFL-1.1
+  Copyright: Copyright 2022 The Gelasio Project Authors (https://github.com/SorkinType/Gelasio)
+  Files: Gelasio-Bold.ttf, Gelasio-BoldItalic.ttf, Gelasio-Italic.ttf, Gelasio-Regular.ttf
+
+Great Vibes
+  License: OFL-1.1
+  Copyright: Copyright 2010 The Great Vibes Pro Project Authors (https://github.com/googlefonts/great-vibes)
+  Files: GreatVibes-Regular.ttf
+
+Heebo
+  License: OFL-1.1
+  Copyright: Copyright 2014 The Heebo Project Authors (https://github.com/OdedEzer/heebo)
+  Files: Heebo-Bold.ttf, Heebo-Regular.ttf
+
+Hind
+  License: OFL-1.1
+  Copyright: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)
+  Files: Hind-Bold.ttf, Hind-Regular.ttf
+
+IBM Plex Mono
+  License: OFL-1.1
+  Copyright: Copyright 2017 IBM Corp. All rights reserved.
+  Files: IBMPlexMono-Bold.ttf, IBMPlexMono-BoldItalic.ttf, IBMPlexMono-Italic.ttf, IBMPlexMono-Regular.ttf
+
+IBM Plex Sans
+  License: OFL-1.1
+  Copyright: Copyright 2019 IBM Corp. All rights reserved.
+  Files: IBMPlexSans-Bold.ttf, IBMPlexSans-BoldItalic.ttf, IBMPlexSans-Italic.ttf, IBMPlexSans-Regular.ttf
+
+IBM Plex Serif
+  License: OFL-1.1
+  Copyright: Copyright 2020 IBM Corp. All rights reserved.
+  Files: IBMPlexSerif-Bold.ttf, IBMPlexSerif-BoldItalic.ttf, IBMPlexSerif-Italic.ttf, IBMPlexSerif-Regular.ttf
+
+Inconsolata
+  License: OFL-1.1
+  Copyright: Copyright 2006 The Inconsolata Project Authors (https://github.com/cyrealtype/Inconsolata)
+  Files: Inconsolata-Bold.ttf, Inconsolata-Regular.ttf
+
+Inter
+  License: OFL-1.1
+  Copyright: Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)
+  Files: Inter-Bold.ttf, Inter-BoldItalic.ttf, Inter-Italic.ttf, Inter-Regular.ttf
+
+JetBrains Mono
+  License: OFL-1.1
+  Copyright: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+  Files: JetBrainsMono-Bold.ttf, JetBrainsMono-BoldItalic.ttf, JetBrainsMono-Italic.ttf, JetBrainsMono-Regular.ttf
+
+Josefin Sans Thin
+  License: see font
+  Copyright: Copyright 2010 The Josefin Sans Project Authors (https://github.com/ThomasJockin/JosefinSansFont-master), with Reserved Font Name "Josefin Sans".
+  Files: JosefinSans-Bold.ttf, JosefinSans-BoldItalic.ttf, JosefinSans-Italic.ttf, JosefinSans-Regular.ttf
+
+Karla
+  License: OFL-1.1
+  Copyright: Copyright 2019 The Karla Project Authors (https://github.com/googlefonts/karla)
+  Files: Karla-Bold.ttf, Karla-BoldItalic.ttf, Karla-Italic.ttf, Karla-Regular.ttf
+
+Lato
+  License: OFL-1.1
+  Copyright: Copyright (c) 2010-2011 by tyPoland Lukasz Dziedzic with Reserved Font Name "Lato". Licensed under the SIL Open Font License, Version 1.1.
+  Files: Lato-Bold.ttf, Lato-BoldItalic.ttf, Lato-Italic.ttf, Lato-Regular.ttf
+
+Libre Baskerville
+  License: OFL-1.1
+  Copyright: Copyright 2012 The Libre Baskerville Project Authors (https://github.com/impallari/Libre-Baskerville)
+  Files: LibreBaskerville-Bold.ttf, LibreBaskerville-BoldItalic.ttf, LibreBaskerville-Italic.ttf, LibreBaskerville-Regular.ttf
+
+Libre Franklin Thin
+  License: see font
+  Copyright: Copyright 2020 The Libre Franklin Project Authors (https://github.com/googlefonts/Libre-Franklin)
+  Files: LibreFranklin-Bold.ttf, LibreFranklin-BoldItalic.ttf, LibreFranklin-Italic.ttf, LibreFranklin-Regular.ttf
+
+Lobster
+  License: OFL-1.1
+  Copyright: Copyright 2010 The Lobster Project Authors (https://github.com/impallari/The-Lobster-Font), with Reserved Font Name "Lobster".
+  Files: Lobster-Regular.ttf
+
+Lora
+  License: OFL-1.1
+  Copyright: Copyright 2011 The Lora Project Authors (https://github.com/cyrealtype/Lora-Cyrillic), with Reserved Font Name "Lora".
+  Files: Lora-Bold.ttf, Lora-BoldItalic.ttf, Lora-Italic.ttf, Lora-Regular.ttf
+
+Manrope ExtraLight
+  License: see font
+  Copyright: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+  Files: Manrope-Bold.ttf, Manrope-Regular.ttf
+
+Merriweather Light 18pt
+  License: see font
+  Copyright: Copyright 2024 The Merriweather Project Authors (https://github.com/EbenSorkin/Merriweather4) with Reserved Font Name "Merriweather".
+  Files: Merriweather-Bold.ttf, Merriweather-BoldItalic.ttf, Merriweather-Italic.ttf, Merriweather-Regular.ttf
+
+Montserrat Thin
+  License: see font
+  Copyright: Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)
+  Files: Montserrat-Bold.ttf, Montserrat-BoldItalic.ttf, Montserrat-Italic.ttf, Montserrat-Regular.ttf
+
+Mulish ExtraLight
+  License: see font
+  Copyright: Copyright 2016 The Mulish Project Authors (https://github.com/googlefonts/mulish)
+  Files: Mulish-Bold.ttf, Mulish-BoldItalic.ttf, Mulish-Italic.ttf, Mulish-Regular.ttf
+
+Noto Sans
+  License: OFL-1.1
+  Copyright: Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
+  Files: NotoSans-Bold.ttf, NotoSans-BoldItalic.ttf, NotoSans-Italic.ttf, NotoSans-Regular.ttf
+
+Noto Sans Display
+  License: OFL-1.1
+  Copyright: Copyright 2015 Google Inc. All Rights Reserved.
+  Files: NotoSansDisplay-Bold.ttf, NotoSansDisplay-BoldItalic.ttf, NotoSansDisplay-Italic.ttf, NotoSansDisplay-Regular.ttf
+
+Noto Serif
+  License: OFL-1.1
+  Copyright: Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
+  Files: NotoSerif-Bold.ttf, NotoSerif-BoldItalic.ttf, NotoSerif-Italic.ttf, NotoSerif-Regular.ttf
+
+Nunito ExtraLight
+  License: see font
+  Copyright: Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
+  Files: Nunito-Bold.ttf, Nunito-BoldItalic.ttf, Nunito-Italic.ttf, Nunito-Regular.ttf
+
+Old Standard TT
+  License: OFL-1.1
+  Copyright: Copyright 2011 The Old Standard Project Authors (amkryukov@gmail.com)
+  Files: OldStandardTT-Bold.ttf, OldStandardTT-Italic.ttf, OldStandardTT-Regular.ttf
+
+Open Sans
+  License: OFL-1.1
+  Copyright: Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
+  Files: OpenSans-Bold.ttf, OpenSans-BoldItalic.ttf, OpenSans-Italic.ttf, OpenSans-Regular.ttf
+
+Oswald
+  License: OFL-1.1
+  Copyright: Copyright 2016 The Oswald Project Authors (https://github.com/googlefonts/OswaldFont)
+  Files: Oswald-Bold.ttf, Oswald-Regular.ttf
+
+PT Sans
+  License: OFL-1.1
+  Copyright: Copyright © 2009 ParaType Ltd. All rights reserved.
+  Files: PTSans-Bold.ttf, PTSans-BoldItalic.ttf, PTSans-Italic.ttf, PTSans-Regular.ttf
+
+PT Serif
+  License: OFL-1.1
+  Copyright: Copyright © 2010 ParaType Ltd. All rights reserved.
+  Files: PTSerif-Bold.ttf, PTSerif-BoldItalic.ttf, PTSerif-Italic.ttf, PTSerif-Regular.ttf
+
+Pacifico
+  License: OFL-1.1
+  Copyright: Copyright 2018 The Pacifico Project Authors (https://github.com/googlefonts/Pacifico)
+  Files: Pacifico-Regular.ttf
+
+Permanent Marker
+  License: Apache-2.0
+  Copyright: Copyright (c) 2010 by Font Diner, Inc. All rights reserved.
+  Files: PermanentMarker-Regular.ttf
+
+Playfair Display
+  License: OFL-1.1
+  Copyright: Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name "Playfair Display".
+  Files: PlayfairDisplay-Bold.ttf, PlayfairDisplay-BoldItalic.ttf, PlayfairDisplay-Italic.ttf, PlayfairDisplay-Regular.ttf
+
+Poppins
+  License: OFL-1.1
+  Copyright: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)
+  Files: Poppins-Bold.ttf, Poppins-BoldItalic.ttf, Poppins-Italic.ttf, Poppins-Regular.ttf
+
+Quicksand Light
+  License: see font
+  Copyright: Copyright 2019 The Quicksand Project Authors (https://github.com/andrew-paglinawan/QuicksandFamily.git), with Reserved Font Name "Quicksand"
+  Files: Quicksand-Bold.ttf, Quicksand-Regular.ttf
+
+Raleway Thin
+  License: see font
+  Copyright: Copyright 2010 The Raleway Project Authors (impallari@gmail.com), with Reserved Font Name "Raleway".
+  Files: Raleway-Bold.ttf, Raleway-BoldItalic.ttf, Raleway-Italic.ttf, Raleway-Regular.ttf
+
+Roboto
+  License: OFL-1.1
+  Copyright: Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)
+  Files: Roboto-Bold.ttf, Roboto-BoldItalic.ttf, Roboto-Italic.ttf, Roboto-Regular.ttf
+
+Roboto Condensed
+  License: OFL-1.1
+  Copyright: Copyright 2011 Google Inc. All Rights Reserved.
+  Files: RobotoCondensed-Bold.ttf, RobotoCondensed-BoldItalic.ttf, RobotoCondensed-Italic.ttf, RobotoCondensed-Regular.ttf
+
+Roboto Mono
+  License: OFL-1.1
+  Copyright: Copyright 2015 The Roboto Mono Project Authors (https://github.com/googlefonts/robotomono)
+  Files: RobotoMono-Bold.ttf, RobotoMono-BoldItalic.ttf, RobotoMono-Italic.ttf, RobotoMono-Regular.ttf
+
+Roboto Slab
+  License: Apache-2.0
+  Copyright: Copyright 2018 The Roboto Slab Project Authors (https://github.com/googlefonts/robotoslab)
+  Files: RobotoSlab-Bold.ttf, RobotoSlab-Regular.ttf
+
+Rubik Light
+  License: see font
+  Copyright: Copyright 2015 The Rubik Project Authors (https://github.com/googlefonts/rubik)
+  Files: Rubik-Bold.ttf, Rubik-BoldItalic.ttf, Rubik-Italic.ttf, Rubik-Regular.ttf
+
+Satisfy
+  License: Apache-2.0
+  Copyright: Copyright (c) 2011 by Font Diner, Inc. All rights reserved.
+  Files: Satisfy-Regular.ttf
+
+Source Code Pro ExtraLight
+  License: see font
+  Copyright: © 2023 Adobe (http://www.adobe.com/), with Reserved Font Name ‘Source’
+  Files: SourceCodePro-Bold.ttf, SourceCodePro-BoldItalic.ttf, SourceCodePro-Italic.ttf, SourceCodePro-Regular.ttf
+
+Source Sans 3 ExtraLight
+  License: see font
+  Copyright: © 2023 Adobe (http://www.adobe.com/), with Reserved Font Name ‘Source’
+  Files: SourceSans3-Bold.ttf, SourceSans3-BoldItalic.ttf, SourceSans3-Italic.ttf, SourceSans3-Regular.ttf
+
+Source Serif 4
+  License: OFL-1.1
+  Copyright: © 2014 - 2021 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name ‘Source’.
+  Files: SourceSerif4-Bold.ttf, SourceSerif4-BoldItalic.ttf, SourceSerif4-Italic.ttf, SourceSerif4-Regular.ttf
+
+Space Mono
+  License: OFL-1.1
+  Copyright: Copyright 2016 The Space Mono Project Authors (https://github.com/googlefonts/spacemono)
+  Files: SpaceMono-Bold.ttf, SpaceMono-BoldItalic.ttf, SpaceMono-Italic.ttf, SpaceMono-Regular.ttf
+
+Spectral
+  License: OFL-1.1
+  Copyright: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral)
+  Files: Spectral-Bold.ttf, Spectral-BoldItalic.ttf, Spectral-Italic.ttf, Spectral-Regular.ttf
+
+Tinos
+  License: OFL-1.1
+  Copyright: Copyright 2026 The Tinos Project Authors (https://github.com/googlefonts/tinos)
+  Files: Tinos-Bold.ttf, Tinos-BoldItalic.ttf, Tinos-Italic.ttf, Tinos-Regular.ttf
+
+Titillium Web
+  License: OFL-1.1
+  Copyright: Copyright (c) 2009-2011 by Accademia di Belle Arti di Urbino and students of MA course of Visual design. Some rights reserved.
+  Files: TitilliumWeb-Bold.ttf, TitilliumWeb-BoldItalic.ttf, TitilliumWeb-Italic.ttf, TitilliumWeb-Regular.ttf
+
+Ubuntu
+  License: UFL-1.0
+  Copyright: Copyright 2011 Canonical Ltd.  Licensed under the Ubuntu Font Licence 1.0
+  Files: Ubuntu-Bold.ttf, Ubuntu-BoldItalic.ttf, Ubuntu-Italic.ttf, Ubuntu-Regular.ttf
+
+Work Sans
+  License: OFL-1.1
+  Copyright: Copyright 2019 The Work Sans Project Authors (https://github.com/weiweihuanghuang/Work-Sans)
+  Files: WorkSans-Bold.ttf, WorkSans-BoldItalic.ttf, WorkSans-Italic.ttf, WorkSans-Regular.ttf

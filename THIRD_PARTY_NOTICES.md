@@ -41,9 +41,28 @@ When present under `engines/`, these run as **separate executables** (not linked
 - **PDFium** (via pdfrx / pdfium_flutter) — BSD / Apache composite notices from the engine package  
 - **Flutter / Dart SDK** — BSD-style licenses  
 
+## Dart packages
+
+Pub packages (flutter_quill, flutter_math_fork, pdf, archive, xml, html,
+markdown, pdfrx, …) keep their own licenses (MIT / BSD / Apache-2.0). Flutter
+collects them automatically; they are listed in the app under Settings →
+Licenses together with the bundled fonts below.
+
+## Optional external tools (not bundled)
+
+- **Ghostscript** — used only for PDF/A conversion when the user has it
+  installed; AGPL-3.0 / commercial. Document Studio runs it as a separate
+  process and does not ship it.
+
 ## Fonts
 
-- **Liberation** — [assets/fonts/text/LICENSE-Liberation.txt](assets/fonts/text/LICENSE-Liberation.txt)
+All bundled fonts allow redistribution and embedding in documents. Each
+folder carries the full license texts and per-family copyright notices:
+
+- **Liberation** (OFL-1.1) — [assets/fonts/text/LICENSE-Liberation.txt](assets/fonts/text/LICENSE-Liberation.txt)
+- **DejaVu** (Bitstream Vera / public domain terms) — [assets/fonts/text/LICENSE-DejaVu.txt](assets/fonts/text/LICENSE-DejaVu.txt)
+- **Font library** (76 families; OFL-1.1, Apache-2.0, Ubuntu Font Licence 1.0) — [assets/fonts/library/NOTICE.txt](assets/fonts/library/NOTICE.txt), `OFL.txt`, `Apache-2.0.txt`, `UFL-1.0.txt`
+- **Signature fonts** (OFL-1.1) — [assets/fonts/signature/NOTICE.txt](assets/fonts/signature/NOTICE.txt), `OFL.txt`
 
 Preserve all upstream copyright and license notices when redistributing installers or
 store packages. Do not replace third-party licenses with Document Studio's proprietary license.

@@ -11,13 +11,13 @@ import 'package:pdfrx/pdfrx.dart';
 class PdfrxAnnotationAdapter implements PdfAnnotationPort {
   @override
   PdfAnnotationCapabilities get capabilities => const PdfAnnotationCapabilities(
-        canList: true,
-        canAuthor: false,
-        canPersist: false,
-        listLimitation:
-            'Lists link annotations and markup entries pdfrx surfaces via loadLinks; '
-            'silent highlights/ink without popup metadata may be omitted until PDFium FFI.',
-      );
+    canList: true,
+    canAuthor: false,
+    canPersist: false,
+    listLimitation:
+        'Lists link annotations and markup entries pdfrx surfaces via loadLinks; '
+        'silent highlights/ink without popup metadata may be omitted until PDFium FFI.',
+  );
 
   @override
   Future<List<PdfMarkupAnnotation>> listAnnotations(
@@ -26,14 +26,16 @@ class PdfrxAnnotationAdapter implements PdfAnnotationPort {
   }) async {
     final doc = await _open(file, password: password);
     try {
-      return listFromOpenDocument(doc);
+      return await listFromOpenDocument(doc);
     } finally {
       await doc.dispose();
     }
   }
 
   /// Lists annotations while a viewer session already holds an open [PdfDocument].
-  Future<List<PdfMarkupAnnotation>> listFromOpenDocument(PdfDocument document) async {
+  Future<List<PdfMarkupAnnotation>> listFromOpenDocument(
+    PdfDocument document,
+  ) async {
     final results = <PdfMarkupAnnotation>[];
     for (final page in document.pages) {
       final loaded = await page.ensureLoaded();
@@ -51,24 +53,21 @@ class PdfrxAnnotationAdapter implements PdfAnnotationPort {
     required LocalFileRef file,
     required PdfMarkupAnnotation draft,
     String? password,
-  }) =>
-      _authoringBlocked();
+  }) => _authoringBlocked();
 
   @override
   Future<PdfMarkupAnnotation> updateAnnotation({
     required LocalFileRef file,
     required PdfMarkupAnnotation annotation,
     String? password,
-  }) =>
-      _authoringBlocked();
+  }) => _authoringBlocked();
 
   @override
   Future<void> removeAnnotation({
     required LocalFileRef file,
     required String annotationId,
     String? password,
-  }) =>
-      _authoringBlocked();
+  }) => _authoringBlocked();
 
   @override
   Future<LocalFileRef> saveAnnotatedCopy({
@@ -84,10 +83,7 @@ class PdfrxAnnotationAdapter implements PdfAnnotationPort {
     );
   }
 
-  Future<PdfDocument> _open(
-    LocalFileRef file, {
-    String? password,
-  }) async {
+  Future<PdfDocument> _open(LocalFileRef file, {String? password}) async {
     try {
       return await PdfDocument.openFile(
         file.path,
@@ -119,8 +115,7 @@ class PdfrxAnnotationAdapter implements PdfAnnotationPort {
       const DocumentStudioError(
         code: DocumentStudioErrorCode.featureUnavailable,
         message: 'PDF annotation authoring is not available via pdfrx yet.',
-        recoveryHint:
-            'See docs/BLOCKED-FEATURES-IMPLEMENTATION.md ([R] annotations authoring).',
+        recoveryHint: 'See docs/BLOCKED-FEATURES-IMPLEMENTATION.md ([R] annotations authoring).',
       ),
     );
   }

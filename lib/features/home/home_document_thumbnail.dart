@@ -20,8 +20,18 @@ String homeRelativeTime(DateTime time, {DateTime? now}) {
   if (days == 1) return 'Yesterday';
   if (days < 7) return '$days days ago';
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   final md = '${months[time.month - 1]} ${time.day}';
   return time.year == n.year ? md : '$md, ${time.year}';
@@ -54,8 +64,7 @@ class HomeThumbnailLoader extends ConsumerStatefulWidget {
   });
 
   final LocalFileRef file;
-  final Widget Function(BuildContext context, HomeThumbnail? thumbnail)
-      builder;
+  final Widget Function(BuildContext context, HomeThumbnail? thumbnail) builder;
 
   @override
   ConsumerState<HomeThumbnailLoader> createState() =>
@@ -82,14 +91,11 @@ class _HomeThumbnailLoaderState extends ConsumerState<HomeThumbnailLoader> {
     final path = widget.file.path;
     _thumb = cache.peek(path);
     cache
-        .load(
-      widget.file,
-      isWanted: () => mounted && widget.file.path == path,
-    )
+        .load(widget.file, isWanted: () => mounted && widget.file.path == path)
         .then((t) {
-      if (!mounted || widget.file.path != path) return;
-      if (!identical(t, _thumb)) setState(() => _thumb = t);
-    });
+          if (!mounted || widget.file.path != path) return;
+          if (!identical(t, _thumb)) setState(() => _thumb = t);
+        });
   }
 
   @override
@@ -119,8 +125,14 @@ class HomePagePreview extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final png = thumbnail?.image;
-    final isImage = const {'png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'}
-        .contains(file.extension);
+    final isImage = const {
+      'png',
+      'jpg',
+      'jpeg',
+      'webp',
+      'gif',
+      'bmp',
+    }.contains(file.extension);
 
     Widget content;
     if (png != null) {
@@ -182,8 +194,8 @@ class HomePagePreview extends StatelessWidget {
             locked
                 ? Icons.lock_outline_rounded
                 : file.isPdf
-                    ? Icons.picture_as_pdf_outlined
-                    : Icons.insert_drive_file_outlined,
+                ? Icons.picture_as_pdf_outlined
+                : Icons.insert_drive_file_outlined,
             size: iconSize,
             color: locked
                 ? DsColors.textSecondary(

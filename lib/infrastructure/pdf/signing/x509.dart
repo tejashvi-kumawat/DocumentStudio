@@ -121,8 +121,9 @@ class X509Certificate {
     final kids = tbsNode.children ?? const <DerNode>[];
     var idx = 0;
     if (kids.isNotEmpty && kids[0].tag == 0xa0) idx = 1;
-    if (kids.length < idx + 6)
+    if (kids.length < idx + 6) {
       throw FormatException('TBSCertificate truncated');
+    }
 
     final serialNode = kids[idx];
     final serialBytes = _stripIntPadding(serialNode.value);
@@ -204,8 +205,9 @@ class X509Certificate {
           try {
             final bc = DerNode.decode(octet.value);
             for (final c in bc.children ?? const <DerNode>[]) {
-              if (c.tag == 0x01 && c.value.isNotEmpty && c.value[0] != 0)
+              if (c.tag == 0x01 && c.value.isNotEmpty && c.value[0] != 0) {
                 isCa = true;
+              }
             }
           } catch (_) {}
         }

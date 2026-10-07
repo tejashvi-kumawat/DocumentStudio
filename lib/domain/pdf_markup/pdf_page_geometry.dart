@@ -29,12 +29,12 @@ class PdfPageGeometry {
       );
 
   factory PdfPageGeometry.fromJson(Map<String, dynamic> j) => PdfPageGeometry(
-        cropLeft: (j['x'] as num).toDouble(),
-        cropBottom: (j['y'] as num).toDouble(),
-        cropWidth: (j['w'] as num).toDouble(),
-        cropHeight: (j['h'] as num).toDouble(),
-        rotate: (j['r'] as num).toInt(),
-      );
+    cropLeft: (j['x'] as num).toDouble(),
+    cropBottom: (j['y'] as num).toDouble(),
+    cropWidth: (j['w'] as num).toDouble(),
+    cropHeight: (j['h'] as num).toDouble(),
+    rotate: (j['r'] as num).toInt(),
+  );
 
   final double cropLeft;
   final double cropBottom;
@@ -49,12 +49,12 @@ class PdfPageGeometry {
   double get displayHeight => _swapped ? cropWidth : cropHeight;
 
   Map<String, dynamic> toJson() => {
-        'x': cropLeft,
-        'y': cropBottom,
-        'w': cropWidth,
-        'h': cropHeight,
-        'r': rotate,
-      };
+    'x': cropLeft,
+    'y': cropBottom,
+    'w': cropWidth,
+    'h': cropHeight,
+    'r': rotate,
+  };
 
   /// Display point (top-left origin, y down) → user space.
   Offset displayToUser(Offset d) {
@@ -150,13 +150,13 @@ class Affine2 {
 
   /// Affine mapping (0,0)→[o], (1,0)→[x1], (0,1)→[y1].
   factory Affine2.fromBasis(Offset o, Offset x1, Offset y1) => Affine2(
-        x1.dx - o.dx,
-        x1.dy - o.dy,
-        y1.dx - o.dx,
-        y1.dy - o.dy,
-        o.dx,
-        o.dy,
-      );
+    x1.dx - o.dx,
+    x1.dy - o.dy,
+    y1.dx - o.dx,
+    y1.dy - o.dy,
+    o.dx,
+    o.dy,
+  );
 
   factory Affine2.fromList(List<double> m) =>
       Affine2(m[0], m[1], m[2], m[3], m[4], m[5]);
@@ -168,13 +168,13 @@ class Affine2 {
 
   /// `this ∘ other` (apply [other] first).
   Affine2 multiply(Affine2 o) => Affine2(
-        a * o.a + c * o.b,
-        b * o.a + d * o.b,
-        a * o.c + c * o.d,
-        b * o.c + d * o.d,
-        a * o.e + c * o.f + e,
-        b * o.e + d * o.f + f,
-      );
+    a * o.a + c * o.b,
+    b * o.a + d * o.b,
+    a * o.c + c * o.d,
+    b * o.c + d * o.d,
+    a * o.e + c * o.f + e,
+    b * o.e + d * o.f + f,
+  );
 
   Affine2 inverse() {
     final det = a * d - b * c;
@@ -199,8 +199,10 @@ Affine2 frameToDisplay(
   bool flipV = false,
 }) {
   final center = frame.center;
-  var m = Affine2.translate(center.dx, center.dy)
-      .multiply(Affine2.rotate(rotationDeg * math.pi / 180));
+  var m = Affine2.translate(
+    center.dx,
+    center.dy,
+  ).multiply(Affine2.rotate(rotationDeg * math.pi / 180));
   if (flipH || flipV) {
     m = m.multiply(Affine2.scale(flipH ? -1 : 1, flipV ? -1 : 1));
   }

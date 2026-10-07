@@ -69,10 +69,11 @@ class _PdfPageLabelsEditorState extends ConsumerState<PdfPageLabelsEditor> {
   void initState() {
     super.initState();
     final limit = _pages;
-    final selected = widget.selectedPages1Based
-        .where((p) => p >= 1 && (limit < 1 || p <= limit))
-        .toList()
-      ..sort();
+    final selected =
+        widget.selectedPages1Based
+            .where((p) => p >= 1 && (limit < 1 || p <= limit))
+            .toList()
+          ..sort();
     _allPages = selected.isEmpty;
     final from = selected.isEmpty
         ? widget.handoff.currentPage1

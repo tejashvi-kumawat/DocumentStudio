@@ -28,7 +28,8 @@ class PageOcrTextLayer {
   final int imageWidthPx;
   final int imageHeightPx;
 
-  bool get isEmpty => words.isEmpty && fallbackLines.every((l) => l.trim().isEmpty);
+  bool get isEmpty =>
+      words.isEmpty && fallbackLines.every((l) => l.trim().isEmpty);
 }
 
 /// Burns OCR text as invisible Helvetica into [pdf] (pure Dart, no qpdf).

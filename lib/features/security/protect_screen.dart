@@ -5,6 +5,7 @@ import 'package:document_studio/core/storage/file_storage_port.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/shell/ds_tool_route_actions.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_session_commit.dart';
@@ -20,10 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 class ProtectDeps {
-  const ProtectDeps({
-    required this.fileStorage,
-    required this.encryptPort,
-  });
+  const ProtectDeps({required this.fileStorage, required this.encryptPort});
 
   final FileStoragePort fileStorage;
   final PdfEncryptPort encryptPort;
@@ -226,7 +224,7 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
     }
   }
 
-  Widget _formBody({required bool lockFile}) {
+  Widget _formBody({required bool lockFile, bool split = false}) {
     final theme = Theme.of(context);
     final qpdf = _qpdfAvailable;
 
@@ -240,25 +238,27 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
           ),
           const SizedBox(height: DsSpacing.lg),
         ],
-        DsToolSection(
-          topPadding: false,
-          title: 'Source file',
-          child: lockFile
-              ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
-              : DsToolFileSource(
-                  files: [?_file],
-                  enabled: !_busy,
-                  onPick: _pick,
-                  onFilesDropped: (files) => _setFile(files.first),
-                  onRemove: (_) => _setFile(null),
-                  metaFor: (f) =>
-                      f.sizeBytes == null ? null : dsFormatBytes(f.sizeBytes!),
-                  emptyTitle: 'Drop a PDF to encrypt',
-                  emptySubtitle:
-                      'Set an open password and choose what readers may do',
-                  icon: Icons.lock_outline_rounded,
-                ),
-        ),
+        if (!split || _file != null)
+          DsToolSection(
+            topPadding: false,
+            title: 'Source file',
+            child: lockFile
+                ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
+                : DsToolFileSource(
+                    files: [?_file],
+                    enabled: !_busy,
+                    onPick: _pick,
+                    onFilesDropped: (files) => _setFile(files.first),
+                    onRemove: (_) => _setFile(null),
+                    metaFor: (f) => f.sizeBytes == null
+                        ? null
+                        : dsFormatBytes(f.sizeBytes!),
+                    emptyTitle: 'Drop a PDF to encrypt',
+                    emptySubtitle:
+                        'Set an open password and choose what readers may do',
+                    icon: Icons.lock_outline_rounded,
+                  ),
+          ),
         DsToolSection(
           title: 'Passwords',
           child: Column(
@@ -271,7 +271,9 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
                   labelText: 'Password to open',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    tooltip: _showPasswords ? 'Hide passwords' : 'Show passwords',
+                    tooltip: _showPasswords
+                        ? 'Hide passwords'
+                        : 'Show passwords',
                     icon: Icon(
                       _showPasswords
                           ? Icons.visibility_off_outlined
@@ -292,7 +294,8 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
                 decoration: InputDecoration(
                   labelText: 'Confirm password',
                   border: const OutlineInputBorder(),
-                  errorText: _confirmPasswordController.text.isNotEmpty &&
+                  errorText:
+                      _confirmPasswordController.text.isNotEmpty &&
                           _confirmPasswordController.text !=
                               _userPasswordController.text
                       ? 'Passwords don’t match'
@@ -307,7 +310,8 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
                 obscureText: !_showPasswords,
                 decoration: const InputDecoration(
                   labelText: 'Permissions password (optional)',
-                  helperText: 'Needed to change the permissions below later. '
+                  helperText:
+                      'Needed to change the permissions below later. '
                       'Leave empty to lock them permanently.',
                   border: OutlineInputBorder(),
                 ),
@@ -359,41 +363,41 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
                   'Allow printing',
                   _allowPrinting,
                   (bool v) => _onPermissionToggle(
-                        allowPrinting: v,
-                        allowCopy: _allowCopy,
-                        allowModify: _allowModify,
-                        allowAnnotate: _allowAnnotate,
-                      ),
+                    allowPrinting: v,
+                    allowCopy: _allowCopy,
+                    allowModify: _allowModify,
+                    allowAnnotate: _allowAnnotate,
+                  ),
                 ),
                 (
                   'Allow copying text',
                   _allowCopy,
                   (bool v) => _onPermissionToggle(
-                        allowPrinting: _allowPrinting,
-                        allowCopy: v,
-                        allowModify: _allowModify,
-                        allowAnnotate: _allowAnnotate,
-                      ),
+                    allowPrinting: _allowPrinting,
+                    allowCopy: v,
+                    allowModify: _allowModify,
+                    allowAnnotate: _allowAnnotate,
+                  ),
                 ),
                 (
                   'Allow modifying',
                   _allowModify,
                   (bool v) => _onPermissionToggle(
-                        allowPrinting: _allowPrinting,
-                        allowCopy: _allowCopy,
-                        allowModify: v,
-                        allowAnnotate: _allowAnnotate,
-                      ),
+                    allowPrinting: _allowPrinting,
+                    allowCopy: _allowCopy,
+                    allowModify: v,
+                    allowAnnotate: _allowAnnotate,
+                  ),
                 ),
                 (
                   'Allow annotating',
                   _allowAnnotate,
                   (bool v) => _onPermissionToggle(
-                        allowPrinting: _allowPrinting,
-                        allowCopy: _allowCopy,
-                        allowModify: _allowModify,
-                        allowAnnotate: v,
-                      ),
+                    allowPrinting: _allowPrinting,
+                    allowCopy: _allowCopy,
+                    allowModify: _allowModify,
+                    allowAnnotate: v,
+                  ),
                 ),
               ])
                 Material(
@@ -467,7 +471,6 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
       title: 'Encrypt',
       subtitle: 'Encrypt with a password and set permissions.',
       icon: Icons.lock_outline_rounded,
-      iconColor: const Color(0xFF7C3AED),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => handleDsToolFormCancel(context, ref),
@@ -489,7 +492,16 @@ class _ProtectScreenState extends ConsumerState<ProtectScreen> {
             ? widget.initialPassword
             : _inputPasswordController.text,
       ),
-      child: _formBody(lockFile: false),
+      preview: DsPdfPreviewPane(
+        file: _file,
+        enabled: !_busy,
+        onPick: _pick,
+        onFilesDropped: (files) => _setFile(files.first),
+        emptyTitle: 'Drop a PDF to encrypt',
+        emptySubtitle: 'Set an open password and choose what readers may do',
+        icon: Icons.lock_outline_rounded,
+      ),
+      child: _formBody(lockFile: false, split: true),
     );
   }
 }

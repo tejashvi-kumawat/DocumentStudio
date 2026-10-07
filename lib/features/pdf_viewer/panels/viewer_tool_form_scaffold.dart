@@ -106,36 +106,34 @@ class ViewerToolFormScaffold extends StatelessWidget {
     return Theme(
       data: _acrobatOptionsTheme(theme),
       child: LayoutBuilder(
-      builder: (context, constraints) {
-        final centered = _center(
-          context: context,
-          compact: compact ||
-              (constraints.maxWidth.isFinite &&
-                  constraints.maxWidth < DsSpacing.breakpointCompact),
-          padding: EdgeInsets.fromLTRB(pad, pad, pad, DsSpacing.sm),
-          child: form,
-        );
-        if (!constraints.hasBoundedHeight) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [centered, bar],
+        builder: (context, constraints) {
+          final centered = _center(
+            context: context,
+            compact:
+                compact ||
+                (constraints.maxWidth.isFinite &&
+                    constraints.maxWidth < DsSpacing.breakpointCompact),
+            padding: EdgeInsets.fromLTRB(pad, pad, pad, DsSpacing.sm),
+            child: form,
           );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [centered],
+          if (!constraints.hasBoundedHeight) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [centered, bar],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ListView(padding: EdgeInsets.zero, children: [centered]),
               ),
-            ),
-            bar,
-          ],
-        );
-      },
-    ),
+              bar,
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -235,11 +233,7 @@ class _ApplyBar extends StatelessWidget {
               ),
             )
           : Icon(primaryIcon, size: 20),
-      label: Text(
-        primaryLabel,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      label: Text(primaryLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
     final secondary = secondaryLabel == null
         ? null
@@ -273,11 +267,7 @@ class _ApplyBar extends StatelessWidget {
     final Widget actions;
     if (secondary == null) {
       actions = compact
-          ? SizedBox(
-              width: double.infinity,
-              height: controlH,
-              child: button,
-            )
+          ? SizedBox(width: double.infinity, height: controlH, child: button)
           : Align(
               alignment: Alignment.centerRight,
               child: SizedBox(height: controlH, child: button),
@@ -294,9 +284,13 @@ class _ApplyBar extends StatelessWidget {
     } else {
       actions = Row(
         children: [
-          Expanded(child: SizedBox(height: controlH, child: secondary)),
+          Expanded(
+            child: SizedBox(height: controlH, child: secondary),
+          ),
           const SizedBox(width: DsSpacing.sm),
-          Expanded(child: SizedBox(height: controlH, child: button)),
+          Expanded(
+            child: SizedBox(height: controlH, child: button),
+          ),
         ],
       );
     }
@@ -312,7 +306,7 @@ class _ApplyBar extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.fromLTRB(pad, DsSpacing.sm, pad, DsSpacing.sm),
             child: _center(
-          context: context,
+              context: context,
               compact: compact,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -346,7 +340,7 @@ Widget _center({
         maxWidth: compact
             ? double.infinity
             : (ViewerOptionsWidthScope.maybeOf(context) ??
-                viewerAcrobatOptionsWidth),
+                  viewerAcrobatOptionsWidth),
       ),
       child: padding == null ? child : Padding(padding: padding, child: child),
     ),

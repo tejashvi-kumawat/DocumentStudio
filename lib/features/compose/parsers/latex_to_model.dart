@@ -1,12 +1,14 @@
 import 'package:document_studio/features/compose/compose_model.dart';
+import 'package:document_studio/features/compose/parsers/tikz_subset.dart';
 
 /// Everyday LaTeX → [ComposeDoc], entirely in Dart (no TeX install, no
 /// network). Covers the document structure people actually write: title
 /// block, numbered sections + table of contents, paragraphs, text styles,
 /// sizes and colours, lists, tables (`tabular`), figures with
 /// `\includegraphics`, quotes, verbatim / code, footnotes, `\label` /
-/// `\ref`, `\newcommand` macros, and maths (inline and display: equation,
-/// align, gather …) rendered with a KaTeX-compatible engine.
+/// `\ref`, `\newcommand` macros, `\newenvironment`, a TikZ subset,
+/// framed boxes, and maths (inline and display: equation, align, gather …)
+/// rendered with a KaTeX-compatible engine.
 ComposeDoc latexToCompose(String source) {
   // Two passes: the first collects \label targets so \ref resolves.
   final first = _LatexParser(source, const {});
@@ -44,8 +46,11 @@ class _LatexParser {
       text = text.substring(begin + 16, end < 0 ? text.length : end);
     }
     final macros = _macros('$preamble\n$text');
+    final envs = _newEnvironments('$preamble\n$text');
     text = _expand(text, macros);
     preamble = _expand(preamble, macros);
+    text = _expandEnvironments(text, envs);
+    preamble = _expandEnvironments(preamble, envs);
     _preamble(preamble);
     _preamble(text); // \title etc. may sit in the body too
     hasChapters = text.contains(r'\chapter');
@@ -181,6 +186,156 @@ class _LatexParser {
     return clean.toString();
   }
 
+  /// `\newenvironment{name}[n]{begin}{end}` / `\renewenvironment`.
+  Map<String, (int arity, String begin, String end)> _newEnvironments(
+    String s,
+  ) {
+    final out = <String, (int, String, String)>{};
+    final re = RegExp(r'\\(?:re)?newenvironment\*?\s*\{([A-Za-z*]+)\}');
+    for (final m in re.allMatches(s)) {
+      final c = _Cursor(s, m.end);
+      c.skipSpaces();
+      var n = 0;
+      if (c.peek == '[') n = int.tryParse(c.readBracket()) ?? 0;
+      c.skipSpaces();
+      if (c.peek == '[') c.readBracket(); // default
+      c.skipSpaces();
+      if (c.peek != '{') continue;
+      final begin = c.readGroup();
+      c.skipSpaces();
+      if (c.peek != '{') continue;
+      final end = c.readGroup();
+      out[m.group(1)!] = (n, begin, end);
+    }
+    return out;
+  }
+
+  /// Rewrite `\begin{name}…\end{name}` using collected newenvironment defs.
+  String _expandEnvironments(
+    String s,
+    Map<String, (int arity, String begin, String end)> envs,
+  ) {
+    // Drop the definitions themselves.
+    s = s.replaceAllMapped(
+      RegExp(r'\\(?:re)?newenvironment\*?\s*\{[A-Za-z*]+\}'),
+      (_) => '\u0001',
+    );
+    // Strip trailing [n][default]{begin}{end} after the marker.
+    {
+      final clean = StringBuffer();
+      var i = 0;
+      while (i < s.length) {
+        if (s[i] == '\u0001') {
+          final c = _Cursor(s, i + 1);
+          c.skipSpaces();
+          if (c.peek == '[') c.readBracket();
+          c.skipSpaces();
+          if (c.peek == '[') c.readBracket();
+          c.skipSpaces();
+          if (c.peek == '{') c.readGroup();
+          c.skipSpaces();
+          if (c.peek == '{') c.readGroup();
+          i = c.pos;
+          continue;
+        }
+        clean.write(s[i]);
+        i++;
+      }
+      s = clean.toString();
+    }
+    if (envs.isEmpty) return s;
+
+    // Built-ins we handle natively — don't expand those away.
+    const native = {
+      'tikzpicture',
+      'tikzpicture*',
+      'questionbox',
+      'answerbox',
+      'tcolorbox',
+      'mdframed',
+      'framed',
+    };
+
+    var out = s;
+    for (var round = 0; round < 6; round++) {
+      var changed = false;
+      for (final e in envs.entries) {
+        if (native.contains(e.key)) continue;
+        final open = '\\begin{${e.key}}';
+        final close = '\\end{${e.key}}';
+        final buf = StringBuffer();
+        var pos = 0;
+        while (true) {
+          final start = out.indexOf(open, pos);
+          if (start < 0) {
+            buf.write(out.substring(pos));
+            break;
+          }
+          buf.write(out.substring(pos, start));
+          var i = start + open.length;
+          final c = _Cursor(out, i);
+          c.skipSpaces();
+          if (c.peek == '[') c.readBracket(); // placement / opts
+          var begin = e.value.$2;
+          var end = e.value.$3;
+          for (var a = 1; a <= e.value.$1; a++) {
+            c.skipSpaces();
+            final arg = c.peek == '{' ? c.readGroup() : '';
+            begin = begin.replaceAll('#$a', arg);
+            end = end.replaceAll('#$a', arg);
+          }
+          // Body until matching \end{name}.
+          final bodyStart = c.pos;
+          var depth = 1;
+          var j = bodyStart;
+          while (j < out.length) {
+            if (out.startsWith(open, j)) {
+              depth++;
+              j += open.length;
+              continue;
+            }
+            if (out.startsWith(close, j)) {
+              depth--;
+              if (depth == 0) {
+                final body = out.substring(bodyStart, j);
+                // Keep TeX tokens from gluing (`\par` + `Remember` → `\parRemember`).
+                buf.write(begin);
+                if (begin.isNotEmpty &&
+                    body.isNotEmpty &&
+                    !RegExp(r'\s$').hasMatch(begin) &&
+                    !RegExp(r'^\s').hasMatch(body)) {
+                  buf.write('\n');
+                }
+                buf.write(body);
+                if (body.isNotEmpty &&
+                    end.isNotEmpty &&
+                    !RegExp(r'\s$').hasMatch(body) &&
+                    !RegExp(r'^\s').hasMatch(end)) {
+                  buf.write('\n');
+                }
+                buf.write(end);
+                pos = j + close.length;
+                changed = true;
+                break;
+              }
+              j += close.length;
+              continue;
+            }
+            j++;
+          }
+          if (depth != 0) {
+            buf.write(out.substring(start));
+            pos = out.length;
+            break;
+          }
+        }
+        out = buf.toString();
+      }
+      if (!changed) break;
+    }
+    return out;
+  }
+
   // -------------------------------------------------------------- blocks
 
   static const _sectionLevels = {
@@ -206,8 +361,9 @@ class _LatexParser {
       final inl = _inlines(t, const CStyle());
       if (inl.every(
         (i) => i.math == null && !i.lineBreak && i.text.trim().isEmpty,
-      ))
+      )) {
         return;
+      }
       out.add(
         CPara(
           _trim(inl),
@@ -280,6 +436,13 @@ class _LatexParser {
                 'description',
                 'lstlisting',
                 'minipage',
+                'tikzpicture',
+                'tikzpicture*',
+                'tcolorbox',
+                'mdframed',
+                'framed',
+                'questionbox',
+                'answerbox',
               }.contains(env) &&
               c.peek == '[') {
             c.readBracket();
@@ -321,6 +484,11 @@ class _LatexParser {
           if (c.peek == '*') c.pos++;
           final v = c.readGroup();
           out.add(CSpace(_lengthPt(v, fontSize)));
+        case 'vfill' || 'vfill*':
+          flush();
+          if (c.peek == '*') c.pos++;
+          // Approximate TeX glue: leave room for exam answer space.
+          out.add(CSpace(fontSize * 8));
         case 'bigskip':
           flush();
           out.add(CSpace(fontSize));
@@ -475,6 +643,21 @@ class _LatexParser {
         ];
       case 'abstract':
         return [CAbstract(_blocks(body, CAlign.justify))];
+      case 'tikzpicture' || 'tikzpicture*':
+        // Optional [options] before path body.
+        var b = body;
+        if (b.trimLeft().startsWith('[')) {
+          final c = _Cursor(b.trimLeft(), 0);
+          c.readBracket();
+          b = b.trimLeft().substring(c.pos);
+        }
+        return [parseTikzSubset(b)];
+      case 'questionbox' ||
+          'answerbox' ||
+          'tcolorbox' ||
+          'mdframed' ||
+          'framed':
+        return [_boxEnv(env, body)];
       case 'figure' || 'figure*' || 'wrapfigure':
         return _figure(body);
       case 'table' || 'table*':
@@ -525,14 +708,48 @@ class _LatexParser {
             CInline(head, bold: env != 'proof', italic: env == 'proof'),
             ...p0.inlines,
           ]);
-          if (env == 'proof')
+          if (env == 'proof') {
             inner.add(const CPara([CInline('∎')], align: CAlign.right));
+          }
         }
         return inner;
       default:
         warnings.add('\\begin{$env}');
         return _blocks(body, align);
     }
+  }
+
+  CBox _boxEnv(String env, String body) {
+    var b = body;
+    // Drop optional [title/options] / {title}.
+    final c = _Cursor(b, 0);
+    c.skipSpaces();
+    String? title;
+    if (c.peek == '[') {
+      final opt = c.readBracket();
+      final tm = RegExp(r'title\s*=\s*\{?([^,\}\]]+)').firstMatch(opt);
+      if (tm != null) title = tm.group(1)!.trim();
+      b = b.substring(c.pos);
+    } else if (c.peek == '{') {
+      title = c.readGroup();
+      b = b.substring(c.pos);
+    }
+    title ??= switch (env) {
+      'questionbox' => 'Question',
+      'answerbox' => 'Answer',
+      _ => null,
+    };
+    final (border, fill) = switch (env) {
+      'questionbox' => (0xFF1565C0, 0xFFE3F2FD),
+      'answerbox' => (0xFF2E7D32, 0xFFE8F5E9),
+      _ => (0xFF757575, 0xFFF5F5F5),
+    };
+    return CBox(
+      _blocks(b, CAlign.left),
+      title: title,
+      borderColor: border,
+      fillColor: fill,
+    );
   }
 
   CList _list(String env, String body) {
@@ -770,8 +987,9 @@ class _LatexParser {
     final w = RegExp(
       r'width\s*=\s*([\d.]*)\s*\\(?:textwidth|linewidth|columnwidth)',
     ).firstMatch(opts);
-    if (w != null)
+    if (w != null) {
       return double.tryParse(w.group(1)!.isEmpty ? '1' : w.group(1)!);
+    }
     final sc = RegExp(r'scale\s*=\s*([\d.]+)').firstMatch(opts);
     if (sc != null) return (double.parse(sc.group(1)!)).clamp(0.05, 1.0);
     final abs = RegExp(r'width\s*=\s*([\d.]+)\s*(cm|mm|in|pt)')
@@ -857,7 +1075,7 @@ class _LatexParser {
     'qquad': '\u2003\u2003',
     'enspace': '\u2002',
     'thinspace': '\u2009',
-    'hfill': '\u2003',
+    'hfill': '\u0002', // right-aligns the rest of the line (renderer)
     'dag': '†',
     'ddag': '‡',
     'checkmark': '✓',
@@ -1168,6 +1386,9 @@ class _LatexParser {
         case 'hspace' ||
             'hspace*' ||
             'vspace' ||
+            'vspace*' ||
+            'vfill' ||
+            'vfill*' ||
             'phantom' ||
             'index' ||
             'nocite' ||
@@ -1185,7 +1406,12 @@ class _LatexParser {
             'par' ||
             'relax' ||
             'ignorespaces' ||
-            'unskip':
+            'unskip' ||
+            'textwidth' ||
+            'linewidth' ||
+            'columnwidth' ||
+            'fill' ||
+            'stretch':
           if (c.peek == '*') c.pos++;
           if (const {
             'hspace',
@@ -1196,8 +1422,13 @@ class _LatexParser {
             'thanks',
           }.contains(name)) {
             final a = arg();
-            if (name == 'hspace')
+            if (name == 'hspace') {
               buf.write(_lengthPt(a, 10) > 8 ? '\u2003' : ' ');
+            }
+          }
+          if (name == 'vfill' || name == 'vfill*') {
+            // Inline stray \vfill: treat as a paragraph break via space.
+            buf.write('\n\n');
           }
           if (name == 'thanks') {
             // keep footnote-ish thanks out of the title text

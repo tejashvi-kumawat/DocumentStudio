@@ -32,23 +32,22 @@ SingleActivator _tool(LogicalKeyboardKey key) =>
 String _letter(LogicalKeyboardKey key) => key.keyLabel.toUpperCase();
 
 LogicalKeyboardKey _keyFor(ViewerToolShortcutId id) => switch (id) {
-      ViewerToolShortcutId.addText => LogicalKeyboardKey.keyT,
-      ViewerToolShortcutId.crop => LogicalKeyboardKey.keyC,
-      ViewerToolShortcutId.placeImage => LogicalKeyboardKey.keyI,
-      ViewerToolShortcutId.placeSignature => LogicalKeyboardKey.keyS,
-      ViewerToolShortcutId.draw => LogicalKeyboardKey.keyD,
-      ViewerToolShortcutId.highlight => LogicalKeyboardKey.keyH,
-      ViewerToolShortcutId.underline => LogicalKeyboardKey.keyU,
-      ViewerToolShortcutId.stickyNote => LogicalKeyboardKey.keyN,
-      ViewerToolShortcutId.rectangle => LogicalKeyboardKey.keyR,
-      ViewerToolShortcutId.line => LogicalKeyboardKey.keyL,
-      ViewerToolShortcutId.addLink => LogicalKeyboardKey.keyK,
-      ViewerToolShortcutId.toggleRulers => LogicalKeyboardKey.keyM,
-      ViewerToolShortcutId.rotateRight ||
-      ViewerToolShortcutId.rotateLeft ||
-      ViewerToolShortcutId.cancelTool =>
-        LogicalKeyboardKey.escape,
-    };
+  ViewerToolShortcutId.addText => LogicalKeyboardKey.keyT,
+  ViewerToolShortcutId.crop => LogicalKeyboardKey.keyC,
+  ViewerToolShortcutId.placeImage => LogicalKeyboardKey.keyI,
+  ViewerToolShortcutId.placeSignature => LogicalKeyboardKey.keyS,
+  ViewerToolShortcutId.draw => LogicalKeyboardKey.keyD,
+  ViewerToolShortcutId.highlight => LogicalKeyboardKey.keyH,
+  ViewerToolShortcutId.underline => LogicalKeyboardKey.keyU,
+  ViewerToolShortcutId.stickyNote => LogicalKeyboardKey.keyN,
+  ViewerToolShortcutId.rectangle => LogicalKeyboardKey.keyR,
+  ViewerToolShortcutId.line => LogicalKeyboardKey.keyL,
+  ViewerToolShortcutId.addLink => LogicalKeyboardKey.keyK,
+  ViewerToolShortcutId.toggleRulers => LogicalKeyboardKey.keyM,
+  ViewerToolShortcutId.rotateRight ||
+  ViewerToolShortcutId.rotateLeft ||
+  ViewerToolShortcutId.cancelTool => LogicalKeyboardKey.escape,
+};
 
 /// Human-readable activator labels for tooltips (shown on hover).
 String viewerToolShortcutTooltip(ViewerToolShortcutId id) {
@@ -69,14 +68,14 @@ String viewerToolShortcutTooltip(ViewerToolShortcutId id) {
 
 /// Canonical map: activator → shortcut id (for tests and CallbackShortcuts).
 Map<ShortcutActivator, ViewerToolShortcutId> get viewerToolShortcutMap => {
-      for (final id in ViewerToolShortcutId.values)
-        if (id != ViewerToolShortcutId.cancelTool &&
-            id != ViewerToolShortcutId.rotateRight &&
-            id != ViewerToolShortcutId.rotateLeft)
-          _tool(_keyFor(id)): id,
-      const SingleActivator(LogicalKeyboardKey.escape):
-          ViewerToolShortcutId.cancelTool,
-    };
+  for (final id in ViewerToolShortcutId.values)
+    if (id != ViewerToolShortcutId.cancelTool &&
+        id != ViewerToolShortcutId.rotateRight &&
+        id != ViewerToolShortcutId.rotateLeft)
+      _tool(_keyFor(id)): id,
+  const SingleActivator(LogicalKeyboardKey.escape):
+      ViewerToolShortcutId.cancelTool,
+};
 
 /// True when character tool keys should be ignored (typing in a field).
 bool viewerToolShortcutsBlockedByFocus() {

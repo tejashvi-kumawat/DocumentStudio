@@ -21,9 +21,7 @@ class MarkupPageText {
       try {
         final raw = await page.loadText();
         if (raw == null) return null;
-        final rects = [
-          for (final r in raw.charRects) r.toRect(page: page),
-        ];
+        final rects = [for (final r in raw.charRects) r.toRect(page: page)];
         return MarkupPageText(raw.fullText, rects);
       } catch (_) {
         return null;
@@ -69,7 +67,8 @@ class MarkupPageText {
         continue;
       }
       final overlap = math.min(c.bottom, r.bottom) - math.max(c.top, r.top);
-      final sameLine = overlap > math.min(c.height, r.height) * 0.5 &&
+      final sameLine =
+          overlap > math.min(c.height, r.height) * 0.5 &&
           r.left >= c.left - r.height;
       if (sameLine) {
         cur = c.expandToInclude(r);
@@ -99,9 +98,9 @@ class MarkupPageText {
         cur = r;
         continue;
       }
-      final overlap =
-          math.min(c.bottom, r.bottom) - math.max(c.top, r.top);
-      final sameLine = overlap > math.min(c.height, r.height) * 0.5 &&
+      final overlap = math.min(c.bottom, r.bottom) - math.max(c.top, r.top);
+      final sameLine =
+          overlap > math.min(c.height, r.height) * 0.5 &&
           r.left >= c.left - r.height;
       if (sameLine) {
         cur = c.expandToInclude(r);

@@ -340,7 +340,9 @@ class PdfViewerToolbarActions extends StatelessWidget {
                   onSelected: onSave!,
                 ),
               DsGroupedMenuItem(
-                label: sidebarEnabled ? 'Hide page thumbnails' : 'Page thumbnails',
+                label: sidebarEnabled
+                    ? 'Hide page thumbnails'
+                    : 'Page thumbnails',
                 icon: Icons.view_sidebar_outlined,
                 onSelected: onToggleSidebar ?? () {},
                 dividerBefore: true,
@@ -436,9 +438,13 @@ class PdfViewerToolbarActions extends StatelessWidget {
                 MarkupTool.line,
                 MarkupTool.cloud,
               ])
-                _ToolItem(t.label, t.icon, () => markup(t),
-                    dividerBefore: t == MarkupTool.pen ||
-                        t == MarkupTool.rectangle),
+                _ToolItem(
+                  t.label,
+                  t.icon,
+                  () => markup(t),
+                  dividerBefore:
+                      t == MarkupTool.pen || t == MarkupTool.rectangle,
+                ),
             ],
           ),
           _ToolMenu(
@@ -446,24 +452,48 @@ class PdfViewerToolbarActions extends StatelessWidget {
             icon: Icons.edit_note_rounded,
             enabled: ready,
             items: [
-              _ToolItem('Add text', Icons.text_fields_rounded,
-                  () => markup(MarkupTool.text)),
-              _ToolItem('Add image', Icons.add_photo_alternate_outlined,
-                  () => markup(MarkupTool.image)),
-              _ToolItem('Add link', Icons.link_rounded,
-                  () => markup(MarkupTool.link)),
-              _ToolItem('Watermark', Icons.branding_watermark_outlined,
-                  () => tool(ViewerToolId.watermark),
-                  dividerBefore: true),
-              _ToolItem('Header & footer', Icons.vertical_split_outlined,
-                  () => tool(ViewerToolId.headersFooters)),
-              _ToolItem('Page numbers', Icons.format_list_numbered_rounded,
-                  () => tool(ViewerToolId.pageNumbers)),
-              _ToolItem('Redact', Icons.format_color_fill_rounded,
-                  () => tool(ViewerToolId.redact),
-                  dividerBefore: true),
-              _ToolItem('Fill form', Icons.edit_document,
-                  () => tool(ViewerToolId.fillForm)),
+              _ToolItem(
+                'Add text',
+                Icons.text_fields_rounded,
+                () => markup(MarkupTool.text),
+              ),
+              _ToolItem(
+                'Add image',
+                Icons.add_photo_alternate_outlined,
+                () => markup(MarkupTool.image),
+              ),
+              _ToolItem(
+                'Add link',
+                Icons.link_rounded,
+                () => markup(MarkupTool.link),
+              ),
+              _ToolItem(
+                'Watermark',
+                Icons.branding_watermark_outlined,
+                () => tool(ViewerToolId.watermark),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Header & footer',
+                Icons.vertical_split_outlined,
+                () => tool(ViewerToolId.headersFooters),
+              ),
+              _ToolItem(
+                'Page numbers',
+                Icons.format_list_numbered_rounded,
+                () => tool(ViewerToolId.pageNumbers),
+              ),
+              _ToolItem(
+                'Redact',
+                Icons.format_color_fill_rounded,
+                () => tool(ViewerToolId.redact),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Fill form',
+                Icons.edit_document,
+                () => tool(ViewerToolId.fillForm),
+              ),
             ],
           ),
           _ToolMenu(
@@ -471,32 +501,68 @@ class PdfViewerToolbarActions extends StatelessWidget {
             icon: Icons.auto_stories_outlined,
             enabled: ready,
             items: [
-              _ToolItem('Organize pages', Icons.grid_view_rounded,
-                  () => tool(ViewerToolId.workspaceReorder)),
-              _ToolItem('Rotate pages', Icons.rotate_90_degrees_cw_outlined,
-                  () => tool(ViewerToolId.rotate)),
-              _ToolItem('Crop pages', Icons.crop_rounded,
-                  () => tool(ViewerToolId.crop)),
-              _ToolItem('Resize pages', Icons.aspect_ratio_rounded,
-                  () => tool(ViewerToolId.resize)),
-              _ToolItem('Insert blank page', Icons.note_add_outlined,
-                  () => tool(ViewerToolId.insertBlank),
-                  dividerBefore: true),
-              _ToolItem('Duplicate pages', Icons.copy_all_rounded,
-                  () => tool(ViewerToolId.duplicate)),
-              _ToolItem('Delete pages', Icons.delete_outline_rounded,
-                  () => tool(ViewerToolId.deletePages)),
-              _ToolItem('Reverse order', Icons.swap_vert_rounded,
-                  () => tool(ViewerToolId.reverse)),
-              _ToolItem('Split PDF', Icons.call_split_rounded,
-                  () => tool(ViewerToolId.split),
-                  dividerBefore: true),
-              _ToolItem('Extract pages', Icons.file_upload_outlined,
-                  () => tool(ViewerToolId.extract)),
-              _ToolItem('Extract odd pages', Icons.filter_1_rounded,
-                  () => extractParity('odd')),
-              _ToolItem('Extract even pages', Icons.filter_2_rounded,
-                  () => extractParity('even')),
+              _ToolItem(
+                'Organize pages',
+                Icons.grid_view_rounded,
+                () => tool(ViewerToolId.workspaceReorder),
+              ),
+              _ToolItem(
+                'Rotate pages',
+                Icons.rotate_90_degrees_cw_outlined,
+                () => tool(ViewerToolId.rotate),
+              ),
+              _ToolItem(
+                'Crop pages',
+                Icons.crop_rounded,
+                () => tool(ViewerToolId.crop),
+              ),
+              _ToolItem(
+                'Resize pages',
+                Icons.aspect_ratio_rounded,
+                () => tool(ViewerToolId.resize),
+              ),
+              _ToolItem(
+                'Insert blank page',
+                Icons.note_add_outlined,
+                () => tool(ViewerToolId.insertBlank),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Duplicate pages',
+                Icons.copy_all_rounded,
+                () => tool(ViewerToolId.duplicate),
+              ),
+              _ToolItem(
+                'Delete pages',
+                Icons.delete_outline_rounded,
+                () => tool(ViewerToolId.deletePages),
+              ),
+              _ToolItem(
+                'Reverse order',
+                Icons.swap_vert_rounded,
+                () => tool(ViewerToolId.reverse),
+              ),
+              _ToolItem(
+                'Split PDF',
+                Icons.call_split_rounded,
+                () => tool(ViewerToolId.split),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Extract pages',
+                Icons.file_upload_outlined,
+                () => tool(ViewerToolId.extract),
+              ),
+              _ToolItem(
+                'Extract odd pages',
+                Icons.filter_1_rounded,
+                () => extractParity('odd'),
+              ),
+              _ToolItem(
+                'Extract even pages',
+                Icons.filter_2_rounded,
+                () => extractParity('even'),
+              ),
             ],
           ),
           _ToolMenu(
@@ -504,18 +570,33 @@ class PdfViewerToolbarActions extends StatelessWidget {
             icon: Icons.verified_user_outlined,
             enabled: ready,
             items: [
-              _ToolItem('Sign', Icons.draw_outlined,
-                  () => tool(ViewerToolId.visualSign)),
-              _ToolItem('Encrypt', Icons.lock_outline_rounded,
-                  () => tool(ViewerToolId.protect),
-                  dividerBefore: true),
-              _ToolItem('Decrypt', Icons.lock_open_rounded,
-                  () => tool(ViewerToolId.unlock)),
-              _ToolItem('Edit metadata', Icons.info_outline_rounded,
-                  () => tool(ViewerToolId.metadata),
-                  dividerBefore: true),
-              _ToolItem('Remove metadata', Icons.cleaning_services_outlined,
-                  () => tool(ViewerToolId.removeMetadata)),
+              _ToolItem(
+                'Sign',
+                Icons.draw_outlined,
+                () => tool(ViewerToolId.visualSign),
+              ),
+              _ToolItem(
+                'Encrypt',
+                Icons.lock_outline_rounded,
+                () => tool(ViewerToolId.protect),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Decrypt',
+                Icons.lock_open_rounded,
+                () => tool(ViewerToolId.unlock),
+              ),
+              _ToolItem(
+                'Edit metadata',
+                Icons.info_outline_rounded,
+                () => tool(ViewerToolId.metadata),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Remove metadata',
+                Icons.cleaning_services_outlined,
+                () => tool(ViewerToolId.removeMetadata),
+              ),
             ],
           ),
           _ToolMenu(
@@ -523,22 +604,39 @@ class PdfViewerToolbarActions extends StatelessWidget {
             icon: Icons.transform_rounded,
             enabled: ready,
             items: [
-              _ToolItem('Compress', Icons.compress_rounded,
-                  () => tool(ViewerToolId.compress)),
-              _ToolItem('Make searchable (OCR)', Icons.document_scanner_outlined,
-                  () => tool(ocrBlocked
+              _ToolItem(
+                'Compress',
+                Icons.compress_rounded,
+                () => tool(ViewerToolId.compress),
+              ),
+              _ToolItem(
+                'Make searchable (OCR)',
+                Icons.document_scanner_outlined,
+                () => tool(
+                  ocrBlocked
                       ? ViewerToolId.blockedSearchablePdf
-                      : ViewerToolId.searchablePdf)),
-              _ToolItem('Export to images', Icons.image_outlined,
-                  () => tool(ViewerToolId.exportImages),
-                  dividerBefore: true),
-              _ToolItem('Convert to Office', Icons.description_outlined,
-                  () => tool(ViewerToolId.officeConvert)),
+                      : ViewerToolId.searchablePdf,
+                ),
+              ),
+              _ToolItem(
+                'Export to images',
+                Icons.image_outlined,
+                () => tool(ViewerToolId.exportImages),
+                dividerBefore: true,
+              ),
+              _ToolItem(
+                'Convert to Office',
+                Icons.description_outlined,
+                () => tool(ViewerToolId.officeConvert),
+              ),
               if (onExportText != null)
                 _ToolItem('Export text', Icons.notes_rounded, onExportText!),
-              _ToolItem('Compare with…', Icons.compare_rounded,
-                  () => tool(ViewerToolId.compare),
-                  dividerBefore: true),
+              _ToolItem(
+                'Compare with…',
+                Icons.compare_rounded,
+                () => tool(ViewerToolId.compare),
+                dividerBefore: true,
+              ),
             ],
           ),
           const DsToolbarDivider(dense: true),
@@ -591,9 +689,7 @@ class PdfViewerToolbarActions extends StatelessWidget {
               ),
               onPressed: onToggleToolsRail,
               icon: Icon(
-                toolsRailEnabled
-                    ? Icons.apps_rounded
-                    : Icons.apps_outlined,
+                toolsRailEnabled ? Icons.apps_rounded : Icons.apps_outlined,
                 size: 17,
               ),
               label: const Text('Tools'),
@@ -606,8 +702,12 @@ class PdfViewerToolbarActions extends StatelessWidget {
 }
 
 class _ToolItem {
-  const _ToolItem(this.label, this.icon, this.onSelected,
-      {this.dividerBefore = false});
+  const _ToolItem(
+    this.label,
+    this.icon,
+    this.onSelected, {
+    this.dividerBefore = false,
+  });
 
   final String label;
   final IconData icon;

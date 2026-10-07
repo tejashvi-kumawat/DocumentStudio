@@ -59,9 +59,7 @@ abstract final class DsTheme {
       // Apple controls highlight instead of rippling.
       // InkSparkle requires shaders/ink_sparkle.frag; use InkRipple on desktop.
       splashFactory: apple ? NoSplash.splashFactory : InkRipple.splashFactory,
-      highlightColor: apple
-          ? scheme.onSurface.withValues(alpha: 0.06)
-          : null,
+      highlightColor: apple ? scheme.onSurface.withValues(alpha: 0.06) : null,
       cupertinoOverrideTheme: CupertinoThemeData(
         brightness: brightness,
         primaryColor: DsColors.primary,
@@ -118,7 +116,10 @@ abstract final class DsTheme {
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(apple ? 8 : 10),
-              side: BorderSide(color: border.withValues(alpha: 0.6), width: 0.5),
+              side: BorderSide(
+                color: border.withValues(alpha: 0.6),
+                width: 0.5,
+              ),
             ),
           ),
         ),
@@ -209,9 +210,7 @@ abstract final class DsTheme {
             color: isDark ? DsColors.borderDark : DsColors.borderLight,
           ),
         ),
-        color: isDark
-            ? DsColors.surfaceContainerDark
-            : DsColors.surfaceLight,
+        color: isDark ? DsColors.surfaceContainerDark : DsColors.surfaceLight,
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
@@ -258,17 +257,58 @@ abstract final class DsTheme {
         activeTrackColor: DsColors.primary,
         thumbColor: DsColors.primary,
         overlayColor: DsColors.primary.withValues(alpha: 0.12),
-        inactiveTrackColor: isDark
-            ? DsColors.borderDark
-            : DsColors.borderLight,
+        inactiveTrackColor: isDark ? DsColors.borderDark : DsColors.borderLight,
       ),
+      // Quiet outlines: a hairline at rest, brand colour on focus.
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 13,
+        ),
+        border: _inputBorder(
+          isDark ? DsColors.borderDark : DsColors.borderLight,
+        ),
+        enabledBorder: _inputBorder(
+          isDark ? DsColors.borderDark : DsColors.borderLight,
+        ),
+        disabledBorder: _inputBorder(
+          (isDark ? DsColors.borderDark : DsColors.borderLight).withValues(
+            alpha: 0.6,
+          ),
+        ),
+        focusedBorder: _inputBorder(DsColors.primary, width: 1.6),
+        errorBorder: _inputBorder(DsColors.error),
+        focusedErrorBorder: _inputBorder(DsColors.error, width: 1.6),
+        labelStyle: TextStyle(
+          color: isDark
+              ? DsColors.textSecondaryDark
+              : DsColors.textSecondaryLight,
+          fontSize: 14,
+        ),
+        helperStyle: TextStyle(
+          color: isDark
+              ? DsColors.textSecondaryDark
+              : DsColors.textSecondaryLight,
+          fontSize: 12,
+        ),
+        hintStyle: TextStyle(
+          color:
+              (isDark
+                      ? DsColors.textSecondaryDark
+                      : DsColors.textSecondaryLight)
+                  .withValues(alpha: 0.8),
+        ),
       ),
       dividerTheme: DividerThemeData(
         color: isDark ? DsColors.borderDark : DsColors.borderLight,
       ),
     );
   }
+
+  static OutlineInputBorder _inputBorder(Color color, {double width = 1}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: color, width: width),
+      );
 }

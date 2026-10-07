@@ -87,20 +87,14 @@ List<Widget> buildViewerLiveToolOverlays({
     case ViewerToolId.redact:
       overlays.add(
         Positioned.fill(
-          child: _LiveRedactLayer(
-            session: session,
-            pageSize: pageSize,
-          ),
+          child: _LiveRedactLayer(session: session, pageSize: pageSize),
         ),
       );
     case ViewerToolId.crop:
       overlays.add(
         Positioned.fill(
           child: session.cropMode == LiveCropMode.quad
-              ? _LiveCropQuadLayer(
-                  session: session,
-                  pageSize: pageSize,
-                )
+              ? _LiveCropQuadLayer(session: session, pageSize: pageSize)
               : _LiveCropRectLayer(
                   session: session,
                   tool: tool,
@@ -320,8 +314,8 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
     if (handle == null) {
       session.setDragRectNorm(moveNormRect(base, dx: dx, dy: dy));
     } else {
-      final keepAspect = widget.tool == ViewerToolId.crop &&
-          session.cropAspectNorm != null;
+      final keepAspect =
+          widget.tool == ViewerToolId.crop && session.cropAspectNorm != null;
       session.setDragRectNorm(
         resizeNormRect(
           base,
@@ -389,10 +383,7 @@ class _LiveCropRectLayerState extends State<_LiveCropRectLayer> {
 
 /// Four-corner crop like a document scanner (drag corners / move interior).
 class _LiveCropQuadLayer extends StatefulWidget {
-  const _LiveCropQuadLayer({
-    required this.session,
-    required this.pageSize,
-  });
+  const _LiveCropQuadLayer({required this.session, required this.pageSize});
 
   final ViewerLiveToolSession session;
   final Size pageSize;
@@ -782,10 +773,7 @@ class _StampPreviewPainter extends CustomPainter {
 
 /// Horizontal + vertical rulers in PDF points (does not remount PdfViewer).
 class _PageRulersPainter extends CustomPainter {
-  _PageRulersPainter({
-    required this.pageWidthPt,
-    required this.pageHeightPt,
-  });
+  _PageRulersPainter({required this.pageWidthPt, required this.pageHeightPt});
 
   final double pageWidthPt;
   final double pageHeightPt;
@@ -847,7 +835,9 @@ class _PageRulersPainter extends CustomPainter {
     if (rough <= 0) return 36;
     final mag = math.pow(10, (math.log(rough) / math.ln10).floor()).toDouble();
     final norm = rough / mag;
-    final nice = norm < 1.5 ? 1.0 : (norm < 3.5 ? 2.0 : (norm < 7.5 ? 5.0 : 10.0));
+    final nice = norm < 1.5
+        ? 1.0
+        : (norm < 3.5 ? 2.0 : (norm < 7.5 ? 5.0 : 10.0));
     return nice * mag;
   }
 
@@ -859,10 +849,7 @@ class _PageRulersPainter extends CustomPainter {
 
 /// Multi-box redact with search-match highlights.
 class _LiveRedactLayer extends StatefulWidget {
-  const _LiveRedactLayer({
-    required this.session,
-    required this.pageSize,
-  });
+  const _LiveRedactLayer({required this.session, required this.pageSize});
 
   final ViewerLiveToolSession session;
   final Size pageSize;
@@ -913,7 +900,12 @@ class _LiveRedactLayerState extends State<_LiveRedactLayer> {
     final rects = session.redactRectsNorm;
     for (var i = 0; i < rects.length; i++) {
       final r = rects[i];
-      final box = Rect.fromLTRB(r.left * w, r.top * h, r.right * w, r.bottom * h);
+      final box = Rect.fromLTRB(
+        r.left * w,
+        r.top * h,
+        r.right * w,
+        r.bottom * h,
+      );
       final handle = hitTestPlacementHandle(boxPx: box, local: local);
       if (handle != null || box.contains(local)) {
         session.setActiveRedactIndex(i);
@@ -1034,7 +1026,10 @@ class _RedactMultiPainter extends CustomPainter {
         r.right * pageSize.width,
         r.bottom * pageSize.height,
       );
-      canvas.drawRect(box, Paint()..color = Colors.black.withValues(alpha: 0.85));
+      canvas.drawRect(
+        box,
+        Paint()..color = Colors.black.withValues(alpha: 0.85),
+      );
       canvas.drawRect(
         box,
         Paint()

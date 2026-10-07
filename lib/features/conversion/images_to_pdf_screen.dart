@@ -7,6 +7,7 @@ import 'package:document_studio/core/storage/file_storage_port.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/conversion/conversion_route.dart';
@@ -109,7 +110,10 @@ class _ImagesToPdfScreenState extends State<ImagesToPdfScreen> {
     final storage = widget.deps.fileStorage;
     String? temp;
     try {
-      temp = await storage.createTempFile(prefix: 'images-to-pdf', suffix: '.pdf');
+      temp = await storage.createTempFile(
+        prefix: 'images-to-pdf',
+        suffix: '.pdf',
+      );
       final images = List.of(_images);
       final built = await widget.deps.jobs.run(
         handle: job,
@@ -137,7 +141,9 @@ class _ImagesToPdfScreenState extends State<ImagesToPdfScreen> {
       final bytes = await storage.readBytes(built);
       final first = p.basenameWithoutExtension(images.first.displayName);
       final save = await storage.pickSavePath(
-        suggestedName: images.length == 1 ? '$first.pdf' : '$first and more.pdf',
+        suggestedName: images.length == 1
+            ? '$first.pdf'
+            : '$first and more.pdf',
         bytes: bytes,
         allowedExtensions: ['pdf'],
         mimeType: 'application/pdf',
@@ -190,7 +196,21 @@ class _ImagesToPdfScreenState extends State<ImagesToPdfScreen> {
       title: options.title,
       subtitle: options.subtitle,
       icon: Icons.collections_outlined,
-      iconColor: const Color(0xFFF59E0B),
+      preview: count == 0
+          ? DsDropPane(
+              multiple: true,
+              allowedExtensions: _extensions,
+              enabled: !_busy,
+              onPick: _pickImages,
+              onFilesDropped: _addImages,
+              emptyTitle: 'Drop images here',
+              emptySubtitle:
+                  '${_extensions.map((e) => e.toUpperCase()).join(', ')}'
+                  ' — add as many as you like',
+              pickLabel: 'Choose images',
+              icon: Icons.add_photo_alternate_outlined,
+            )
+          : _PageGrid(images: _images),
       primaryLabel: count <= 1 ? 'Create PDF' : 'Create $count-page PDF',
       primaryIcon: Icons.picture_as_pdf_outlined,
       primaryEnabled: count > 0,
@@ -223,34 +243,36 @@ class _ImagesToPdfScreenState extends State<ImagesToPdfScreen> {
               padding: const EdgeInsets.only(bottom: DsSpacing.md),
               child: DsToolResultCard(
                 title: 'Build a PDF from scans',
-                message: 'Add photos or saved scan pages, put them in order, '
+                message:
+                    'Add photos or saved scan pages, put them in order, '
                     'then create one PDF.',
                 tone: DsResultTone.info,
               ),
             ),
-          DsToolSection(
-            topPadding: false,
-            title: count == 0 ? 'Images' : 'Pages ($count)',
-            subtitle: count == 0
-                ? null
-                : 'Drag to reorder — each image becomes one page.',
-            child: count == 0
-                ? DsToolFileSource(
-                    files: const [],
-                    multiple: true,
-                    allowedExtensions: _extensions,
-                    enabled: !_busy,
-                    onPick: _pickImages,
-                    onFilesDropped: _addImages,
-                    emptyTitle: 'Drop images here',
-                    emptySubtitle:
-                        '${_extensions.map((e) => e.toUpperCase()).join(', ')}'
-                        ' — add as many as you like',
-                    pickLabel: 'Choose images',
-                    icon: Icons.add_photo_alternate_outlined,
-                  )
-                : _imageList(theme),
-          ),
+          if (count > 0)
+            DsToolSection(
+              topPadding: false,
+              title: 'Pages ($count)',
+              subtitle: count == 0
+                  ? null
+                  : 'Drag to reorder — each image becomes one page.',
+              child: count == 0
+                  ? DsToolFileSource(
+                      files: const [],
+                      multiple: true,
+                      allowedExtensions: _extensions,
+                      enabled: !_busy,
+                      onPick: _pickImages,
+                      onFilesDropped: _addImages,
+                      emptyTitle: 'Drop images here',
+                      emptySubtitle:
+                          '${_extensions.map((e) => e.toUpperCase()).join(', ')}'
+                          ' — add as many as you like',
+                      pickLabel: 'Choose images',
+                      icon: Icons.add_photo_alternate_outlined,
+                    )
+                  : _imageList(theme),
+            ),
           DsToolSection(
             title: 'Page size',
             child: DsToolChoiceGroup<ImagesToPdfPageSize>(
@@ -464,7 +486,10 @@ class _ImageRow extends StatelessWidget {
                   gaplessPlayback: true,
                   errorBuilder: (_, _, _) => ColoredBox(
                     color: DsColors.groupedBackground(b),
-                    child: const Icon(Icons.image_not_supported_outlined, size: 18),
+                    child: const Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 18,
+                    ),
                   ),
                 ),
               ),
@@ -504,6 +529,59 @@ class _ImageRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The pages as they will appear, in order.
+class _PageGrid extends StatelessWidget {
+  const _PageGrid({required this.images});
+
+  final List<LocalFileRef> images;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final b = theme.brightness;
+    return GridView.builder(
+      padding: const EdgeInsets.all(DsSpacing.xl),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200,
+        mainAxisSpacing: DsSpacing.lg,
+        crossAxisSpacing: DsSpacing.lg,
+        childAspectRatio: 0.72,
+      ),
+      itemCount: images.length,
+      itemBuilder: (context, i) => Column(
+        children: [
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: DsSpacing.cardShadowLight(opacity: 0.12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Image.file(
+                  File(images[i].path),
+                  cacheWidth: 360,
+                  fit: BoxFit.contain,
+                  gaplessPlayback: true,
+                  errorBuilder: (_, _, _) =>
+                      const Icon(Icons.broken_image_outlined),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: DsSpacing.xs),
+          Text(
+            '${i + 1}',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: DsColors.textSecondary(b),
+            ),
+          ),
+        ],
       ),
     );
   }

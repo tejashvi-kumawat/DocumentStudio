@@ -133,20 +133,14 @@ class WorkspaceInspectorPanel extends StatelessWidget {
     ];
 
     final columnChildren = !showPreview
-        ? <Widget>[
-            ...toolsAndProps,
-          ]
+        ? <Widget>[...toolsAndProps]
         : fullWidth
         ? <Widget>[
             header,
             SizedBox(height: 200, child: thumbnail),
             ...toolsAndProps,
           ]
-        : <Widget>[
-            header,
-            Expanded(child: thumbnail),
-            ...toolsAndProps,
-          ];
+        : <Widget>[header, Expanded(child: thumbnail), ...toolsAndProps];
 
     final body = fullWidth
         ? SingleChildScrollView(
@@ -166,9 +160,7 @@ class WorkspaceInspectorPanel extends StatelessWidget {
           : DsColors.surfaceContainerLight,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: fullWidth
-              ? null
-              : Border(left: BorderSide(color: border)),
+          border: fullWidth ? null : Border(left: BorderSide(color: border)),
         ),
         child: fullWidth
             ? SafeArea(top: false, child: body)
@@ -179,10 +171,7 @@ class WorkspaceInspectorPanel extends StatelessWidget {
 }
 
 class _DocumentToolsStrip extends StatelessWidget {
-  const _DocumentToolsStrip({
-    required this.tools,
-    this.fullWidth = false,
-  });
+  const _DocumentToolsStrip({required this.tools, this.fullWidth = false});
 
   final List<WorkspaceDocumentToolItem> tools;
   final bool fullWidth;
@@ -290,10 +279,7 @@ class _PropertiesStrip extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DsSpacing.sm),
-          _PropertyRow(
-            label: 'Source',
-            value: page.file.displayName,
-          ),
+          _PropertyRow(label: 'Source', value: page.file.displayName),
           const SizedBox(height: 6),
           _PropertyRow(
             label: 'Original page',
@@ -308,10 +294,7 @@ class _PropertiesStrip extends StatelessWidget {
           ],
           if (page.rotationDegrees != 0) ...[
             const SizedBox(height: 6),
-            _PropertyRow(
-              label: 'Rotation',
-              value: '${page.rotationDegrees}°',
-            ),
+            _PropertyRow(label: 'Rotation', value: '${page.rotationDegrees}°'),
           ],
           const SizedBox(height: 6),
           _PropertyRow(

@@ -7,13 +7,13 @@ import 'package:document_studio/infrastructure/pdf/edit/pdf_parser.dart';
 
 class _XrefEntry {
   const _XrefEntry.offset(this.offset, this.gen)
-      : stream = 0,
-        index = 0,
-        compressed = false;
+    : stream = 0,
+      index = 0,
+      compressed = false;
   const _XrefEntry.compressed(this.stream, this.index)
-      : offset = 0,
-        gen = 0,
-        compressed = true;
+    : offset = 0,
+      gen = 0,
+      compressed = true;
 
   final bool compressed;
   final int offset;
@@ -75,10 +75,7 @@ class PdfEditDocument {
     }
     if (!ok) _reconstruct();
     if (isEncrypted) {
-      throw const PdfEditException(
-        'This PDF is encrypted.',
-        encrypted: true,
-      );
+      throw const PdfEditException('This PDF is encrypted.', encrypted: true);
     }
     final size = trailer['Size'];
     _size = size is PdfNum ? size.i : 0;
@@ -250,9 +247,8 @@ class PdfEditDocument {
         final r = _resolveNoStream(lenObj);
         if (r is PdfNum) len = r.i;
       }
-      final valid = len >= 0 &&
-          p + len <= bytes.length &&
-          _looksLikeEndstream(p + len);
+      final valid =
+          len >= 0 && p + len <= bytes.length && _looksLikeEndstream(p + len);
       if (!valid) {
         final end = indexOfBytes(bytes, latin1.encode('endstream'), p);
         if (end < 0) throw const PdfEditException('Unterminated stream');
@@ -463,8 +459,7 @@ class PdfEditDocument {
   bool get hasChanges => _changed.isNotEmpty;
 
   /// Object numbers present in the cross-reference table (excluding 0).
-  Iterable<int> get liveObjectNumbers =>
-      _xref.keys.where((n) => n > 0);
+  Iterable<int> get liveObjectNumbers => _xref.keys.where((n) => n > 0);
 
   /// Generation number for [num], or `0` for compressed / unknown entries.
   int generationOf(int num) {

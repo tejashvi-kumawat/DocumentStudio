@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/domain/pdf_stamp/pdf_page_stamp_models.dart';
@@ -134,8 +133,11 @@ class _PagePlacementCanvasState extends State<PagePlacementCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    final page = widget.document.pages[
-        widget.pageIndex0Based.clamp(0, widget.document.pages.length - 1)];
+    final page =
+        widget.document.pages[widget.pageIndex0Based.clamp(
+          0,
+          widget.document.pages.length - 1,
+        )];
     return AspectRatio(
       aspectRatio: widget.pageWidthPt / widget.pageHeightPt,
       child: LayoutBuilder(
@@ -305,12 +307,7 @@ PagePlacementNorm centeredPlacementForAspect({
   final cx = (centerNorm?.dx ?? 0.5).clamp(0.0, 1.0);
   final cy = (centerNorm?.dy ?? 0.5).clamp(0.0, 1.0);
   return clampPagePlacement(
-    PagePlacementNorm(
-      left: cx - w / 2,
-      top: cy - h / 2,
-      width: w,
-      height: h,
-    ),
+    PagePlacementNorm(left: cx - w / 2, top: cy - h / 2, width: w, height: h),
     minFraction: 0.005,
   );
 }

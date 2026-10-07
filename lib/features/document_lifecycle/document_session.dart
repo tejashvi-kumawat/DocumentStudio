@@ -1,4 +1,5 @@
 import 'package:document_studio/core/settings/app_prefs.dart';
+
 import 'dart:io';
 
 import 'package:document_studio/core/errors/document_studio_error.dart';
@@ -33,9 +34,9 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
     required LocalFileRef file,
     this._password,
     int? maxUndoLevels,
-  })  : maxUndoLevels = maxUndoLevels ?? AppPrefs.undoLevels,
-        _sourcePath = LinuxDocumentPortal.resolveSync(file.path),
-        _sourceDisplayName = file.displayName {
+  }) : maxUndoLevels = maxUndoLevels ?? AppPrefs.undoLevels,
+       _sourcePath = LinuxDocumentPortal.resolveSync(file.path),
+       _sourceDisplayName = file.displayName {
     final source = _sourcePath == file.path
         ? file
         : file.copyWithPath(_sourcePath);
@@ -77,11 +78,11 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
 
   /// Stable identity for Recents / thumbnails (never a session temp path).
   LocalFileRef get sourceFile => LocalFileRef(
-        path: _sourcePath,
-        displayName: _sourceDisplayName,
-        sizeBytes: _file.path == _sourcePath ? _file.sizeBytes : null,
-        lastModified: _file.path == _sourcePath ? _file.lastModified : null,
-      );
+    path: _sourcePath,
+    displayName: _sourceDisplayName,
+    sizeBytes: _file.path == _sourcePath ? _file.sizeBytes : null,
+    lastModified: _file.path == _sourcePath ? _file.lastModified : null,
+  );
 
   LocalFileRef get file => _file;
   String? get password => _password;
@@ -121,7 +122,8 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
     try {
       dir = Directory.systemTemp.createTempSync('ds_sess_');
       final workPath = p.join(dir.path, _safeFileName(source.displayName));
-      final linked = _tryHardlink(source.path, workPath) ||
+      final linked =
+          _tryHardlink(source.path, workPath) ||
           _tryReflink(source.path, workPath);
       if (linked) {
         final st = File(workPath).statSync();
@@ -223,8 +225,7 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
     _sourcePath = resolved;
     _sourceDisplayName = file.displayName;
     if (password != null) _password = password;
-    final source =
-        resolved == file.path ? file : file.copyWithPath(resolved);
+    final source = resolved == file.path ? file : file.copyWithPath(resolved);
     _materializeWorkingLink(source);
     _dirty = false;
     pendingReplaceBytes = null;
@@ -525,8 +526,9 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
   }) async {
     await flushPending();
     final bytes = pendingReplaceBytes ?? await _readCurrentBytes();
-    final priorForUndo =
-        pendingReplaceBytes != null ? await _snapshotCurrent() : null;
+    final priorForUndo = pendingReplaceBytes != null
+        ? await _snapshotCurrent()
+        : null;
     final savePath = await storage.pickSavePath(
       suggestedName: suggestedName ?? _sourceDisplayName,
       bytes: bytes,
@@ -543,10 +545,7 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
     if (priorForUndo != null) {
       _pushUndo(priorForUndo);
     }
-    final ref = LocalFileRef(
-      path: savePath,
-      displayName: p.basename(savePath),
-    );
+    final ref = LocalFileRef(path: savePath, displayName: p.basename(savePath));
     rebindFile(ref);
     return ref;
   }
@@ -608,7 +607,6 @@ class DocumentSession extends ChangeNotifier implements DirtyAware {
     super.dispose();
   }
 }
-
 
 /// One undo/redo state: in memory when small, a file on disk when large.
 class _Snapshot {

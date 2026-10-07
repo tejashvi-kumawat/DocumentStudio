@@ -521,9 +521,9 @@ class _LiveTextLayerState extends State<LiveTextLayer> {
                     ),
                   ),
                   onChanged: (v) {
-                      live.setLabelText(v, draft: true);
-                      _fitHeight(v, draft: true);
-                    },
+                    live.setLabelText(v, draft: true);
+                    _fitHeight(v, draft: true);
+                  },
                 ),
               ),
             ),

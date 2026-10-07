@@ -3,14 +3,17 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_shell_page.dart';
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
 import 'package:document_studio/design_system/widgets/ds_page_busy_bar.dart';
 import 'package:flutter/material.dart';
 
 /// Wide-layout breakpoint for legacy two-column tool bodies.
 const kDsToolFormWideBreakpoint = 880.0;
 
-/// Standalone tool page: gray canvas, title + one-line blurb, one white card,
-/// primary action pinned bottom-right of the card, 200ms fade/rise on open.
+/// Standalone tool page: header bar (back, icon, title, one line of help),
+/// scrolling content aligned to the left, and a pinned action bar. Every
+/// tool uses the same chrome ([DsToolHeader] / [DsToolFooter]) so none of
+/// them looks different from the next.
 class DsToolPage extends StatelessWidget {
   const DsToolPage({
     super.key,
@@ -31,8 +34,9 @@ class DsToolPage extends StatelessWidget {
     this.footer,
     this.maxWidth = DsSpacing.formMaxWidth,
     this.icon,
-    this.iconColor,
     this.headerTrailing,
+    this.preview,
+    this.formWidth = 440,
   });
 
   final String title;
@@ -42,11 +46,10 @@ class DsToolPage extends StatelessWidget {
   /// Replaces the automatic back button (shown when the route can pop).
   final Widget? leading;
 
-  /// Tinted badge shown before the title.
+  /// The tool's icon in the header (same tint on every tool).
   final IconData? icon;
-  final Color? iconColor;
 
-  /// Widget aligned to the end of the title row (e.g. engine status chip).
+  /// Widget at the end of the header (e.g. engine status chip).
   final Widget? headerTrailing;
 
   final String? primaryLabel;
@@ -61,26 +64,31 @@ class DsToolPage extends StatelessWidget {
   final String? busyMessage;
   final double? busyProgress;
 
-  /// Extra footer under the primary row (e.g. related links).
+  /// Extra content under the form (e.g. related links).
   final Widget? footer;
 
+  /// Widest the content grows; it stays left-aligned.
   final double maxWidth;
+
+  /// Workbench layout: on a wide window the form keeps a fixed column
+  /// ([formWidth]) and this fills the rest of the screen (a preview of the
+  /// document, results…), so the page is never a thin column next to
+  /// emptiness. On a narrow window it goes above the form.
+  final Widget? preview;
+  final double formWidth;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final pageBg = DsColors.groupedBackground(theme.brightness);
-    final secondary = DsColors.textSecondary(theme.brightness);
+    final isDark = theme.brightness == Brightness.dark;
     final compact = dsUseCompactToolLayout(context);
-    final pagePad = compact ? DsSpacing.pagePaddingCompact : DsSpacing.lg;
-    // Phone / Android: ~48dp full-width primary (not a giant card control).
-    final controlH = DsSpacing.controlHeightComfortable;
-    // Readable form column on desktop; full bleed on phone/Android (minus pad).
-    final formCap = compact
+    final pagePad = compact ? DsSpacing.pagePaddingCompact : DsSpacing.xl;
+    final cap = compact
         ? double.infinity
         : (maxWidth > 0 ? maxWidth : DsSpacing.formMaxWidth);
 
-    final resolvedLeading = leading ??
+    final resolvedLeading =
+        leading ??
         (Navigator.of(context).canPop()
             ? IconButton(
                 tooltip: 'Back',
@@ -94,263 +102,129 @@ class DsToolPage extends StatelessWidget {
               )
             : null);
 
-    Widget primaryButton() {
-      if (primaryLabel == null) return const SizedBox.shrink();
-      final button = FilledButton.icon(
-        onPressed: primaryEnabled && !primaryBusy ? onPrimary : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: DsColors.primary,
-          foregroundColor: DsColors.onPrimary,
-          disabledBackgroundColor: DsColors.primary.withValues(alpha: 0.35),
-          minimumSize: Size(0, controlH),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding: const EdgeInsets.symmetric(
-            horizontal: DsSpacing.lg,
-            vertical: DsSpacing.sm,
-          ),
-          textStyle: theme.textTheme.labelLarge?.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        icon: primaryBusy
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: DsColors.onPrimary,
-                ),
-              )
-            : Icon(primaryIcon, size: 18),
-        label: Text(primaryLabel!),
-      );
-      if (!compact) return button;
-      return SizedBox(width: double.infinity, height: controlH, child: button);
-    }
+    final width = MediaQuery.sizeOf(context).width;
+    final workbench = preview != null && !compact && width >= 980;
 
-    Widget cancelButton() {
-      if (onCancel == null) return const SizedBox.shrink();
-      final button = TextButton(
-        onPressed: primaryBusy ? null : onCancel,
-        style: TextButton.styleFrom(
-          foregroundColor: secondary,
-          minimumSize: Size(0, controlH),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
-        ),
-        child: Text(cancelLabel),
-      );
-      if (!compact) return button;
-      return SizedBox(width: double.infinity, height: controlH, child: button);
-    }
-
-    final actions = primaryLabel != null || onCancel != null || footer != null
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: DsSpacing.lg),
-              const Divider(height: 1),
-              const SizedBox(height: DsSpacing.md),
-              if (footer != null) ...[
-                footer!,
-                const SizedBox(height: DsSpacing.md),
-              ],
-              if (compact) ...[
-                if (primaryLabel != null) primaryButton(),
-                if (onCancel != null) ...[
-                  const SizedBox(height: DsSpacing.sm),
-                  cancelButton(),
-                ],
-              ] else
-                Row(
+    Widget scrollForm(double cap, {Widget? above}) => CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            pagePad,
+            DsSpacing.lg,
+            pagePad,
+            DsSpacing.xxl,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: cap),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (onCancel != null) cancelButton(),
-                    const Spacer(),
-                    if (primaryLabel != null) primaryButton(),
+                    ?above,
+                    // Sections run one under the other; the first has no gap.
+                    child,
+                    if (footer != null) ...[
+                      const SizedBox(height: DsSpacing.xl),
+                      footer!,
+                    ],
                   ],
                 ),
-            ],
-          )
-        : const SizedBox.shrink();
-
-    final card = _DsToolFormCard(
-      padding: EdgeInsets.all(compact ? DsSpacing.md : DsSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          child,
-          actions,
-        ],
-      ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
 
-    final body = ColoredBox(
-      color: pageBg,
-      child: SafeArea(
-        child: DsMotion.fadeRiseIn(
-          child: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  pagePad,
-                  compact ? DsSpacing.md : DsSpacing.md,
-                  pagePad,
-                  DsSpacing.shellPageBottom,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: formCap),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              if (resolvedLeading != null) ...[
-                                resolvedLeading,
-                                const SizedBox(width: DsSpacing.sm),
-                              ],
-                              if (icon != null) ...[
-                                _ToolIconBadge(
-                                  icon: icon!,
-                                  color: iconColor ?? DsColors.primary,
-                                  size: compact ? 40 : 44,
-                                ),
-                                const SizedBox(width: DsSpacing.md),
-                              ],
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(
-                                      title,
-                                      maxLines: compact ? 2 : 3,
-                                      overflow: TextOverflow.ellipsis,
-                                      style:
-                                          theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -0.3,
-                                        height: 1.2,
-                                        fontSize: compact ? 20 : null,
-                                      ),
-                                    ),
-                                    const SizedBox(height: DsSpacing.xs),
-                                    Text(
-                                      subtitle,
-                                      maxLines: compact ? 2 : 4,
-                                      overflow: TextOverflow.ellipsis,
-                                      style:
-                                          theme.textTheme.bodyMedium?.copyWith(
-                                        fontSize: 13,
-                                        color: secondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (headerTrailing != null && !compact) ...[
-                                const SizedBox(width: DsSpacing.sm),
-                                headerTrailing!,
-                              ],
-                            ],
-                          ),
-                          if (headerTrailing != null && compact) ...[
-                            const SizedBox(height: DsSpacing.sm),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: headerTrailing!,
-                            ),
-                          ],
-                          const SizedBox(height: DsSpacing.lg),
-                          card,
-                        ],
-                      ),
+    final Widget body;
+    if (workbench) {
+      body = Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: formWidth + pagePad * 2,
+            child: scrollForm(formWidth),
+          ),
+          VerticalDivider(width: 1, color: DsColors.border(theme.brightness)),
+          Expanded(
+            child: ColoredBox(
+              color: isDark
+                  ? DsColors.groupedBackgroundDark
+                  : DsColors.groupedBackgroundLight,
+              child: preview!,
+            ),
+          ),
+        ],
+      );
+    } else {
+      body = scrollForm(
+        cap,
+        above: preview == null
+            ? null
+            : Padding(
+                padding: const EdgeInsets.only(bottom: DsSpacing.lg),
+                child: SizedBox(
+                  height: compact ? 300 : 380,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(DsSpacing.radiusCard),
+                    child: ColoredBox(
+                      color: isDark
+                          ? DsColors.groupedBackgroundDark
+                          : DsColors.groupedBackgroundLight,
+                      child: preview,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+      );
+    }
 
     return Scaffold(
-      backgroundColor: pageBg,
+      backgroundColor: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
       body: DsPageBusyHost(
         busy: busy,
         message: busyMessage,
         progress: busyProgress,
-        child: body,
-      ),
-    );
-  }
-}
-
-class _ToolIconBadge extends StatelessWidget {
-  const _ToolIconBadge({
-    required this.icon,
-    required this.color,
-    this.size = 44,
-  });
-
-  final IconData icon;
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: 0.22),
-            color.withValues(alpha: 0.10),
+        child: Column(
+          children: [
+            DsToolHeader(
+              title: title,
+              subtitle: subtitle,
+              icon: icon,
+              leading: resolvedLeading,
+              compact: compact,
+              actions: [
+                if (headerTrailing != null && !compact) headerTrailing!,
+              ],
+            ),
+            if (headerTrailing != null && compact)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    pagePad,
+                    DsSpacing.sm,
+                    pagePad,
+                    0,
+                  ),
+                  child: headerTrailing!,
+                ),
+              ),
+            Expanded(child: DsMotion.fadeRiseIn(child: body)),
+            DsToolFooter(
+              primaryLabel: primaryLabel,
+              onPrimary: onPrimary,
+              primaryEnabled: primaryEnabled,
+              primaryBusy: primaryBusy,
+              primaryIcon: primaryIcon,
+              onCancel: onCancel,
+              cancelLabel: cancelLabel,
+              compact: compact,
+            ),
           ],
         ),
-        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.5),
-      ),
-      child: Icon(icon, color: color, size: size * 0.5),
-    );
-  }
-}
-
-class _DsToolFormCard extends StatelessWidget {
-  const _DsToolFormCard({
-    required this.child,
-    this.padding = const EdgeInsets.all(DsSpacing.lg),
-  });
-
-  final Widget child;
-  final EdgeInsets padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark ? DsColors.groupedCellDark : DsColors.surfaceLight,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DsSpacing.radiusCard),
-        side: BorderSide(
-          color: isDark ? DsColors.borderDark : DsColors.borderLight,
-          width: isDark ? 1 : 0.5,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: padding,
-        child: child,
       ),
     );
   }
@@ -377,7 +251,7 @@ class DsToolSection extends StatelessWidget {
     final secondary = DsColors.textSecondary(theme.brightness);
 
     return Padding(
-      padding: EdgeInsets.only(top: topPadding ? DsSpacing.lg : 0),
+      padding: EdgeInsets.only(top: topPadding ? DsSpacing.xl : 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -385,9 +259,10 @@ class DsToolSection extends StatelessWidget {
           if (title != null) ...[
             Text(
               title!,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontSize: 13,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
+                letterSpacing: -0.1,
               ),
             ),
             if (subtitle != null) ...[
@@ -512,13 +387,7 @@ class DsToolStickyActionBar extends StatelessWidget {
                       ],
                     ],
                   )
-                : Row(
-                    children: [
-                      if (cancel != null) cancel,
-                      const Spacer(),
-                      primary,
-                    ],
-                  ),
+                : Row(children: [?cancel, const Spacer(), primary]),
           ),
         ),
       ),
@@ -549,8 +418,7 @@ class DsToolPanel extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final border = isDark ? DsColors.borderDark : DsColors.borderLight;
 
-    final surface =
-        isDark ? DsColors.groupedCellDark : DsColors.surfaceLight;
+    final surface = isDark ? DsColors.groupedCellDark : DsColors.surfaceLight;
     return Material(
       color: surface,
       shape: RoundedRectangleBorder(
@@ -700,11 +568,7 @@ class DsShellCard extends StatelessWidget {
 
 /// Page header used by Tools hub (13px rhythm, matches Home section titles).
 class DsToolHubHeader extends StatelessWidget {
-  const DsToolHubHeader({
-    super.key,
-    required this.title,
-    this.subtitle,
-  });
+  const DsToolHubHeader({super.key, required this.title, this.subtitle});
 
   final String title;
   final String? subtitle;

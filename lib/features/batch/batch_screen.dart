@@ -5,6 +5,7 @@ import 'package:document_studio/core/errors/document_studio_error.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/batch/batch_job.dart';
@@ -50,11 +51,11 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   bool get _usesWatermark => _steps.contains(BatchToolKind.watermark);
 
   List<BatchToolKind> get _steps => [
-        _tool,
-        if (_tool.writesFiles)
-          for (final t in _alsoOptions)
-            if (_also.contains(t) && t != _tool) t,
-      ];
+    _tool,
+    if (_tool.writesFiles)
+      for (final t in _alsoOptions)
+        if (_also.contains(t) && t != _tool) t,
+  ];
 
   bool get _usesPassword => _steps.contains(BatchToolKind.protect);
   String? _outputDirectory;
@@ -92,7 +93,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   }
 
   Future<void> _addFilesPicker() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFiles(
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFiles(
           allowedExtensions: ['pdf', ...kBatchImageExtensions],
           allowMultiple: true,
         );
@@ -100,9 +103,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   }
 
   Future<void> _pickOutputFolder() async {
-    final dir = await ref.read(fileStorageProvider).pickOutputDirectory(
-          dialogTitle: 'Batch output folder',
-        );
+    final dir = await ref
+        .read(fileStorageProvider)
+        .pickOutputDirectory(dialogTitle: 'Batch output folder');
     if (dir != null) setState(() => _outputDirectory = dir);
   }
 
@@ -156,7 +159,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             : _watermarkCtrl.text.trim(),
         finalNaming: naming,
       );
-      final result = await ref.read(batchRunnerProvider).run(
+      final result = await ref
+          .read(batchRunnerProvider)
+          .run(
             inputs: List.unmodifiable(_inputs),
             options: BatchOptions(continueOnError: _continueOnError),
             onProgress: (prog) {
@@ -191,7 +196,23 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       title: 'Batch processing',
       subtitle: 'Run one tool on many PDFs at once.',
       icon: Icons.dynamic_feed_outlined,
-      iconColor: const Color(0xFF0EA5E9),
+      preview: n == 0
+          ? DsDropPane(
+              multiple: true,
+              allowedExtensions: ['pdf', ...kBatchImageExtensions],
+              enabled: !_busy,
+              onPick: _addFilesPicker,
+              onFilesDropped: _addFiles,
+              emptyTitle: 'Drop PDFs or images here',
+              emptySubtitle:
+                  'Images become PDFs first. Add as many files as you like',
+              pickLabel: 'Choose files',
+              icon: Icons.library_add_outlined,
+            )
+          : Padding(
+              padding: const EdgeInsets.all(DsSpacing.lg),
+              child: _queue(theme),
+            ),
       primaryLabel: n <= 1 ? 'Run' : 'Run on $n files',
       primaryIcon: Icons.play_arrow_rounded,
       primaryEnabled: _canRun,
@@ -200,29 +221,11 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       onCancel: _busy
           ? null
           : () => context.canPop() ? context.pop() : context.go('/'),
-      maxWidth: 960,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DsToolSection(
             topPadding: false,
-            title: n == 0 ? 'Files' : 'Files ($n)',
-            child: n == 0
-                ? DsToolFileSource(
-                    files: const [],
-                    multiple: true,
-                    allowedExtensions: ['pdf', ...kBatchImageExtensions],
-                    enabled: !_busy,
-                    onPick: _addFilesPicker,
-                    onFilesDropped: _addFiles,
-                    emptyTitle: 'Drop PDFs or images here',
-                    emptySubtitle: 'Images become PDFs first. Add as many files as you like',
-                    pickLabel: 'Choose files',
-                    icon: Icons.library_add_outlined,
-                  )
-                : _queue(theme),
-          ),
-          DsToolSection(
             title: 'Tool',
             subtitle: _tool.description,
             child: Wrap(
@@ -244,7 +247,8 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               padding: const EdgeInsets.only(top: DsSpacing.md),
               child: DsToolResultCard(
                 title: 'qpdf engine not found',
-                message: 'This tool needs the bundled qpdf engine. '
+                message:
+                    'This tool needs the bundled qpdf engine. '
                     'Download it once from Settings, or reinstall the desktop app.',
                 tone: DsResultTone.error,
               ),
@@ -252,7 +256,8 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           if (_tool.writesFiles)
             DsToolSection(
               title: 'Then also',
-              subtitle: 'Chain more steps; each file goes through them in order.',
+              subtitle:
+                  'Chain more steps; each file goes through them in order.',
               child: Wrap(
                 spacing: DsSpacing.sm,
                 runSpacing: DsSpacing.sm,
@@ -266,9 +271,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                         onSelected: _busy
                             ? null
                             : (v) => setState(() {
-                                  v ? _also.add(t) : _also.remove(t);
-                                  _result = null;
-                                }),
+                                v ? _also.add(t) : _also.remove(t);
+                                _result = null;
+                              }),
                       ),
                 ],
               ),
@@ -379,8 +384,8 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 message: _cancelling
                     ? 'Stopping after the current file…'
                     : _progress == null
-                        ? 'Starting…'
-                        : 'File ${_progress!.index + 1} of ${_progress!.total}',
+                    ? 'Starting…'
+                    : 'File ${_progress!.index + 1} of ${_progress!.total}',
                 detail: _progress?.message,
                 fraction: _progress?.overallFraction,
                 onCancel: _cancelBatch,
@@ -394,16 +399,20 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 title: result.failedCount == 0 && !result.cancelled
                     ? 'All ${result.successCount} files done'
                     : '${result.successCount} done, ${result.failedCount} failed'
-                        '${result.cancelled ? ', rest skipped' : ''}',
+                          '${result.cancelled ? ', rest skipped' : ''}',
                 tone: result.failedCount == 0
                     ? DsResultTone.success
                     : DsResultTone.error,
                 stats: [
-                  DsResultStat('Succeeded', '${result.successCount}',
-                      highlight: true),
+                  DsResultStat(
+                    'Succeeded',
+                    '${result.successCount}',
+                    highlight: true,
+                  ),
                   DsResultStat('Failed', '${result.failedCount}'),
                 ],
-                onShowInFolder: _tool.writesFiles &&
+                onShowInFolder:
+                    _tool.writesFiles &&
                         documentSaveResultCanRevealInFolder &&
                         _firstOutput(result) != null
                     ? () => revealToolResult(context, _firstOutput(result)!)
@@ -419,7 +428,8 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   LocalFileRef? _firstOutput(BatchResult result) {
     for (final item in result.items) {
       final out = item.outputPath;
-      if (out != null) return LocalFileRef(path: out, displayName: p.basename(out));
+      if (out != null)
+        return LocalFileRef(path: out, displayName: p.basename(out));
     }
     return null;
   }
@@ -433,46 +443,53 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: DsColors.border(b)),
-            borderRadius: BorderRadius.circular(12),
+        Padding(
+          padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+          child: Text(
+            'Files (${_inputs.length})',
+            style: theme.textTheme.titleSmall,
           ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 360),
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: _inputs.length,
-              separatorBuilder: (_, _) => Divider(
-                height: 1,
-                color: DsColors.border(b),
-              ),
-              itemBuilder: (context, i) {
-                final file = _inputs[i];
-                final item = byPath[file.path];
-                final running = _busy &&
-                    _progress?.currentInput?.path == file.path;
-                return _QueueRow(
-                  file: file,
-                  item: item,
-                  running: running,
-                  onRemove: _busy
-                      ? null
-                      : () => setState(() {
+        ),
+        Expanded(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              border: Border.all(color: DsColors.border(b)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: ListView.separated(
+                itemCount: _inputs.length,
+                separatorBuilder: (_, _) =>
+                    Divider(height: 1, color: DsColors.border(b)),
+                itemBuilder: (context, i) {
+                  final file = _inputs[i];
+                  final item = byPath[file.path];
+                  final running =
+                      _busy && _progress?.currentInput?.path == file.path;
+                  return _QueueRow(
+                    file: file,
+                    item: item,
+                    running: running,
+                    onRemove: _busy
+                        ? null
+                        : () => setState(() {
                             _inputs.removeAt(i);
                             _result = null;
                           }),
-                  onOpen: item?.outputPath == null
-                      ? null
-                      : () => openToolResult(
+                    onOpen: item?.outputPath == null
+                        ? null
+                        : () => openToolResult(
                             context,
                             LocalFileRef(
                               path: item!.outputPath!,
                               displayName: p.basename(item.outputPath!),
                             ),
                           ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -489,9 +506,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               onPressed: _busy
                   ? null
                   : () => setState(() {
-                        _inputs.clear();
-                        _result = null;
-                      }),
+                      _inputs.clear();
+                      _result = null;
+                    }),
               child: const Text('Clear all'),
             ),
           ],
@@ -524,32 +541,32 @@ class _QueueRow extends StatelessWidget {
         ? (Icons.autorenew_rounded, DsColors.primary, 'Running')
         : switch (item?.outcome) {
             null => (
-                Icons.schedule_rounded,
-                DsColors.textSecondary(b),
-                'Queued',
-              ),
+              Icons.schedule_rounded,
+              DsColors.textSecondary(b),
+              'Queued',
+            ),
             BatchItemOutcome.success => (
-                Icons.check_circle_rounded,
-                DsColors.success,
-                'Done',
-              ),
+              Icons.check_circle_rounded,
+              DsColors.success,
+              'Done',
+            ),
             BatchItemOutcome.failed => (
-                Icons.error_rounded,
-                DsColors.error,
-                'Failed',
-              ),
+              Icons.error_rounded,
+              DsColors.error,
+              'Failed',
+            ),
             BatchItemOutcome.skipped => (
-                Icons.remove_circle_outline,
-                DsColors.textSecondary(b),
-                'Skipped',
-              ),
+              Icons.remove_circle_outline,
+              DsColors.textSecondary(b),
+              'Skipped',
+            ),
           };
     final error = item?.error;
     final errorText = error is DocumentStudioError
         ? (error.recoveryHint ?? error.message)
         : error is StateError
-            ? error.message
-            : error?.toString();
+        ? error.message
+        : error?.toString();
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: DsSpacing.md,
@@ -557,7 +574,11 @@ class _QueueRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.picture_as_pdf_outlined, size: 20, color: DsColors.primary),
+          Icon(
+            Icons.picture_as_pdf_outlined,
+            size: 20,
+            color: DsColors.primary,
+          ),
           const SizedBox(width: DsSpacing.md),
           Expanded(
             child: Column(

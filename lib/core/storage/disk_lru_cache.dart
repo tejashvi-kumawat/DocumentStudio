@@ -44,9 +44,7 @@ class DiskLruCache {
     if (f == null) return null;
     try {
       final bytes = await f.readAsBytes();
-      unawaited(
-        f.setLastModified(DateTime.now()).catchError((Object _) {}),
-      );
+      unawaited(f.setLastModified(DateTime.now()).catchError((Object _) {}));
       return bytes;
     } on FileSystemException {
       return null;

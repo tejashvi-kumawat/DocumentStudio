@@ -22,8 +22,9 @@ import 'package:document_studio/infrastructure/pdf/signing/signing_credential_se
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final signingCredentialServiceProvider =
-    Provider<SigningCredentialService>((ref) => SigningCredentialService());
+final signingCredentialServiceProvider = Provider<SigningCredentialService>(
+  (ref) => SigningCredentialService(),
+);
 
 enum AppearanceGraphic { signature, name, none }
 
@@ -73,7 +74,8 @@ Future<Uint8List> composeSignatureAppearance({
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
   canvas.scale(pxPerPt);
-  final hasGraphic = graphic == AppearanceGraphic.name ||
+  final hasGraphic =
+      graphic == AppearanceGraphic.name ||
       (graphic == AppearanceGraphic.signature && signaturePng != null);
   final wide = w / h >= 1.7;
   final pad = math.min(w, h) * 0.06;
@@ -160,12 +162,16 @@ void _paintFitted(
 }) {
   var size = maxSize;
   TextPainter layout(double s) => TextPainter(
-        text: TextSpan(text: lines.join('\n'), style: style.copyWith(fontSize: s)),
-        textDirection: TextDirection.ltr,
-        textAlign: center ? TextAlign.center : TextAlign.left,
-      )..layout(maxWidth: box.width);
+    text: TextSpan(
+      text: lines.join('\n'),
+      style: style.copyWith(fontSize: s),
+    ),
+    textDirection: TextDirection.ltr,
+    textAlign: center ? TextAlign.center : TextAlign.left,
+  )..layout(maxWidth: box.width);
   var tp = layout(size);
-  while ((tp.height > box.height || tp.width > box.width + 0.5 ||
+  while ((tp.height > box.height ||
+          tp.width > box.width + 0.5 ||
           tp.computeLineMetrics().length > lines.length) &&
       size > 3) {
     tp.dispose();
@@ -239,8 +245,9 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
   late AppearanceGraphic _graphic = widget.signatures.isEmpty
       ? AppearanceGraphic.name
       : AppearanceGraphic.signature;
-  late SavedSignature? _sig =
-      widget.signatures.isEmpty ? null : widget.signatures.first;
+  late SavedSignature? _sig = widget.signatures.isEmpty
+      ? null
+      : widget.signatures.first;
   bool _showName = true;
   bool _showDate = true;
   bool _showReason = true;
@@ -283,9 +290,11 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
       l.add(_showLabels ? 'Digitally signed by $_signerName' : _signerName);
     }
     if (_showDate) {
-      l.add(_showLabels
-          ? 'Date: ${formatSignatureDate(when)}'
-          : formatSignatureDate(when));
+      l.add(
+        _showLabels
+            ? 'Date: ${formatSignatureDate(when)}'
+            : formatSignatureDate(when),
+      );
     }
     final reason = _reason.text.trim();
     if (_showReason && reason.isNotEmpty) {
@@ -325,20 +334,22 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
   }
 
   Future<String?> _pickP12() async {
-    final ref0 = await ref.read(fileStorageProvider).pickOpenFile(
-      allowedExtensions: const ['p12', 'pfx'],
-    );
+    final ref0 = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(allowedExtensions: const ['p12', 'pfx']);
     return ref0?.path;
   }
 
   Future<String?> _pickDriver() async {
-    final ref0 = await ref.read(fileStorageProvider).pickOpenFile(
-      allowedExtensions: Platform.isWindows
-          ? const ['dll']
-          : Platform.isMacOS
+    final ref0 = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(
+          allowedExtensions: Platform.isWindows
+              ? const ['dll']
+              : Platform.isMacOS
               ? const ['dylib', 'so']
               : const ['so'],
-    );
+        );
     return ref0?.path;
   }
 
@@ -412,9 +423,11 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
     }
     final typed = _pin.text;
     if (_needsSecret && typed.isEmpty) {
-      setState(() => _error = cred.hardwareBacked
-          ? 'Enter the token PIN.'
-          : 'Enter the certificate store password.');
+      setState(
+        () => _error = cred.hardwareBacked
+            ? 'Enter the token PIN.'
+            : 'Enter the certificate store password.',
+      );
       return;
     }
     final String? pin = _needsSecret ? typed : _service.sessionPin(cred.id);
@@ -445,7 +458,9 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
           signingTime: now,
           name: _signerName,
           reason: _reason.text.trim().isEmpty ? null : _reason.text.trim(),
-          location: _location.text.trim().isEmpty ? null : _location.text.trim(),
+          location: _location.text.trim().isEmpty
+              ? null
+              : _location.text.trim(),
           appearancePng: appearance,
         ),
       );
@@ -455,7 +470,9 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
           RegExp(r'\.pdf$', caseSensitive: false),
           '',
         );
-        final path = await ref.read(fileStorageProvider).pickSavePath(
+        final path = await ref
+            .read(fileStorageProvider)
+            .pickSavePath(
               suggestedName: '$base-signed.pdf',
               bytes: out,
               allowedExtensions: const ['pdf'],
@@ -466,9 +483,8 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
           setState(() => _busy = false);
           return;
         }
-        Navigator.of(context).pop(
-          DigitalSignResult(committed: false, savedCopyPath: path),
-        );
+        Navigator.of(context)
+            .pop(DigitalSignResult(committed: false, savedCopyPath: path));
         return;
       }
       await commitBytesToSession(
@@ -500,18 +516,25 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
               widget.target.width,
               widget.target.height,
             );
-      ref.read(signPlacementControllerProvider).rememberBurnedAppearance(
+      ref
+          .read(signPlacementControllerProvider)
+          .rememberBurnedAppearance(
             png: appearance,
             page1Based: page,
             rectNorm: rect,
           );
       Navigator.of(context).pop(const DigitalSignResult(committed: true));
     } on PdfEncryptedException {
-      _fail('This PDF is password-encrypted. Remove the password (Protect → '
-          'Remove security), then sign.');
+      _fail(
+        'This PDF is password-encrypted. Remove the password (Protect → '
+        'Remove security), then sign.',
+      );
     } catch (e) {
       final text = describeSignError(e);
-      if (RegExp(r'pin|password|CKR_PIN', caseSensitive: false).hasMatch(text)) {
+      if (RegExp(
+        r'pin|password|CKR_PIN',
+        caseSensitive: false,
+      ).hasMatch(text)) {
         _service.forgetPin(cred.id);
       }
       _fail(text);
@@ -542,12 +565,7 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_step == 0)
-            ids
-          else ...[
-            appearance,
-            _secretField(theme),
-          ],
+          if (_step == 0) ids else ...[appearance, _secretField(theme)],
           if (_error != null) ...[
             const SizedBox(height: DsSpacing.sm),
             Text(
@@ -578,12 +596,16 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
             child: const Text('Back'),
           ),
           OutlinedButton.icon(
-            onPressed: _busy || _cred == null ? null : () => _sign(saveCopy: true),
+            onPressed: _busy || _cred == null
+                ? null
+                : () => _sign(saveCopy: true),
             icon: const Icon(Icons.save_as_outlined, size: 18),
             label: const Text('Sign & save copy…'),
           ),
           FilledButton.icon(
-            onPressed: _busy || _cred == null ? null : () => _sign(saveCopy: false),
+            onPressed: _busy || _cred == null
+                ? null
+                : () => _sign(saveCopy: false),
             icon: _busy
                 ? const SizedBox.square(
                     dimension: 16,
@@ -681,7 +703,8 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
           const SizedBox(height: DsSpacing.sm),
           _InfoBanner(
             icon: Icons.usb_off_rounded,
-            text: 'USB tokens, smart cards and system certificate stores are '
+            text:
+                'USB tokens, smart cards and system certificate stores are '
                 'available in the desktop app. On this device, sign with an '
                 'imported .p12 / .pfx or a self-signed ID.',
           ),
@@ -697,7 +720,8 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
   }
 
   Widget _appearanceColumn(ThemeData theme) {
-    final aspect = widget.fieldSizePt.width / math.max(1, widget.fieldSizePt.height);
+    final aspect =
+        widget.fieldSizePt.width / math.max(1, widget.fieldSizePt.height);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -788,7 +812,10 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
                                       width: sel ? 1.8 : 1,
                                     ),
                                   ),
-                                  child: Image.memory(s.bytes, fit: BoxFit.contain),
+                                  child: Image.memory(
+                                    s.bytes,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               );
                             },
@@ -831,10 +858,21 @@ class _DigitalSignSheetState extends ConsumerState<_DigitalSignSheet> {
           children: [
             _Toggle('Name', _showName, (v) => _update(() => _showName = v)),
             _Toggle('Date', _showDate, (v) => _update(() => _showDate = v)),
-            _Toggle('Reason', _showReason, (v) => _update(() => _showReason = v)),
-            _Toggle('Location', _showLocation,
-                (v) => _update(() => _showLocation = v)),
-            _Toggle('Labels', _showLabels, (v) => _update(() => _showLabels = v)),
+            _Toggle(
+              'Reason',
+              _showReason,
+              (v) => _update(() => _showReason = v),
+            ),
+            _Toggle(
+              'Location',
+              _showLocation,
+              (v) => _update(() => _showLocation = v),
+            ),
+            _Toggle(
+              'Labels',
+              _showLabels,
+              (v) => _update(() => _showLabels = v),
+            ),
           ],
         ),
       ],
@@ -877,7 +915,9 @@ class _AutoSelectState extends State<_AutoSelect> {
     }
     final items = widget.listKey.currentState?.items ?? const [];
     if (items.isEmpty) return;
-    final usable = items.where((c) => c.isUsable && c.canSignDocuments).toList();
+    final usable = items
+        .where((c) => c.isUsable && c.canSignDocuments)
+        .toList();
     if (usable.isEmpty) {
       _t?.cancel();
       return;

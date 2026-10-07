@@ -32,7 +32,8 @@ class ViewerExportImagesPanel extends ConsumerStatefulWidget {
       _ViewerExportImagesPanelState();
 }
 
-class _ViewerExportImagesPanelState extends ConsumerState<ViewerExportImagesPanel> {
+class _ViewerExportImagesPanelState
+    extends ConsumerState<ViewerExportImagesPanel> {
   PdfPageScopeKind _scopeKind = PdfPageScopeKind.thisPage;
   String _rangeExpression = '';
   String? _rangeError;
@@ -94,10 +95,12 @@ class _ViewerExportImagesPanelState extends ConsumerState<ViewerExportImagesPane
         work: (report, cancelToken) async {
           for (var i = 0; i < pages.length; i++) {
             final page = pages[i];
-            report(JobProgress(
-              fraction: pages.isEmpty ? 0 : i / pages.length,
-              message: 'Rendering page $page',
-            ));
+            report(
+              JobProgress(
+                fraction: pages.isEmpty ? 0 : i / pages.length,
+                message: 'Rendering page $page',
+              ),
+            );
             final batch = await pdfToImages.exportPages(
               pdf: widget.handoff.file,
               outputDirectory: workDir!.path,
@@ -127,12 +130,7 @@ class _ViewerExportImagesPanelState extends ConsumerState<ViewerExportImagesPane
       );
     } catch (e) {
       if (mounted) {
-        _snack(
-          shortToolHelper(
-            '$e',
-            fallback: 'Couldn’t export these pages.',
-          ),
-        );
+        _snack(shortToolHelper('$e', fallback: 'Couldn’t export these pages.'));
       }
     } finally {
       try {
@@ -143,7 +141,8 @@ class _ViewerExportImagesPanelState extends ConsumerState<ViewerExportImagesPane
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -198,10 +197,7 @@ class _ViewerExportImagesPanelState extends ConsumerState<ViewerExportImagesPane
                 style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
               ),
               const Spacer(),
-              Text(
-                '$_dpi DPI',
-                style: theme.textTheme.bodySmall,
-              ),
+              Text('$_dpi DPI', style: theme.textTheme.bodySmall),
             ],
           ),
           Slider(
@@ -210,8 +206,7 @@ class _ViewerExportImagesPanelState extends ConsumerState<ViewerExportImagesPane
             max: 300,
             divisions: 19,
             label: '$_dpi',
-            onChanged:
-                _busy ? null : (v) => setState(() => _dpi = v.round()),
+            onChanged: _busy ? null : (v) => setState(() => _dpi = v.round()),
           ),
           const SizedBox(height: DsSpacing.sm),
           ViewerToolPrimaryButton(

@@ -20,10 +20,7 @@ class _MergeSource {
 }
 
 class MergeToolScreen extends ConsumerStatefulWidget {
-  const MergeToolScreen({
-    super.key,
-    this.initialFiles = const [],
-  });
+  const MergeToolScreen({super.key, this.initialFiles = const []});
 
   final List<LocalFileRef> initialFiles;
 
@@ -51,9 +48,9 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
   }
 
   Future<void> _addFiles() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFile(
-          allowedExtensions: ['pdf'],
-        );
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(allowedExtensions: ['pdf']);
     if (picked != null) await _appendFiles([picked]);
   }
 
@@ -116,7 +113,9 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
     final job = JobHandle<LocalFileRef>();
     setState(() => _activeJob = job);
     try {
-      final out = await ref.read(pageOrganizeServiceProvider).mergeAndPromptSave(
+      final out = await ref
+          .read(pageOrganizeServiceProvider)
+          .mergeAndPromptSave(
             handle: job,
             inputs: _sources.map((s) => s.file).toList(),
             suggestedName: 'merged.pdf',
@@ -133,14 +132,12 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
       if (!mounted) return;
       await ref.read(recentsProvider.notifier).addRecent(out);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved ${out.displayName}')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Saved ${out.displayName}')));
     } on DocumentStudioError catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.recoveryHint ?? e.message)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.recoveryHint ?? e.message)));
     } finally {
       if (mounted) {
         setState(() {
@@ -172,7 +169,9 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
           : () => ref.read(jobRunnerProvider).requestCancel(_activeJob!),
       actions: [
         Text(
-          _sources.isEmpty ? '' : '${_sources.length} files · $_totalPages pages',
+          _sources.isEmpty
+              ? ''
+              : '${_sources.length} files · $_totalPages pages',
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(width: 12),
@@ -190,62 +189,62 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
             Expanded(
               flex: _previewSourceIndex != null ? 3 : 1,
               child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            OrganizeDropZone(
-              enabled: !_busy,
-              onBrowse: _addFiles,
-              title: 'Drop PDF files here',
-              subtitle: 'Order in the list is the merge order',
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: _busy ? null : _addFiles,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add files'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (_sources.isEmpty)
-              Text(
-                'Document-level merge — reorder files below. '
-                'For page-level edits use Reorder or Extract.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: isDark
-                      ? DsColors.textSecondaryDark
-                      : DsColors.textSecondaryLight,
-                ),
-              )
-            else
-              OrganizeDocumentSourceList(
-                enabled: !_busy,
-                sources: [
-                  for (final s in _sources)
-                    OrganizeDocumentSourceEntry(
-                      id: s.file.path,
-                      displayName: s.file.displayName,
-                      loading: s.loading,
-                      pageCountLabel: s.pageCount != null
-                          ? '${s.pageCount} pages'
-                          : null,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  OrganizeDropZone(
+                    enabled: !_busy,
+                    onBrowse: _addFiles,
+                    title: 'Drop PDF files here',
+                    subtitle: 'Order in the list is the merge order',
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: _busy ? null : _addFiles,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add files'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_sources.isEmpty)
+                    Text(
+                      'Document-level merge — reorder files below. '
+                      'For page-level edits use Reorder or Extract.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? DsColors.textSecondaryDark
+                            : DsColors.textSecondaryLight,
+                      ),
+                    )
+                  else
+                    OrganizeDocumentSourceList(
+                      enabled: !_busy,
+                      sources: [
+                        for (final s in _sources)
+                          OrganizeDocumentSourceEntry(
+                            id: s.file.path,
+                            displayName: s.file.displayName,
+                            loading: s.loading,
+                            pageCountLabel: s.pageCount != null
+                                ? '${s.pageCount} pages'
+                                : null,
+                          ),
+                      ],
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (newIndex > oldIndex) newIndex -= 1;
+                          final item = _sources.removeAt(oldIndex);
+                          _sources.insert(newIndex, item);
+                        });
+                      },
+                      onRemove: (index) =>
+                          setState(() => _sources.removeAt(index)),
+                      onItemTap: (index) =>
+                          setState(() => _previewSourceIndex = index),
                     ),
                 ],
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) newIndex -= 1;
-                    final item = _sources.removeAt(oldIndex);
-                    _sources.insert(newIndex, item);
-                  });
-                },
-                onRemove: (index) =>
-                    setState(() => _sources.removeAt(index)),
-                onItemTap: (index) =>
-                    setState(() => _previewSourceIndex = index),
               ),
-          ],
-        ),
             ),
             if (_previewSourceIndex != null &&
                 _previewSourceIndex! < _sources.length)
@@ -253,7 +252,10 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
                 flex: 2,
                 child: _MergeDocPreview(
                   source: _sources[_previewSourceIndex!],
-                  password: _passwordsByPath[_sources[_previewSourceIndex!].file.path],
+                  password:
+                      _passwordsByPath[_sources[_previewSourceIndex!]
+                          .file
+                          .path],
                 ),
               ),
           ],
@@ -264,10 +266,7 @@ class _MergeToolScreenState extends ConsumerState<MergeToolScreen> {
 }
 
 class _MergeDocPreview extends ConsumerWidget {
-  const _MergeDocPreview({
-    required this.source,
-    this.password,
-  });
+  const _MergeDocPreview({required this.source, this.password});
 
   final _MergeSource source;
   final String? password;
@@ -291,11 +290,9 @@ class _MergeDocPreview extends ConsumerWidget {
           else if (source.pageCount != null && source.pageCount! > 0)
             Expanded(
               child: FutureBuilder(
-                future: ref.read(organizeThumbCacheProvider).render(
-                      source.file,
-                      1,
-                      password: password,
-                    ),
+                future: ref
+                    .read(organizeThumbCacheProvider)
+                    .render(source.file, 1, password: password),
                 builder: (context, snap) {
                   if (snap.hasData && snap.data != null) {
                     return Image.memory(snap.data!, fit: BoxFit.contain);

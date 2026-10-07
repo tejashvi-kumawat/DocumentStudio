@@ -38,13 +38,11 @@ class PdfrxStructureAdapter implements PdfStructurePort {
       outputPath: outputPath,
       pageSources: [
         for (final doc in inputs)
-          for (var i = 0;
-              i <
-                  await _pageCount(
-                    doc,
-                    passwordsByPath?[doc.path] ?? password,
-                  );
-              i++)
+          for (
+            var i = 0;
+            i < await _pageCount(doc, passwordsByPath?[doc.path] ?? password);
+            i++
+          )
             PageSource(doc, i + 1),
       ],
       password: password,
@@ -74,9 +72,7 @@ class PdfrxStructureAdapter implements PdfStructurePort {
   }) async {
     return _buildFromPages(
       outputPath: outputPath,
-      pageSources: [
-        for (final n in pageNumbers1Based) PageSource(input, n),
-      ],
+      pageSources: [for (final n in pageNumbers1Based) PageSource(input, n)],
       password: password,
     );
   }
@@ -308,7 +304,8 @@ class PdfrxStructureAdapter implements PdfStructurePort {
         if (src.pageNumber < 1 || src.pageNumber > doc.pages.length) {
           throw DocumentStudioError(
             code: DocumentStudioErrorCode.invalidPdf,
-            message: 'Page ${src.pageNumber} out of range in ${src.file.displayName}',
+            message:
+                'Page ${src.pageNumber} out of range in ${src.file.displayName}',
           );
         }
         var page = doc.pages[src.pageNumber - 1];
@@ -325,9 +322,13 @@ class PdfrxStructureAdapter implements PdfStructurePort {
     }
   }
 
-  Future<LocalFileRef> _encodePages(List<PdfPage> pages, String outputPath) async {
+  Future<LocalFileRef> _encodePages(
+    List<PdfPage> pages,
+    String outputPath,
+  ) async {
     final outDoc = await PdfDocument.createNew(
-      sourceName: 'document_studio://organize/${DateTime.now().microsecondsSinceEpoch}',
+      sourceName:
+          'document_studio://organize/${DateTime.now().microsecondsSinceEpoch}',
     );
     try {
       outDoc.pages = pages;

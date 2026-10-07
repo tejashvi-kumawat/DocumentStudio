@@ -14,32 +14,23 @@ class TextToPdfLayout {
   final double marginPt;
   final int maxLines;
 
-  static const a4 = TextToPdfLayout(
-    pageWidthPt: 595,
-    pageHeightPt: 842,
-  );
+  static const a4 = TextToPdfLayout(pageWidthPt: 595, pageHeightPt: 842);
 
-  static const letter = TextToPdfLayout(
-    pageWidthPt: 612,
-    pageHeightPt: 792,
-  );
+  static const letter = TextToPdfLayout(pageWidthPt: 612, pageHeightPt: 792);
 
   double get lineLeadingPt => fontSizePt * 1.25;
 }
 
-enum TextToPdfPagePreset {
-  letter,
-  a4,
-}
+enum TextToPdfPagePreset { letter, a4 }
 
 extension TextToPdfPagePresetX on TextToPdfPagePreset {
   String get label => switch (this) {
-        TextToPdfPagePreset.letter => 'US Letter',
-        TextToPdfPagePreset.a4 => 'A4',
-      };
+    TextToPdfPagePreset.letter => 'US Letter',
+    TextToPdfPagePreset.a4 => 'A4',
+  };
 
   TextToPdfLayout get layout => switch (this) {
-        TextToPdfPagePreset.letter => TextToPdfLayout.letter,
-        TextToPdfPagePreset.a4 => TextToPdfLayout.a4,
-      };
+    TextToPdfPagePreset.letter => TextToPdfLayout.letter,
+    TextToPdfPagePreset.a4 => TextToPdfLayout.a4,
+  };
 }

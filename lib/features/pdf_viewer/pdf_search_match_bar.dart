@@ -88,13 +88,13 @@ class _PdfSearchMatchBarState extends State<PdfSearchMatchBar> {
   }
 
   String get statusLabel => pdfViewerFindStatusLabel(
-        query: _queryController.text,
-        matchCount: widget.matchCount,
-        isSearching: widget.isSearching,
-        currentIndex: widget.currentIndex,
-        ocrIndexing: widget.ocrIndexing,
-        fromOcrIndex: widget.fromOcrIndex,
-      );
+    query: _queryController.text,
+    matchCount: widget.matchCount,
+    isSearching: widget.isSearching,
+    currentIndex: widget.currentIndex,
+    ocrIndexing: widget.ocrIndexing,
+    fromOcrIndex: widget.fromOcrIndex,
+  );
 
   void _submitQuery({bool immediate = false}) {
     final text = _queryController.text;
@@ -208,7 +208,9 @@ class _PdfSearchMatchBarState extends State<PdfSearchMatchBar> {
               if (widget.onShowResults != null)
                 IconButton(
                   tooltip: 'Show all results',
-                  onPressed: widget.matchCount > 0 ? widget.onShowResults : null,
+                  onPressed: widget.matchCount > 0
+                      ? widget.onShowResults
+                      : null,
                   icon: const Icon(Icons.format_list_bulleted),
                 ),
               TextButton(onPressed: widget.onClose, child: const Text('Close')),
@@ -219,7 +221,6 @@ class _PdfSearchMatchBarState extends State<PdfSearchMatchBar> {
     );
   }
 }
-
 
 class _OptionToggle extends StatelessWidget {
   const _OptionToggle({

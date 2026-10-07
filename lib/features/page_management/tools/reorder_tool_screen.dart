@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 
 /// DS-ORG-005 — reorder pages via drag-and-drop or move controls, then export.
 class ReorderToolScreen extends StatelessWidget {
-  const ReorderToolScreen({
-    super.key,
-    this.initialFile,
-    this.initialPassword,
-  });
+  const ReorderToolScreen({super.key, this.initialFile, this.initialPassword});
 
   final LocalFileRef? initialFile;
   final String? initialPassword;

@@ -28,12 +28,18 @@ Future<void> offerDesktopEngineSetup({
 
   final status = await DesktopEngineStatus.probe();
   if (status.allRecommendedReady) {
-    await prefs.setString(kDesktopEngineSetupPrefKey, kDesktopEngineSetupBundled);
+    await prefs.setString(
+      kDesktopEngineSetupPrefKey,
+      kDesktopEngineSetupBundled,
+    );
     return;
   }
   // Linux .deb users usually have everything; only prompt when core PDF tools missing.
   if (Platform.isLinux && status.corePdfToolsReady) {
-    await prefs.setString(kDesktopEngineSetupPrefKey, kDesktopEngineSetupSkipped);
+    await prefs.setString(
+      kDesktopEngineSetupPrefKey,
+      kDesktopEngineSetupSkipped,
+    );
     return;
   }
 

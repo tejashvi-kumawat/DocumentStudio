@@ -90,7 +90,8 @@ class _CommandPaletteDialogState extends State<_CommandPaletteDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final list = _filtered;
-    if (_highlight >= list.length) _highlight = list.isEmpty ? 0 : list.length - 1;
+    if (_highlight >= list.length)
+      _highlight = list.isEmpty ? 0 : list.length - 1;
 
     return Shortcuts(
       shortcuts: {
@@ -100,10 +101,12 @@ class _CommandPaletteDialogState extends State<_CommandPaletteDialog> {
       },
       child: Actions(
         actions: {
-          ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
-            // handled in TextField onSubmitted / key
-            return null;
-          }),
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              // handled in TextField onSubmitted / key
+              return null;
+            },
+          ),
         },
         child: Dialog(
           alignment: Alignment.topCenter,
@@ -146,7 +149,10 @@ class _CommandPaletteDialogState extends State<_CommandPaletteDialog> {
                       return ListTile(
                         dense: true,
                         selected: selected,
-                        title: Text(item.label, style: theme.textTheme.titleSmall),
+                        title: Text(
+                          item.label,
+                          style: theme.textTheme.titleSmall,
+                        ),
                         subtitle: Text(
                           item.subtitle,
                           maxLines: 1,

@@ -26,7 +26,10 @@ Future<bool> revealFileInFolder(LocalFileRef file) async {
     }
     if (Platform.isWindows) {
       final normalized = path.replaceAll('/', '\\');
-      final result = await Process.run('explorer.exe', ['/select,', normalized]);
+      final result = await Process.run('explorer.exe', [
+        '/select,',
+        normalized,
+      ]);
       return result.exitCode == 0;
     }
   } catch (_) {
@@ -51,9 +54,10 @@ void openToolResult(
     revealFileInFolder(file);
     return;
   }
-  ProviderScope.containerOf(context, listen: false)
-      .read(documentTabsControllerProvider)
-      .openDocument(file, password: password);
+  ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(documentTabsControllerProvider).openDocument(file, password: password);
   GoRouter.of(context).go('/');
 }
 

@@ -13,13 +13,13 @@ class PdfAnnotationAuthoring {
 
   static final PdfAnnotationCapabilities capabilities =
       const PdfAnnotationCapabilities(
-    canList: true,
-    canAuthor: true,
-    canPersist: true,
-    listLimitation:
-        'Markup made in Document Studio stays editable. Annotations from '
-        'other apps are listed and can be deleted.',
-  );
+        canList: true,
+        canAuthor: true,
+        canPersist: true,
+        listLimitation:
+            'Markup made in Document Studio stays editable. Annotations from '
+            'other apps are listed and can be deleted.',
+      );
 
   static void open(BuildContext context, MarkupTool tool) {
     final scope = PdfViewerToolPanelScope.maybeOf(context);
@@ -29,9 +29,10 @@ class PdfAnnotationAuthoring {
       );
       return;
     }
-    ProviderScope.containerOf(context, listen: false)
-        .read(markupEditorProvider)
-        .setTool(tool);
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(markupEditorProvider).setTool(tool);
     scope.openViewerToolPanel(ViewerToolId.markupBurn);
   }
 

@@ -91,19 +91,23 @@ final pdfPageStampServiceProvider = Provider<PdfPageStampService>((ref) {
   );
 });
 
-final settingsRepositoryProvider = FutureProvider<SettingsRepository>((ref) async {
+final settingsRepositoryProvider = FutureProvider<SettingsRepository>((
+  ref,
+) async {
   return SettingsRepository.create();
 });
 
-final recentFilesRepositoryProvider =
-    FutureProvider<RecentFilesRepository>((ref) async {
+final recentFilesRepositoryProvider = FutureProvider<RecentFilesRepository>((
+  ref,
+) async {
   return RecentFilesRepository.create();
 });
 
-final favoriteFilesRepositoryProvider =
-    FutureProvider<FavoriteFilesRepository>((ref) async {
-  return FavoriteFilesRepository.create();
-});
+final favoriteFilesRepositoryProvider = FutureProvider<FavoriteFilesRepository>(
+  (ref) async {
+    return FavoriteFilesRepository.create();
+  },
+);
 
 final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
   ThemeModeNotifier.new,
@@ -127,8 +131,8 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 
 final recentsProvider =
     AsyncNotifierProvider<RecentsNotifier, List<LocalFileRef>>(
-  RecentsNotifier.new,
-);
+      RecentsNotifier.new,
+    );
 
 class RecentsNotifier extends AsyncNotifier<List<LocalFileRef>> {
   /// Portal → host path; drops session working copies (`ds_sess_*`).
@@ -140,9 +144,7 @@ class RecentsNotifier extends AsyncNotifier<List<LocalFileRef>> {
     if (RecentFilesRepository.isSessionWorkingCopyPath(hostPath)) {
       return null;
     }
-    return hostPath == fileRef.path
-        ? fileRef
-        : fileRef.copyWithPath(hostPath);
+    return hostPath == fileRef.path ? fileRef : fileRef.copyWithPath(hostPath);
   }
 
   Future<List<LocalFileRef>> _normalizeStored(List<LocalFileRef> list) async {
@@ -159,7 +161,8 @@ class RecentsNotifier extends AsyncNotifier<List<LocalFileRef>> {
     final repo = await ref.read(recentFilesRepositoryProvider.future);
     final collapsed = await _normalizeStored(repo.load());
     final previous = repo.load();
-    final changed = previous.length != collapsed.length ||
+    final changed =
+        previous.length != collapsed.length ||
         !_sameRecentPaths(previous, collapsed);
     if (changed) {
       await repo.replaceAll(collapsed);
@@ -209,8 +212,8 @@ class RecentsNotifier extends AsyncNotifier<List<LocalFileRef>> {
 
 final favoritesProvider =
     AsyncNotifierProvider<FavoritesNotifier, List<LocalFileRef>>(
-  FavoritesNotifier.new,
-);
+      FavoritesNotifier.new,
+    );
 
 class FavoritesNotifier extends AsyncNotifier<List<LocalFileRef>> {
   @override
@@ -237,7 +240,6 @@ class FavoritesNotifier extends AsyncNotifier<List<LocalFileRef>> {
   }
 }
 
-
 /// Viewer defaults chosen in Settings (applied when a document opens).
 class ViewerPrefs {
   const ViewerPrefs({
@@ -260,18 +262,18 @@ class ViewerPrefs {
     String? quality,
     String? textFamily,
     double? textSize,
-  }) =>
-      ViewerPrefs(
-        zoom: zoom ?? this.zoom,
-        display: display ?? this.display,
-        quality: quality ?? this.quality,
-        textFamily: textFamily ?? this.textFamily,
-        textSize: textSize ?? this.textSize,
-      );
+  }) => ViewerPrefs(
+    zoom: zoom ?? this.zoom,
+    display: display ?? this.display,
+    quality: quality ?? this.quality,
+    textFamily: textFamily ?? this.textFamily,
+    textSize: textSize ?? this.textSize,
+  );
 }
 
-final viewerPrefsProvider =
-    NotifierProvider<ViewerPrefsNotifier, ViewerPrefs>(ViewerPrefsNotifier.new);
+final viewerPrefsProvider = NotifierProvider<ViewerPrefsNotifier, ViewerPrefs>(
+  ViewerPrefsNotifier.new,
+);
 
 class ViewerPrefsNotifier extends Notifier<ViewerPrefs> {
   @override

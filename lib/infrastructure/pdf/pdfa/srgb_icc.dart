@@ -32,11 +32,12 @@ Uint8List buildSrgbIccProfile() {
     return b.toBytes();
   }
 
-  Uint8List text(String t) => (BytesBuilder()
-        ..add(_u32(0x74657874)) // 'text'
-        ..add(_u32(0))
-        ..add([...t.codeUnits, 0]))
-      .toBytes();
+  Uint8List text(String t) =>
+      (BytesBuilder()
+            ..add(_u32(0x74657874)) // 'text'
+            ..add(_u32(0))
+            ..add([...t.codeUnits, 0]))
+          .toBytes();
 
   Uint8List curve() {
     const n = 1024;
@@ -124,8 +125,8 @@ int _sig(String s) =>
     s.codeUnitAt(3);
 
 List<int> _u32(int v) => [
-      (v >> 24) & 0xFF,
-      (v >> 16) & 0xFF,
-      (v >> 8) & 0xFF,
-      v & 0xFF,
-    ];
+  (v >> 24) & 0xFF,
+  (v >> 16) & 0xFF,
+  (v >> 8) & 0xFF,
+  v & 0xFF,
+];

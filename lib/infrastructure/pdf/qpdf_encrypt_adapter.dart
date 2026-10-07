@@ -125,10 +125,7 @@ class QpdfEncryptAdapter implements PdfEncryptPort {
         recoveryHint: detail.isEmpty ? null : detail,
       );
     }
-    return LocalFileRef(
-      path: outputPath,
-      displayName: p.basename(outputPath),
-    );
+    return LocalFileRef(path: outputPath, displayName: p.basename(outputPath));
   }
 
   @override
@@ -168,9 +165,6 @@ class QpdfEncryptAdapter implements PdfEncryptPort {
         recoveryHint: detail.isEmpty ? null : detail,
       );
     }
-    return LocalFileRef(
-      path: outputPath,
-      displayName: p.basename(outputPath),
-    );
+    return LocalFileRef(path: outputPath, displayName: p.basename(outputPath));
   }
 }

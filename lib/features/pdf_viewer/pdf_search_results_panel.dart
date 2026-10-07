@@ -31,8 +31,8 @@ class PdfSearchResultsPanel extends StatelessWidget {
                 matches.isEmpty
                     ? (s.isSearching ? 'Searching…' : 'No results')
                     : '${matches.length} result${matches.length == 1 ? '' : 's'}'
-                        ' in ${rows.where((r) => r.header).length} page'
-                        '${rows.where((r) => r.header).length == 1 ? '' : 's'}',
+                          ' in ${rows.where((r) => r.header).length} page'
+                          '${rows.where((r) => r.header).length == 1 ? '' : 's'}',
                 style: theme.textTheme.labelLarge,
               ),
             ),
@@ -98,9 +98,7 @@ class PdfSearchResultsPanel extends StatelessWidget {
 }
 
 class _Row {
-  const _Row.header(this.page)
-      : header = true,
-        index = -1;
+  const _Row.header(this.page) : header = true, index = -1;
   const _Row.match(this.page, this.index) : header = false;
 
   final bool header;
@@ -127,7 +125,9 @@ class _Snippet extends StatelessWidget {
       TextSpan(
         style: style,
         children: [
-          TextSpan(text: (from > 0 ? '…' : '') + clean(text.substring(from, start))),
+          TextSpan(
+            text: (from > 0 ? '…' : '') + clean(text.substring(from, start)),
+          ),
           TextSpan(
             text: clean(text.substring(start, end)),
             style: style?.copyWith(
@@ -135,7 +135,10 @@ class _Snippet extends StatelessWidget {
               backgroundColor: DsColors.warning.withValues(alpha: 0.35),
             ),
           ),
-          TextSpan(text: clean(text.substring(end, to)) + (to < text.length ? '…' : '')),
+          TextSpan(
+            text:
+                clean(text.substring(end, to)) + (to < text.length ? '…' : ''),
+          ),
         ],
       ),
       maxLines: 3,

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:document_studio/core/desktop/desktop_engine_resolver.dart';
@@ -20,9 +19,8 @@ class OcrPageSearchHit {
 
 /// When the text layer has no hits, OCR nearby pages with tesseract.
 class PdfOcrPageSearcher {
-  PdfOcrPageSearcher({DesktopEngineResolver? resolver, OcrPort? ocr})
-      : _resolver = resolver ?? desktopEngineResolver,
-        _ocr = ocr;
+  PdfOcrPageSearcher({DesktopEngineResolver? resolver, this._ocr})
+    : _resolver = resolver ?? desktopEngineResolver;
 
   final DesktopEngineResolver _resolver;
   final OcrPort? _ocr;
@@ -57,19 +55,19 @@ class PdfOcrPageSearcher {
     );
     try {
       final total = doc.pages.length;
-      final pages = <int>{
-        for (var d = -radius; d <= radius; d++) centerPage1 + d,
-      }.where((p) => p >= 1 && p <= total).toList()
-        ..sort((a, b) {
-          final da = (a - centerPage1).abs();
-          final db = (b - centerPage1).abs();
-          return da.compareTo(db);
-        });
+      final pages =
+          <int>{for (var d = -radius; d <= radius; d++) centerPage1 + d}
+              .where((p) => p >= 1 && p <= total)
+              .toList()
+            ..sort((a, b) {
+              final da = (a - centerPage1).abs();
+              final db = (b - centerPage1).abs();
+              return da.compareTo(db);
+            });
 
-      final ocr = _ocr ??
-          TesseractCliOcrPort(
-            executable: await _resolver.resolveTesseract(),
-          );
+      final ocr =
+          _ocr ??
+          TesseractCliOcrPort(executable: await _resolver.resolveTesseract());
       final tessPrefix = _resolver.resolveTessdataPrefix();
       if (tessPrefix != null) {
         // Ensure child processes see tessdata.

@@ -35,7 +35,9 @@ List<PdfFormSpot> detectTextLayerBlanks({
   required double pageHeightPt,
 }) {
   final pageW = pageWidthPt.isFinite && pageWidthPt > 1 ? pageWidthPt : 612.0;
-  final pageH = pageHeightPt.isFinite && pageHeightPt > 1 ? pageHeightPt : 792.0;
+  final pageH = pageHeightPt.isFinite && pageHeightPt > 1
+      ? pageHeightPt
+      : 792.0;
   final n = math.min(text.length, normRects.length);
   if (n == 0) return const [];
 
@@ -167,10 +169,10 @@ class _Candidate {
   final Rect norm;
 
   int get rank => switch (kind) {
-        _BlankKind.line => 3,
-        _BlankKind.dots => 2,
-        _BlankKind.spaces => 1,
-      };
+    _BlankKind.line => 3,
+    _BlankKind.dots => 2,
+    _BlankKind.spaces => 1,
+  };
 }
 
 class _Glyph {
@@ -184,8 +186,7 @@ class _Glyph {
   double get cx => (norm.left + norm.right) / 2;
   double get cy => (norm.top + norm.bottom) / 2;
 
-  bool get ink =>
-      norm.width * pageW >= 0.2 && norm.height * pageH >= 0.2;
+  bool get ink => norm.width * pageW >= 0.2 && norm.height * pageH >= 0.2;
 
   bool get underscore =>
       char == '_' ||
@@ -197,11 +198,11 @@ class _Glyph {
       char == '━';
 
   int get dotWeight => switch (char) {
-        '.' || '·' || '∙' || '•' || '․' || '‧' => 1,
-        '‥' => 2,
-        '…' => 3,
-        _ => 0,
-      };
+    '.' || '·' || '∙' || '•' || '․' || '‧' => 1,
+    '‥' => 2,
+    '…' => 3,
+    _ => 0,
+  };
 
   bool get dot => dotWeight > 0;
 
@@ -280,10 +281,14 @@ _Candidate? _candidateFor(
 
   final double left;
   final double right;
-  if (kind == _BlankKind.spaces && gapW >= 36 && gapLeft != null && gapRight != null) {
+  if (kind == _BlankKind.spaces &&
+      gapW >= 36 &&
+      gapLeft != null &&
+      gapRight != null) {
     left = gapLeft;
     right = gapRight;
-  } else if (union != null && (gapW < unionW + 8 || gapLeft == null || gapRight == null)) {
+  } else if (union != null &&
+      (gapW < unionW + 8 || gapLeft == null || gapRight == null)) {
     left = union.left;
     right = union.right;
   } else if (gapLeft != null && gapRight != null) {
@@ -297,8 +302,8 @@ _Candidate? _candidateFor(
   }
   if ((right - left) * pageW < 8) return null;
 
-  final bandBottom = union?.bottom ??
-      (line.map((g) => g.norm.bottom).reduce(math.max));
+  final bandBottom =
+      union?.bottom ?? (line.map((g) => g.norm.bottom).reduce(math.max));
   final minH = math.max(medianH, 14 / pageH);
   final maxH = math.max(minH, 18 / pageH);
   final bottom = bandBottom.clamp(0.0, 1.0);

@@ -21,8 +21,7 @@ class HomeDocumentListSliver extends StatelessWidget {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
 
-    final border =
-        isDark ? DsColors.borderDark : DsColors.borderLight;
+    final border = isDark ? DsColors.borderDark : DsColors.borderLight;
     final fill = isDark ? DsColors.groupedCellDark : DsColors.groupedCellLight;
     final radius = BorderRadius.circular(DsSpacing.radiusGrouped);
 
@@ -36,8 +35,12 @@ class HomeDocumentListSliver extends StatelessWidget {
               border: Border(
                 left: BorderSide(color: border, width: isDark ? 1 : 0.5),
                 right: BorderSide(color: border, width: isDark ? 1 : 0.5),
-                top: isFirst ? BorderSide(color: border, width: isDark ? 1 : 0.5) : BorderSide.none,
-                bottom: isLast ? BorderSide(color: border, width: isDark ? 1 : 0.5) : BorderSide.none,
+                top: isFirst
+                    ? BorderSide(color: border, width: isDark ? 1 : 0.5)
+                    : BorderSide.none,
+                bottom: isLast
+                    ? BorderSide(color: border, width: isDark ? 1 : 0.5)
+                    : BorderSide.none,
               ),
               borderRadius: BorderRadius.vertical(
                 top: isFirst ? radius.topLeft : Radius.zero,

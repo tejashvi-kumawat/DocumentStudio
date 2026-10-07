@@ -50,9 +50,9 @@ class _HomeDropZoneState extends State<HomeDropZone> {
     final fill = active
         ? primary.withValues(alpha: isDark ? 0.16 : 0.07)
         : _hovered
-            ? primary.withValues(alpha: isDark ? 0.08 : 0.035)
-            : DsColors.groupedCell(theme.brightness)
-                .withValues(alpha: isDark ? 0.6 : 0.7);
+        ? primary.withValues(alpha: isDark ? 0.08 : 0.035)
+        : DsColors.groupedCell(theme.brightness)
+              .withValues(alpha: isDark ? 0.6 : 0.7);
     final stroke = lit
         ? primary.withValues(alpha: active ? 0.9 : 0.5)
         : DsColors.border(theme.brightness).withValues(alpha: 1);

@@ -22,21 +22,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
-enum ViewerBatchOp {
-  rotate,
-  compress,
-  watermark,
-  pageNumbers,
-  ocr,
-}
+enum ViewerBatchOp { rotate, compress, watermark, pageNumbers, ocr }
 
 String viewerBatchOpLabel(ViewerBatchOp op) => switch (op) {
-      ViewerBatchOp.rotate => 'Rotate 90° CW',
-      ViewerBatchOp.compress => 'Compress (balanced)',
-      ViewerBatchOp.watermark => 'Watermark',
-      ViewerBatchOp.pageNumbers => 'Page numbers',
-      ViewerBatchOp.ocr => 'Searchable OCR',
-    };
+  ViewerBatchOp.rotate => 'Rotate 90° CW',
+  ViewerBatchOp.compress => 'Compress (balanced)',
+  ViewerBatchOp.watermark => 'Watermark',
+  ViewerBatchOp.pageNumbers => 'Page numbers',
+  ViewerBatchOp.ocr => 'Searchable OCR',
+};
 
 /// Run one operation across a page range of the open document (in-panel batch).
 class ViewerBatchPanel extends ConsumerStatefulWidget {
@@ -127,30 +121,30 @@ class _ViewerBatchPanelState extends ConsumerState<ViewerBatchPanel> {
       switch (_op) {
         case ViewerBatchOp.rotate:
           setState(() => _progress = 'Rotating pages…');
-          final exportPages =
-              pagesForRotate(file, total, pages, 90);
+          final exportPages = pagesForRotate(file, total, pages, 90);
           await exportViewerOrganizePages(
             ref: ref,
             context: context,
             handoff: widget.handoff,
             pages: exportPages,
-            passwordsByPath:
-                password == null ? null : {file.path: password},
+            passwordsByPath: password == null ? null : {file.path: password},
             successMessage: 'Rotated pages saved.',
             suggestedName:
                 '${p.basenameWithoutExtension(file.displayName)}_rotated.pdf',
           );
         case ViewerBatchOp.compress:
           setState(() => _progress = 'Compressing…');
-          final temp = await ref.read(fileStorageProvider).createTempFile(
-                prefix: 'batch-compress',
-                suffix: '.pdf',
-              );
-          await ref.read(compressServiceProvider).compressToPath(
+          final temp = await ref
+              .read(fileStorageProvider)
+              .createTempFile(prefix: 'batch-compress', suffix: '.pdf');
+          await ref
+              .read(compressServiceProvider)
+              .compressToPath(
                 input: file,
                 outputPath: temp,
-                options:
-                    PdfCompressOptions.fromProfile(CompressProfile.balanced),
+                options: PdfCompressOptions.fromProfile(
+                  CompressProfile.balanced,
+                ),
                 password: password,
               );
           final bytes = await File(temp).readAsBytes();
@@ -165,11 +159,12 @@ class _ViewerBatchPanelState extends ConsumerState<ViewerBatchPanel> {
             _snack('Enter watermark text.');
             return;
           }
-          final temp = await ref.read(fileStorageProvider).createTempFile(
-                prefix: 'batch-wm',
-                suffix: '.pdf',
-              );
-          await ref.read(pdfOverlayServiceProvider).applyTextWatermark(
+          final temp = await ref
+              .read(fileStorageProvider)
+              .createTempFile(prefix: 'batch-wm', suffix: '.pdf');
+          await ref
+              .read(pdfOverlayServiceProvider)
+              .applyTextWatermark(
                 input: file,
                 outputPath: temp,
                 options: WatermarkOptions(
@@ -179,32 +174,32 @@ class _ViewerBatchPanelState extends ConsumerState<ViewerBatchPanel> {
                 password: password,
               );
           final bytes = await File(temp).readAsBytes();
-          await _commitBytes(
-            Uint8List.fromList(bytes),
-            'Watermark applied.',
-          );
+          await _commitBytes(Uint8List.fromList(bytes), 'Watermark applied.');
         case ViewerBatchOp.pageNumbers:
           setState(() => _progress = 'Adding page numbers…');
           // Overlay applies to all pages; for a subset, stamp only those via
           // watermark-style per-page filter by rebuilding page-number overlay
           // only on selected pages through temporary watermark of numbers.
-          final temp = await ref.read(fileStorageProvider).createTempFile(
-                prefix: 'batch-pgn',
-                suffix: '.pdf',
-              );
+          final temp = await ref
+              .read(fileStorageProvider)
+              .createTempFile(prefix: 'batch-pgn', suffix: '.pdf');
           final opts = const PageNumberOptions();
           // Apply full page numbers then... actually applyPageNumbers marks all.
           // Use overlay service with custom approach: call applyPageNumbers for
           // whole doc when all pages selected; otherwise watermark each label.
           if (pages.length == total) {
-            await ref.read(pdfOverlayServiceProvider).applyPageNumbers(
+            await ref
+                .read(pdfOverlayServiceProvider)
+                .applyPageNumbers(
                   input: file,
                   outputPath: temp,
                   options: opts,
                   password: password,
                 );
           } else {
-            await ref.read(pdfOverlayServiceProvider).applyTextWatermark(
+            await ref
+                .read(pdfOverlayServiceProvider)
+                .applyTextWatermark(
                   input: file,
                   outputPath: temp,
                   options: WatermarkOptions(
@@ -273,7 +268,8 @@ class _ViewerBatchPanelState extends ConsumerState<ViewerBatchPanel> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

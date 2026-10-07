@@ -45,13 +45,12 @@ class _ShellHandoffSyncScheduler {
       _pendingRef = null;
       if (pending == null) return;
       final tab = pending.read(documentTabsControllerProvider).activeTab;
-      pending.read(shellNavigationContextProvider.notifier).setActiveDocument(
+      pending
+          .read(shellNavigationContextProvider.notifier)
+          .setActiveDocument(
             tab == null
                 ? null
-                : PdfDocumentRouteArgs(
-                    file: tab.file,
-                    password: tab.password,
-                  ),
+                : PdfDocumentRouteArgs(file: tab.file, password: tab.password),
           );
     });
   }

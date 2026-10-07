@@ -51,8 +51,8 @@ class DesktopEngineResolver {
     this.fileExists,
     this.directoryExists,
   }) : executablePath = resolveRunningExecutablePath(
-          executablePath: executablePath,
-        );
+         executablePath: executablePath,
+       );
 
   /// Absolute path of the running binary (override in tests).
   final String executablePath;
@@ -98,13 +98,26 @@ class DesktopEngineResolver {
     // flutter run cwd → build/linux/{debug,release}/bundle/engines
     final cwd = Directory.current.path;
     for (final mode in ['debug', 'release']) {
-      roots.add(p.join(cwd, 'build', 'linux', 'x64', mode, 'bundle', 'engines'));
+      roots.add(
+        p.join(cwd, 'build', 'linux', 'x64', mode, 'bundle', 'engines'),
+      );
       roots.add(
         p.join(cwd, 'build', 'linux', 'x64', mode, 'bundle', 'engines', 'bin'),
       );
-      roots.add(p.join(cwd, 'build', 'linux', 'arm64', mode, 'bundle', 'engines'));
       roots.add(
-        p.join(cwd, 'build', 'linux', 'arm64', mode, 'bundle', 'engines', 'bin'),
+        p.join(cwd, 'build', 'linux', 'arm64', mode, 'bundle', 'engines'),
+      );
+      roots.add(
+        p.join(
+          cwd,
+          'build',
+          'linux',
+          'arm64',
+          mode,
+          'bundle',
+          'engines',
+          'bin',
+        ),
       );
     }
     final out = <String>[];
@@ -197,7 +210,16 @@ class DesktopEngineResolver {
     final cwd = Directory.current.path;
     for (final mode in ['debug', 'release']) {
       candidates.add(
-        p.join(cwd, 'build', 'linux', 'x64', mode, 'bundle', 'engines', 'tessdata'),
+        p.join(
+          cwd,
+          'build',
+          'linux',
+          'x64',
+          mode,
+          'bundle',
+          'engines',
+          'tessdata',
+        ),
       );
     }
     for (final dir in candidates.map(p.normalize)) {

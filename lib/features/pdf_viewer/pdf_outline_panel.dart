@@ -126,10 +126,7 @@ class _PdfOutlinePanelState extends State<PdfOutlinePanel> {
       elevation: isDark ? 0 : 1,
       child: horizontal
           ? SizedBox(height: 120, width: double.infinity, child: child)
-          : SizedBox(
-              width: PdfThumbnailSidebar.sidebarWidth,
-              child: child,
-            ),
+          : SizedBox(width: PdfThumbnailSidebar.sidebarWidth, child: child),
     );
   }
 
@@ -213,11 +210,7 @@ class _PdfOutlinePanelState extends State<PdfOutlinePanel> {
         children: [
           if (hasOutline)
             for (final node in nodes)
-              _OutlineTile(
-                node: node,
-                depth: 0,
-                onTap: _goToNode,
-              ),
+              _OutlineTile(node: node, depth: 0, onTap: _goToNode),
           if (_session.isNotEmpty) ...[
             if (hasOutline)
               Padding(

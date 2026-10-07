@@ -96,7 +96,8 @@ class _WorkspacePageGridState extends State<WorkspacePageGrid> {
   @override
   void didUpdateWidget(covariant WorkspacePageGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final replaced = oldWidget.pages.length != widget.pages.length ||
+    final replaced =
+        oldWidget.pages.length != widget.pages.length ||
         (widget.pages.isNotEmpty &&
             oldWidget.pages.isNotEmpty &&
             oldWidget.pages.first.file.path != widget.pages.first.file.path);
@@ -148,7 +149,8 @@ class _WorkspacePageGridState extends State<WorkspacePageGrid> {
     final canvas = isDark
         ? DsColors.groupedBackgroundDark
         : DsColors.groupedBackgroundLight;
-    final multi = widget.pages.length > 1 &&
+    final multi =
+        widget.pages.length > 1 &&
         widget.pages.any((p) => p.file.path != widget.pages.first.file.path);
 
     return ColoredBox(
@@ -198,7 +200,8 @@ class _WorkspacePageGridState extends State<WorkspacePageGrid> {
               final active = index >= window.start && index < window.end;
               final priority = _priorityFor(index, window, columns);
               final selected = widget.selectedIds.contains(page.id);
-              final dimmed = widget.highlightSourcePath != null &&
+              final dimmed =
+                  widget.highlightSourcePath != null &&
                   page.file.path != widget.highlightSourcePath;
               final label = multi
                   ? '${page.file.displayName} · ${page.pageNumber1Based}'

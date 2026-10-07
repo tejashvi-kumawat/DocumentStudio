@@ -50,8 +50,9 @@ class _ViewerUnlockPanelState extends ConsumerState<ViewerUnlockPanel> {
       return e.message;
     }
     if (e is QpdfCliException) {
-      final detail =
-          e.stderr.trim().isEmpty ? e.stdout.trim() : e.stderr.trim();
+      final detail = e.stderr.trim().isEmpty
+          ? e.stdout.trim()
+          : e.stderr.trim();
       return detail.isEmpty ? e.toString() : detail;
     }
     return '$e';
@@ -117,7 +118,8 @@ class _ViewerUnlockPanelState extends ConsumerState<ViewerUnlockPanel> {
         ViewerToolFormSection(
           first: true,
           title: 'Current password',
-          subtitle: 'Decrypts this open PDF. Save when you want to replace '
+          subtitle:
+              'Decrypts this open PDF. Save when you want to replace '
               'the original file. Leave this empty if the file opens without '
               'a password and only blocks printing or editing.',
           child: TextField(

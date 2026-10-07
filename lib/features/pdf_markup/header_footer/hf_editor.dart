@@ -199,81 +199,81 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
 
   List<Widget> _editorChildren(ThemeData theme) {
     return [
-        ?widget.header,
-        _templatesStrip(theme),
-        const SizedBox(height: DsSpacing.md),
-        _label(theme, 'Position', trailing: _zoneCountBadge(theme)),
-        _ZonePicker(
-          spec: spec,
-          focus: widget.focusZone,
-          sample: _sample,
-          onSelect: (z) {
-            widget.onFocusZone(z);
-            _focus[z]!.requestFocus();
-          },
+      ?widget.header,
+      _templatesStrip(theme),
+      const SizedBox(height: DsSpacing.md),
+      _label(theme, 'Position', trailing: _zoneCountBadge(theme)),
+      _ZonePicker(
+        spec: spec,
+        focus: widget.focusZone,
+        sample: _sample,
+        onSelect: (z) {
+          widget.onFocusZone(z);
+          _focus[z]!.requestFocus();
+        },
+      ),
+      const SizedBox(height: DsSpacing.sm),
+      AnimatedSwitcher(
+        duration: DsMotion.switchDuration,
+        switchInCurve: DsMotion.switchCurve,
+        switchOutCurve: DsMotion.switchCurve,
+        transitionBuilder: (child, anim) =>
+            DsMotion.fadeRiseTransition(anim, child, risePx: 4),
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.topCenter,
+          children: [...previous, ?current],
         ),
-        const SizedBox(height: DsSpacing.sm),
-        AnimatedSwitcher(
-          duration: DsMotion.switchDuration,
-          switchInCurve: DsMotion.switchCurve,
-          switchOutCurve: DsMotion.switchCurve,
-          transitionBuilder: (child, anim) =>
-              DsMotion.fadeRiseTransition(anim, child, risePx: 4),
-          layoutBuilder: (current, previous) => Stack(
-            alignment: Alignment.topCenter,
-            children: [...previous, ?current],
-          ),
-          child: KeyedSubtree(
-            key: ValueKey(widget.focusZone),
-            child: _zoneEditor(theme, widget.focusZone),
-          ),
+        child: KeyedSubtree(
+          key: ValueKey(widget.focusZone),
+          child: _zoneEditor(theme, widget.focusZone),
         ),
-        const SizedBox(height: DsSpacing.md),
-        _section(
-          theme,
-          id: 'numbers',
-          icon: Icons.format_list_numbered,
-          title: 'Numbering, date & time',
-          summary:
-              '${spec.numberStyle.label} · starts at ${spec.startNumber} · ${hfFormatDate(DateTime.now(), spec.dateFormat)}',
-          child: _numberingSection(theme),
-        ),
-        _section(
-          theme,
-          id: 'bates',
-          icon: Icons.gavel_outlined,
-          title: 'Bates numbering',
-          summary: spec.usesBates
-              ? spec.bates.format(spec.bates.start)
-              : 'Insert {bates} into a zone to use',
-          child: _batesSection(theme),
-        ),
-        _section(
-          theme,
-          id: 'pages',
-          icon: Icons.filter_none,
-          title: 'Page range',
-          summary: _rangeSummary(),
-          child: _rangeSection(theme),
-        ),
-        _section(
-          theme,
-          id: 'margins',
-          icon: Icons.border_outer,
-          title: 'Margins',
-          summary:
-              'T ${spec.margins.top.round()} · B ${spec.margins.bottom.round()} · L ${spec.margins.left.round()} · R ${spec.margins.right.round()} pt',
-          child: _marginsSection(theme),
-        ),
-        _section(
-          theme,
-          id: 'appearance',
-          icon: Icons.palette_outlined,
-          title: 'Rules & bands',
-          summary: _appearanceSummary(),
-          child: _appearanceSection(theme),
-        ),
-        ?widget.footer,
+      ),
+      const SizedBox(height: DsSpacing.md),
+      _section(
+        theme,
+        id: 'numbers',
+        icon: Icons.format_list_numbered,
+        title: 'Numbering, date & time',
+        summary:
+            '${spec.numberStyle.label} · starts at ${spec.startNumber} · ${hfFormatDate(DateTime.now(), spec.dateFormat)}',
+        child: _numberingSection(theme),
+      ),
+      _section(
+        theme,
+        id: 'bates',
+        icon: Icons.gavel_outlined,
+        title: 'Bates numbering',
+        summary: spec.usesBates
+            ? spec.bates.format(spec.bates.start)
+            : 'Insert {bates} into a zone to use',
+        child: _batesSection(theme),
+      ),
+      _section(
+        theme,
+        id: 'pages',
+        icon: Icons.filter_none,
+        title: 'Page range',
+        summary: _rangeSummary(),
+        child: _rangeSection(theme),
+      ),
+      _section(
+        theme,
+        id: 'margins',
+        icon: Icons.border_outer,
+        title: 'Margins',
+        summary:
+            'T ${spec.margins.top.round()} · B ${spec.margins.bottom.round()} · L ${spec.margins.left.round()} · R ${spec.margins.right.round()} pt',
+        child: _marginsSection(theme),
+      ),
+      _section(
+        theme,
+        id: 'appearance',
+        icon: Icons.palette_outlined,
+        title: 'Rules & bands',
+        summary: _appearanceSummary(),
+        child: _appearanceSection(theme),
+      ),
+      ?widget.footer,
     ];
   }
 
@@ -297,7 +297,9 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
       HfPageRange.odd => 'Odd pages',
       HfPageRange.even => 'Even pages',
       HfPageRange.custom =>
-        spec.customRange.trim().isEmpty ? 'Custom' : 'Pages ${spec.customRange}',
+        spec.customRange.trim().isEmpty
+            ? 'Custom'
+            : 'Pages ${spec.customRange}',
     };
     final extras = [
       if (spec.skipFirstPage) 'skip first',
@@ -317,21 +319,21 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
   }
 
   Widget _label(ThemeData theme, String text, {Widget? trailing}) => Padding(
-        padding: const EdgeInsets.only(bottom: DsSpacing.xs),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                text,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+    padding: const EdgeInsets.only(bottom: DsSpacing.xs),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-            ?trailing,
-          ],
+          ),
         ),
-      );
+        ?trailing,
+      ],
+    ),
+  );
 
   Widget _templatesStrip(ThemeData theme) {
     final items = [...widget.customTemplates, ...builtInHfTemplates];
@@ -370,7 +372,11 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
                     padding: const EdgeInsets.all(2),
                     child: Column(
                       children: [
-                        HfTemplateThumb(spec: t.spec, width: 72, selected: selected),
+                        HfTemplateThumb(
+                          spec: t.spec,
+                          width: 72,
+                          selected: selected,
+                        ),
                         const SizedBox(height: 4),
                         SizedBox(
                           width: 76,
@@ -380,8 +386,9 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight:
-                                  selected ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                               color: selected ? DsColors.primary : null,
                             ),
                           ),
@@ -414,17 +421,14 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
           Row(
             children: [
               Icon(
-                z.isHeader ? Icons.vertical_align_top : Icons.vertical_align_bottom,
+                z.isHeader
+                    ? Icons.vertical_align_top
+                    : Icons.vertical_align_bottom,
                 size: 16,
                 color: DsColors.primary,
               ),
               const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  z.label,
-                  style: theme.textTheme.titleSmall,
-                ),
-              ),
+              Expanded(child: Text(z.label, style: theme.textTheme.titleSmall)),
               if (!style.isEmpty)
                 IconButton(
                   tooltip: 'Clear zone',
@@ -519,7 +523,8 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
             onChanged: widget.enabled
                 ? (align) {
                     final next = HfZone.values.firstWhere(
-                      (zone) => zone.isHeader == z.isHeader && zone.align == align,
+                      (zone) =>
+                          zone.isHeader == z.isHeader && zone.align == align,
                     );
                     widget.onFocusZone(next);
                     _focus[next]!.requestFocus();
@@ -546,7 +551,9 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
                   ? () {
                       final zones = {
                         for (final other in HfZone.values)
-                          other: spec.zone(other).copyWith(
+                          other: spec
+                              .zone(other)
+                              .copyWith(
                                 font: style.font,
                                 sizePt: style.sizePt,
                                 colorRgb: style.colorRgb,
@@ -594,7 +601,8 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
           children: [
             InkWell(
               borderRadius: BorderRadius.circular(DsSpacing.radiusGrouped),
-              onTap: () => setState(() => open ? _open.remove(id) : _open.add(id)),
+              onTap: () =>
+                  setState(() => open ? _open.remove(id) : _open.add(id)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: DsSpacing.lg,
@@ -837,7 +845,8 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
   }
 
   Widget _rangeSection(ThemeData theme) {
-    final invalid = spec.range == HfPageRange.custom &&
+    final invalid =
+        spec.range == HfPageRange.custom &&
         parseHfPageRange(spec.customRange, widget.doc.pageCount) == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -857,8 +866,9 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
                           backgroundColor: spec.range == r
                               ? DsColors.primary.withValues(alpha: 0.1)
                               : null,
-                          foregroundColor:
-                              spec.range == r ? DsColors.primary : null,
+                          foregroundColor: spec.range == r
+                              ? DsColors.primary
+                              : null,
                           alignment: Alignment.centerLeft,
                         ),
                         onPressed: widget.enabled
@@ -983,7 +993,11 @@ class _HeaderFooterEditorState extends State<HeaderFooterEditor> {
   }
 
   Widget _appearanceSection(ThemeData theme) {
-    Widget block(String title, HfDecoration d, void Function(HfDecoration) set) {
+    Widget block(
+      String title,
+      HfDecoration d,
+      void Function(HfDecoration) set,
+    ) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1094,22 +1108,22 @@ class _ZonePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     Widget row(List<HfZone> zones) => Row(
-          children: [
-            for (final z in zones)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: _ZoneTile(
-                    zone: z,
-                    style: spec.zone(z),
-                    selected: focus == z,
-                    sample: sample,
-                    onTap: () => onSelect(z),
-                  ),
-                ),
+      children: [
+        for (final z in zones)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: _ZoneTile(
+                zone: z,
+                style: spec.zone(z),
+                selected: focus == z,
+                sample: sample,
+                onTap: () => onSelect(z),
               ),
-          ],
-        );
+            ),
+          ),
+      ],
+    );
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
@@ -1120,7 +1134,11 @@ class _ZonePicker extends StatelessWidget {
       ),
       child: Column(
         children: [
-          row(const [HfZone.headerLeft, HfZone.headerCenter, HfZone.headerRight]),
+          row(const [
+            HfZone.headerLeft,
+            HfZone.headerCenter,
+            HfZone.headerRight,
+          ]),
           Container(
             height: 34,
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -1133,7 +1151,11 @@ class _ZonePicker extends StatelessWidget {
               size: Size.infinite,
             ),
           ),
-          row(const [HfZone.footerLeft, HfZone.footerCenter, HfZone.footerRight]),
+          row(const [
+            HfZone.footerLeft,
+            HfZone.footerCenter,
+            HfZone.footerRight,
+          ]),
         ],
       ),
     );
@@ -1214,15 +1236,15 @@ class _ZoneTileState extends State<_ZoneTile> {
             color: widget.selected
                 ? DsColors.primary.withValues(alpha: 0.08)
                 : _hover
-                    ? Colors.black.withValues(alpha: 0.04)
-                    : Colors.transparent,
+                ? Colors.black.withValues(alpha: 0.04)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: widget.selected
                   ? DsColors.primary
                   : empty
-                      ? Colors.black12
-                      : Colors.black26,
+                  ? Colors.black12
+                  : Colors.black26,
               width: widget.selected ? 1.5 : 1,
             ),
           ),
@@ -1281,7 +1303,10 @@ class _TokenMenu extends StatelessWidget {
                       Text(t.label, style: const TextStyle(fontSize: 13)),
                       Text(
                         t.description,
-                        style: const TextStyle(fontSize: 11, color: Colors.black54),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black54,
+                        ),
                       ),
                     ],
                   ),
@@ -1358,7 +1383,9 @@ class _SizeStepper extends StatelessWidget {
             child: Text(
               '${fmt(value)} pt',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+              style: const TextStyle(
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
             ),
           ),
           IconButton(

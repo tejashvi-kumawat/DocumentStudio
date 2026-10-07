@@ -24,85 +24,86 @@ enum MarkupTool {
   image;
 
   String get label => switch (this) {
-        MarkupTool.select => 'Select',
-        MarkupTool.text => 'Text',
-        MarkupTool.callout => 'Callout',
-        MarkupTool.note => 'Sticky note',
-        MarkupTool.highlight => 'Highlight',
-        MarkupTool.underline => 'Underline',
-        MarkupTool.strikeout => 'Strikethrough',
-        MarkupTool.squiggly => 'Squiggly',
-        MarkupTool.pen => 'Pen',
-        MarkupTool.highlighter => 'Highlighter',
-        MarkupTool.rectangle => 'Rectangle',
-        MarkupTool.ellipse => 'Ellipse',
-        MarkupTool.line => 'Line',
-        MarkupTool.arrow => 'Arrow',
-        MarkupTool.polygon => 'Polygon',
-        MarkupTool.cloud => 'Cloud',
-        MarkupTool.eraser => 'Eraser',
-        MarkupTool.link => 'Link',
-        MarkupTool.image => 'Image',
-      };
+    MarkupTool.select => 'Select',
+    MarkupTool.text => 'Text',
+    MarkupTool.callout => 'Callout',
+    MarkupTool.note => 'Sticky note',
+    MarkupTool.highlight => 'Highlight',
+    MarkupTool.underline => 'Underline',
+    MarkupTool.strikeout => 'Strikethrough',
+    MarkupTool.squiggly => 'Squiggly',
+    MarkupTool.pen => 'Pen',
+    MarkupTool.highlighter => 'Highlighter',
+    MarkupTool.rectangle => 'Rectangle',
+    MarkupTool.ellipse => 'Ellipse',
+    MarkupTool.line => 'Line',
+    MarkupTool.arrow => 'Arrow',
+    MarkupTool.polygon => 'Polygon',
+    MarkupTool.cloud => 'Cloud',
+    MarkupTool.eraser => 'Eraser',
+    MarkupTool.link => 'Link',
+    MarkupTool.image => 'Image',
+  };
 
   IconData get icon => switch (this) {
-        MarkupTool.select => Icons.near_me_outlined,
-        MarkupTool.text => Icons.text_fields,
-        MarkupTool.callout => Icons.chat_bubble_outline,
-        MarkupTool.note => Icons.sticky_note_2_outlined,
-        MarkupTool.highlight => Icons.highlight,
-        MarkupTool.underline => Icons.format_underline,
-        MarkupTool.strikeout => Icons.format_strikethrough,
-        MarkupTool.squiggly => Icons.waves,
-        MarkupTool.pen => Icons.draw_outlined,
-        MarkupTool.highlighter => Icons.border_color_outlined,
-        MarkupTool.rectangle => Icons.crop_square,
-        MarkupTool.ellipse => Icons.circle_outlined,
-        MarkupTool.line => Icons.horizontal_rule,
-        MarkupTool.arrow => Icons.arrow_right_alt,
-        MarkupTool.polygon => Icons.pentagon_outlined,
-        MarkupTool.cloud => Icons.cloud_outlined,
-        MarkupTool.eraser => Icons.auto_fix_normal_outlined,
-        MarkupTool.link => Icons.link,
-        MarkupTool.image => Icons.image_outlined,
-      };
+    MarkupTool.select => Icons.near_me_outlined,
+    MarkupTool.text => Icons.text_fields,
+    MarkupTool.callout => Icons.chat_bubble_outline,
+    MarkupTool.note => Icons.sticky_note_2_outlined,
+    MarkupTool.highlight => Icons.highlight,
+    MarkupTool.underline => Icons.format_underline,
+    MarkupTool.strikeout => Icons.format_strikethrough,
+    MarkupTool.squiggly => Icons.waves,
+    MarkupTool.pen => Icons.draw_outlined,
+    MarkupTool.highlighter => Icons.border_color_outlined,
+    MarkupTool.rectangle => Icons.crop_square,
+    MarkupTool.ellipse => Icons.circle_outlined,
+    MarkupTool.line => Icons.horizontal_rule,
+    MarkupTool.arrow => Icons.arrow_right_alt,
+    MarkupTool.polygon => Icons.pentagon_outlined,
+    MarkupTool.cloud => Icons.cloud_outlined,
+    MarkupTool.eraser => Icons.auto_fix_normal_outlined,
+    MarkupTool.link => Icons.link,
+    MarkupTool.image => Icons.image_outlined,
+  };
 
   String? get shortcutHint => switch (this) {
-        MarkupTool.select => 'Alt+Shift+V',
-        MarkupTool.text => 'Alt+Shift+T',
-        MarkupTool.note => 'Alt+Shift+N',
-        MarkupTool.highlight => 'Alt+Shift+H',
-        MarkupTool.underline => 'Alt+Shift+U',
-        MarkupTool.pen => 'Alt+Shift+D',
-        MarkupTool.rectangle => 'Alt+Shift+R',
-        MarkupTool.line => 'Alt+Shift+L',
-        MarkupTool.link => 'Alt+Shift+K',
-        MarkupTool.image => 'Alt+Shift+I',
-        MarkupTool.eraser => 'Alt+Shift+E',
-        _ => null,
-      };
+    MarkupTool.select => 'Alt+Shift+V',
+    MarkupTool.text => 'Alt+Shift+T',
+    MarkupTool.note => 'Alt+Shift+N',
+    MarkupTool.highlight => 'Alt+Shift+H',
+    MarkupTool.underline => 'Alt+Shift+U',
+    MarkupTool.pen => 'Alt+Shift+D',
+    MarkupTool.rectangle => 'Alt+Shift+R',
+    MarkupTool.line => 'Alt+Shift+L',
+    MarkupTool.link => 'Alt+Shift+K',
+    MarkupTool.image => 'Alt+Shift+I',
+    MarkupTool.eraser => 'Alt+Shift+E',
+    _ => null,
+  };
 
   TextMarkupKind? get textMarkupKind => switch (this) {
-        MarkupTool.highlight => TextMarkupKind.highlight,
-        MarkupTool.underline => TextMarkupKind.underline,
-        MarkupTool.strikeout => TextMarkupKind.strikeout,
-        MarkupTool.squiggly => TextMarkupKind.squiggly,
-        _ => null,
-      };
+    MarkupTool.highlight => TextMarkupKind.highlight,
+    MarkupTool.underline => TextMarkupKind.underline,
+    MarkupTool.strikeout => TextMarkupKind.strikeout,
+    MarkupTool.squiggly => TextMarkupKind.squiggly,
+    _ => null,
+  };
 
   ShapeKind? get shapeKind => switch (this) {
-        MarkupTool.rectangle => ShapeKind.rectangle,
-        MarkupTool.ellipse => ShapeKind.ellipse,
-        MarkupTool.line => ShapeKind.line,
-        MarkupTool.arrow => ShapeKind.arrow,
-        MarkupTool.polygon => ShapeKind.polygon,
-        MarkupTool.cloud => ShapeKind.cloud,
-        _ => null,
-      };
+    MarkupTool.rectangle => ShapeKind.rectangle,
+    MarkupTool.ellipse => ShapeKind.ellipse,
+    MarkupTool.line => ShapeKind.line,
+    MarkupTool.arrow => ShapeKind.arrow,
+    MarkupTool.polygon => ShapeKind.polygon,
+    MarkupTool.cloud => ShapeKind.cloud,
+    _ => null,
+  };
 
   bool get isTextMarkup => textMarkupKind != null;
   bool get isShape => shapeKind != null;
-  bool get isFreehand => this == MarkupTool.pen || this == MarkupTool.highlighter;
+  bool get isFreehand =>
+      this == MarkupTool.pen || this == MarkupTool.highlighter;
 
   /// Polygon-style tools collect clicks until double-click / Enter.
   bool get isMultiClick =>
@@ -119,7 +120,7 @@ const List<(String, List<MarkupTool>)> kMarkupToolGroups = [
       MarkupTool.underline,
       MarkupTool.strikeout,
       MarkupTool.squiggly,
-    ]
+    ],
   ),
   ('Draw', [MarkupTool.pen, MarkupTool.highlighter]),
   (
@@ -131,7 +132,7 @@ const List<(String, List<MarkupTool>)> kMarkupToolGroups = [
       MarkupTool.arrow,
       MarkupTool.polygon,
       MarkupTool.cloud,
-    ]
+    ],
   ),
   (
     'Insert',
@@ -141,7 +142,7 @@ const List<(String, List<MarkupTool>)> kMarkupToolGroups = [
       MarkupTool.note,
       MarkupTool.image,
       MarkupTool.link,
-    ]
+    ],
   ),
 ];
 
@@ -178,7 +179,22 @@ const List<int> kNotePalette = [
 ];
 
 const List<double> kMarkupFontSizes = [
-  8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64, 72,
+  8,
+  9,
+  10,
+  11,
+  12,
+  14,
+  16,
+  18,
+  20,
+  24,
+  28,
+  32,
+  40,
+  48,
+  64,
+  72,
 ];
 
 const List<double> kMarkupStrokeWidths = [0.5, 1, 1.5, 2, 3, 4, 6, 8, 12];

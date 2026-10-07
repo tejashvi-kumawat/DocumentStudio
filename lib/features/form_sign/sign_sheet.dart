@@ -99,8 +99,7 @@ class SignSheetScaffold extends StatelessWidget {
     final phone = signIsPhoneWidth(context);
     final secondary = DsColors.textSecondary(theme.brightness);
     final edge = phone ? DsSpacing.pagePaddingCompact : DsSpacing.xl;
-    final pad = bodyPadding ??
-        EdgeInsets.fromLTRB(edge, 0, edge, DsSpacing.lg);
+    final pad = bodyPadding ?? EdgeInsets.fromLTRB(edge, 0, edge, DsSpacing.lg);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -247,7 +246,9 @@ class SignSegmented<T> extends StatelessWidget {
                   heightFactor: 1,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: dark ? DsColors.surfaceContainerDark : Colors.white,
+                      color: dark
+                          ? DsColors.surfaceContainerDark
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: DsSpacing.cardShadowLight(opacity: 0.10),
                     ),
@@ -288,7 +289,8 @@ class SignSegmented<T> extends StatelessWidget {
                                         color: s.$1 == value
                                             ? theme.colorScheme.primary
                                             : DsColors.textSecondary(
-                                                theme.brightness),
+                                                theme.brightness,
+                                              ),
                                       ),
                                       const SizedBox(width: 5),
                                     ],

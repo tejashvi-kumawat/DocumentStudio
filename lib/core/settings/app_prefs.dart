@@ -56,8 +56,8 @@ abstract final class AppPrefs {
   static String get effectiveAuthor => commentAuthor.trim().isNotEmpty
       ? commentAuthor.trim()
       : (Platform.environment['USER'] ??
-          Platform.environment['USERNAME'] ??
-          '');
+            Platform.environment['USERNAME'] ??
+            '');
 
   static Future<SharedPreferences> _prefs() async =>
       _p ??= await SharedPreferences.getInstance();

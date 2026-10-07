@@ -143,10 +143,7 @@ class PdfViewerEmbeddedToolPanel extends ConsumerWidget {
           selectedPages1Based: selectedPages1Based,
         );
       case ViewerToolId.split:
-        return ViewerSplitPanel(
-          handoff: handoff,
-          pageCount: pageCount,
-        );
+        return ViewerSplitPanel(handoff: handoff, pageCount: pageCount);
       case ViewerToolId.extract:
         return ViewerScopedPageOrganizePanel(
           mode: ViewerScopedOrganizeMode.extract,
@@ -183,20 +180,11 @@ class PdfViewerEmbeddedToolPanel extends ConsumerWidget {
           selectedPages1Based: selectedPages1Based,
         );
       case ViewerToolId.reverse:
-        return ViewerReversePanel(
-          handoff: handoff,
-          pageCount: pageCount,
-        );
+        return ViewerReversePanel(handoff: handoff, pageCount: pageCount);
       case ViewerToolId.workspaceMerge:
-        return ViewerMergePanel(
-          handoff: handoff,
-          pageCount: pageCount,
-        );
+        return ViewerMergePanel(handoff: handoff, pageCount: pageCount);
       case ViewerToolId.workspaceReorder:
-        return ViewerOrganizePagesPanel(
-          handoff: handoff,
-          pageCount: pageCount,
-        );
+        return ViewerOrganizePagesPanel(handoff: handoff, pageCount: pageCount);
       case ViewerToolId.workspaceMoveBetween:
         return const ViewerMoveBetweenPanel();
       case ViewerToolId.workspaceInsert:
@@ -245,10 +233,7 @@ class PdfViewerEmbeddedToolPanel extends ConsumerWidget {
       case ViewerToolId.visualSign:
         return ViewerVisualSignPanel(handoff: handoff);
       case ViewerToolId.insertScan:
-        return ViewerInsertScanPanel(
-          handoff: handoff,
-          pageCount: pageCount,
-        );
+        return ViewerInsertScanPanel(handoff: handoff, pageCount: pageCount);
       case ViewerToolId.ocrImage:
         return ViewerOcrImagePanel(handoff: handoff);
       case ViewerToolId.batch:

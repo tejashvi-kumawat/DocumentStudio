@@ -27,11 +27,8 @@ class PdfBackgroundOcrHit {
 /// Pages are recognized in parallel; results are cached on disk per file
 /// content hash + language, so reopening a scanned file is instant.
 class PdfBackgroundOcrIndex {
-  PdfBackgroundOcrIndex({
-    DesktopEngineResolver? resolver,
-    OcrPort? ocr,
-  })  : _resolver = resolver ?? desktopEngineResolver,
-        _ocr = ocr;
+  PdfBackgroundOcrIndex({DesktopEngineResolver? resolver, this._ocr})
+    : _resolver = resolver ?? desktopEngineResolver;
 
   static const _ocrDpi = 200;
   static const _cacheVersion = 2;
@@ -86,8 +83,8 @@ class PdfBackgroundOcrIndex {
 
   /// 1-based page numbers that match [query].
   List<int> findAllPageNumbers(String query) => [
-        for (final hit in findAll(query)) hit.pageIndex1Based,
-      ];
+    for (final hit in findAll(query)) hit.pageIndex1Based,
+  ];
 
   String? textForPage(int pageIndex1Based) => _pageText[pageIndex1Based];
 
@@ -113,7 +110,8 @@ class PdfBackgroundOcrIndex {
       final env = await loadOcrEngineEnvironment(resolver: _resolver);
       final language = _indexLanguage(env);
       // Quiet: bundled engine missing — do not show install/rebuild copy.
-      if (_ocr == null && (language == null || env.readinessError(language) != null)) {
+      if (_ocr == null &&
+          (language == null || env.readinessError(language) != null)) {
         return;
       }
       final options = OcrOptions(language: language ?? 'eng', dpi: _ocrDpi);
@@ -172,9 +170,10 @@ class PdfBackgroundOcrIndex {
             final String text;
             if (_ocr != null) {
               final bytes = await File(raster.path).readAsBytes();
-              text = (await _ocr.recognizeText(bytes, options: options))
-                  .text
-                  .trim();
+              text = (await _ocr.recognizeText(
+                bytes,
+                options: options,
+              )).text.trim();
             } else {
               text = (await runTesseractProcess(
                 executable: env.tesseractPath!,
@@ -190,8 +189,7 @@ class PdfBackgroundOcrIndex {
                 tessdataDir: tessdata,
                 cancelToken: token,
                 singleThread: workers > 1,
-              ))
-                  .trim();
+              )).trim();
             }
             recognized[page1] = text;
             if (text.isNotEmpty) _pageText[page1] = text;
@@ -224,7 +222,8 @@ class PdfBackgroundOcrIndex {
   /// installed language.
   String? _indexLanguage(OcrEngineEnvironment env) {
     final preferred = ocrPreferredLanguage;
-    if (env.missingLanguages(OcrOptions(language: preferred).languageCodes)
+    if (env
+        .missingLanguages(OcrOptions(language: preferred).languageCodes)
         .isEmpty) {
       return preferred;
     }
@@ -249,7 +248,8 @@ class PdfBackgroundOcrIndex {
   static Future<Map<int, String>?> _readCache(File? file) async {
     if (file == null || !await file.exists()) return null;
     try {
-      final json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final json =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       if (json['v'] != _cacheVersion) return null;
       final pages = json['pages'] as Map<String, dynamic>;
       return {
@@ -264,10 +264,12 @@ class PdfBackgroundOcrIndex {
     if (file == null) return;
     try {
       await file.parent.create(recursive: true);
-      await file.writeAsString(jsonEncode({
-        'v': _cacheVersion,
-        'pages': {for (final e in pages.entries) '${e.key}': e.value},
-      }));
+      await file.writeAsString(
+        jsonEncode({
+          'v': _cacheVersion,
+          'pages': {for (final e in pages.entries) '${e.key}': e.value},
+        }),
+      );
     } catch (_) {}
   }
 }

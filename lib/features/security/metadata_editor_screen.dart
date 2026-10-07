@@ -5,6 +5,7 @@ import 'package:document_studio/core/storage/file_storage_port.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/shell/ds_tool_route_actions.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_save_result_actions.dart';
@@ -82,7 +83,14 @@ class _MetadataEditorScreenState extends ConsumerState<MetadataEditorScreen> {
 
   @override
   void dispose() {
-    for (final c in [_title, _author, _subject, _keywords, _creator, _producer]) {
+    for (final c in [
+      _title,
+      _author,
+      _subject,
+      _keywords,
+      _creator,
+      _producer,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -126,8 +134,10 @@ class _MetadataEditorScreenState extends ConsumerState<MetadataEditorScreen> {
     });
     var retry = false;
     try {
-      final info =
-          await widget.deps.pdf.loadInfo(file, password: _inputPassword);
+      final info = await widget.deps.pdf.loadInfo(
+        file,
+        password: _inputPassword,
+      );
       if (!mounted || _file?.path != file.path) return;
       setState(() {
         _loadedInfo = info;
@@ -225,7 +235,7 @@ class _MetadataEditorScreenState extends ConsumerState<MetadataEditorScreen> {
     if (retry && mounted) await _save();
   }
 
-  Widget _body({required bool lockFile}) {
+  Widget _body({required bool lockFile, bool split = false}) {
     final theme = Theme.of(context);
     final qpdf = _qpdfAvailable;
     final info = _loadedInfo;
@@ -247,36 +257,38 @@ class _MetadataEditorScreenState extends ConsumerState<MetadataEditorScreen> {
           ),
           const SizedBox(height: DsSpacing.lg),
         ],
-        DsToolSection(
-          topPadding: false,
-          title: 'Source PDF',
-          child: lockFile
-              ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
-              : DsToolFileSource(
-                  files: [?_file],
-                  enabled: !_busy,
-                  loading: _loading,
-                  onPick: _pick,
-                  onFilesDropped: (files) => _setFile(files.first),
-                  onRemove: (_) => _setFile(null),
-                  metaFor: (_) => info == null
-                      ? null
-                      : '${info.pageCount} '
-                          '${info.pageCount == 1 ? 'page' : 'pages'}'
-                          '${info.encrypted == true ? ' · encrypted' : ''}',
-                  emptyTitle: 'Drop a PDF to edit its properties',
-                  emptySubtitle: 'Title, author, subject and keywords',
-                  icon: Icons.description_outlined,
-                ),
-        ),
+        if (!split || _file != null)
+          DsToolSection(
+            topPadding: false,
+            title: 'Source PDF',
+            child: lockFile
+                ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
+                : DsToolFileSource(
+                    files: [?_file],
+                    enabled: !_busy,
+                    loading: _loading,
+                    onPick: _pick,
+                    onFilesDropped: (files) => _setFile(files.first),
+                    onRemove: (_) => _setFile(null),
+                    metaFor: (_) => info == null
+                        ? null
+                        : '${info.pageCount} '
+                              '${info.pageCount == 1 ? 'page' : 'pages'}'
+                              '${info.encrypted == true ? ' · encrypted' : ''}',
+                    emptyTitle: 'Drop a PDF to edit its properties',
+                    emptySubtitle: 'Title, author, subject and keywords',
+                    icon: Icons.description_outlined,
+                  ),
+          ),
         DsToolSection(
           title: 'Document properties',
           subtitle: 'Clear a field to remove it from the saved PDF',
           child: LayoutBuilder(
             builder: (context, c) {
               final twoCol = c.maxWidth >= 560;
-              final width =
-                  twoCol ? (c.maxWidth - DsSpacing.md) / 2 : c.maxWidth;
+              final width = twoCol
+                  ? (c.maxWidth - DsSpacing.md) / 2
+                  : c.maxWidth;
               return Wrap(
                 spacing: DsSpacing.md,
                 runSpacing: DsSpacing.md,
@@ -367,7 +379,6 @@ class _MetadataEditorScreenState extends ConsumerState<MetadataEditorScreen> {
       title: 'Edit metadata',
       subtitle: 'Change the title, author and keywords stored in a PDF.',
       icon: Icons.description_outlined,
-      iconColor: const Color(0xFF7C3AED),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => handleDsToolFormCancel(context, ref),
@@ -385,7 +396,16 @@ class _MetadataEditorScreenState extends ConsumerState<MetadataEditorScreen> {
         sourceFile: _file,
         sourcePassword: _inputPassword,
       ),
-      child: _body(lockFile: false),
+      preview: DsPdfPreviewPane(
+        file: _file,
+        enabled: !_busy,
+        onPick: _pick,
+        onFilesDropped: (files) => _setFile(files.first),
+        emptyTitle: 'Drop a PDF to edit its properties',
+        emptySubtitle: 'Title, author, subject and keywords',
+        icon: Icons.description_outlined,
+      ),
+      child: _body(lockFile: false, split: true),
     );
   }
 }

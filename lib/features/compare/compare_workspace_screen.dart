@@ -144,19 +144,23 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
     if ((target - pos.pixels).abs() > pos.viewportDimension * 6) {
       _scroll.jumpTo(target);
     } else {
-      unawaited(_scroll.animateTo(
-        target,
-        duration: const Duration(milliseconds: 420),
-        curve: DsMotion.emphasizedCurve,
-      ));
+      unawaited(
+        _scroll.animateTo(
+          target,
+          duration: const Duration(milliseconds: 420),
+          curve: DsMotion.emphasizedCurve,
+        ),
+      );
     }
     if (_hScroll.hasClients && _hScroll.position.maxScrollExtent > 0) {
       final h = _hScroll.position;
-      unawaited(_hScroll.animateTo(
-        (t.x - h.viewportDimension * 0.25).clamp(0.0, h.maxScrollExtent),
-        duration: const Duration(milliseconds: 420),
-        curve: DsMotion.emphasizedCurve,
-      ));
+      unawaited(
+        _hScroll.animateTo(
+          (t.x - h.viewportDimension * 0.25).clamp(0.0, h.maxScrollExtent),
+          duration: const Duration(milliseconds: 420),
+          curve: DsMotion.emphasizedCurve,
+        ),
+      );
     }
   }
 
@@ -168,11 +172,13 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
   void _scrollToRow(int row) {
     final g = _geometry;
     if (g == null || !_scroll.hasClients || row >= g.offsets.length) return;
-    unawaited(_scroll.animateTo(
-      g.offsets[row].clamp(0.0, _scroll.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 380),
-      curve: DsMotion.emphasizedCurve,
-    ));
+    unawaited(
+      _scroll.animateTo(
+        g.offsets[row].clamp(0.0, _scroll.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 380),
+        curve: DsMotion.emphasizedCurve,
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------
@@ -193,12 +199,20 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
       final ng = _geometry;
       if (ng == null) return;
       if (_scroll.hasClients) {
-        _scroll.jumpTo((ratioY * ng.total - f.dy)
-            .clamp(0.0, _scroll.position.maxScrollExtent));
+        _scroll.jumpTo(
+          (ratioY * ng.total - f.dy).clamp(
+            0.0,
+            _scroll.position.maxScrollExtent,
+          ),
+        );
       }
       if (_hScroll.hasClients) {
-        _hScroll.jumpTo((ratioX * ng.contentWidth - f.dx)
-            .clamp(0.0, _hScroll.position.maxScrollExtent));
+        _hScroll.jumpTo(
+          (ratioX * ng.contentWidth - f.dx).clamp(
+            0.0,
+            _hScroll.position.maxScrollExtent,
+          ),
+        );
       }
     });
   }
@@ -308,9 +322,9 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not export report: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not export report: $e')));
       }
     } finally {
       if (mounted) _exportProgress.value = null;
@@ -361,7 +375,8 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
         (k == LogicalKeyboardKey.arrowLeft ||
             k == LogicalKeyboardKey.arrowRight)) {
       _c.setOverlayRow(
-          _c.overlayRow + (k == LogicalKeyboardKey.arrowLeft ? -1 : 1));
+        _c.overlayRow + (k == LogicalKeyboardKey.arrowLeft ? -1 : 1),
+      );
     } else {
       return KeyEventResult.ignored;
     }
@@ -387,8 +402,9 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
       showDragHandle: false,
       backgroundColor: DsColors.groupedBackground(Theme.of(context).brightness),
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(DsSpacing.radiusHero)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(DsSpacing.radiusHero),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       builder: (ctx) => DraggableScrollableSheet(
@@ -431,8 +447,10 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
                     phone: _phone,
                     sidebarOpen: _sidebarOpen ?? box.maxWidth >= 900,
                     exportProgress: _exportProgress,
-                    onToggleSidebar: () => setState(() =>
-                        _sidebarOpen = !(_sidebarOpen ?? box.maxWidth >= 900)),
+                    onToggleSidebar: () => setState(
+                      () =>
+                          _sidebarOpen = !(_sidebarOpen ?? box.maxWidth >= 900),
+                    ),
                     onZoomIn: () => _zoom(1.2),
                     onZoomOut: () => _zoom(1 / 1.2),
                     onZoomReset: _resetZoom,
@@ -452,15 +470,15 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
                       child: ready
                           ? _results(box.maxWidth)
                           : _c.stage == CompareStage.failed ||
-                                  _c.stage == CompareStage.cancelled
-                              ? _Failed(
-                                  key: const ValueKey('failed'),
-                                  controller: _c,
-                                )
-                              : _CompareProgress(
-                                  key: const ValueKey('progress'),
-                                  controller: _c,
-                                ),
+                                _c.stage == CompareStage.cancelled
+                          ? _Failed(
+                              key: const ValueKey('failed'),
+                              controller: _c,
+                            )
+                          : _CompareProgress(
+                              key: const ValueKey('progress'),
+                              controller: _c,
+                            ),
                     ),
                   ),
                   if (_phone && ready)
@@ -485,12 +503,10 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
       switchInCurve: DsMotion.switchCurve,
       child: _c.viewMode == CompareViewMode.sideBySide
           ? _sideBySide()
-          : CompareOverlayView(
-              key: const ValueKey('overlay'),
-              controller: _c,
-            ),
+          : CompareOverlayView(key: const ValueKey('overlay'), controller: _c),
     );
-    if (_phone) return KeyedSubtree(key: const ValueKey('results'), child: view);
+    if (_phone)
+      return KeyedSubtree(key: const ValueKey('results'), child: view);
     final sidebarW = width < 1100 ? 300.0 : 360.0;
     final open = _sidebarOpen ?? width >= 900;
     return Row(
@@ -506,10 +522,7 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
               alignment: Alignment.centerLeft,
               minWidth: sidebarW,
               maxWidth: sidebarW,
-              child: CompareResultsSidebar(
-                controller: _c,
-                onOpenChange: _open,
-              ),
+              child: CompareResultsSidebar(controller: _c, onOpenChange: _open),
             ),
           ),
         ),
@@ -586,7 +599,15 @@ class _CompareWorkspaceScreenState extends ConsumerState<CompareWorkspaceScreen>
 // Toolbar
 // ---------------------------------------------------------------------------
 
-enum _MenuAction { zoomIn, zoomOut, zoomReset, swap, export, sideBySide, overlay }
+enum _MenuAction {
+  zoomIn,
+  zoomOut,
+  zoomReset,
+  swap,
+  export,
+  sideBySide,
+  overlay,
+}
 
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
@@ -660,8 +681,14 @@ class _Toolbar extends StatelessWidget {
           const PopupMenuDivider(),
         ],
         if (ready && sbs && !showZoom) ...[
-          const PopupMenuItem(value: _MenuAction.zoomIn, child: Text('Zoom in')),
-          const PopupMenuItem(value: _MenuAction.zoomOut, child: Text('Zoom out')),
+          const PopupMenuItem(
+            value: _MenuAction.zoomIn,
+            child: Text('Zoom in'),
+          ),
+          const PopupMenuItem(
+            value: _MenuAction.zoomOut,
+            child: Text('Zoom out'),
+          ),
           PopupMenuItem(
             value: _MenuAction.zoomReset,
             child: Text('Fit width (${(c.zoom * 100).round()}%)'),
@@ -682,44 +709,49 @@ class _Toolbar extends StatelessWidget {
     );
 
     Widget fileChip(String role, LocalFileRef f, Color color) => Flexible(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
-              border: Border.all(color: color.withValues(alpha: 0.3)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              role,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: color,
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(role,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                      color: color,
-                    )),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    f.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(fontSize: 12.5),
-                  ),
-                ),
-              ],
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                f.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(fontSize: 12.5),
+              ),
             ),
-          ),
-        );
+          ],
+        ),
+      ),
+    );
 
     final title = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Compare',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'Compare',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         Text(
           '${c.oldSource.file.displayName}  ⇄  ${c.newSource.file.displayName}',
           maxLines: 1,
@@ -743,9 +775,9 @@ class _Toolbar extends StatelessWidget {
           if (!phone)
             IconButton(
               tooltip: sidebarOpen ? 'Hide changes' : 'Show changes',
-              icon: Icon(sidebarOpen
-                  ? Icons.view_sidebar
-                  : Icons.view_sidebar_outlined),
+              icon: Icon(
+                sidebarOpen ? Icons.view_sidebar : Icons.view_sidebar_outlined,
+              ),
               onPressed: ready ? onToggleSidebar : null,
             ),
           const SizedBox(width: DsSpacing.xs),
@@ -760,7 +792,11 @@ class _Toolbar extends StatelessWidget {
                         icon: const Icon(Icons.swap_horiz_rounded, size: 20),
                         onPressed: c.running ? null : onSwap,
                       ),
-                      fileChip('REVISED', c.newSource.file, compareChangedColor),
+                      fileChip(
+                        'REVISED',
+                        c.newSource.file,
+                        compareChangedColor,
+                      ),
                     ],
                   )
                 : title,
@@ -796,8 +832,10 @@ class _Toolbar extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                child: Text('${(c.zoom * 100).round()}%',
-                    style: theme.textTheme.labelMedium),
+                child: Text(
+                  '${(c.zoom * 100).round()}%',
+                  style: theme.textTheme.labelMedium,
+                ),
               ),
             ),
             IconButton(
@@ -925,7 +963,9 @@ class _PhoneBar extends StatelessWidget {
           TextButton.icon(
             onPressed: onList,
             icon: const Icon(Icons.list_alt_rounded, size: 18),
-            label: Text(n == 0 ? 'No changes' : '$n change${n == 1 ? '' : 's'}'),
+            label: Text(
+              n == 0 ? 'No changes' : '$n change${n == 1 ? '' : 's'}',
+            ),
           ),
           const Spacer(),
           _ChangeNav(controller: controller, onPrev: onPrev, onNext: onNext),
@@ -974,13 +1014,18 @@ class _CompareProgress extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.difference_outlined,
-                        color: compareChangedColor),
+                    const Icon(
+                      Icons.difference_outlined,
+                      color: compareChangedColor,
+                    ),
                     const SizedBox(width: DsSpacing.sm),
                     Expanded(
-                      child: Text('Comparing documents',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      child: Text(
+                        'Comparing documents',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -1007,22 +1052,27 @@ class _CompareProgress extends StatelessWidget {
                           transitionBuilder: (child, a) =>
                               ScaleTransition(scale: a, child: child),
                           child: i < current
-                              ? const Icon(Icons.check_circle_rounded,
+                              ? const Icon(
+                                  Icons.check_circle_rounded,
                                   key: ValueKey('done'),
                                   size: 20,
-                                  color: compareInsertColor)
+                                  color: compareInsertColor,
+                                )
                               : i == current
-                                  ? const SizedBox(
-                                      key: ValueKey('run'),
-                                      width: 20,
-                                      height: 20,
-                                      child: Center(
-                                          child: DsAdaptiveProgress(size: 16)),
-                                    )
-                                  : Icon(Icons.radio_button_unchecked,
-                                      key: const ValueKey('todo'),
-                                      size: 20,
-                                      color: theme.disabledColor),
+                              ? const SizedBox(
+                                  key: ValueKey('run'),
+                                  width: 20,
+                                  height: 20,
+                                  child: Center(
+                                    child: DsAdaptiveProgress(size: 16),
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.radio_button_unchecked,
+                                  key: const ValueKey('todo'),
+                                  size: 20,
+                                  color: theme.disabledColor,
+                                ),
                         ),
                         const SizedBox(width: DsSpacing.sm),
                         Expanded(
@@ -1106,9 +1156,11 @@ class _FailedState extends State<_Failed> {
               children: [
                 const Icon(Icons.lock_outline_rounded, size: 40),
                 const SizedBox(height: DsSpacing.sm),
-                Text('“$name” is password protected',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  '“$name” is password protected',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: DsSpacing.md),
                 TextField(
                   controller: _password,
@@ -1193,9 +1245,11 @@ class _Minimap extends StatelessWidget {
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (d) => onRow(
-                (((d.localPosition.dy - 6) / inner) * (n - 1))
-                    .round()
-                    .clamp(0, n - 1)),
+              (((d.localPosition.dy - 6) / inner) * (n - 1)).round().clamp(
+                0,
+                n - 1,
+              ),
+            ),
             child: Stack(
               children: [
                 for (var row = 0; row < n; row++)
@@ -1223,7 +1277,9 @@ class _Minimap extends StatelessWidget {
                       height: 10,
                       decoration: BoxDecoration(
                         border: Border.all(
-                            color: DsColors.textPrimary(brightness), width: 1.4),
+                          color: DsColors.textPrimary(brightness),
+                          width: 1.4,
+                        ),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),

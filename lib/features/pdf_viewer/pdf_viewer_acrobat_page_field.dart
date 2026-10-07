@@ -83,8 +83,10 @@ class _PdfViewerAcrobatPageFieldState extends State<PdfViewerAcrobatPageField> {
 
   void _onFocus() {
     if (_focus.hasFocus) {
-      _text.selection =
-          TextSelection(baseOffset: 0, extentOffset: _text.text.length);
+      _text.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _text.text.length,
+      );
     } else {
       _text.text = '$_page';
     }

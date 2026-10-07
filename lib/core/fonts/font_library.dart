@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:document_studio/core/storage/storage_paths.dart';
 import 'package:document_studio/infrastructure/pdf/ttf_font.dart';
+import 'package:document_studio/core/fonts/font_identifier.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
@@ -90,7 +90,9 @@ class FontLibrary extends ChangeNotifier {
 
   Future<void> _loadLibraryIndex() async {
     try {
-      final raw = await rootBundle.loadString('assets/fonts/library/index.json');
+      final raw = await rootBundle.loadString(
+        'assets/fonts/library/index.json',
+      );
       final list = jsonDecode(raw) as List<dynamic>;
       for (final e in list.cast<Map<String, dynamic>>()) {
         _library.add(
@@ -98,8 +100,8 @@ class FontLibrary extends ChangeNotifier {
             e['family'] as String,
             (e['category'] as String?) ?? '',
             [
-              for (final f in (e['files'] as List<dynamic>)
-                  .cast<Map<String, dynamic>>())
+              for (final f
+                  in (e['files'] as List<dynamic>).cast<Map<String, dynamic>>())
                 (f['file'] as String, f['bold'] == true, f['italic'] == true),
             ],
           ),
@@ -127,7 +129,10 @@ class FontLibrary extends ChangeNotifier {
     if (cached != null) return cached;
     try {
       final data = await rootBundle.load('assets/fonts/library/$file');
-      final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
       final ttf = TtfFont.parse(Uint8List.fromList(bytes));
       if (ttf == null) return null;
       final flutterFamily = 'dslib_${file.hashCode.toUnsigned(32)}';
@@ -295,6 +300,53 @@ class FontLibrary extends ChangeNotifier {
     notifyListeners();
   }
 
+  FontIdentifier? _identifier;
+
+  /// Font recognition (name, embedded family, glyph widths, flags) over
+  /// the bundled library; loaded once.
+  Future<FontIdentifier> identifier() async {
+    final have = _identifier;
+    if (have != null) return have;
+    await ensureLoaded();
+    String metrics;
+    try {
+      metrics = await rootBundle.loadString(
+        'assets/fonts/library/metrics.json',
+      );
+    } catch (_) {
+      metrics = '[]';
+    }
+    return _identifier = FontIdentifier(metrics, libraryFamilyFor);
+  }
+
+  /// The loaded file of a library [family] closest to the style asked for.
+  InstalledFont? loadedLibrary(
+    String family, {
+    bool bold = false,
+    bool italic = false,
+  }) {
+    InstalledFont? best;
+    var bestScore = -1;
+    for (final f in _libLoaded.values) {
+      if (f.libraryFamily != family) continue;
+      final score =
+          (f.ttf.bold == bold ? 2 : 0) + (f.ttf.italic == italic ? 1 : 0);
+      if (score > bestScore) {
+        best = f;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
+
+  /// Category (`serif`, `sans-serif`, `monospace`…) of a library family.
+  String? categoryOf(String family) {
+    for (final f in _library) {
+      if (f.family == family) return f.category;
+    }
+    return null;
+  }
+
   /// Installed font whose family matches the original PDF font name
   /// (e.g. `ABCDEF+Calibri-Bold` → an installed Calibri Bold).
   InstalledFont? matchOriginal(String baseFont) {
@@ -321,7 +373,10 @@ class FontLibrary extends ChangeNotifier {
     final n = baseFont.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     InstalledFont? best;
     for (final f in _fonts) {
-      final fam = f.ttf.family.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final fam = f.ttf.family.toLowerCase().replaceAll(
+        RegExp(r'[^a-z0-9]'),
+        '',
+      );
       if (fam.isEmpty || !n.contains(fam)) continue;
       final wantBold = RegExp(r'bold|black|heavy|semibold').hasMatch(n);
       final wantItalic = RegExp(r'italic|oblique').hasMatch(n);

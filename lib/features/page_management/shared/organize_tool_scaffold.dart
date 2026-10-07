@@ -1,7 +1,8 @@
 import 'package:document_studio/core/jobs/job_models.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_shell_page.dart';
-import 'package:document_studio/design_system/shell/ds_toolbar.dart';
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
+import 'package:document_studio/features/page_management/organize_tool_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,6 +12,7 @@ class OrganizeToolScaffold extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.icon,
     this.actions = const [],
     required this.body,
     this.busy = false,
@@ -21,6 +23,10 @@ class OrganizeToolScaffold extends StatelessWidget {
 
   final String title;
   final String? subtitle;
+
+  /// The tool's icon in the header; looked up from the tool catalog by
+  /// [title] when not given.
+  final IconData? icon;
   final List<Widget> actions;
   final Widget body;
   final bool busy;
@@ -76,25 +82,34 @@ class OrganizeToolScaffold extends StatelessWidget {
           )
         : null;
 
+    final toolIcon = icon ?? _catalogIcon(title);
     return Stack(
       children: [
         Scaffold(
-          appBar: DsToolbar(
-            dense: compact,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
-            ),
-            title: title,
-            subtitle: subtitle,
-            actions: bottomActions == null ? actions : const [],
+          body: Column(
+            children: [
+              DsToolHeader(
+                title: title,
+                subtitle: subtitle,
+                icon: toolIcon,
+                compact: compact,
+                leading: IconButton(
+                  tooltip: 'Back',
+                  icon: const Icon(Icons.arrow_back, size: 20),
+                  onPressed: () => context.pop(),
+                ),
+                actions: bottomActions == null ? actions : const [],
+              ),
+              Expanded(
+                child: SafeArea(
+                  top: false,
+                  bottom: bottomActions == null,
+                  child: body,
+                ),
+              ),
+              ?bottomActions,
+            ],
           ),
-          body: SafeArea(
-            top: false,
-            bottom: bottomActions == null,
-            child: body,
-          ),
-          bottomNavigationBar: bottomActions,
         ),
         if (busy)
           ColoredBox(
@@ -117,7 +132,10 @@ class OrganizeToolScaffold extends StatelessWidget {
                       Text(statusMessage ?? 'Working…'),
                       if (onCancel != null) ...[
                         const SizedBox(height: 12),
-                        TextButton(onPressed: onCancel, child: const Text('Cancel')),
+                        TextButton(
+                          onPressed: onCancel,
+                          child: const Text('Cancel'),
+                        ),
                       ],
                     ],
                   ),
@@ -128,6 +146,23 @@ class OrganizeToolScaffold extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Icon of the catalog tool this title belongs to: its exact label, else
+/// the tool whose name is the longest one the title contains ("Reverse page
+/// order" → Reverse).
+IconData _catalogIcon(String title) {
+  final t = title.toLowerCase();
+  for (final tool in OrganizeToolCatalog.tools) {
+    if (tool.label.toLowerCase() == t) return tool.icon;
+  }
+  OrganizeToolDefinition? best;
+  for (final tool in OrganizeToolCatalog.tools) {
+    final key = tool.id.replaceAll('_', ' ');
+    if (t.contains(key) && (best == null || key.length > best.id.length))
+      best = tool;
+  }
+  return best?.icon ?? Icons.tune;
 }
 
 /// Tracks active export job for cancel button.

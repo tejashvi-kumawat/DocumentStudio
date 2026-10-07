@@ -24,7 +24,10 @@ class PdfMarkupPreviewPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Preview (sample 12-page doc)', style: theme.textTheme.labelLarge),
+            Text(
+              'Preview (sample 12-page doc)',
+              style: theme.textTheme.labelLarge,
+            ),
             const SizedBox(height: 8),
             if (hasErrors)
               ...validationIssues.map(

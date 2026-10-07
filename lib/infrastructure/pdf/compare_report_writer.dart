@@ -50,9 +50,13 @@ Uint8List buildCompareReportPdf({
   // Header band.
   page.fillRect(0, 0, _pageW, 96, _headerRgb);
   page.text(_margin, 46, 24, 'Compare Report', bold: true, rgb: 0xFFFFFF);
-  page.text(_margin, 72, 10,
-      'Generated ${_fmtDate(generatedAt)} · ${result.elapsed.inMilliseconds} ms analysis',
-      rgb: 0xC9CED6);
+  page.text(
+    _margin,
+    72,
+    10,
+    'Generated ${_fmtDate(generatedAt)} · ${result.elapsed.inMilliseconds} ms analysis',
+    rgb: 0xC9CED6,
+  );
 
   var y = 124.0;
   page.text(_margin, y, 9, 'OLD DOCUMENT', bold: true, rgb: 0x777777);
@@ -62,24 +66,43 @@ Uint8List buildCompareReportPdf({
   page.text(_pageW / 2 + 8, y, 12, _fit(newName, 12, true, 240), bold: true);
   y += 15;
   page.text(_margin, y, 10, '${result.oldDoc.pageCount} pages', rgb: 0x555555);
-  page.text(_pageW / 2 + 8, y, 10, '${result.newDoc.pageCount} pages',
-      rgb: 0x555555);
+  page.text(
+    _pageW / 2 + 8,
+    y,
+    10,
+    '${result.newDoc.pageCount} pages',
+    rgb: 0x555555,
+  );
 
   y += 34;
   final total = result.changes.length;
-  page.text(_margin, y, 30, '$total', bold: true,
-      rgb: total == 0 ? compareInsertRgb : 0x1A1A1A);
-  page.text(_margin + _width('$total', 30, true) + 10, y - 2, 13,
-      total == 0
-          ? 'No differences found — the documents match.'
-          : 'change${total == 1 ? '' : 's'} found',
-      rgb: 0x444444);
+  page.text(
+    _margin,
+    y,
+    30,
+    '$total',
+    bold: true,
+    rgb: total == 0 ? compareInsertRgb : 0x1A1A1A,
+  );
+  page.text(
+    _margin + _width('$total', 30, true) + 10,
+    y - 2,
+    13,
+    total == 0
+        ? 'No differences found — the documents match.'
+        : 'change${total == 1 ? '' : 's'} found',
+    rgb: 0x444444,
+  );
   y += 18;
   final affected = result.pagesAffected;
-  page.text(_margin, y, 9.5,
-      'Pages affected: ${affected.oldPages} of ${result.oldDoc.pageCount} old · '
-      '${affected.newPages} of ${result.newDoc.pageCount} new',
-      rgb: 0x555555);
+  page.text(
+    _margin,
+    y,
+    9.5,
+    'Pages affected: ${affected.oldPages} of ${result.oldDoc.pageCount} old · '
+    '${affected.newPages} of ${result.newDoc.pageCount} new',
+    rgb: 0x555555,
+  );
   y += 18;
 
   // Highlight legend with per-kind totals.
@@ -93,18 +116,25 @@ Uint8List buildCompareReportPdf({
   y += 24;
 
   final maxCount = math.max(
-      1, CompareCategory.values.map(result.count).fold(0, math.max));
+    1,
+    CompareCategory.values.map(result.count).fold(0, math.max),
+  );
   for (final c in CompareCategory.values) {
     final n = result.count(c);
     page.text(_margin, y + 9, 10.5, c.label, bold: true);
     page.fillRect(_margin + 100, y, 300, 12, 0xF0F0F0);
     if (n > 0) {
       page.fillRect(
-          _margin + 100, y, math.max(3, 300 * n / maxCount), 12, 0x4B5563);
+        _margin + 100,
+        y,
+        math.max(3, 300 * n / maxCount),
+        12,
+        0x4B5563,
+      );
     }
     page.text(_margin + 410, y + 9.5, 10.5, '$n', bold: true);
-    final unavailable = (c == CompareCategory.formatting &&
-            !result.formattingAvailable) ||
+    final unavailable =
+        (c == CompareCategory.formatting && !result.formattingAvailable) ||
         (c == CompareCategory.images && !result.imagesAvailable);
     final kinds = unavailable
         ? 'Not detectable with this PDF backend'
@@ -135,7 +165,12 @@ Uint8List buildCompareReportPdf({
       if (c.bPage != null) 'New p.${c.bPage! + 1}',
     ].join('  ·  ');
     void addWrapped(String prefix, String text, int rgb) {
-      final wrapped = _wrap('$prefix$text', 9, false, _pageW - 2 * _margin - 14);
+      final wrapped = _wrap(
+        '$prefix$text',
+        9,
+        false,
+        _pageW - 2 * _margin - 14,
+      );
       for (final l in wrapped.take(4)) {
         lines.add((l, 9, false, rgb));
       }
@@ -159,11 +194,21 @@ Uint8List buildCompareReportPdf({
       page = w.newPage();
       y = _margin + 10;
     }
-    page.fillRect(_margin, y - 9, 4, 12 + lines.length * 12.0,
-        compareChangeRgb(c));
+    page.fillRect(
+      _margin,
+      y - 9,
+      4,
+      12 + lines.length * 12.0,
+      compareChangeRgb(c),
+    );
     page.text(_margin + 12, y, 9.5, '#${c.id + 1}  ${c.title}', bold: true);
-    page.text(_pageW - _margin - _width(where, 8.5, false), y, 8.5, where,
-        rgb: 0x777777);
+    page.text(
+      _pageW - _margin - _width(where, 8.5, false),
+      y,
+      8.5,
+      where,
+      rgb: 0x777777,
+    );
     y += 13;
     for (final (text, size, bold, rgb) in lines) {
       page.text(_margin + 14, y, size, text, bold: bold, rgb: rgb);
@@ -177,8 +222,13 @@ Uint8List buildCompareReportPdf({
     if (i % 2 == 0) {
       page = w.newPage();
       page.text(_margin, _margin + 6, 14, 'Changed pages', bold: true);
-      page.text(_pageW - _margin - 160, _margin + 6, 8.5,
-          'Left: old document · Right: new document', rgb: 0x777777);
+      page.text(
+        _pageW - _margin - 160,
+        _margin + 6,
+        8.5,
+        'Left: old document · Right: new document',
+        rgb: 0x777777,
+      );
     }
     final t = thumbs[i];
     final top = _margin + 30 + (i % 2) * 380.0;
@@ -191,8 +241,13 @@ Uint8List buildCompareReportPdf({
       if (thumb == null) {
         page.fillRect(bx, by, boxW, boxH, 0xF4F4F4);
         final msg = k == 0 ? 'Not in old document' : 'Not in new document';
-        page.text(bx + (boxW - _width(msg, 10, false)) / 2, by + boxH / 2, 10,
-            msg, rgb: 0x999999);
+        page.text(
+          bx + (boxW - _width(msg, 10, false)) / 2,
+          by + boxH / 2,
+          10,
+          msg,
+          rgb: 0x999999,
+        );
         continue;
       }
       final s = math.min(boxW / thumb.width, boxH / thumb.height);
@@ -290,34 +345,62 @@ class _ReportPage {
 
   double _y(double top) => _pageH - top;
 
-  void text(double x, double baselineTop, double size, String s,
-      {bool bold = false, int rgb = 0x1A1A1A}) {
-    sb.writeln('BT /${bold ? 'F2' : 'F1'} ${_n(size)} Tf ${_rgb(rgb)} rg '
-        '${_n(x)} ${_n(_y(baselineTop))} Td '
-        '(${encodeWinAnsiPdfString(_winAnsiSafe(s))}) Tj ET');
+  void text(
+    double x,
+    double baselineTop,
+    double size,
+    String s, {
+    bool bold = false,
+    int rgb = 0x1A1A1A,
+  }) {
+    sb.writeln(
+      'BT /${bold ? 'F2' : 'F1'} ${_n(size)} Tf ${_rgb(rgb)} rg '
+      '${_n(x)} ${_n(_y(baselineTop))} Td '
+      '(${encodeWinAnsiPdfString(_winAnsiSafe(s))}) Tj ET',
+    );
   }
 
-  void fillRect(double x, double top, double w, double h, int rgb,
-      {bool alpha = false}) {
-    sb.writeln('q ${alpha ? '/GA gs ' : ''}${_rgb(rgb)} rg '
-        '${_n(x)} ${_n(_y(top + h))} ${_n(w)} ${_n(h)} re f Q');
+  void fillRect(
+    double x,
+    double top,
+    double w,
+    double h,
+    int rgb, {
+    bool alpha = false,
+  }) {
+    sb.writeln(
+      'q ${alpha ? '/GA gs ' : ''}${_rgb(rgb)} rg '
+      '${_n(x)} ${_n(_y(top + h))} ${_n(w)} ${_n(h)} re f Q',
+    );
   }
 
-  void strokeRect(double x, double top, double w, double h, int rgb,
-      double lw) {
-    sb.writeln('q ${_rgb(rgb)} RG ${_n(lw)} w '
-        '${_n(x)} ${_n(_y(top + h))} ${_n(w)} ${_n(h)} re S Q');
+  void strokeRect(
+    double x,
+    double top,
+    double w,
+    double h,
+    int rgb,
+    double lw,
+  ) {
+    sb.writeln(
+      'q ${_rgb(rgb)} RG ${_n(lw)} w '
+      '${_n(x)} ${_n(_y(top + h))} ${_n(w)} ${_n(h)} re S Q',
+    );
   }
 
   void hline(double x0, double x1, double top, int rgb) {
-    sb.writeln('q ${_rgb(rgb)} RG 0.6 w ${_n(x0)} ${_n(_y(top))} m '
-        '${_n(x1)} ${_n(_y(top))} l S Q');
+    sb.writeln(
+      'q ${_rgb(rgb)} RG 0.6 w ${_n(x0)} ${_n(_y(top))} m '
+      '${_n(x1)} ${_n(_y(top))} l S Q',
+    );
   }
 
   void image(int objId, double x, double top, double w, double h) {
     images.add(objId);
-    sb.writeln('q ${_n(w)} 0 0 ${_n(h)} ${_n(x)} ${_n(_y(top + h))} cm '
-        '/Im$objId Do Q');
+    sb.writeln(
+      'q ${_n(w)} 0 0 ${_n(h)} ${_n(x)} ${_n(_y(top + h))} cm '
+      '/Im$objId Do Q',
+    );
   }
 }
 
@@ -334,26 +417,34 @@ class _ReportWriter {
 
   int addJpeg(CompareReportThumb t) {
     final id = _next++;
-    final head = ascii.encode('<< /Type /XObject /Subtype /Image '
-        '/Width ${t.width} /Height ${t.height} /ColorSpace /DeviceRGB '
-        '/BitsPerComponent 8 /Filter /DCTDecode /Length ${t.jpeg.length} >>\n'
-        'stream\n');
-    _objects[id] = (BytesBuilder(copy: false)
-          ..add(head)
-          ..add(t.jpeg)
-          ..add(ascii.encode('\nendstream')))
-        .toBytes();
+    final head = ascii.encode(
+      '<< /Type /XObject /Subtype /Image '
+      '/Width ${t.width} /Height ${t.height} /ColorSpace /DeviceRGB '
+      '/BitsPerComponent 8 /Filter /DCTDecode /Length ${t.jpeg.length} >>\n'
+      'stream\n',
+    );
+    _objects[id] =
+        (BytesBuilder(copy: false)
+              ..add(head)
+              ..add(t.jpeg)
+              ..add(ascii.encode('\nendstream')))
+            .toBytes();
     return id;
   }
 
   Uint8List finish() {
-    _objects[3] = ascii.encode('<< /Type /Font /Subtype /Type1 '
-        '/BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
-    _objects[4] = ascii.encode('<< /Type /Font /Subtype /Type1 '
-        '/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+    _objects[3] = ascii.encode(
+      '<< /Type /Font /Subtype /Type1 '
+      '/BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    );
+    _objects[4] = ascii.encode(
+      '<< /Type /Font /Subtype /Type1 '
+      '/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
+    );
     _objects[5] = ascii.encode('<< /Type /ExtGState /ca 0.28 /CA 1 >>');
     _objects[6] = ascii.encode(
-        '<< /Title (Compare Report) /Producer (Document Studio) >>');
+      '<< /Title (Compare Report) /Producer (Document Studio) >>',
+    );
     final kids = <int>[];
     for (final p in _pages) {
       final contentId = _next++;
@@ -367,15 +458,19 @@ class _ReportWriter {
       final xobj = p.images.isEmpty
           ? ''
           : '/XObject << ${p.images.map((i) => '/Im$i $i 0 R').join(' ')} >> ';
-      _objects[pageId] = ascii.encode('<< /Type /Page /Parent 2 0 R '
-          '/MediaBox [0 0 ${_n(_pageW)} ${_n(_pageH)}] '
-          '/Resources << /Font << /F1 3 0 R /F2 4 0 R >> '
-          '/ExtGState << /GA 5 0 R >> $xobj>> '
-          '/Contents $contentId 0 R >>');
+      _objects[pageId] = ascii.encode(
+        '<< /Type /Page /Parent 2 0 R '
+        '/MediaBox [0 0 ${_n(_pageW)} ${_n(_pageH)}] '
+        '/Resources << /Font << /F1 3 0 R /F2 4 0 R >> '
+        '/ExtGState << /GA 5 0 R >> $xobj>> '
+        '/Contents $contentId 0 R >>',
+      );
       kids.add(pageId);
     }
-    _objects[2] = ascii.encode('<< /Type /Pages /Count ${kids.length} '
-        '/Kids [${kids.map((k) => '$k 0 R').join(' ')}] >>');
+    _objects[2] = ascii.encode(
+      '<< /Type /Pages /Count ${kids.length} '
+      '/Kids [${kids.map((k) => '$k 0 R').join(' ')}] >>',
+    );
     _objects[1] = ascii.encode('<< /Type /Catalog /Pages 2 0 R >>');
 
     final out = BytesBuilder(copy: false);
@@ -401,8 +496,10 @@ class _ReportWriter {
         sb.write('${offsets[id].toString().padLeft(10, '0')} 00000 n \n');
       }
     }
-    sb.write('trailer\n<< /Size ${maxId + 1} /Root 1 0 R /Info 6 0 R >>\n'
-        'startxref\n$xref\n%%EOF\n');
+    sb.write(
+      'trailer\n<< /Size ${maxId + 1} /Root 1 0 R /Info 6 0 R >>\n'
+      'startxref\n$xref\n%%EOF\n',
+    );
     out.add(ascii.encode(sb.toString()));
     return out.toBytes();
   }

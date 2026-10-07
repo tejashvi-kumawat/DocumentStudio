@@ -25,9 +25,13 @@ class OrganizeToolSourceBar extends StatelessWidget {
     final border = isDark ? DsColors.borderDark : DsColors.borderLight;
 
     return Material(
-      color: isDark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight,
+      color: isDark
+          ? DsColors.surfaceContainerDark
+          : DsColors.surfaceContainerLight,
       child: DecoratedBox(
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: border))),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: border)),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           child: Row(
@@ -53,10 +57,7 @@ class OrganizeToolSourceBar extends StatelessWidget {
                   busy: busy,
                   onPressed: onReverseAll,
                 ),
-              if (trailing != null) ...[
-                const Spacer(),
-                trailing!,
-              ],
+              if (trailing != null) ...[const Spacer(), trailing!],
             ],
           ),
         ),

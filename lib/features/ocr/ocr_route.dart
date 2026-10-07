@@ -13,10 +13,7 @@ const imageOcrRoutePath = '/ocr/image';
 const searchablePdfRoutePath = '/ocr/searchable-pdf';
 
 class ImageOcrDeps {
-  const ImageOcrDeps({
-    required this.fileStorage,
-    required this.ocrPort,
-  });
+  const ImageOcrDeps({required this.fileStorage, required this.ocrPort});
 
   final FileStoragePort fileStorage;
   final OcrPort ocrPort;

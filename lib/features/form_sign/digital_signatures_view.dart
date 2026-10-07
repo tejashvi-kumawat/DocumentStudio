@@ -24,12 +24,12 @@ String _fmtTime(DateTime? t) {
 }
 
 String verdictTitle(PdfSignatureVerdict v) => switch (v) {
-      PdfSignatureVerdict.valid => 'Valid',
-      PdfSignatureVerdict.identityUnknown => 'Valid · identity unknown',
-      PdfSignatureVerdict.modified => 'Changed after signing',
-      PdfSignatureVerdict.invalid => 'Invalid',
-      PdfSignatureVerdict.unknown => 'Not verified',
-    };
+  PdfSignatureVerdict.valid => 'Valid',
+  PdfSignatureVerdict.identityUnknown => 'Valid · identity unknown',
+  PdfSignatureVerdict.modified => 'Changed after signing',
+  PdfSignatureVerdict.invalid => 'Invalid',
+  PdfSignatureVerdict.unknown => 'Not verified',
+};
 
 /// Digital tab: signature fields, draw-a-field, signature status, IDs.
 class DigitalSignaturesView extends ConsumerWidget {
@@ -65,7 +65,9 @@ class DigitalSignaturesView extends ConsumerWidget {
                 padding: const EdgeInsets.only(top: DsSpacing.sm),
                 child: Text(
                   report!.error!,
-                  style: theme.textTheme.bodySmall?.copyWith(color: DsColors.error),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: DsColors.error,
+                  ),
                 ),
               ),
             if (sigs.isNotEmpty) ...[
@@ -90,22 +92,24 @@ class DigitalSignaturesView extends ConsumerWidget {
                       status: sigs[i],
                       onShow: sigs[i].page1Based > 0 && sigs[i].normRect != null
                           ? () => controller.showField(
-                                sigs[i].page1Based,
-                                _rectOf(sigs[i].normRect!),
-                              )
+                              sigs[i].page1Based,
+                              _rectOf(sigs[i].normRect!),
+                            )
                           : null,
                     ),
                   ),
                 ),
             ],
             SignSectionLabel(
-              unsigned.isEmpty ? 'Signature fields' : 'Fields to sign (${unsigned.length})',
+              unsigned.isEmpty
+                  ? 'Signature fields'
+                  : 'Fields to sign (${unsigned.length})',
             ),
             if (unsigned.isEmpty)
               Text(
                 controller.fields.isEmpty
                     ? 'This document has no signature fields. Draw one where '
-                        'the signature should appear.'
+                          'the signature should appear.'
                     : 'All signature fields are signed.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: DsColors.textSecondary(theme.brightness),
@@ -116,10 +120,8 @@ class DigitalSignaturesView extends ConsumerWidget {
                 _FieldRow(
                   field: f,
                   onSign: () => onSignField(f),
-                  onShow: () => controller.showField(
-                    f.pageIndex1Based,
-                    signFieldRect(f),
-                  ),
+                  onShow: () =>
+                      controller.showField(f.pageIndex1Based, signFieldRect(f)),
                 ),
             const SizedBox(height: DsSpacing.sm),
             _DrawFieldButton(controller: controller),
@@ -149,9 +151,10 @@ class _SummaryBanner extends StatelessWidget {
         .reduce((a, b) => _rank(a) >= _rank(b) ? a : b);
     final color = signVerdictColor(worst);
     final text = switch (worst) {
-      PdfSignatureVerdict.valid => sigs.length == 1
-          ? 'Signed and all signatures are valid.'
-          : 'Signed and all ${sigs.length} signatures are valid.',
+      PdfSignatureVerdict.valid =>
+        sigs.length == 1
+            ? 'Signed and all signatures are valid.'
+            : 'Signed and all ${sigs.length} signatures are valid.',
       PdfSignatureVerdict.identityUnknown =>
         'Signatures are intact, but at least one signer’s identity is not '
             'confirmed by a trusted certificate authority.',
@@ -182,12 +185,12 @@ class _SummaryBanner extends StatelessWidget {
   }
 
   static int _rank(PdfSignatureVerdict v) => switch (v) {
-        PdfSignatureVerdict.valid => 0,
-        PdfSignatureVerdict.identityUnknown => 1,
-        PdfSignatureVerdict.unknown => 2,
-        PdfSignatureVerdict.modified => 3,
-        PdfSignatureVerdict.invalid => 4,
-      };
+    PdfSignatureVerdict.valid => 0,
+    PdfSignatureVerdict.identityUnknown => 1,
+    PdfSignatureVerdict.unknown => 2,
+    PdfSignatureVerdict.modified => 3,
+    PdfSignatureVerdict.invalid => 4,
+  };
 }
 
 /// One signature's verification result with expandable details.
@@ -240,7 +243,11 @@ class _SignatureStatusCardState extends State<SignatureStatusCard> {
                         color: color.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(signVerdictIcon(s.verdict), color: color, size: 18),
+                      child: Icon(
+                        signVerdictIcon(s.verdict),
+                        color: color,
+                        size: 18,
+                      ),
                     ),
                     const SizedBox(width: DsSpacing.sm + 2),
                     Expanded(
@@ -248,7 +255,9 @@ class _SignatureStatusCardState extends State<SignatureStatusCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            s.signerName ?? cert?.commonName ?? 'Unknown signer',
+                            s.signerName ??
+                                cert?.commonName ??
+                                'Unknown signer',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -257,7 +266,9 @@ class _SignatureStatusCardState extends State<SignatureStatusCard> {
                           const SizedBox(height: 1),
                           Text(
                             '${verdictTitle(s.verdict)} · ${_fmtTime(s.signingTime)}',
-                            style: theme.textTheme.bodySmall?.copyWith(color: color),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: color,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -295,32 +306,30 @@ class _SignatureStatusCardState extends State<SignatureStatusCard> {
                           const SizedBox(height: DsSpacing.sm),
                           _kv(theme, 'Field', s.fieldName),
                           if (s.reason != null) _kv(theme, 'Reason', s.reason!),
-                          if (s.location != null) _kv(theme, 'Location', s.location!),
+                          if (s.location != null)
+                            _kv(theme, 'Location', s.location!),
                           _kv(
                             theme,
                             'Integrity',
                             s.intact
                                 ? (s.coversWholeDocument
-                                    ? 'Intact — covers the whole document'
-                                    : s.signedAgainOnly
-                                        ? 'Intact — later changes are signatures only'
-                                        : 'Intact — document changed afterwards')
+                                      ? 'Intact — covers the whole document'
+                                      : s.signedAgainOnly
+                                      ? 'Intact — later changes are signatures only'
+                                      : 'Intact — document changed afterwards')
                                 : 'Signed content does not match',
                           ),
-                          _kv(
-                            theme,
-                            'Identity',
-                            switch (s.trust) {
-                              PdfSignatureTrust.trusted => 'Trusted certificate',
-                              PdfSignatureTrust.selfSigned =>
-                                'Self-signed — not issued by a trusted authority',
-                              PdfSignatureTrust.unknown =>
-                                'Issuer not in the trusted list',
-                            },
-                          ),
+                          _kv(theme, 'Identity', switch (s.trust) {
+                            PdfSignatureTrust.trusted => 'Trusted certificate',
+                            PdfSignatureTrust.selfSigned =>
+                              'Self-signed — not issued by a trusted authority',
+                            PdfSignatureTrust.unknown =>
+                              'Issuer not in the trusted list',
+                          }),
                           if (cert != null) ...[
                             _kv(theme, 'Issued by', cert.issuerCommonName),
-                            if (cert.email != null) _kv(theme, 'Email', cert.email!),
+                            if (cert.email != null)
+                              _kv(theme, 'Email', cert.email!),
                             if (cert.organization != null)
                               _kv(theme, 'Organization', cert.organization!),
                             _kv(
@@ -330,8 +339,10 @@ class _SignatureStatusCardState extends State<SignatureStatusCard> {
                             ),
                             _kv(theme, 'Serial', cert.serial),
                           ],
-                          if (s.subFilter != null) _kv(theme, 'Format', s.subFilter!),
-                          if (s.timestamped) _kv(theme, 'Timestamp', 'Embedded (RFC 3161)'),
+                          if (s.subFilter != null)
+                            _kv(theme, 'Format', s.subFilter!),
+                          if (s.timestamped)
+                            _kv(theme, 'Timestamp', 'Embedded (RFC 3161)'),
                         ],
                       ),
                     ),
@@ -357,9 +368,7 @@ class _SignatureStatusCardState extends State<SignatureStatusCard> {
               ),
             ),
           ),
-          Expanded(
-            child: SelectableText(v, style: theme.textTheme.bodySmall),
-          ),
+          Expanded(child: SelectableText(v, style: theme.textTheme.bodySmall)),
         ],
       ),
     );
@@ -498,7 +507,9 @@ class _DrawFieldButton extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.close_rounded, size: 18),
-            label: Text(phone ? 'Cancel drawing' : 'Drag on the page… (Esc to cancel)'),
+            label: Text(
+              phone ? 'Cancel drawing' : 'Drag on the page… (Esc to cancel)',
+            ),
           )
         : OutlinedButton.icon(
             key: const ValueKey('off'),
@@ -555,8 +566,8 @@ class _DigitalIdManagerState extends ConsumerState<_DigitalIdManager> {
             Platform.isWindows
                 ? const ['dll']
                 : Platform.isMacOS
-                    ? const ['dylib', 'so']
-                    : const ['so'],
+                ? const ['dylib', 'so']
+                : const ['so'],
           ),
           itemTrailing: (c) => c.id.startsWith('store:')
               ? IconButton(

@@ -87,7 +87,8 @@ class OrganizeAccessibleFilesList extends ConsumerWidget {
               secondary: secondary,
               onOpen: onOpen,
               onAddFolder: () async {
-                final grant = await PersistedDocumentAccess.pickPersistableFolder();
+                final grant =
+                    await PersistedDocumentAccess.pickPersistableFolder();
                 if (grant == null) return;
                 await ref
                     .read(persistedDocumentGrantsProvider.notifier)
@@ -224,34 +225,34 @@ class _AndroidGrantedFoldersState extends State<_AndroidGrantedFolders> {
                               ),
                             )
                           : (_listing == null || _listing!.isEmpty)
-                              ? Text(
-                                  'No PDFs found in this folder.',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: widget.secondary,
+                          ? Text(
+                              'No PDFs found in this folder.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: widget.secondary,
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                for (final f in _listing!)
+                                  ListTile(
+                                    dense: true,
+                                    contentPadding: const EdgeInsets.only(
+                                      left: 24,
+                                    ),
+                                    leading: Icon(
+                                      Icons.picture_as_pdf_outlined,
+                                      color: theme.colorScheme.primary,
+                                      size: 20,
+                                    ),
+                                    title: Text(
+                                      f.displayName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    onTap: () => widget.onOpen(f),
                                   ),
-                                )
-                              : Column(
-                                  children: [
-                                    for (final f in _listing!)
-                                      ListTile(
-                                        dense: true,
-                                        contentPadding: const EdgeInsets.only(
-                                          left: 24,
-                                        ),
-                                        leading: Icon(
-                                          Icons.picture_as_pdf_outlined,
-                                          color: theme.colorScheme.primary,
-                                          size: 20,
-                                        ),
-                                        title: Text(
-                                          f.displayName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        onTap: () => widget.onOpen(f),
-                                      ),
-                                  ],
-                                ),
+                              ],
+                            ),
                     ),
                 ],
               ],

@@ -43,7 +43,13 @@ class HomePdfDropTarget extends StatelessWidget {
         for (final f in details.files) {
           final path = f.path;
           if (path.isEmpty) continue;
-          if (p.extension(path).toLowerCase() != '.pdf') continue;
+          if (!const {
+            '.pdf',
+            '.docx',
+            '.pptx',
+          }.contains(p.extension(path).toLowerCase())) {
+            continue;
+          }
           if (!File(path).existsSync()) continue;
           await onPdfDropped(
             LocalFileRef(

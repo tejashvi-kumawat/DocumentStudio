@@ -41,12 +41,12 @@ enum HfZone {
 
   /// Left/right swapped (book-style facing pages).
   HfZone get mirrored => switch (this) {
-        headerLeft => headerRight,
-        headerRight => headerLeft,
-        footerLeft => footerRight,
-        footerRight => footerLeft,
-        _ => this,
-      };
+    headerLeft => headerRight,
+    headerRight => headerLeft,
+    footerLeft => footerRight,
+    footerRight => footerLeft,
+    _ => this,
+  };
 }
 
 enum HfNumberStyle {
@@ -59,8 +59,10 @@ enum HfNumberStyle {
   const HfNumberStyle(this.label);
   final String label;
 
-  static HfNumberStyle byName(String? name) => HfNumberStyle.values
-      .firstWhere((s) => s.name == name, orElse: () => arabic);
+  static HfNumberStyle byName(String? name) => HfNumberStyle.values.firstWhere(
+    (s) => s.name == name,
+    orElse: () => arabic,
+  );
 }
 
 enum HfPageRange {
@@ -99,27 +101,26 @@ class HfZoneStyle extends Equatable {
     HfFont? font,
     double? sizePt,
     int? colorRgb,
-  }) =>
-      HfZoneStyle(
-        text: text ?? this.text,
-        font: font ?? this.font,
-        sizePt: sizePt ?? this.sizePt,
-        colorRgb: colorRgb ?? this.colorRgb,
-      );
+  }) => HfZoneStyle(
+    text: text ?? this.text,
+    font: font ?? this.font,
+    sizePt: sizePt ?? this.sizePt,
+    colorRgb: colorRgb ?? this.colorRgb,
+  );
 
   Map<String, Object?> toJson() => {
-        't': text,
-        'f': font.name,
-        's': sizePt,
-        'c': colorRgb,
-      };
+    't': text,
+    'f': font.name,
+    's': sizePt,
+    'c': colorRgb,
+  };
 
   factory HfZoneStyle.fromJson(Map<String, Object?> j) => HfZoneStyle(
-        text: j['t'] as String? ?? '',
-        font: HfFont.byName(j['f'] as String?),
-        sizePt: (j['s'] as num?)?.toDouble() ?? 10,
-        colorRgb: (j['c'] as num?)?.toInt() ?? 0x333333,
-      );
+    text: j['t'] as String? ?? '',
+    font: HfFont.byName(j['f'] as String?),
+    sizePt: (j['s'] as num?)?.toDouble() ?? 10,
+    colorRgb: (j['c'] as num?)?.toInt() ?? 0x333333,
+  );
 
   @override
   List<Object?> get props => [text, font, sizePt, colorRgb];
@@ -149,15 +150,19 @@ class HfBates extends Equatable {
         digits: digits ?? this.digits,
       );
 
-  Map<String, Object?> toJson() =>
-      {'p': prefix, 'x': suffix, 's': start, 'd': digits};
+  Map<String, Object?> toJson() => {
+    'p': prefix,
+    'x': suffix,
+    's': start,
+    'd': digits,
+  };
 
   factory HfBates.fromJson(Map<String, Object?> j) => HfBates(
-        prefix: j['p'] as String? ?? '',
-        suffix: j['x'] as String? ?? '',
-        start: (j['s'] as num?)?.toInt() ?? 1,
-        digits: (j['d'] as num?)?.toInt() ?? 6,
-      );
+    prefix: j['p'] as String? ?? '',
+    suffix: j['x'] as String? ?? '',
+    start: (j['s'] as num?)?.toInt() ?? 1,
+    digits: (j['d'] as num?)?.toInt() ?? 6,
+  );
 
   @override
   List<Object?> get props => [prefix, suffix, start, digits];
@@ -177,23 +182,31 @@ class HfMargins extends Equatable {
   final double left;
   final double right;
 
-  HfMargins copyWith({double? top, double? bottom, double? left, double? right}) =>
-      HfMargins(
-        top: top ?? this.top,
-        bottom: bottom ?? this.bottom,
-        left: left ?? this.left,
-        right: right ?? this.right,
-      );
+  HfMargins copyWith({
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+  }) => HfMargins(
+    top: top ?? this.top,
+    bottom: bottom ?? this.bottom,
+    left: left ?? this.left,
+    right: right ?? this.right,
+  );
 
-  Map<String, Object?> toJson() =>
-      {'t': top, 'b': bottom, 'l': left, 'r': right};
+  Map<String, Object?> toJson() => {
+    't': top,
+    'b': bottom,
+    'l': left,
+    'r': right,
+  };
 
   factory HfMargins.fromJson(Map<String, Object?> j) => HfMargins(
-        top: (j['t'] as num?)?.toDouble() ?? 36,
-        bottom: (j['b'] as num?)?.toDouble() ?? 36,
-        left: (j['l'] as num?)?.toDouble() ?? 54,
-        right: (j['r'] as num?)?.toDouble() ?? 54,
-      );
+    top: (j['t'] as num?)?.toDouble() ?? 36,
+    bottom: (j['b'] as num?)?.toDouble() ?? 36,
+    left: (j['l'] as num?)?.toDouble() ?? 54,
+    right: (j['r'] as num?)?.toDouble() ?? 54,
+  );
 
   @override
   List<Object?> get props => [top, bottom, left, right];
@@ -224,22 +237,21 @@ class HfDecoration extends Equatable {
     int? bandRgb,
     bool clearBand = false,
     double? bandOpacity,
-  }) =>
-      HfDecoration(
-        ruleEnabled: ruleEnabled ?? this.ruleEnabled,
-        ruleRgb: ruleRgb ?? this.ruleRgb,
-        ruleWidthPt: ruleWidthPt ?? this.ruleWidthPt,
-        bandRgb: clearBand ? null : (bandRgb ?? this.bandRgb),
-        bandOpacity: bandOpacity ?? this.bandOpacity,
-      );
+  }) => HfDecoration(
+    ruleEnabled: ruleEnabled ?? this.ruleEnabled,
+    ruleRgb: ruleRgb ?? this.ruleRgb,
+    ruleWidthPt: ruleWidthPt ?? this.ruleWidthPt,
+    bandRgb: clearBand ? null : (bandRgb ?? this.bandRgb),
+    bandOpacity: bandOpacity ?? this.bandOpacity,
+  );
 
   Map<String, Object?> toJson() => {
-        're': ruleEnabled,
-        'rc': ruleRgb,
-        'rw': ruleWidthPt,
-        'bc': bandRgb,
-        'bo': bandOpacity,
-      };
+    're': ruleEnabled,
+    'rc': ruleRgb,
+    'rw': ruleWidthPt,
+    'bc': bandRgb,
+    'bo': bandOpacity,
+  };
 
   factory HfDecoration.fromJson(Map<String, Object?>? j) {
     if (j == null) return const HfDecoration();
@@ -253,8 +265,13 @@ class HfDecoration extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [ruleEnabled, ruleRgb, ruleWidthPt, bandRgb, bandOpacity];
+  List<Object?> get props => [
+    ruleEnabled,
+    ruleRgb,
+    ruleWidthPt,
+    bandRgb,
+    bandOpacity,
+  ];
 }
 
 /// Complete header & footer definition — persisted in templates and inside
@@ -301,7 +318,8 @@ class HeaderFooterSpec extends Equatable {
       header.bandRgb != null ||
       footer.bandRgb != null;
 
-  bool get usesBates => HfZone.values.any((z) => zone(z).text.contains('{bates'));
+  bool get usesBates =>
+      HfZone.values.any((z) => zone(z).text.contains('{bates'));
 
   HeaderFooterSpec withZone(HfZone z, HfZoneStyle style) =>
       copyWith(zones: {...zones, z: style});
@@ -320,42 +338,41 @@ class HeaderFooterSpec extends Equatable {
     bool? mirrorOnEvenPages,
     HfDecoration? header,
     HfDecoration? footer,
-  }) =>
-      HeaderFooterSpec(
-        zones: zones ?? this.zones,
-        margins: margins ?? this.margins,
-        range: range ?? this.range,
-        customRange: customRange ?? this.customRange,
-        skipFirstPage: skipFirstPage ?? this.skipFirstPage,
-        numberStyle: numberStyle ?? this.numberStyle,
-        startNumber: startNumber ?? this.startNumber,
-        dateFormat: dateFormat ?? this.dateFormat,
-        timeFormat: timeFormat ?? this.timeFormat,
-        bates: bates ?? this.bates,
-        mirrorOnEvenPages: mirrorOnEvenPages ?? this.mirrorOnEvenPages,
-        header: header ?? this.header,
-        footer: footer ?? this.footer,
-      );
+  }) => HeaderFooterSpec(
+    zones: zones ?? this.zones,
+    margins: margins ?? this.margins,
+    range: range ?? this.range,
+    customRange: customRange ?? this.customRange,
+    skipFirstPage: skipFirstPage ?? this.skipFirstPage,
+    numberStyle: numberStyle ?? this.numberStyle,
+    startNumber: startNumber ?? this.startNumber,
+    dateFormat: dateFormat ?? this.dateFormat,
+    timeFormat: timeFormat ?? this.timeFormat,
+    bates: bates ?? this.bates,
+    mirrorOnEvenPages: mirrorOnEvenPages ?? this.mirrorOnEvenPages,
+    header: header ?? this.header,
+    footer: footer ?? this.footer,
+  );
 
   Map<String, Object?> toJson() => {
-        'v': 1,
-        'z': {
-          for (final e in zones.entries)
-            if (!e.value.isEmpty) e.key.name: e.value.toJson(),
-        },
-        'm': margins.toJson(),
-        'r': range.name,
-        'cr': customRange,
-        'sf': skipFirstPage,
-        'ns': numberStyle.name,
-        'sn': startNumber,
-        'df': dateFormat,
-        'tf': timeFormat,
-        'b': bates.toJson(),
-        'mi': mirrorOnEvenPages,
-        'hd': header.toJson(),
-        'fd': footer.toJson(),
-      };
+    'v': 1,
+    'z': {
+      for (final e in zones.entries)
+        if (!e.value.isEmpty) e.key.name: e.value.toJson(),
+    },
+    'm': margins.toJson(),
+    'r': range.name,
+    'cr': customRange,
+    'sf': skipFirstPage,
+    'ns': numberStyle.name,
+    'sn': startNumber,
+    'df': dateFormat,
+    'tf': timeFormat,
+    'b': bates.toJson(),
+    'mi': mirrorOnEvenPages,
+    'hd': header.toJson(),
+    'fd': footer.toJson(),
+  };
 
   factory HeaderFooterSpec.fromJson(Map<String, Object?> j) {
     final zonesJson = (j['z'] as Map?)?.cast<String, Object?>() ?? const {};
@@ -387,18 +404,18 @@ class HeaderFooterSpec extends Equatable {
 
   @override
   List<Object?> get props => [
-        zones,
-        margins,
-        range,
-        customRange,
-        skipFirstPage,
-        numberStyle,
-        startNumber,
-        dateFormat,
-        timeFormat,
-        bates,
-        mirrorOnEvenPages,
-        header,
-        footer,
-      ];
+    zones,
+    margins,
+    range,
+    customRange,
+    skipFirstPage,
+    numberStyle,
+    startNumber,
+    dateFormat,
+    timeFormat,
+    bates,
+    mirrorOnEvenPages,
+    header,
+    footer,
+  ];
 }

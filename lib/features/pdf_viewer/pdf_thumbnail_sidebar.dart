@@ -37,7 +37,7 @@ class PdfThumbnailSidebar extends StatefulWidget {
 
   /// Optional per-page context actions (rotate, delete, extract, …).
   final void Function(int pageNumber1Based, PdfThumbnailPageAction action)?
-      onPageAction;
+  onPageAction;
 
   static const sidebarWidth = 168.0;
 
@@ -157,10 +157,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
     });
   }
 
-  void _scheduleDocumentStateRebuild(
-    PdfDocument document,
-    int pageCount,
-  ) {
+  void _scheduleDocumentStateRebuild(PdfDocument document, int pageCount) {
     if (_documentStateRebuildScheduled) return;
     _documentStateRebuildScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -186,7 +183,8 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
       final tileHeight = kPdfViewerMobileThumbnailStripHeight - 24;
       return tileHeight * 3 / 4 + PdfThumbnailSidebar._tileGap;
     }
-    final tileWidth = PdfThumbnailSidebar.sidebarWidth -
+    final tileWidth =
+        PdfThumbnailSidebar.sidebarWidth -
         PdfThumbnailSidebar._listPaddingHorizontal * 2;
     return tileWidth * 4 / 3 + PdfThumbnailSidebar._tileGap;
   }
@@ -252,13 +250,9 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
   }
 
   /// Horizontal strip → vertical edge bar; vertical list → horizontal bar.
-  bool get _insertionBarIsHorizontalLine =>
-      widget.scrollAxis == Axis.vertical;
+  bool get _insertionBarIsHorizontalLine => widget.scrollAxis == Axis.vertical;
 
-  Widget _wrapReorderable({
-    required int index,
-    required Widget tile,
-  }) {
+  Widget _wrapReorderable({required int index, required Widget tile}) {
     final onReorder = widget.onReorderPages;
     if (onReorder == null) return tile;
 
@@ -295,8 +289,9 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
           dragAnchorStrategy: pointerDragAnchorStrategy,
           feedback: Material(
             elevation: 6,
-            borderRadius:
-                BorderRadius.circular(PdfThumbnailSidebar._tileRadius),
+            borderRadius: BorderRadius.circular(
+              PdfThumbnailSidebar._tileRadius,
+            ),
             child: SizedBox(
               width: horizontal ? 72 : 120,
               height: horizontal ? 96 : 150,
@@ -324,10 +319,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (show) indicator,
-            body,
-          ],
+          children: [if (show) indicator, body],
         );
       },
     );
@@ -337,41 +329,43 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
     final act = widget.onPageAction;
     if (act == null) return;
     widget.onPageSelected(page);
-    unawaited(showDsContextMenu(context, at, [
-      DsMenuItem(
-        label: 'Rotate Clockwise',
-        icon: Icons.rotate_right,
-        onTap: () => act(page, PdfThumbnailPageAction.rotateRight),
-      ),
-      DsMenuItem(
-        label: 'Rotate Counterclockwise',
-        icon: Icons.rotate_left,
-        onTap: () => act(page, PdfThumbnailPageAction.rotateLeft),
-      ),
-      const DsMenuDivider(),
-      DsMenuItem(
-        label: 'Insert Blank Page After',
-        icon: Icons.note_add_outlined,
-        onTap: () => act(page, PdfThumbnailPageAction.insertBlankAfter),
-      ),
-      DsMenuItem(
-        label: 'Duplicate Page',
-        icon: Icons.control_point_duplicate,
-        onTap: () => act(page, PdfThumbnailPageAction.duplicate),
-      ),
-      DsMenuItem(
-        label: 'Extract Page…',
-        icon: Icons.content_cut,
-        onTap: () => act(page, PdfThumbnailPageAction.extract),
-      ),
-      const DsMenuDivider(),
-      DsMenuItem(
-        label: 'Delete Page',
-        icon: Icons.delete_outline,
-        destructive: true,
-        onTap: () => act(page, PdfThumbnailPageAction.delete),
-      ),
-    ]));
+    unawaited(
+      showDsContextMenu(context, at, [
+        DsMenuItem(
+          label: 'Rotate Clockwise',
+          icon: Icons.rotate_right,
+          onTap: () => act(page, PdfThumbnailPageAction.rotateRight),
+        ),
+        DsMenuItem(
+          label: 'Rotate Counterclockwise',
+          icon: Icons.rotate_left,
+          onTap: () => act(page, PdfThumbnailPageAction.rotateLeft),
+        ),
+        const DsMenuDivider(),
+        DsMenuItem(
+          label: 'Insert Blank Page After',
+          icon: Icons.note_add_outlined,
+          onTap: () => act(page, PdfThumbnailPageAction.insertBlankAfter),
+        ),
+        DsMenuItem(
+          label: 'Duplicate Page',
+          icon: Icons.control_point_duplicate,
+          onTap: () => act(page, PdfThumbnailPageAction.duplicate),
+        ),
+        DsMenuItem(
+          label: 'Extract Page…',
+          icon: Icons.content_cut,
+          onTap: () => act(page, PdfThumbnailPageAction.extract),
+        ),
+        const DsMenuDivider(),
+        DsMenuItem(
+          label: 'Delete Page',
+          icon: Icons.delete_outline,
+          destructive: true,
+          onTap: () => act(page, PdfThumbnailPageAction.delete),
+        ),
+      ]),
+    );
   }
 
   @override
@@ -401,7 +395,9 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
             : Listenable.merge([widget.controller, approach]),
         builder: (context, _) {
           if (!widget.controller.isReady) {
-            return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+            return const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            );
           }
           final activePage = widget.controller.pageNumber ?? 1;
           _paintedPage = activePage;
@@ -434,9 +430,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
                   decoration: BoxDecoration(
                     color: selected ? selectedFill : null,
                     border: Border.all(
-                      color: selected
-                          ? theme.colorScheme.primary
-                          : borderColor,
+                      color: selected ? theme.colorScheme.primary : borderColor,
                       width: selected ? 2 : 1,
                     ),
                     borderRadius: tileRadius,
@@ -486,9 +480,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
               );
               final padded = Padding(
                 padding: horizontal
-                    ? const EdgeInsets.only(
-                        right: PdfThumbnailSidebar._tileGap,
-                      )
+                    ? const EdgeInsets.only(right: PdfThumbnailSidebar._tileGap)
                     : const EdgeInsets.only(
                         bottom: PdfThumbnailSidebar._tileGap,
                       ),

@@ -8,6 +8,7 @@ import 'package:document_studio/design_system/adaptive/ds_adaptive.dart';
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/conversion/conversion_route.dart';
@@ -115,9 +116,10 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || _pdf != null) return;
-        final tab = ProviderScope.containerOf(context, listen: false)
-            .read(documentTabsControllerProvider)
-            .activeTab;
+        final tab = ProviderScope.containerOf(
+          context,
+          listen: false,
+        ).read(documentTabsControllerProvider).activeTab;
         final file = tab?.file;
         if (file == null || !file.isPdf) return;
         final pw = tab!.password;
@@ -161,8 +163,10 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
     });
     var retry = false;
     try {
-      final count =
-          await widget.deps.pdfToImages.pageCount(pdf: pdf, password: _password);
+      final count = await widget.deps.pdfToImages.pageCount(
+        pdf: pdf,
+        password: _password,
+      );
       if (!mounted || _pdf?.path != pdf.path) return;
       setState(() {
         _pageCount = count;
@@ -374,10 +378,17 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
       title: widget.routeOptions.title,
       subtitle: widget.routeOptions.subtitle,
       icon: Icons.image_outlined,
-      iconColor: const Color(0xFFF59E0B),
-      primaryLabel: count <= 1
-          ? 'Export image'
-          : 'Export $count images',
+      preview: DsPdfPreviewPane(
+        file: pdf,
+        password: _password,
+        enabled: !_busy,
+        onPick: _pickPdf,
+        onFilesDropped: (files) => _setPdf(files.first),
+        emptyTitle: 'Drop a PDF to turn into images',
+        emptySubtitle: 'Each page becomes one image file',
+        icon: Icons.image_outlined,
+      ),
+      primaryLabel: count <= 1 ? 'Export image' : 'Export $count images',
       primaryIcon: Icons.file_download_outlined,
       primaryEnabled: pdf != null && total != null && !_loadingPdf,
       primaryBusy: _busy,
@@ -404,24 +415,25 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DsToolSection(
-            topPadding: false,
-            title: 'Source PDF',
-            child: DsToolFileSource(
-              files: [?pdf],
-              enabled: !_busy,
-              loading: _loadingPdf,
-              onPick: _pickPdf,
-              onFilesDropped: (files) => _setPdf(files.first),
-              onRemove: (_) => _setPdf(null),
-              metaFor: (f) => [
-                if (total != null) '$total ${total == 1 ? 'page' : 'pages'}',
-                if (f.sizeBytes != null) dsFormatBytes(f.sizeBytes!),
-              ].join(' · '),
-              emptyTitle: 'Drop a PDF to turn into images',
-              emptySubtitle: 'Each page becomes one image file',
+          if (pdf != null)
+            DsToolSection(
+              topPadding: false,
+              title: 'Source PDF',
+              child: DsToolFileSource(
+                files: [pdf],
+                enabled: !_busy,
+                loading: _loadingPdf,
+                onPick: _pickPdf,
+                onFilesDropped: (files) => _setPdf(files.first),
+                onRemove: (_) => _setPdf(null),
+                metaFor: (f) => [
+                  if (total != null) '$total ${total == 1 ? 'page' : 'pages'}',
+                  if (f.sizeBytes != null) dsFormatBytes(f.sizeBytes!),
+                ].join(' · '),
+                emptyTitle: 'Drop a PDF to turn into images',
+                emptySubtitle: 'Each page becomes one image file',
+              ),
             ),
-          ),
           DsToolSection(
             title: 'Pages',
             child: Column(
@@ -460,55 +472,55 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                   alignment: Alignment.topCenter,
                   child: switch ((_rangeMode, total)) {
                     (_RangeMode.current, final int t) => Padding(
-                        padding: const EdgeInsets.only(top: DsSpacing.sm),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              tooltip: 'Previous page',
-                              onPressed: _busy || _currentPage <= 1
-                                  ? null
-                                  : () => setState(() => _currentPage--),
-                              icon: const Icon(Icons.chevron_left_rounded),
+                      padding: const EdgeInsets.only(top: DsSpacing.sm),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            tooltip: 'Previous page',
+                            onPressed: _busy || _currentPage <= 1
+                                ? null
+                                : () => setState(() => _currentPage--),
+                            icon: const Icon(Icons.chevron_left_rounded),
+                          ),
+                          Text(
+                            'Page $_currentPage of $t',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
-                            Text(
-                              'Page $_currentPage of $t',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Next page',
-                              onPressed: _busy || _currentPage >= t
-                                  ? null
-                                  : () => setState(() => _currentPage++),
-                              icon: const Icon(Icons.chevron_right_rounded),
-                            ),
-                          ],
-                        ),
+                          ),
+                          IconButton(
+                            tooltip: 'Next page',
+                            onPressed: _busy || _currentPage >= t
+                                ? null
+                                : () => setState(() => _currentPage++),
+                            icon: const Icon(Icons.chevron_right_rounded),
+                          ),
+                        ],
                       ),
+                    ),
                     (_RangeMode.custom, final int t) => Padding(
-                        padding: const EdgeInsets.only(top: DsSpacing.md),
-                        child: Row(
-                          children: [
-                            _pageField(_fromCtrl, 'From'),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8),
-                              child: Text('–'),
+                      padding: const EdgeInsets.only(top: DsSpacing.md),
+                      child: Row(
+                        children: [
+                          _pageField(_fromCtrl, 'From'),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text('–'),
+                          ),
+                          _pageField(_toCtrl, 'To'),
+                          const SizedBox(width: DsSpacing.md),
+                          Text(
+                            'of $t',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: DsColors.textSecondary(b),
                             ),
-                            _pageField(_toCtrl, 'To'),
-                            const SizedBox(width: DsSpacing.md),
-                            Text(
-                              'of $t',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: DsColors.textSecondary(b),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                    ),
                     _ => const SizedBox(width: double.infinity),
                   },
                 ),
@@ -551,12 +563,13 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
           ),
           DsToolSection(
             title: 'Resolution',
-            subtitle: '$_dpi DPI — ${switch (_dpi) {
-              <= 96 => 'screen and web',
-              <= 150 => 'good for sharing',
-              <= 300 => 'print quality',
-              _ => 'very large files',
-            }}',
+            subtitle:
+                '$_dpi DPI — ${switch (_dpi) {
+                  <= 96 => 'screen and web',
+                  <= 150 => 'good for sharing',
+                  <= 300 => 'print quality',
+                  _ => 'very large files',
+                }}',
             child: Wrap(
               spacing: DsSpacing.sm,
               runSpacing: DsSpacing.sm,
@@ -565,7 +578,9 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                   ChoiceChip(
                     label: Text('$dpi'),
                     selected: _dpi == dpi,
-                    onSelected: _busy ? null : (_) => setState(() => _dpi = dpi),
+                    onSelected: _busy
+                        ? null
+                        : (_) => setState(() => _dpi = dpi),
                   ),
               ],
             ),

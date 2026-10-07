@@ -42,8 +42,7 @@ class BatchResult extends Equatable {
   int get failedCount =>
       items.where((i) => i.outcome == BatchItemOutcome.failed).length;
 
-  bool get cancelled =>
-      items.any((i) => i.outcome == BatchItemOutcome.skipped);
+  bool get cancelled => items.any((i) => i.outcome == BatchItemOutcome.skipped);
 
   @override
   List<Object?> get props => [items];
@@ -65,8 +64,13 @@ class BatchProgress extends Equatable {
   final String? message;
 
   @override
-  List<Object?> get props =>
-      [index, total, overallFraction, currentInput, message];
+  List<Object?> get props => [
+    index,
+    total,
+    overallFraction,
+    currentInput,
+    message,
+  ];
 }
 
 typedef BatchFileProcessor = Future<String?> Function(
@@ -77,7 +81,7 @@ typedef BatchFileProcessor = Future<String?> Function(
 
 /// Runs one registered tool across many inputs via [JobRunner] (DS-BATCH-001).
 class BatchRunner {
-  BatchRunner({required JobRunner jobs}) : _jobs = jobs;
+  BatchRunner({required this._jobs});
 
   final JobRunner _jobs;
   JobCancelToken? _activeCancel;
@@ -122,8 +126,8 @@ class BatchRunner {
             final baseFraction = i / inputs.length;
 
             void reportOverall(String? message, double fileFraction) {
-              final overall = baseFraction +
-                  (fileFraction.clamp(0.0, 1.0) / inputs.length);
+              final overall =
+                  baseFraction + (fileFraction.clamp(0.0, 1.0) / inputs.length);
               final progress = BatchProgress(
                 index: i,
                 total: inputs.length,

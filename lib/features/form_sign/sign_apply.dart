@@ -43,11 +43,11 @@ Future<SignApplyOutcome> applyPlacedSignItems({
       title: 'Document is digitally signed',
       message: signed == 1
           ? 'Adding signatures or stamps now changes the document after it '
-              'was signed. The existing signature stays verifiable, but '
-              'viewers will report changes made after signing.'
+                'was signed. The existing signature stays verifiable, but '
+                'viewers will report changes made after signing.'
           : 'Adding signatures or stamps now changes the document after it '
-              'was signed. The $signed existing signatures stay verifiable, '
-              'but viewers will report changes made after signing.',
+                'was signed. The $signed existing signatures stay verifiable, '
+                'but viewers will report changes made after signing.',
       confirmLabel: 'Add anyway',
     );
     if (!ok) return SignApplyOutcome.cancelled;
@@ -76,7 +76,9 @@ Future<SignApplyOutcome> applyPlacedSignItems({
     }
     if (!context.mounted) return SignApplyOutcome.failed;
     final pages = {for (final i in items) i.page1Based}.toList()..sort();
-    final what = items.length == 1 ? items.first.source.label : '${items.length} items';
+    final what = items.length == 1
+        ? items.first.source.label
+        : '${items.length} items';
     await commitBytesToSession(
       context: context,
       storage: ref.read(fileStorageProvider),
@@ -129,10 +131,12 @@ Future<Uint8List> _burnWithQpdf(
         password: password,
         rotationDegrees: -i.rotationDegrees,
       );
-      final tmp = File(p.join(
-        Directory.systemTemp.path,
-        'ds-sign-${DateTime.now().microsecondsSinceEpoch}.pdf',
-      ));
+      final tmp = File(
+        p.join(
+          Directory.systemTemp.path,
+          'ds-sign-${DateTime.now().microsecondsSinceEpoch}.pdf',
+        ),
+      );
       await tmp.writeAsBytes(bytes, flush: true);
       temps.add(tmp);
       input = LocalFileRef(path: tmp.path, displayName: file.displayName);

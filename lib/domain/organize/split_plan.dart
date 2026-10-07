@@ -11,27 +11,19 @@ class PageRange {
   factory PageRange.fromExplicitPages(List<int> pages1Based) {
     final sorted = [...pages1Based]..sort();
     if (sorted.isEmpty) return const PageRange(1, 0);
-    return PageRange(
-      sorted.first,
-      sorted.last,
-      explicitPages1Based: sorted,
-    );
+    return PageRange(sorted.first, sorted.last, explicitPages1Based: sorted);
   }
 
   int get pageCount {
     if (explicitPages1Based != null) return explicitPages1Based!.length;
-    return end1Based >= start1Based
-        ? end1Based - start1Based + 1
-        : 0;
+    return end1Based >= start1Based ? end1Based - start1Based + 1 : 0;
   }
 
   List<int> toPageNumbers1Based() {
     if (explicitPages1Based != null) {
       return List<int>.from(explicitPages1Based!);
     }
-    return [
-      for (var p = start1Based; p <= end1Based; p++) p,
-    ];
+    return [for (var p = start1Based; p <= end1Based; p++) p];
   }
 
   String label() {
@@ -100,9 +92,9 @@ List<PageRange> buildSplitPlan({
       if (customRanges.isEmpty) {
         return [PageRange(1, totalPages)];
       }
-      return [
-        for (final r in customRanges) r.clampToDocument(totalPages),
-      ].where((r) => r.pageCount > 0).toList();
+      return [for (final r in customRanges) r.clampToDocument(totalPages)]
+          .where((r) => r.pageCount > 0)
+          .toList();
     case SplitMethodKind.selectedPages:
       return _planFromSelectedPages(
         totalPages: totalPages,

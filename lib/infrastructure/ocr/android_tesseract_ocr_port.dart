@@ -84,11 +84,14 @@ class AndroidTesseractOcrPort implements OcrPort {
   }
 
   static Map<String, String> _tessArgs(OcrOptions options) => {
-        'preserve_interword_spaces': '1',
-        if (options.dpi > 0) 'user_defined_dpi': '${options.dpi}',
-      };
+    'preserve_interword_spaces': '1',
+    if (options.dpi > 0) 'user_defined_dpi': '${options.dpi}',
+  };
 
-  static Future<File> _writeTempImage(Directory dir, Uint8List imageBytes) async {
+  static Future<File> _writeTempImage(
+    Directory dir,
+    Uint8List imageBytes,
+  ) async {
     final suffix = _suffixFor(imageBytes);
     final input = File(p.join(dir.path, 'input.$suffix'));
     await input.writeAsBytes(imageBytes, flush: true);

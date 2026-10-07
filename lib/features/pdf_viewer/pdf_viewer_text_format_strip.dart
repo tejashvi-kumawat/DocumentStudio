@@ -96,10 +96,7 @@ class PdfViewerTextFormatStrip extends StatelessWidget {
                     value: _nearest(sizes, size),
                     items: [
                       for (final s in sizes)
-                        DropdownMenuItem(
-                          value: s,
-                          child: Text(_num(s)),
-                        ),
+                        DropdownMenuItem(value: s, child: Text(_num(s))),
                     ],
                     onChanged: (v) {
                       if (v == null) return;
@@ -257,7 +254,9 @@ class _ColorButton extends StatelessWidget {
                 color: Color(argb),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: argb == color ? DsColors.primary : DsColors.borderLight,
+                  color: argb == color
+                      ? DsColors.primary
+                      : DsColors.borderLight,
                   width: argb == color ? 2 : 1,
                 ),
               ),

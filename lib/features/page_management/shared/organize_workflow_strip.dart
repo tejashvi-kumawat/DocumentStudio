@@ -25,9 +25,7 @@ class OrganizeWorkflowStrip extends StatelessWidget {
         bg = isDark
             ? DsColors.surfaceContainerDark
             : DsColors.surfaceContainerLight;
-        fg = isDark
-            ? DsColors.textSecondaryDark
-            : DsColors.textSecondaryLight;
+        fg = isDark ? DsColors.textSecondaryDark : DsColors.textSecondaryLight;
       case OrganizeWorkflowTone.info:
         bg = theme.colorScheme.primaryContainer.withValues(alpha: 0.35);
         fg = theme.colorScheme.onPrimaryContainer;
@@ -48,7 +46,7 @@ class OrganizeWorkflowStrip extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(color: fg),
               ),
             ),
-            if (trailing != null) trailing!,
+            ?trailing,
           ],
         ),
       ),
@@ -81,9 +79,13 @@ class OrganizeToolStepStrip extends StatelessWidget {
         : DsColors.textSecondaryLight;
 
     return Material(
-      color: isDark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight,
+      color: isDark
+          ? DsColors.surfaceContainerDark
+          : DsColors.surfaceContainerLight,
       child: DecoratedBox(
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: border))),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: border)),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: SingleChildScrollView(
@@ -94,7 +96,11 @@ class OrganizeToolStepStrip extends StatelessWidget {
                   if (i > 0)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: Icon(Icons.chevron_right, size: 16, color: secondary),
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: secondary,
+                      ),
                     ),
                   _StepChip(
                     index: i + 1,

@@ -18,7 +18,9 @@ void tmpDebugShot(ProviderContainer container) {
     if (width != null) await windowManager.setSize(Size(width, 760));
     if (open != null) {
       for (final p in open.split(',')) {
-        container.read(documentTabsControllerProvider).openDocument(
+        container
+            .read(documentTabsControllerProvider)
+            .openDocument(
               LocalFileRef(path: p, displayName: p.split('/').last),
             );
       }

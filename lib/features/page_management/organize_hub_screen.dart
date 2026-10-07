@@ -79,7 +79,9 @@ class _OrganizeHubScreenState extends State<OrganizeHubScreen> {
                             _GroupBlock(
                               group: group,
                               borderColor: border,
-                              tools: _filtered.where((t) => t.group == group).toList(),
+                              tools: _filtered
+                                  .where((t) => t.group == group)
+                                  .toList(),
                             ),
                         ],
                       ),
@@ -95,7 +97,9 @@ class _OrganizeHubScreenState extends State<OrganizeHubScreen> {
                             _GroupBlock(
                               group: group,
                               borderColor: border,
-                              tools: _filtered.where((t) => t.group == group).toList(),
+                              tools: _filtered
+                                  .where((t) => t.group == group)
+                                  .toList(),
                             ),
                         ],
                       ),

@@ -20,20 +20,20 @@ Rect signFieldRect(PdfSignatureFieldInfo f) =>
     Rect.fromLTRB(f.normLeft, f.normTop, f.normRight, f.normBottom);
 
 Color signVerdictColor(PdfSignatureVerdict v) => switch (v) {
-      PdfSignatureVerdict.valid => DsColors.success,
-      PdfSignatureVerdict.identityUnknown => DsColors.warning,
-      PdfSignatureVerdict.modified => DsColors.warning,
-      PdfSignatureVerdict.invalid => DsColors.error,
-      PdfSignatureVerdict.unknown => const Color(0xFF64748B),
-    };
+  PdfSignatureVerdict.valid => DsColors.success,
+  PdfSignatureVerdict.identityUnknown => DsColors.warning,
+  PdfSignatureVerdict.modified => DsColors.warning,
+  PdfSignatureVerdict.invalid => DsColors.error,
+  PdfSignatureVerdict.unknown => const Color(0xFF64748B),
+};
 
 IconData signVerdictIcon(PdfSignatureVerdict v) => switch (v) {
-      PdfSignatureVerdict.valid => Icons.verified_rounded,
-      PdfSignatureVerdict.identityUnknown => Icons.gpp_maybe_rounded,
-      PdfSignatureVerdict.modified => Icons.edit_note_rounded,
-      PdfSignatureVerdict.invalid => Icons.gpp_bad_rounded,
-      PdfSignatureVerdict.unknown => Icons.help_outline_rounded,
-    };
+  PdfSignatureVerdict.valid => Icons.verified_rounded,
+  PdfSignatureVerdict.identityUnknown => Icons.gpp_maybe_rounded,
+  PdfSignatureVerdict.modified => Icons.edit_note_rounded,
+  PdfSignatureVerdict.invalid => Icons.gpp_bad_rounded,
+  PdfSignatureVerdict.unknown => Icons.help_outline_rounded,
+};
 
 enum _Mode { none, move, resize, rotate, drawField, placeDrag }
 
@@ -120,7 +120,8 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
   SignPlacedItem? _itemAt(Offset local) {
     final c = _c;
     final sel = c.selected;
-    if (sel != null && sel.page1Based == _page &&
+    if (sel != null &&
+        sel.page1Based == _page &&
         _hitsItem(sel, local, withHandles: true)) {
       return sel;
     }
@@ -206,8 +207,10 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
     if (selected && (q - _knob(box)).distance <= kLiveHandleHitPad + 3) {
       _mode = _Mode.rotate;
       _rotBase = item.rotationDegrees;
-      _rotStartAngle =
-          math.atan2(local.dy - box.center.dy, local.dx - box.center.dx);
+      _rotStartAngle = math.atan2(
+        local.dy - box.center.dy,
+        local.dx - box.center.dx,
+      );
     } else {
       _handle = selected
           ? hitTestPlacementHandle(
@@ -353,11 +356,13 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
     } else if (!canceled && _start != null) {
       // Armed tap/drag-place, or field tap: use lift position so drag-to-place
       // on touch lands where the finger released.
-      _tapUp(TapUpDetails(
-        kind: e.kind,
-        globalPosition: e.position,
-        localPosition: endLocal,
-      ));
+      _tapUp(
+        TapUpDetails(
+          kind: e.kind,
+          globalPosition: e.position,
+          localPosition: endLocal,
+        ),
+      );
     }
     _mode = _Mode.none;
     _activeId = null;
@@ -488,13 +493,13 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
     final dx = key == LogicalKeyboardKey.arrowLeft
         ? -step
         : key == LogicalKeyboardKey.arrowRight
-            ? step
-            : 0.0;
+        ? step
+        : 0.0;
     final dy = key == LogicalKeyboardKey.arrowUp
         ? -step
         : key == LogicalKeyboardKey.arrowDown
-            ? step
-            : 0.0;
+        ? step
+        : 0.0;
     if (dx == 0 && dy == 0) return KeyEventResult.ignored;
     c.update(
       sel.id,
@@ -553,12 +558,14 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
     final drag = _mode == _Mode.placeDrag ? _drawRect : null;
     if (drag != null && _dragCommits(drag)) {
       final fitted = _fitFieldRect(drag);
-      return _px(c.defaultRect(
-        armed,
-        pageSizePt: _pagePt,
-        centerNorm: fitted.center,
-        fitInto: fitted,
-      ));
+      return _px(
+        c.defaultRect(
+          armed,
+          pageSizePt: _pagePt,
+          centerNorm: fitted.center,
+          fitInto: fitted,
+        ),
+      );
     }
     return _ghostRect(armed, _hover);
   }
@@ -566,12 +573,14 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
   Rect? _ghostRect(SignPlaceable? item, Offset? at) {
     if (item == null || at == null) return null;
     final field = _fieldAt(at, unsignedOnly: true);
-    return _px(_c.defaultRect(
-      item,
-      pageSizePt: _pagePt,
-      centerNorm: _g.toNorm(at),
-      fitInto: field == null ? null : signFieldRect(field),
-    ));
+    return _px(
+      _c.defaultRect(
+        item,
+        pageSizePt: _pagePt,
+        centerNorm: _g.toNorm(at),
+        fitInto: field == null ? null : signFieldRect(field),
+      ),
+    );
   }
 
   @override
@@ -610,8 +619,12 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
     if (selOnPage != null && _mode == _Mode.none) {
       final box = _px(selOnPage.rectNorm);
       final rad = _rad(selOnPage);
-      final corners = [box.topLeft, box.topRight, box.bottomLeft, box.bottomRight]
-          .map((p) => rotateAround(p, box.center, rad));
+      final corners = [
+        box.topLeft,
+        box.topRight,
+        box.bottomLeft,
+        box.bottomRight,
+      ].map((p) => rotateAround(p, box.center, rad));
       var top = corners.map((p) => p.dy).reduce(math.min);
       final bottom = corners.map((p) => p.dy).reduce(math.max);
       const barW = 148.0;
@@ -637,8 +650,8 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
     final hint = c.drawFieldMode
         ? 'Drag on the page to draw the signature field · Esc to cancel'
         : c.armed != null
-            ? 'Drag on the page to place “${c.armed!.label}” · Esc to cancel'
-            : null;
+        ? 'Drag on the page to place “${c.armed!.label}” · Esc to cancel'
+        : null;
 
     return DragTarget<SignPlaceable>(
       onWillAcceptWithDetails: (_) => true,
@@ -676,7 +689,8 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
                               hovered: identical(hoverField, f),
                             )
                           : _SignHereChrome(
-                              hovered: identical(hoverField, f) ||
+                              hovered:
+                                  identical(hoverField, f) ||
                                   (ghost != null &&
                                       _px(signFieldRect(f)).overlaps(ghost)),
                               compact: _px(signFieldRect(f)).height < 26,
@@ -687,10 +701,7 @@ class _SignPageLayerState extends ConsumerState<SignPageLayer> {
                   Positioned.fromRect(
                     rect: _px(i.rectNorm),
                     child: IgnorePointer(
-                      child: _PlacedItemView(
-                        key: ValueKey(i.id),
-                        item: i,
-                      ),
+                      child: _PlacedItemView(key: ValueKey(i.id), item: i),
                     ),
                   ),
                 if (selOnPage != null)
@@ -881,7 +892,9 @@ class _SignHereChromeState extends State<_SignHereChrome>
     return AnimatedBuilder(
       animation: _pulse,
       builder: (context, _) {
-        final t = widget.hovered ? 1.0 : Curves.easeInOut.transform(_pulse.value);
+        final t = widget.hovered
+            ? 1.0
+            : Curves.easeInOut.transform(_pulse.value);
         return DecoratedBox(
           decoration: BoxDecoration(
             color: c.withValues(alpha: 0.06 + 0.08 * t),
@@ -933,7 +946,9 @@ class _SignedFieldChrome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = status;
-    final color = s == null ? const Color(0xFF64748B) : signVerdictColor(s.verdict);
+    final color = s == null
+        ? const Color(0xFF64748B)
+        : signVerdictColor(s.verdict);
     return AnimatedContainer(
       duration: DsMotion.hoverDuration,
       decoration: BoxDecoration(
@@ -1023,12 +1038,16 @@ class _FlashChrome extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: kLiveSelectionColor.withValues(alpha: fade * (0.5 + pulse * 0.5)),
+              color: kLiveSelectionColor.withValues(
+                alpha: fade * (0.5 + pulse * 0.5),
+              ),
               width: 2.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: kLiveSelectionColor.withValues(alpha: fade * 0.25 * pulse),
+                color: kLiveSelectionColor.withValues(
+                  alpha: fade * 0.25 * pulse,
+                ),
                 blurRadius: 14,
                 spreadRadius: 2,
               ),
@@ -1068,9 +1087,21 @@ class _ItemToolbar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _BarIcon(icon: Icons.rotate_right_rounded, tip: 'Rotate 90° (R)', onTap: onRotate),
-              _BarIcon(icon: Icons.copy_rounded, tip: 'Duplicate (Ctrl+D)', onTap: onDuplicate),
-              _BarIcon(icon: Icons.delete_outline_rounded, tip: 'Remove (Delete)', onTap: onDelete),
+              _BarIcon(
+                icon: Icons.rotate_right_rounded,
+                tip: 'Rotate 90° (R)',
+                onTap: onRotate,
+              ),
+              _BarIcon(
+                icon: Icons.copy_rounded,
+                tip: 'Duplicate (Ctrl+D)',
+                onTap: onDuplicate,
+              ),
+              _BarIcon(
+                icon: Icons.delete_outline_rounded,
+                tip: 'Remove (Delete)',
+                onTap: onDelete,
+              ),
             ],
           ),
         ),
@@ -1098,7 +1129,8 @@ class _BarIcon extends StatelessWidget {
           child: Icon(
             icon,
             size: 18,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+            color: Theme.of(context).colorScheme.onSurface
+                .withValues(alpha: 0.8),
           ),
         ),
       ),

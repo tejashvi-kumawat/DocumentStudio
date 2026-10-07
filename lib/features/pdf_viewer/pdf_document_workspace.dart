@@ -22,6 +22,7 @@ class PdfDocumentWorkspace extends StatefulWidget {
     super.key,
     required this.file,
     required this.documentTabId,
+
     /// Stable open identity for [PdfViewer] ValueKey / [PdfDocumentRefKey].
     /// Use the session **source** path (not a mutating working temp).
     this.viewerIdentityPath,
@@ -44,6 +45,7 @@ class PdfDocumentWorkspace extends StatefulWidget {
 
   final LocalFileRef file;
   final String documentTabId;
+
   /// When null, [file.path] is used (resolved sync in State).
   final String? viewerIdentityPath;
   final String? password;
@@ -385,8 +387,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
     } else if (oldWidget.scrollLayoutMode != widget.scrollLayoutMode ||
         oldWidget.viewRotation != widget.viewRotation ||
         oldWidget.immersiveSinglePage != widget.immersiveSinglePage ||
-        oldWidget.presentationAdvanceOnTap !=
-            widget.presentationAdvanceOnTap ||
+        oldWidget.presentationAdvanceOnTap != widget.presentationAdvanceOnTap ||
         !_samePagePaintCallbacks(
           oldWidget.pagePaintCallbacks,
           widget.pagePaintCallbacks,
@@ -417,9 +418,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
         // ValueKey: resolved identity path + scroll mode only.
         final pdfViewer = PdfViewer(
           document.ref,
-          key: ValueKey(
-            '$_identityPath:${widget.scrollLayoutMode.name}',
-          ),
+          key: ValueKey('$_identityPath:${widget.scrollLayoutMode.name}'),
           controller: _controller,
           params: buildPdfViewerParams(
             renderPace: _renderPace,
@@ -461,8 +460,9 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
         }
 
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final dividerColor =
-            isDark ? DsColors.borderDark : DsColors.borderLight;
+        final dividerColor = isDark
+            ? DsColors.borderDark
+            : DsColors.borderLight;
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -471,11 +471,7 @@ class _PdfDocumentWorkspaceState extends State<PdfDocumentWorkspace> {
               controller: _controller,
               onPageSelected: _goToPage,
             ),
-            VerticalDivider(
-              width: 1,
-              thickness: 1,
-              color: dividerColor,
-            ),
+            VerticalDivider(width: 1, thickness: 1, color: dividerColor),
             Expanded(child: viewer),
           ],
         );

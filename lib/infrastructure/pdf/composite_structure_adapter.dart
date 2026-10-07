@@ -18,8 +18,8 @@ class CompositePdfStructureAdapter implements PdfStructurePort {
   CompositePdfStructureAdapter({
     PdfrxStructureAdapter? pdfrx,
     QpdfCliRunner? cli,
-  })  : _pdfrx = pdfrx ?? PdfrxStructureAdapter(),
-        _cli = cli ?? QpdfCliRunner();
+  }) : _pdfrx = pdfrx ?? PdfrxStructureAdapter(),
+       _cli = cli ?? QpdfCliRunner();
 
   final PdfrxStructureAdapter _pdfrx;
   final QpdfCliRunner _cli;
@@ -46,7 +46,8 @@ class CompositePdfStructureAdapter implements PdfStructurePort {
     String? password,
     Map<String, String>? passwordsByPath,
   }) async {
-    final hasPassword = (password != null && password.isNotEmpty) ||
+    final hasPassword =
+        (password != null && password.isNotEmpty) ||
         (passwordsByPath?.values.any((p) => p.isNotEmpty) ?? false);
     if (inputs.isNotEmpty && await isQpdfCliAvailable()) {
       try {
@@ -202,9 +203,11 @@ class CompositePdfStructureAdapter implements PdfStructurePort {
       rangesPages1Based: [
         for (var start = 1; start <= total; start += pagesPerFile)
           [
-            for (var n = start;
-                n <= (start + pagesPerFile - 1).clamp(1, total);
-                n++)
+            for (
+              var n = start;
+              n <= (start + pagesPerFile - 1).clamp(1, total);
+              n++
+            )
               n,
           ],
       ],
@@ -442,10 +445,8 @@ class CompositePdfStructureAdapter implements PdfStructurePort {
     return dart();
   }
 
-  LocalFileRef _localRef(String outputPath) => LocalFileRef(
-        path: outputPath,
-        displayName: outputPath.split('/').last,
-      );
+  LocalFileRef _localRef(String outputPath) =>
+      LocalFileRef(path: outputPath, displayName: outputPath.split('/').last);
 
   @override
   Future<LocalFileRef> compressPdf({

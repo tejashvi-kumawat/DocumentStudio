@@ -15,16 +15,15 @@ import 'package:pdfrx/pdfrx.dart';
 
 /// Tools whose page overlay is provided by [LiveMarkupPageHost].
 bool liveMarkupHostHandles(ViewerToolId? id) => switch (id) {
-      ViewerToolId.ink ||
-      ViewerToolId.markupBurn ||
-      ViewerToolId.addLink ||
-      ViewerToolId.placeImage ||
-      ViewerToolId.visualSign ||
-      ViewerToolId.editText ||
-      ViewerToolId.fillForm =>
-        true,
-      _ => false,
-    };
+  ViewerToolId.ink ||
+  ViewerToolId.markupBurn ||
+  ViewerToolId.addLink ||
+  ViewerToolId.placeImage ||
+  ViewerToolId.visualSign ||
+  ViewerToolId.editText ||
+  ViewerToolId.fillForm => true,
+  _ => false,
+};
 
 /// Mounted on every page by the viewer's page-overlay builder. Listens to the
 /// session itself, so tool / page changes and drag ticks never depend on the
@@ -132,17 +131,17 @@ class _LiveMarkupPageHostState extends State<LiveMarkupPageHost> {
       ViewerToolId.addLink => LiveLinkLayer(session: live, geom: g),
       ViewerToolId.placeImage => LivePlacementLayer(session: live, geom: g),
       ViewerToolId.visualSign => SignPageLayer(
-          geom: g,
-          viewer: widget.controller,
-          documentPath: widget.signDocumentPath,
-        ),
+        geom: g,
+        viewer: widget.controller,
+        documentPath: widget.signDocumentPath,
+      ),
       ViewerToolId.editText => Stack(
-          fit: StackFit.expand,
-          children: [
-            LiveTextLayer(session: live, geom: g),
-            LiveImageEditLayer(session: live, geom: g),
-          ],
-        ),
+        fit: StackFit.expand,
+        children: [
+          LiveTextLayer(session: live, geom: g),
+          LiveImageEditLayer(session: live, geom: g),
+        ],
+      ),
       ViewerToolId.fillForm => LiveFormLayer(session: live, geom: g),
       _ => const SizedBox.shrink(),
     };

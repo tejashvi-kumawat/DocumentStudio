@@ -12,12 +12,10 @@ import 'package:path/path.dart' as p;
 
 class PdfPageStampService {
   PdfPageStampService({
-    required PdfOverlayService overlay,
-    required FileStoragePort storage,
-    required JobRunner jobs,
-  })  : _overlay = overlay,
-        _storage = storage,
-        _jobs = jobs;
+    required this._overlay,
+    required this._storage,
+    required this._jobs,
+  });
 
   final PdfOverlayService _overlay;
   final FileStoragePort _storage;
@@ -164,7 +162,9 @@ class PdfPageStampService {
         );
         reportUi(const JobProgress(fraction: 0.35, message: 'Applying stamp'));
         await work(tempOut);
-        reportUi(const JobProgress(fraction: 0.7, message: 'Choose save location'));
+        reportUi(
+          const JobProgress(fraction: 0.7, message: 'Choose save location'),
+        );
         final bytes = await File(tempOut).readAsBytes();
         final savePath = await _storage.pickSavePath(
           suggestedName: suggestedName,
@@ -188,10 +188,7 @@ class PdfPageStampService {
           await File(tempOut).delete();
         } catch (_) {}
         reportUi(const JobProgress(fraction: 1, message: 'Done'));
-        return LocalFileRef(
-          path: savePath,
-          displayName: p.basename(savePath),
-        );
+        return LocalFileRef(path: savePath, displayName: p.basename(savePath));
       },
     );
   }

@@ -1,14 +1,7 @@
 import 'package:document_studio/features/annotations/annotation_port.dart';
 
 /// Category filter for [AnnotationListPanel] (DS-ANN-006).
-enum AnnotationKindFilter {
-  all,
-  markup,
-  notes,
-  ink,
-  stamps,
-  links,
-}
+enum AnnotationKindFilter { all, markup, notes, ink, stamps, links }
 
 /// Search + kind filter applied to loaded annotations.
 class AnnotationListFilterState {
@@ -37,22 +30,24 @@ List<PdfMarkupAnnotation> filterAnnotationList(
   AnnotationListFilterState state,
 ) {
   final trimmed = state.query.trim().toLowerCase();
-  return items.where((item) {
-    if (!_matchesKindFilter(item.kind, state.kindFilter)) {
-      return false;
-    }
-    if (trimmed.isEmpty) return true;
-    final haystack = [
-      item.displayLabel,
-      item.author,
-      item.contents,
-      item.subject,
-      'page ${item.pageNumber}',
-      item.pageNumber.toString(),
-      _kindSearchTokens(item.kind),
-    ].whereType<String>().join(' ').toLowerCase();
-    return haystack.contains(trimmed);
-  }).toList(growable: false);
+  return items
+      .where((item) {
+        if (!_matchesKindFilter(item.kind, state.kindFilter)) {
+          return false;
+        }
+        if (trimmed.isEmpty) return true;
+        final haystack = [
+          item.displayLabel,
+          item.author,
+          item.contents,
+          item.subject,
+          'page ${item.pageNumber}',
+          item.pageNumber.toString(),
+          _kindSearchTokens(item.kind),
+        ].whereType<String>().join(' ').toLowerCase();
+        return haystack.contains(trimmed);
+      })
+      .toList(growable: false);
 }
 
 bool _matchesKindFilter(PdfAnnotationKind kind, AnnotationKindFilter filter) {
@@ -76,21 +71,22 @@ bool _matchesKindFilter(PdfAnnotationKind kind, AnnotationKindFilter filter) {
 }
 
 String _kindSearchTokens(PdfAnnotationKind kind) => switch (kind) {
-      PdfAnnotationKind.highlight => 'highlight markup',
-      PdfAnnotationKind.underline => 'underline markup',
-      PdfAnnotationKind.strikeOut => 'strike markup',
-      PdfAnnotationKind.squiggly => 'squiggly markup',
-      PdfAnnotationKind.text => 'text note',
-      PdfAnnotationKind.freeText => 'text box note',
-      PdfAnnotationKind.ink => 'ink draw pen',
-      PdfAnnotationKind.stamp => 'stamp',
-      PdfAnnotationKind.comment => 'comment sticky note',
-      PdfAnnotationKind.uriLink => 'link web uri',
-      PdfAnnotationKind.destinationLink => 'link internal destination',
-      PdfAnnotationKind.unknown => 'annotation',
-    };
+  PdfAnnotationKind.highlight => 'highlight markup',
+  PdfAnnotationKind.underline => 'underline markup',
+  PdfAnnotationKind.strikeOut => 'strike markup',
+  PdfAnnotationKind.squiggly => 'squiggly markup',
+  PdfAnnotationKind.text => 'text note',
+  PdfAnnotationKind.freeText => 'text box note',
+  PdfAnnotationKind.ink => 'ink draw pen',
+  PdfAnnotationKind.stamp => 'stamp',
+  PdfAnnotationKind.comment => 'comment sticky note',
+  PdfAnnotationKind.uriLink => 'link web uri',
+  PdfAnnotationKind.destinationLink => 'link internal destination',
+  PdfAnnotationKind.unknown => 'annotation',
+};
 
-String annotationKindFilterLabel(AnnotationKindFilter filter) => switch (filter) {
+String annotationKindFilterLabel(AnnotationKindFilter filter) =>
+    switch (filter) {
       AnnotationKindFilter.all => 'All types',
       AnnotationKindFilter.markup => 'Text markup',
       AnnotationKindFilter.notes => 'Notes & text',

@@ -20,7 +20,8 @@ class JobRunner {
     required Future<T> Function(
       void Function(JobProgress) reportProgress,
       JobCancelToken cancelToken,
-    ) work,
+    )
+    work,
   }) async {
     final cancelToken = JobCancelToken();
     final controller = StreamController<JobProgress>.broadcast();

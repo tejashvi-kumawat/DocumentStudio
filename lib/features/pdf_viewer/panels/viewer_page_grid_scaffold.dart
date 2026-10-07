@@ -36,11 +36,7 @@ Widget viewerPageToolButton({
       children: [
         Icon(icon, size: 18),
         const SizedBox(width: 4),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ],
     ),
   );
@@ -91,11 +87,7 @@ class ViewerPageGridScaffold extends StatelessWidget {
             disabledForegroundColor: DsColors.onPrimary.withValues(alpha: 0.85),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: Text(
-            applyLabel,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(applyLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       );
     }
@@ -118,8 +110,7 @@ class ViewerPageGridScaffold extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       children: [
-                        for (final action in toolbar)
-                          Center(child: action),
+                        for (final action in toolbar) Center(child: action),
                       ],
                     ),
                   ),
@@ -183,10 +174,7 @@ class ViewerPageThumbnailGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final phone = viewerPageToolPhoneLayout(context);
-        final cols = viewerPageGridColumns(
-          constraints.maxWidth,
-          phone: phone,
-        );
+        final cols = viewerPageGridColumns(constraints.maxWidth, phone: phone);
         return GridView.builder(
           padding: const EdgeInsets.all(DsSpacing.md),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

@@ -5,10 +5,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 /// Read-only zoom percentage field (Acrobat-style toolbar).
 class PdfViewerAcrobatZoomField extends StatelessWidget {
-  const PdfViewerAcrobatZoomField({
-    super.key,
-    this.controller,
-  });
+  const PdfViewerAcrobatZoomField({super.key, this.controller});
 
   final PdfViewerController? controller;
 

@@ -53,15 +53,16 @@ class MachineCertificateScanner {
     DesktopEngineResolver? resolver,
     Future<ProcessResult> Function(String exe, List<String> args)? run,
     String? homeDirectory,
-  })  : _resolver = resolver ?? desktopEngineResolver,
-        _run = run ??
-            ((exe, args) => Process.run(
-                  exe,
-                  args,
-                  stdoutEncoding: systemEncoding,
-                  stderrEncoding: systemEncoding,
-                )),
-        _home = homeDirectory ?? Platform.environment['HOME'];
+  }) : _resolver = resolver ?? desktopEngineResolver,
+       _run =
+           run ??
+           ((exe, args) => Process.run(
+             exe,
+             args,
+             stdoutEncoding: systemEncoding,
+             stderrEncoding: systemEncoding,
+           )),
+       _home = homeDirectory ?? Platform.environment['HOME'];
 
   final DesktopEngineResolver _resolver;
   final Future<ProcessResult> Function(String exe, List<String> args) _run;
@@ -79,7 +80,8 @@ class MachineCertificateScanner {
       p.join(home, 'Documents'),
       p.join(home, 'Downloads'),
       p.join(home, '.pki'),
-      if (extraFolder != null && extraFolder.trim().isNotEmpty) extraFolder.trim(),
+      if (extraFolder != null && extraFolder.trim().isNotEmpty)
+        extraFolder.trim(),
     ];
     final seen = <String>{};
     final out = <P12CertificateSource>[];
@@ -88,7 +90,10 @@ class MachineCertificateScanner {
         if (seen.add(hit.path)) out.add(hit);
       }
     }
-    out.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
+    out.sort(
+      (a, b) =>
+          a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
+    );
     return out;
   }
 
@@ -163,7 +168,10 @@ class MachineCertificateScanner {
     return found;
   }
 
-  Future<List<String>> _listNicknamesInDb(String certutil, String nssDir) async {
+  Future<List<String>> _listNicknamesInDb(
+    String certutil,
+    String nssDir,
+  ) async {
     final r = await _run(certutil, ['-d', 'sql:$nssDir', '-L']);
     if (r.exitCode != 0) return const [];
     final lines = r.stdout.toString().split('\n');

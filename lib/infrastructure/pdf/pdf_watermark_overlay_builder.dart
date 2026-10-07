@@ -297,7 +297,11 @@ class PdfWatermarkOverlayBuilder {
 
     void streamObj(int id, String dict, List<int> data) {
       offsets[id] = out.length;
-      out.add(latin1.encode('$id 0 obj\n<< $dict /Length ${data.length} >>\nstream\n'));
+      out.add(
+        latin1.encode(
+          '$id 0 obj\n<< $dict /Length ${data.length} >>\nstream\n',
+        ),
+      );
       out.add(data);
       out.add(latin1.encode('\nendstream\nendobj\n'));
     }
@@ -354,9 +358,7 @@ class PdfWatermarkOverlayBuilder {
       final parts = entry.key.split('_');
       obj(
         entry.value,
-        latin1.encode(
-          '<< /Type /ExtGState /ca ${parts[0]} /CA ${parts[1]} >>',
-        ),
+        latin1.encode('<< /Type /ExtGState /ca ${parts[0]} /CA ${parts[1]} >>'),
       );
     }
 
@@ -364,7 +366,8 @@ class PdfWatermarkOverlayBuilder {
         .map((e) => '${gsNames[e.key]} ${e.value} 0 R')
         .join(' ');
     final xRes = imageId != null ? '/XObject << /Im1 $imageId 0 R >> ' : '';
-    final resources = '/Resources << /Font << /F1 $fontId 0 R >> '
+    final resources =
+        '/Resources << /Font << /F1 $fontId 0 R >> '
         '${gsRes.isEmpty ? '' : '/ExtGState << $gsRes >> '}$xRes>>';
 
     for (var i = 0; i < pageCount; i++) {
@@ -385,7 +388,9 @@ class PdfWatermarkOverlayBuilder {
     final xrefStart = out.length;
     final xref = StringBuffer('xref\n0 $size\n0000000000 65535 f \n');
     for (var id = 1; id < size; id++) {
-      xref.write('${(offsets[id] ?? 0).toString().padLeft(10, '0')} 00000 n \n');
+      xref.write(
+        '${(offsets[id] ?? 0).toString().padLeft(10, '0')} 00000 n \n',
+      );
     }
     xref.write(
       'trailer\n<< /Size $size /Root $catalogId 0 R >>\n'
@@ -415,7 +420,9 @@ class PdfWatermarkOverlayBuilder {
           '${_n(r.xPt)} ${_n(r.yPt)} ${_n(r.widthPt)} ${_n(r.heightPt)} re ';
       final fill = r.fillRgb;
       if (fill != null) {
-        b.write('q ${gsNames[key(r.fillOpacity, 1)]} gs ${rgb(fill)} rg ${re}f Q\n');
+        b.write(
+          'q ${gsNames[key(r.fillOpacity, 1)]} gs ${rgb(fill)} rg ${re}f Q\n',
+        );
       }
       final stroke = r.strokeRgb;
       if (stroke != null && r.strokeWidthPt > 0) {

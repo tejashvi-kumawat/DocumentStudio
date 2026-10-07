@@ -4,14 +4,17 @@ import 'package:uuid/uuid.dart';
 
 /// One page slot in the organize workspace (order = export order).
 class OrganizePageRef extends Equatable {
-  OrganizePageRef({
+  const OrganizePageRef({
     required this.id,
     required this.file,
     required this.pageNumber1Based,
     this.rotationDegrees = 0,
   });
 
-  factory OrganizePageRef.fromFilePage(LocalFileRef file, int pageNumber1Based) {
+  factory OrganizePageRef.fromFilePage(
+    LocalFileRef file,
+    int pageNumber1Based,
+  ) {
     return OrganizePageRef(
       id: const Uuid().v4(),
       file: file,

@@ -112,10 +112,14 @@ List<ContentOp> parseContentOps(Uint8List d) {
     if (opStart < 0) opStart = i;
     if (c == 0x28) {
       i = skipString(i);
-      operands.add(ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))));
+      operands.add(
+        ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))),
+      );
     } else if (c == 0x5b) {
       i = skipBalanced(i, 0x5b, 0x5d);
-      operands.add(ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))));
+      operands.add(
+        ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))),
+      );
     } else if (c == 0x3c && i + 1 < n && d[i + 1] == 0x3c) {
       var depth = 0;
       var p = i;
@@ -132,19 +136,25 @@ List<ContentOp> parseContentOps(Uint8List d) {
         }
       }
       i = p;
-      operands.add(ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))));
+      operands.add(
+        ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))),
+      );
     } else if (c == 0x3c) {
       while (i < n && d[i] != 0x3e) {
         i++;
       }
       i = math.min(n, i + 1);
-      operands.add(ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))));
+      operands.add(
+        ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))),
+      );
     } else if (c == 0x2f) {
       i++;
       while (i < n && !_white(d[i]) && !_delim(d[i])) {
         i++;
       }
-      operands.add(ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))));
+      operands.add(
+        ContentToken(tokStart, i, latin1.decode(d.sublist(tokStart, i))),
+      );
     } else if (_delim(c)) {
       i++; // stray delimiter
       opStart = -1;
@@ -163,7 +173,9 @@ List<ContentOp> parseContentOps(Uint8List d) {
         var p = i;
         var idAt = -1;
         while (p + 1 < n) {
-          if (d[p] == 0x49 && d[p + 1] == 0x44 && (p == 0 || _white(d[p - 1]))) {
+          if (d[p] == 0x49 &&
+              d[p + 1] == 0x44 &&
+              (p == 0 || _white(d[p - 1]))) {
             idAt = p + 2;
             break;
           }
@@ -206,13 +218,13 @@ const Mat kIdentity = [1, 0, 0, 1, 0, 0];
 
 /// Row-vector convention: apply [m] first, then [n].
 Mat matMul(Mat m, Mat n) => [
-      m[0] * n[0] + m[1] * n[2],
-      m[0] * n[1] + m[1] * n[3],
-      m[2] * n[0] + m[3] * n[2],
-      m[2] * n[1] + m[3] * n[3],
-      m[4] * n[0] + m[5] * n[2] + n[4],
-      m[4] * n[1] + m[5] * n[3] + n[5],
-    ];
+  m[0] * n[0] + m[1] * n[2],
+  m[0] * n[1] + m[1] * n[3],
+  m[2] * n[0] + m[3] * n[2],
+  m[2] * n[1] + m[3] * n[3],
+  m[4] * n[0] + m[5] * n[2] + n[4],
+  m[4] * n[1] + m[5] * n[3] + n[5],
+];
 
 Mat? matInverse(Mat m) {
   final det = m[0] * m[3] - m[1] * m[2];
@@ -240,12 +252,19 @@ List<double> unitSquareBounds(Mat m) {
   ];
   final xs = pts.map((p) => p.$1);
   final ys = pts.map((p) => p.$2);
-  return [xs.reduce(math.min), ys.reduce(math.min), xs.reduce(math.max), ys.reduce(math.max)];
+  return [
+    xs.reduce(math.min),
+    ys.reduce(math.min),
+    xs.reduce(math.max),
+    ys.reduce(math.max),
+  ];
 }
 
 String _fmt(double v) {
   final s = v.toStringAsFixed(4);
-  return s.contains('.') ? s.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '') : s;
+  return s.contains('.')
+      ? s.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '')
+      : s;
 }
 
 String formatMatrix(Mat m) => m.map(_fmt).join(' ');
@@ -254,11 +273,7 @@ String formatMatrix(Mat m) => m.map(_fmt).join(' ');
 
 /// An image painted by a `Do` operator on the page (not inside a form).
 class PageImagePlacement {
-  PageImagePlacement({
-    required this.name,
-    required this.ctm,
-    required this.op,
-  });
+  PageImagePlacement({required this.name, required this.ctm, required this.op});
 
   final String name;
 
@@ -385,6 +400,7 @@ PageContentAnalysis analyzeContent(
       pMaxY = math.max(pMaxY, u.$2);
     }
   }
+
   var tm = kIdentity;
   var tlm = kIdentity;
   var fontSize = 12.0;
@@ -406,7 +422,8 @@ PageContentAnalysis analyzeContent(
         spaces += ' '.allMatches(s).length;
       }
     }
-    return (chars * 0.5 * fontSize + chars * charSpace + spaces * wordSpace) * hScale;
+    return (chars * 0.5 * fontSize + chars * charSpace + spaces * wordSpace) *
+        hScale;
   }
 
   for (var i = 0; i < ops.length; i++) {
@@ -454,7 +471,8 @@ PageContentAnalysis analyzeContent(
       case 'n':
         if (pathStart >= 0 && pathHasPoints && !clipPending && op.name != 'n') {
           final fill = op.name != 'S' && op.name != 's';
-          final stroke = op.name == 'S' ||
+          final stroke =
+              op.name == 'S' ||
               op.name == 's' ||
               op.name.startsWith('B') ||
               op.name.startsWith('b');
@@ -529,11 +547,7 @@ PageContentAnalysis analyzeContent(
             op.operands.first.isName &&
             imageNames.contains(op.operands.first.name)) {
           images.add(
-            PageImagePlacement(
-              name: op.operands.first.name,
-              ctm: ctm,
-              op: op,
-            ),
+            PageImagePlacement(name: op.operands.first.name, ctm: ctm, op: op),
           );
         }
       default:
@@ -645,7 +659,6 @@ Uint8List applyRangeEdits(
   return out.toBytes();
 }
 
-
 /// Page font resource name → BaseFont (subset prefix `ABCDEF+` removed).
 Map<String, String> pageFontBaseNames(PdfEditDocument doc, int page1) {
   final page = doc.pageDict(page1);
@@ -663,7 +676,6 @@ Map<String, String> pageFontBaseNames(PdfEditDocument doc, int page1) {
   }
   return out;
 }
-
 
 /// Image XObject name → object number for the page's own resources.
 Map<String, int> pageImageRefs(PdfEditDocument doc, int page1) {
@@ -707,7 +719,6 @@ Map<int, int> imageNeededPixels(PdfEditDocument doc, double dpi) {
   }
   return {for (final e in needed.entries) e.key: e.value.ceil()};
 }
-
 
 /// Form XObject name → reference, from a resources dictionary.
 Map<String, PdfRef> formRefsIn(PdfEditDocument doc, PdfDict? resources) {

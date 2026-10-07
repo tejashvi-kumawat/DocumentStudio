@@ -790,10 +790,12 @@ Pkcs12Identity parsePkcs12(Uint8List bytes, String password) {
       readBags(plain);
     }
   }
-  if (keys.isEmpty)
+  if (keys.isEmpty) {
     throw StateError('This file does not contain a private key.');
-  if (certs.isEmpty)
+  }
+  if (certs.isEmpty) {
     throw StateError('This file does not contain a certificate.');
+  }
   final key = keys.first;
   var signer = certs.first;
   if (key.$1 != null) {

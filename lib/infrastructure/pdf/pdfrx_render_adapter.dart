@@ -25,10 +25,7 @@ class PdfrxRenderAdapter implements PdfRenderPort {
   }
 
   @override
-  Future<bool> validateOpenable(
-    LocalFileRef file, {
-    String? password,
-  }) async {
+  Future<bool> validateOpenable(LocalFileRef file, {String? password}) async {
     try {
       final lease = await _acquire(file, password: password);
       lease.release();
@@ -41,10 +38,7 @@ class PdfrxRenderAdapter implements PdfRenderPort {
   }
 
   @override
-  Future<String> extractPlainText(
-    LocalFileRef file, {
-    String? password,
-  }) async {
+  Future<String> extractPlainText(LocalFileRef file, {String? password}) async {
     final lease = await _acquire(file, password: password, allPages: true);
     try {
       final buf = StringBuffer();

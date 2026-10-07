@@ -30,5 +30,6 @@ class RecentToolsNotifier extends Notifier<List<String>> {
   }
 }
 
-final recentToolsProvider =
-    NotifierProvider<RecentToolsNotifier, List<String>>(RecentToolsNotifier.new);
+final recentToolsProvider = NotifierProvider<RecentToolsNotifier, List<String>>(
+  RecentToolsNotifier.new,
+);

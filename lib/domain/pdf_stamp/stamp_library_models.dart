@@ -72,11 +72,26 @@ String formatStampTime(DateTime when) {
 
 String formatStampDate(DateTime when, String format) {
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June', 'July',
-    'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
   const weekdays = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
     'Sunday',
   ];
   final y = when.year.toString().padLeft(4, '0');
@@ -177,20 +192,20 @@ class StampDesign {
   }
 
   Map<String, Object?> toJson() => {
-        'id': id,
-        'title': title,
-        'subtitle': subtitle,
-        'colorArgb': colorArgb,
-        'category': category.name,
-        'includeDate': includeDate,
-        'includeTime': includeTime,
-        'includeUser': includeUser,
-        'dateFormat': dateFormat,
-        'border': border.name,
-        'shape': shape.name,
-        'filled': filled,
-        'icon': icon.name,
-      };
+    'id': id,
+    'title': title,
+    'subtitle': subtitle,
+    'colorArgb': colorArgb,
+    'category': category.name,
+    'includeDate': includeDate,
+    'includeTime': includeTime,
+    'includeUser': includeUser,
+    'dateFormat': dateFormat,
+    'border': border.name,
+    'shape': shape.name,
+    'filled': filled,
+    'icon': icon.name,
+  };
 
   factory StampDesign.fromJson(Map<String, Object?> json) {
     StampBorder border = StampBorder.single;

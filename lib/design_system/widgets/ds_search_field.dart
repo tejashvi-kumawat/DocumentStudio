@@ -28,7 +28,10 @@ class DsSearchField extends StatelessWidget {
         hintText: hintText,
         isDense: true,
         prefixIcon: const Icon(Icons.search, size: 20),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: border),

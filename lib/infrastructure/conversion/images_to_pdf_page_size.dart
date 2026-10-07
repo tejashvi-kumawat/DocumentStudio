@@ -3,28 +3,23 @@ import 'dart:math' as math;
 import 'package:image/image.dart' as img;
 
 /// Target page size when combining images into a PDF ([DS-CNV-001]).
-enum ImagesToPdfPageSize {
-  fitImage,
-  a4,
-  letter,
-  legal,
-}
+enum ImagesToPdfPageSize { fitImage, a4, letter, legal }
 
 extension ImagesToPdfPageSizeX on ImagesToPdfPageSize {
   String get label => switch (this) {
-        ImagesToPdfPageSize.fitImage => 'Fit image',
-        ImagesToPdfPageSize.a4 => 'A4',
-        ImagesToPdfPageSize.letter => 'US Letter',
-        ImagesToPdfPageSize.legal => 'US Legal',
-      };
+    ImagesToPdfPageSize.fitImage => 'Fit image',
+    ImagesToPdfPageSize.a4 => 'A4',
+    ImagesToPdfPageSize.letter => 'US Letter',
+    ImagesToPdfPageSize.legal => 'US Legal',
+  };
 
   /// MediaBox width/height in PDF points (72 pt = 1 in), or null for native image size.
   (double widthPt, double heightPt)? get pagePoints => switch (this) {
-        ImagesToPdfPageSize.fitImage => null,
-        ImagesToPdfPageSize.a4 => (595.0, 842.0),
-        ImagesToPdfPageSize.letter => (612.0, 792.0),
-        ImagesToPdfPageSize.legal => (612.0, 1008.0),
-      };
+    ImagesToPdfPageSize.fitImage => null,
+    ImagesToPdfPageSize.a4 => (595.0, 842.0),
+    ImagesToPdfPageSize.letter => (612.0, 792.0),
+    ImagesToPdfPageSize.legal => (612.0, 1008.0),
+  };
 }
 
 /// Scales [source] to fit inside the page box and centers on white ([DS-CNV-001]).

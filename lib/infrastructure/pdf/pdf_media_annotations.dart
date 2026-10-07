@@ -42,13 +42,13 @@ class PdfMediaAnnotation {
 
   /// Copy without the (possibly huge) stream, safe to send between isolates.
   PdfMediaAnnotation stripped() => PdfMediaAnnotation(
-        page: page,
-        normRect: normRect,
-        kind: kind,
-        fileName: fileName,
-        uri: uri,
-        embedded: embedded,
-      );
+    page: page,
+    normRect: normRect,
+    kind: kind,
+    fileName: fileName,
+    uri: uri,
+    embedded: embedded,
+  );
 
   /// Decoded embedded bytes, or null when the media is external / unsupported.
   Uint8List? extract() {
@@ -190,8 +190,21 @@ List<PdfMediaAnnotation> _read(PdfEditDocument doc, int page1) {
 bool _looksLikeMedia(String name) {
   final n = name.toLowerCase();
   return const [
-    '.mp4', '.m4v', '.mov', '.avi', '.wmv', '.webm', '.mkv', '.mpg', '.mpeg',
-    '.mp3', '.wav', '.m4a', '.ogg', '.flv', '.swf',
+    '.mp4',
+    '.m4v',
+    '.mov',
+    '.avi',
+    '.wmv',
+    '.webm',
+    '.mkv',
+    '.mpg',
+    '.mpeg',
+    '.mp3',
+    '.wav',
+    '.m4a',
+    '.ogg',
+    '.flv',
+    '.swf',
   ].any(n.endsWith);
 }
 

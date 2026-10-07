@@ -89,10 +89,7 @@ class DsSectionHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (action != null) ...[
-            const SizedBox(width: DsSpacing.sm),
-            action!,
-          ],
+          if (action != null) ...[const SizedBox(width: DsSpacing.sm), action!],
         ],
       ),
     );

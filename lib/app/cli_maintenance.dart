@@ -9,7 +9,10 @@ import 'package:path/path.dart' as p;
 /// Returns `true` when the process should exit (version / help / update).
 Future<bool> tryHandleMaintenanceArgs(List<String> args) async {
   if (args.isEmpty) return false;
-  final normalized = args.map((a) => a.trim()).where((a) => a.isNotEmpty).toList();
+  final normalized = args
+      .map((a) => a.trim())
+      .where((a) => a.isNotEmpty)
+      .toList();
   if (normalized.isEmpty) return false;
 
   if (_has(normalized, const ['--version', '-V', 'version'])) {
@@ -103,7 +106,10 @@ Future<_ReleaseInfo?> _fetchLatestRelease() async {
   try {
     final req = await client.getUrl(uri);
     req.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
-    req.headers.set(HttpHeaders.userAgentHeader, 'DocumentStudio-Updater/$kAppVersion');
+    req.headers.set(
+      HttpHeaders.userAgentHeader,
+      'DocumentStudio-Updater/$kAppVersion',
+    );
     final res = await req.close();
     if (res.statusCode != 200) {
       stderr.writeln('GitHub API HTTP ${res.statusCode}');
@@ -137,18 +143,14 @@ Future<_ReleaseInfo?> _fetchLatestRelease() async {
 Future<bool> _tryWingetUpgrade() async {
   if (!await _commandExists('winget')) return false;
   stdout.writeln('Updating via winget (in place)…');
-  final r = await Process.run(
-    'winget',
-    [
-      'upgrade',
-      '--id',
-      kWingetId,
-      '--accept-package-agreements',
-      '--accept-source-agreements',
-      '--disable-interactivity',
-    ],
-    runInShell: true,
-  );
+  final r = await Process.run('winget', [
+    'upgrade',
+    '--id',
+    kWingetId,
+    '--accept-package-agreements',
+    '--accept-source-agreements',
+    '--disable-interactivity',
+  ], runInShell: true);
   stdout.write(r.stdout);
   stderr.write(r.stderr);
   if (r.exitCode == 0) {
@@ -156,50 +158,53 @@ Future<bool> _tryWingetUpgrade() async {
     return true;
   }
   //  -1978335189 often means "no applicable upgrade" / not installed via winget
-  stdout.writeln('winget upgrade not used (exit ${r.exitCode}); trying GitHub asset…');
+  stdout.writeln(
+    'winget upgrade not used (exit ${r.exitCode}); trying GitHub asset…',
+  );
   return false;
 }
 
 Future<bool> _tryBrewUpgrade() async {
   if (!await _commandExists('brew')) return false;
   // Only use brew if the cask is actually installed.
-  final list = await Process.run(
-    'brew',
-    ['list', '--cask', kBrewCask],
-    runInShell: true,
-  );
+  final list = await Process.run('brew', [
+    'list',
+    '--cask',
+    kBrewCask,
+  ], runInShell: true);
   if (list.exitCode != 0) return false;
 
   stdout.writeln('Updating via Homebrew cask (in place)…');
-  final r = await Process.run(
-    'brew',
-    ['upgrade', '--cask', kBrewCask],
-    runInShell: true,
-  );
+  final r = await Process.run('brew', [
+    'upgrade',
+    '--cask',
+    kBrewCask,
+  ], runInShell: true);
   stdout.write(r.stdout);
   stderr.write(r.stderr);
   if (r.exitCode == 0) {
     stdout.writeln('brew upgrade finished.');
     return true;
   }
-  stdout.writeln('brew upgrade failed (exit ${r.exitCode}); trying GitHub asset…');
+  stdout.writeln(
+    'brew upgrade failed (exit ${r.exitCode}); trying GitHub asset…',
+  );
   return false;
 }
 
 Future<bool> _tryLinuxPackageUpgrade(String version) async {
   if (await _commandExists('flatpak')) {
-    final info = await Process.run(
-      'flatpak',
-      ['info', kFlatpakId],
-      runInShell: true,
-    );
+    final info = await Process.run('flatpak', [
+      'info',
+      kFlatpakId,
+    ], runInShell: true);
     if (info.exitCode == 0) {
       stdout.writeln('Updating via Flatpak (in place)…');
-      final r = await Process.run(
-        'flatpak',
-        ['update', '-y', kFlatpakId],
-        runInShell: true,
-      );
+      final r = await Process.run('flatpak', [
+        'update',
+        '-y',
+        kFlatpakId,
+      ], runInShell: true);
       stdout.write(r.stdout);
       stderr.write(r.stderr);
       if (r.exitCode == 0) {
@@ -210,11 +215,11 @@ Future<bool> _tryLinuxPackageUpgrade(String version) async {
   }
   // apt only if package is installed from a repo (not a one-shot .deb path).
   if (await _commandExists('apt-get')) {
-    final policy = await Process.run(
-      'dpkg-query',
-      ['-W', '-f=\${Status}', 'document-studio'],
-      runInShell: true,
-    );
+    final policy = await Process.run('dpkg-query', [
+      '-W',
+      '-f=\${Status}',
+      'document-studio',
+    ], runInShell: true);
     final status = (policy.stdout as String? ?? '');
     if (status.contains('install ok installed')) {
       stdout.writeln(
@@ -223,7 +228,9 @@ Future<bool> _tryLinuxPackageUpgrade(String version) async {
       stdout.writeln(
         '  wget https://github.com/$kGithubOwner/$kGithubRepo/releases/download/v$version/document-studio_${version}_amd64.deb',
       );
-      stdout.writeln('  sudo apt install ./document-studio_${version}_amd64.deb');
+      stdout.writeln(
+        '  sudo apt install ./document-studio_${version}_amd64.deb',
+      );
       // Continue to automatic .deb download below.
     }
   }
@@ -298,7 +305,10 @@ Future<void> _download(Uri url, File dest) async {
     for (var hop = 0; hop < 8; hop++) {
       final req = await client.getUrl(current);
       req.followRedirects = false;
-      req.headers.set(HttpHeaders.userAgentHeader, 'DocumentStudio-Updater/$kAppVersion');
+      req.headers.set(
+        HttpHeaders.userAgentHeader,
+        'DocumentStudio-Updater/$kAppVersion',
+      );
       final res = await req.close();
       if (res.isRedirect) {
         final loc = res.headers.value(HttpHeaders.locationHeader);
@@ -327,17 +337,13 @@ Future<void> _installWindowsSetup(File setup) async {
   stdout.writeln('Installing in place (silent Setup.exe)…');
   stdout.writeln('The app will close so files can be replaced.');
   // Detach so this process can exit and Inno CloseApplications can finish.
-  await Process.start(
-    setup.path,
-    const [
-      '/VERYSILENT',
-      '/SUPPRESSMSGBOXES',
-      '/NORESTART',
-      '/CLOSEAPPLICATIONS',
-      '/RESTARTAPPLICATIONS',
-    ],
-    mode: ProcessStartMode.detached,
-  );
+  await Process.start(setup.path, const [
+    '/VERYSILENT',
+    '/SUPPRESSMSGBOXES',
+    '/NORESTART',
+    '/CLOSEAPPLICATIONS',
+    '/RESTARTAPPLICATIONS',
+  ], mode: ProcessStartMode.detached);
   stdout.writeln('Updater launched. Exiting so the install can finish.');
   exit(0);
 }
@@ -346,10 +352,14 @@ Future<void> _installMacosDmg(File dmg, Directory tmpDir) async {
   final mountPoint = p.join(tmpDir.path, 'mnt');
   await Directory(mountPoint).create(recursive: true);
   stdout.writeln('Mounting DMG…');
-  final attach = await Process.run(
-    'hdiutil',
-    ['attach', dmg.path, '-nobrowse', '-quiet', '-mountpoint', mountPoint],
-  );
+  final attach = await Process.run('hdiutil', [
+    'attach',
+    dmg.path,
+    '-nobrowse',
+    '-quiet',
+    '-mountpoint',
+    mountPoint,
+  ]);
   if (attach.exitCode != 0) {
     stderr.write(attach.stderr);
     stderr.writeln('hdiutil attach failed.');
@@ -405,10 +415,7 @@ Future<void> _installLinuxDeb(File deb) async {
       return;
     }
   }
-  final r = await Process.run(
-    'sudo',
-    ['dpkg', '-i', deb.path],
-  );
+  final r = await Process.run('sudo', ['dpkg', '-i', deb.path]);
   stdout.write(r.stdout);
   stderr.write(r.stderr);
   if (r.exitCode != 0) {
@@ -420,11 +427,9 @@ Future<void> _installLinuxDeb(File deb) async {
 }
 
 Future<bool> _commandExists(String name) async {
-  final r = await Process.run(
-    Platform.isWindows ? 'where' : 'which',
-    [name],
-    runInShell: true,
-  );
+  final r = await Process.run(Platform.isWindows ? 'where' : 'which', [
+    name,
+  ], runInShell: true);
   return r.exitCode == 0;
 }
 

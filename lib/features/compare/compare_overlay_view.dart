@@ -80,10 +80,11 @@ class CompareOverlayView extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  narrow ? DsSpacing.sm : DsSpacing.lg,
-                  DsSpacing.sm,
-                  narrow ? DsSpacing.xs : DsSpacing.lg,
-                  0),
+                narrow ? DsSpacing.sm : DsSpacing.lg,
+                DsSpacing.sm,
+                narrow ? DsSpacing.xs : DsSpacing.lg,
+                0,
+              ),
               child: Row(
                 children: [
                   Flexible(child: modes),
@@ -105,15 +106,19 @@ class CompareOverlayView extends StatelessWidget {
                         ? Center(
                             key: const ValueKey('loading'),
                             child: snap.connectionState == ConnectionState.done
-                                ? Text('Nothing to render',
-                                    style: TextStyle(color: secondary))
+                                ? Text(
+                                    'Nothing to render',
+                                    style: TextStyle(color: secondary),
+                                  )
                                 : Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const DsAdaptiveProgress(size: 24),
                                       const SizedBox(height: DsSpacing.sm),
-                                      Text('Rendering & diffing pixels…',
-                                          style: TextStyle(color: secondary)),
+                                      Text(
+                                        'Rendering & diffing pixels…',
+                                        style: TextStyle(color: secondary),
+                                      ),
                                     ],
                                   ),
                           )
@@ -129,10 +134,11 @@ class CompareOverlayView extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  narrow ? DsSpacing.md : DsSpacing.xl,
-                  0,
-                  narrow ? DsSpacing.md : DsSpacing.xl,
-                  DsSpacing.sm),
+                narrow ? DsSpacing.md : DsSpacing.xl,
+                0,
+                narrow ? DsSpacing.md : DsSpacing.xl,
+                DsSpacing.sm,
+              ),
               child: AnimatedSwitcher(
                 duration: DsMotion.switchDuration,
                 child: c.overlayMode == CompareOverlayMode.heatmap
@@ -173,7 +179,10 @@ class _HeatLegend extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Small difference', style: TextStyle(color: secondary, fontSize: 12)),
+          Text(
+            'Small difference',
+            style: TextStyle(color: secondary, fontSize: 12),
+          ),
           const SizedBox(width: DsSpacing.sm),
           Container(
             width: 120,
@@ -213,7 +222,11 @@ class _FrameView extends StatelessWidget {
     final n = frame.boxes.length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          DsSpacing.md, DsSpacing.sm, DsSpacing.md, 0),
+        DsSpacing.md,
+        DsSpacing.sm,
+        DsSpacing.md,
+        0,
+      ),
       child: Column(
         children: [
           Expanded(
@@ -225,34 +238,34 @@ class _FrameView extends StatelessWidget {
                     final size = box.biggest;
                     final Widget body = switch (mode) {
                       CompareOverlayMode.swipe => GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onHorizontalDragUpdate: (d) => mix.value =
-                              (mix.value + d.delta.dx / size.width)
-                                  .clamp(0.0, 1.0),
-                          onTapDown: (d) => mix.value =
-                              (d.localPosition.dx / size.width).clamp(0.0, 1.0),
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.resizeColumn,
-                            child: CustomPaint(
-                              size: size,
-                              painter: _SwipePainter(frame, mix),
-                            ),
+                        behavior: HitTestBehavior.opaque,
+                        onHorizontalDragUpdate: (d) =>
+                            mix.value = (mix.value + d.delta.dx / size.width)
+                                .clamp(0.0, 1.0),
+                        onTapDown: (d) => mix.value =
+                            (d.localPosition.dx / size.width).clamp(0.0, 1.0),
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.resizeColumn,
+                          child: CustomPaint(
+                            size: size,
+                            painter: _SwipePainter(frame, mix),
                           ),
                         ),
+                      ),
                       CompareOverlayMode.onion => InteractiveViewer(
-                          maxScale: 6,
-                          child: CustomPaint(
-                            size: size,
-                            painter: _OnionPainter(frame, mix),
-                          ),
+                        maxScale: 6,
+                        child: CustomPaint(
+                          size: size,
+                          painter: _OnionPainter(frame, mix),
                         ),
+                      ),
                       CompareOverlayMode.heatmap => InteractiveViewer(
-                          maxScale: 6,
-                          child: CustomPaint(
-                            size: size,
-                            painter: _HeatPainter(frame),
-                          ),
+                        maxScale: 6,
+                        child: CustomPaint(
+                          size: size,
+                          painter: _HeatPainter(frame),
                         ),
+                      ),
                     };
                     return RepaintBoundary(
                       child: DecoratedBox(
@@ -273,9 +286,9 @@ class _FrameView extends StatelessWidget {
             frame.a == null || frame.b == null
                 ? 'Page exists in only one document'
                 : pct < 0.01
-                    ? 'Pixel-identical'
-                    : '${pct.toStringAsFixed(pct < 1 ? 2 : 1)}% of pixels differ · '
-                        '$n region${n == 1 ? '' : 's'}',
+                ? 'Pixel-identical'
+                : '${pct.toStringAsFixed(pct < 1 ? 2 : 1)}% of pixels differ · '
+                      '$n region${n == 1 ? '' : 's'}',
             style: Theme.of(context).textTheme.labelMedium,
           ),
         ],
@@ -371,8 +384,7 @@ class _SwipePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SwipePainter old) =>
-      old.frame != frame || old.mix != mix;
+  bool shouldRepaint(_SwipePainter old) => old.frame != frame || old.mix != mix;
 }
 
 class _OnionPainter extends CustomPainter {
@@ -389,8 +401,7 @@ class _OnionPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_OnionPainter old) =>
-      old.frame != frame || old.mix != mix;
+  bool shouldRepaint(_OnionPainter old) => old.frame != frame || old.mix != mix;
 }
 
 class _HeatPainter extends CustomPainter {
@@ -424,9 +435,12 @@ class _HeatPainter extends CustomPainter {
     for (final b in frame.boxes) {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTRB(b.l * size.width, b.t * size.height, b.r * size.width,
-                  b.b * size.height)
-              .inflate(3),
+          Rect.fromLTRB(
+            b.l * size.width,
+            b.t * size.height,
+            b.r * size.width,
+            b.b * size.height,
+          ).inflate(3),
           const Radius.circular(3),
         ),
         stroke,

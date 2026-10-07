@@ -1,4 +1,5 @@
 import 'package:document_studio/features/pdf_viewer/widgets/viewer_nav_forwarder.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -1370,45 +1371,45 @@ class _MarkupPageLayerState extends State<MarkupPageLayer>
                   controller: widget.viewerController,
                   behavior: HitTestBehavior.opaque,
                   child: Listener(
-                  behavior: HitTestBehavior.opaque,
-                  onPointerDown: _onDown,
-                  onPointerMove: _onMove,
-                  onPointerUp: _onUp,
-                  onPointerCancel: _onCancel,
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      size: size,
-                      painter: _ObjectsPainter(
-                        controller: c,
-                        page: pageNo,
-                        scale: scale,
-                        editMode: c.editMode,
-                        editingId: editing,
-                        repaint: Listenable.merge([
-                          c.previewTick,
-                          c.draft,
-                          MarkupImageCache.instance,
-                        ]),
-                      ),
-                      foregroundPainter: _SelectionPainter(
-                        controller: c,
-                        page: pageNo,
-                        scale: scale,
-                        handles: editing != null ? const [] : _visibleHandles,
-                        rotateHandle: _single,
-                        groupBox: _groupBox,
-                        hoverId: c.editMode ? _hoverId : null,
-                        flashId: _flashId,
-                        touch: _touchUi,
-                        appear: _selAnim,
-                        repaint: Listenable.merge([
-                          c.previewTick,
-                          c.guides,
-                          _selAnim,
-                        ]),
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: _onDown,
+                    onPointerMove: _onMove,
+                    onPointerUp: _onUp,
+                    onPointerCancel: _onCancel,
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        size: size,
+                        painter: _ObjectsPainter(
+                          controller: c,
+                          page: pageNo,
+                          scale: scale,
+                          editMode: c.editMode,
+                          editingId: editing,
+                          repaint: Listenable.merge([
+                            c.previewTick,
+                            c.draft,
+                            MarkupImageCache.instance,
+                          ]),
+                        ),
+                        foregroundPainter: _SelectionPainter(
+                          controller: c,
+                          page: pageNo,
+                          scale: scale,
+                          handles: editing != null ? const [] : _visibleHandles,
+                          rotateHandle: _single,
+                          groupBox: _groupBox,
+                          hoverId: c.editMode ? _hoverId : null,
+                          flashId: _flashId,
+                          touch: _touchUi,
+                          appear: _selAnim,
+                          repaint: Listenable.merge([
+                            c.previewTick,
+                            c.guides,
+                            _selAnim,
+                          ]),
+                        ),
                       ),
                     ),
-                  ),
                   ),
                 ),
               ),

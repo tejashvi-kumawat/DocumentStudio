@@ -26,7 +26,11 @@ List<DsMenuAction> homeDocumentActions({
   required VoidCallback onToggleStar,
 }) {
   return [
-    DsMenuAction(label: 'Open', icon: Icons.open_in_new_rounded, onSelected: onOpen),
+    DsMenuAction(
+      label: 'Open',
+      icon: Icons.open_in_new_rounded,
+      onSelected: onOpen,
+    ),
     if (file.isPdf)
       for (final mode in const [
         HomePdfOpenMode.editPages,
@@ -179,8 +183,7 @@ class _HomeDocumentCardState extends ConsumerState<HomeDocumentCard> {
                               top: 4,
                               right: 4,
                               child: AnimatedOpacity(
-                                opacity:
-                                    widget.starred || showControls ? 1 : 0,
+                                opacity: widget.starred || showControls ? 1 : 0,
                                 duration: DsMotion.hoverDuration,
                                 child: _CardIconButton(
                                   tooltip: widget.starred
@@ -219,7 +222,9 @@ class _HomeDocumentCardState extends ConsumerState<HomeDocumentCard> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  thumb == null ? ' ' : homeThumbnailMeta(thumb),
+                                  thumb == null
+                                      ? ' '
+                                      : homeThumbnailMeta(thumb),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall?.copyWith(
@@ -240,7 +245,8 @@ class _HomeDocumentCardState extends ConsumerState<HomeDocumentCard> {
                                 color: secondary,
                                 onPressed: () {
                                   final box =
-                                      btnContext.findRenderObject() as RenderBox;
+                                      btnContext.findRenderObject()
+                                          as RenderBox;
                                   _showMenu(
                                     box.localToGlobal(
                                       box.size.bottomLeft(Offset.zero),

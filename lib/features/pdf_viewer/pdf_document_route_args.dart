@@ -4,10 +4,7 @@ import 'package:document_studio/features/pdf_viewer/viewer_route_args.dart';
 
 /// Handoff when opening a tool with the PDF already loaded (viewer, workspace, recents).
 class PdfDocumentRouteArgs {
-  const PdfDocumentRouteArgs({
-    required this.file,
-    this.password,
-  });
+  const PdfDocumentRouteArgs({required this.file, this.password});
 
   final LocalFileRef file;
   final String? password;

@@ -1,4 +1,5 @@
 import 'package:document_studio/features/pdf_viewer/viewer_pending_page.dart';
+
 import 'dart:typed_data';
 
 import 'package:document_studio/app/providers.dart';
@@ -93,8 +94,8 @@ Future<void> exportOrganizePagesAndPromptSave({
   final tabs = ref.read(documentTabsControllerProvider);
   final session = tabs.activeSession;
   // Prefer in-place when the open tab is this file.
-  final sameOpen = session != null &&
-      session.sameDocumentPath(handoff.file.path);
+  final sameOpen =
+      session != null && session.sameDocumentPath(handoff.file.path);
 
   await commitOrganizeExport(
     ref: ref,

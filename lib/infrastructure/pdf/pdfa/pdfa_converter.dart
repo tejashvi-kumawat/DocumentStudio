@@ -83,7 +83,10 @@ Future<PdfAResult> convertToPdfA({
         'first.',
       );
     }
-    await argFile.writeAsString('${args.map(_quote).join('\n')}\n', flush: true);
+    await argFile.writeAsString(
+      '${args.map(_quote).join('\n')}\n',
+      flush: true,
+    );
     if (!Platform.isWindows) {
       await Process.run('chmod', ['600', argFile.path]);
     }
@@ -107,12 +110,11 @@ Future<PdfAResult> convertToPdfA({
 
 String _quote(String a) => '"$a"';
 
-String _ps(String s) => s
-    .replaceAll(r'\', r'\\')
-    .replaceAll('(', r'\(')
-    .replaceAll(')', r'\)');
+String _ps(String s) =>
+    s.replaceAll(r'\', r'\\').replaceAll('(', r'\(').replaceAll(')', r'\)');
 
-String _pdfaDef(String iccPath, String? title) => '''
+String _pdfaDef(String iccPath, String? title) =>
+    '''
 %!
 /ICCProfile (${_ps(iccPath.replaceAll(r'\', '/'))}) def
 ${title == null || title.isEmpty ? '' : '[ /Title (${_ps(title)}) /DOCINFO pdfmark'}

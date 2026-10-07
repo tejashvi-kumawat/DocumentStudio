@@ -1,4 +1,5 @@
 import 'package:document_studio/features/conversion/pdf_to_docx_layout.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -42,8 +43,7 @@ class _ViewerOfficeConvertPanelState
   String? _error;
   double? _fraction;
 
-  bool get _useDartPath =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  bool get _useDartPath => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   @override
   void initState() {
@@ -118,8 +118,9 @@ class _ViewerOfficeConvertPanelState
         _fraction = 0.85;
       });
       final bytes = await outFile.readAsBytes();
-      final saveStem =
-          p.basenameWithoutExtension(widget.handoff.file.displayName);
+      final saveStem = p.basenameWithoutExtension(
+        widget.handoff.file.displayName,
+      );
       final savePath = await storage.pickSavePath(
         suggestedName: '$saveStem.$ext',
         bytes: bytes,
@@ -194,8 +195,9 @@ class _ViewerOfficeConvertPanelState
           }
         },
       );
-      final saveStem =
-          p.basenameWithoutExtension(widget.handoff.file.displayName);
+      final saveStem = p.basenameWithoutExtension(
+        widget.handoff.file.displayName,
+      );
       final savePath = await storage.pickSavePath(
         suggestedName: '$saveStem.docx',
         bytes: bytes,
@@ -267,13 +269,7 @@ class _ViewerOfficeConvertPanelState
       final result = await LibreOfficeHeadless.run(
         exe: exe,
         workDir: outDir,
-        args: [
-          '--convert-to',
-          'pdf',
-          '--outdir',
-          outDir,
-          picked.path,
-        ],
+        args: ['--convert-to', 'pdf', '--outdir', outDir, picked.path],
       );
       if (result.exitCode != 0) {
         throw StateError(
@@ -285,7 +281,11 @@ class _ViewerOfficeConvertPanelState
         );
       }
       final stem = p.basenameWithoutExtension(picked.path);
-      final produced = await LibreOfficeHeadless.findProduced(outDir, stem, 'pdf');
+      final produced = await LibreOfficeHeadless.findProduced(
+        outDir,
+        stem,
+        'pdf',
+      );
       if (produced == null) {
         throw StateError(
           LibreOfficeHeadless.formatConvertError(
@@ -425,10 +425,10 @@ class _ViewerOfficeConvertPanelState
     final ready = _enginePath != null;
     final helper = _useDartPath
         ? '${DartOfficeConvertService.fidelityNote} '
-            'Excel, PowerPoint, .doc, and OpenDocument need the desktop app.'
+              'Excel, PowerPoint, .doc, and OpenDocument need the desktop app.'
         : ready
-            ? 'Word, Excel, and PowerPoint convert on this computer.'
-            : 'Office conversion isn’t set up on this computer yet.';
+        ? 'Word, Excel, and PowerPoint convert on this computer.'
+        : 'Office conversion isn’t set up on this computer yet.';
     return ViewerToolFormScaffold(
       primaryLabel: _busy ? 'Converting…' : 'Convert',
       primaryIcon: Icons.description_outlined,
@@ -447,84 +447,84 @@ class _ViewerOfficeConvertPanelState
               ),
             ),
       children: [
-          Text(
-            helper,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 12,
-              color: secondary,
-            ),
+        Text(
+          helper,
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 12,
+            color: secondary,
           ),
-          const SizedBox(height: DsSpacing.sm),
-          Text(
-            'PDF to Office',
-            style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        Text(
+          'PDF to Office',
+          style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        DropdownButtonFormField<_OfficeTarget>(
+          initialValue: _target,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            labelText: 'Format',
+            labelStyle: TextStyle(fontSize: 13),
+            isDense: true,
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: DsSpacing.sm),
-          DropdownButtonFormField<_OfficeTarget>(
-            initialValue: _target,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Format',
-              labelStyle: TextStyle(fontSize: 13),
-              isDense: true,
-              border: OutlineInputBorder(),
+          items: [
+            const DropdownMenuItem(
+              value: _OfficeTarget.docx,
+              child: Text('Word (.docx)'),
             ),
-            items: [
-              const DropdownMenuItem(
-                value: _OfficeTarget.docx,
-                child: Text('Word (.docx)'),
+            if (!_useDartPath) ...const [
+              DropdownMenuItem(
+                value: _OfficeTarget.xlsx,
+                child: Text('Excel (.xlsx)'),
               ),
-              if (!_useDartPath) ...const [
-                DropdownMenuItem(
-                  value: _OfficeTarget.xlsx,
-                  child: Text('Excel (.xlsx)'),
-                ),
-                DropdownMenuItem(
-                  value: _OfficeTarget.pptx,
-                  child: Text('PowerPoint (.pptx)'),
-                ),
-              ],
-            ],
-            onChanged: _busy || !ready
-                ? null
-                : (v) {
-                    if (v != null) setState(() => _target = v);
-                  },
-          ),
-          const SizedBox(height: DsSpacing.sm),
-          Text(
-            'Office to PDF',
-            style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
-          ),
-          const SizedBox(height: DsSpacing.sm),
-          ViewerToolSecondaryButton(
-            label: _useDartPath ? 'Choose Word or text' : 'Choose an office file',
-            icon: Icons.picture_as_pdf_outlined,
-            onPressed: _busy || !ready ? null : _officeToPdf,
-          ),
-          if (_busy) ...[
-            const SizedBox(height: DsSpacing.md),
-            LinearProgressIndicator(value: _fraction),
-            if (_progress != null) ...[
-              const SizedBox(height: DsSpacing.xs),
-              Text(
-                _progress!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
+              DropdownMenuItem(
+                value: _OfficeTarget.pptx,
+                child: Text('PowerPoint (.pptx)'),
               ),
             ],
           ],
-          Text(
-            'To save pages as pictures, use Export images.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 12,
-              color: secondary,
+          onChanged: _busy || !ready
+              ? null
+              : (v) {
+                  if (v != null) setState(() => _target = v);
+                },
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        Text(
+          'Office to PDF',
+          style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        ViewerToolSecondaryButton(
+          label: _useDartPath ? 'Choose Word or text' : 'Choose an office file',
+          icon: Icons.picture_as_pdf_outlined,
+          onPressed: _busy || !ready ? null : _officeToPdf,
+        ),
+        if (_busy) ...[
+          const SizedBox(height: DsSpacing.md),
+          LinearProgressIndicator(value: _fraction),
+          if (_progress != null) ...[
+            const SizedBox(height: DsSpacing.xs),
+            Text(
+              _progress!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
             ),
-          ),
+          ],
         ],
+        Text(
+          'To save pages as pictures, use Export images.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 12,
+            color: secondary,
+          ),
+        ),
+      ],
     );
   }
 }

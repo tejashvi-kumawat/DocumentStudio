@@ -1,7 +1,7 @@
 import 'package:document_studio/app/keyboard/text_input_guard.dart';
+
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:document_studio/core/errors/document_studio_error.dart';
@@ -54,11 +54,12 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
   @override
   void initState() {
     super.initState();
-    _zoomAnim = AnimationController(vsync: this, duration: DsMotion.dialogDuration)
-      ..addListener(() {
-        final t = _zoomTween;
-        if (t != null) _transform.value = t.value;
-      });
+    _zoomAnim =
+        AnimationController(vsync: this, duration: DsMotion.dialogDuration)
+          ..addListener(() {
+            final t = _zoomTween;
+            if (t != null) _transform.value = t.value;
+          });
     _transform.addListener(_onTransform);
     final initial = widget.initialFile;
     if (initial != null) {
@@ -105,7 +106,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
       if (size == null) {
         setState(() {
           _busy = false;
-          _error = '${file.displayName} could not be displayed. '
+          _error =
+              '${file.displayName} could not be displayed. '
               'The file may be damaged or in an unsupported format.';
         });
         return;
@@ -201,9 +203,10 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
       _transform.value.getMaxScaleOnAxis() * _fitScale * 100;
 
   void _animateTo(Matrix4 target) {
-    _zoomTween = Matrix4Tween(begin: _transform.value, end: target).animate(
-      CurvedAnimation(parent: _zoomAnim, curve: DsMotion.switchCurve),
-    );
+    _zoomTween = Matrix4Tween(
+      begin: _transform.value,
+      end: target,
+    ).animate(CurvedAnimation(parent: _zoomAnim, curve: DsMotion.switchCurve));
     _zoomAnim.forward(from: 0);
   }
 
@@ -334,10 +337,10 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
               onPressed: _busy
                   ? null
                   : () => printLocalRasterImage(
-                        context,
-                        file,
-                        widget.deps.printService,
-                      ),
+                      context,
+                      file,
+                      widget.deps.printService,
+                    ),
             ),
           IconButton(
             tooltip: 'Open image',
@@ -429,10 +432,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
       child: ListTile(
         dense: true,
         leading: Icon(Icons.error_outline, color: scheme.onErrorContainer),
-        title: Text(
-          _error!,
-          style: TextStyle(color: scheme.onErrorContainer),
-        ),
+        title: Text(_error!, style: TextStyle(color: scheme.onErrorContainer)),
         trailing: IconButton(
           tooltip: 'Dismiss',
           icon: Icon(Icons.close, color: scheme.onErrorContainer),
@@ -474,9 +474,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
                       _bytes!,
                       fit: BoxFit.contain,
                       gaplessPlayback: true,
-                      filterQuality: _transform.value.getMaxScaleOnAxis() *
-                                  _fitScale >
-                              2
+                      filterQuality:
+                          _transform.value.getMaxScaleOnAxis() * _fitScale > 2
                           ? FilterQuality.none
                           : FilterQuality.medium,
                     ),
@@ -516,7 +515,9 @@ class _ImageViewerScreenState extends State<ImageViewerScreen>
                 IconButton(
                   tooltip: 'Previous image (←)',
                   icon: const Icon(Icons.chevron_left),
-                  onPressed: _siblingIndex > 0 && !_busy ? () => _step(-1) : null,
+                  onPressed: _siblingIndex > 0 && !_busy
+                      ? () => _step(-1)
+                      : null,
                 ),
               IconButton(
                 tooltip: 'Zoom out (−)',

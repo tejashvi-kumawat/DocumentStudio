@@ -58,8 +58,9 @@ class OrganizeWorkspaceState {
       importedFiles: importedFiles ?? this.importedFiles,
       busy: busy ?? this.busy,
       statusMessage: clearStatus ? null : (statusMessage ?? this.statusMessage),
-      progressFraction:
-          clearStatus ? null : (progressFraction ?? this.progressFraction),
+      progressFraction: clearStatus
+          ? null
+          : (progressFraction ?? this.progressFraction),
       highlightSourcePath: clearHighlightSource
           ? null
           : (highlightSourcePath ?? this.highlightSourcePath),
@@ -98,7 +99,8 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
   void loadPagesFromFile(LocalFileRef file, int pageCount) {
     _pushUndo();
     final refs = [
-      for (var p = 1; p <= pageCount; p++) OrganizePageRef.fromFilePage(file, p),
+      for (var p = 1; p <= pageCount; p++)
+        OrganizePageRef.fromFilePage(file, p),
     ];
     final imports = [...state.importedFiles];
     if (!imports.any((f) => f.path == file.path)) {
@@ -126,7 +128,8 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
       imports.add(file);
     }
     final newPages = [
-      for (var p = 1; p <= pageCount; p++) OrganizePageRef.fromFilePage(file, p),
+      for (var p = 1; p <= pageCount; p++)
+        OrganizePageRef.fromFilePage(file, p),
     ];
     final list = List<OrganizePageRef>.of(state.pages);
     final at = index.clamp(0, list.length);
@@ -167,7 +170,9 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
       pages: next,
       selectedIds: {},
       selectionAnchorId: null,
-      focusPreviewIndex: next.isEmpty ? 0 : state.focusPreviewIndex.clamp(0, next.length - 1),
+      focusPreviewIndex: next.isEmpty
+          ? 0
+          : state.focusPreviewIndex.clamp(0, next.length - 1),
       clearStatus: true,
     );
   }
@@ -208,10 +213,15 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
         if (state.selectedIds.contains(state.pages[i].id)) i,
     ];
     final replacementPages = [
-      for (var p = 1; p <= pageCount; p++) OrganizePageRef.fromFilePage(file, p),
+      for (var p = 1; p <= pageCount; p++)
+        OrganizePageRef.fromFilePage(file, p),
     ];
     final list = List<OrganizePageRef>.of(state.pages);
-    for (var i = 0; i < selectedIndices.length && i < replacementPages.length; i++) {
+    for (
+      var i = 0;
+      i < selectedIndices.length && i < replacementPages.length;
+      i++
+    ) {
       list[selectedIndices[i]] = replacementPages[i];
     }
     final imports = [...state.importedFiles];
@@ -302,9 +312,7 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
     if (a < 0 || b < 0) return;
     final lo = a < b ? a : b;
     final hi = a < b ? b : a;
-    final ids = {
-      for (var i = lo; i <= hi; i++) state.pages[i].id,
-    };
+    final ids = {for (var i = lo; i <= hi; i++) state.pages[i].id};
     state = state.copyWith(selectedIds: ids, focusPreviewIndex: b);
   }
 
@@ -405,13 +413,13 @@ class OrganizeWorkspaceNotifier extends Notifier<OrganizeWorkspaceState> {
 
 final organizeWorkspaceProvider =
     NotifierProvider<OrganizeWorkspaceNotifier, OrganizeWorkspaceState>(
-  OrganizeWorkspaceNotifier.new,
-);
+      OrganizeWorkspaceNotifier.new,
+    );
 
 /// Isolated page-list state for Home → Document Workspace (not shared with /organize/* tools).
 class DocumentWorkspaceNotifier extends OrganizeWorkspaceNotifier {}
 
 final documentWorkspaceProvider =
     NotifierProvider<DocumentWorkspaceNotifier, OrganizeWorkspaceState>(
-  DocumentWorkspaceNotifier.new,
-);
+      DocumentWorkspaceNotifier.new,
+    );

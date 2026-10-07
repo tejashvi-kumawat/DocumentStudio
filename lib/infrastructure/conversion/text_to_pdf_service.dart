@@ -25,7 +25,10 @@ class TextToPdfService {
     if (cached != null) return cached;
     try {
       final data = await rootBundle.load(_kRegularFont);
-      return _font = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      return _font = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
     } catch (_) {
       // Asset bundle unavailable (e.g. pure-Dart contexts): Helvetica fallback.
       return _font = Uint8List(0);
@@ -94,7 +97,10 @@ Future<Uint8List> _buildTextPdf(_TextPdfJob job) async {
     fontSize: job.fontSizePt,
     lineSpacing: (job.leadingPt - job.fontSizePt).clamp(0, job.fontSizePt),
   );
-  final paragraphs = job.text.replaceAll('\r\n', '\n').replaceAll('\r', '\n').split('\n');
+  final paragraphs = job.text
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n')
+      .split('\n');
   doc.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat(

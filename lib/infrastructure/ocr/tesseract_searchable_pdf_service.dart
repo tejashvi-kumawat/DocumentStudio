@@ -93,8 +93,8 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
   TesseractSearchablePdfService({
     DesktopEngineResolver? resolver,
     QpdfCliRunner? qpdf,
-  })  : _resolver = resolver ?? desktopEngineResolver,
-        _qpdf = qpdf ?? QpdfCliRunner();
+  }) : _resolver = resolver ?? desktopEngineResolver,
+       _qpdf = qpdf ?? QpdfCliRunner();
 
   final DesktopEngineResolver _resolver;
   final QpdfCliRunner _qpdf;
@@ -113,7 +113,8 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
     );
     var missing = env.readinessError(language);
     if (missing == null && !await isQpdfCliAvailable()) {
-      missing = 'PDF engine not found: qpdf is not in the app engines folder. '
+      missing =
+          'PDF engine not found: qpdf is not in the app engines folder. '
           'Download it once from Settings, or reinstall Document Studio.';
     }
     final codes = [
@@ -162,13 +163,13 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
     final stopwatch = Stopwatch()..start();
     final token = cancelToken ?? OcrCancelToken();
     void report(double f, String msg, int done, int total) => onProgress?.call(
-          SearchablePdfProgress(
-            fraction: f.clamp(0.0, 1.0),
-            message: msg,
-            pagesDone: done,
-            pagesTotal: total,
-          ),
-        );
+      SearchablePdfProgress(
+        fraction: f.clamp(0.0, 1.0),
+        message: msg,
+        pagesDone: done,
+        pagesTotal: total,
+      ),
+    );
 
     report(0, 'Checking OCR engine…', 0, 0);
     final status = await probeEngine(language: options.language);
@@ -177,7 +178,8 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
     }
     final env = await loadOcrEngineEnvironment(resolver: _resolver);
     final tessExe = status.tesseractPath!;
-    final tessdata = env.tessdataDirFor(
+    final tessdata =
+        env.tessdataDirFor(
           options.languageCodes,
           withOsd: env.useOsd(options),
         ) ??
@@ -190,8 +192,12 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
     if (cacheKey != null) {
       final cached = await _readCachedResult(cacheKey, stopwatch);
       if (cached != null) {
-        report(1, 'Done (from cache)', cached.recognizedPages.length,
-            cached.recognizedPages.length);
+        report(
+          1,
+          'Done (from cache)',
+          cached.recognizedPages.length,
+          cached.recognizedPages.length,
+        );
         return cached;
       }
     }
@@ -214,7 +220,7 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
         final requested = (pages1Based == null || pages1Based.isEmpty)
             ? [for (var i = 1; i <= pageCount; i++) i]
             : (pages1Based.where((n) => n >= 1 && n <= pageCount).toList()
-              ..sort());
+                ..sort());
         if (requested.isEmpty) {
           throw OcrEngineBlockedException('No valid pages to recognize.');
         }
@@ -222,7 +228,12 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
         skipped = <int>[];
         final toOcr = <int>[];
         if (options.skipPagesWithText) {
-          report(0.02, 'Checking pages for existing text…', 0, requested.length);
+          report(
+            0.02,
+            'Checking pages for existing text…',
+            0,
+            requested.length,
+          );
           for (final n in requested) {
             token.throwIfCancelled();
             if (await _pageHasText(doc.pages[n - 1])) {
@@ -270,10 +281,9 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
           }
 
           try {
-            await Future.wait(
-              [for (var i = 0; i < parallel; i++) worker()],
-              eagerError: true,
-            );
+            await Future.wait([
+              for (var i = 0; i < parallel; i++) worker(),
+            ], eagerError: true);
           } catch (_) {
             token.cancel();
             rethrow;
@@ -295,10 +305,16 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
       }
 
       token.throwIfCancelled();
-      report(0.94, 'Adding invisible text layer…', recognized.length,
-          recognized.length);
+      report(
+        0.94,
+        'Adding invisible text layer…',
+        recognized.length,
+        recognized.length,
+      );
       final layerPath = p.join(tempDir.path, 'text_layer.pdf');
-      final pagePdfs = [for (final n in recognized) _pagePdfPath(tempDir.path, n)];
+      final pagePdfs = [
+        for (final n in recognized) _pagePdfPath(tempDir.path, n),
+      ];
       if (pagePdfs.length == 1) {
         await File(pagePdfs.single).copy(layerPath);
       } else {
@@ -321,8 +337,12 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
       if (rotations.isNotEmpty) {
         // Separate pass: rotating before the overlay would change how qpdf
         // maps the text layer onto the page.
-        report(0.97, 'Straightening rotated pages…', recognized.length,
-            recognized.length);
+        report(
+          0.97,
+          'Straightening rotated pages…',
+          recognized.length,
+          recognized.length,
+        );
         final byAngle = <int, List<int>>{};
         for (final e in rotations.entries) {
           (byAngle[e.value] ??= []).add(e.key);
@@ -398,8 +418,9 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
         final bytes = await File(path).readAsBytes();
         return sha1.convert(bytes).toString();
       });
-      final pageSpec =
-          pages == null || pages.isEmpty ? 'all' : (pages.toList()..sort()).join(',');
+      final pageSpec = pages == null || pages.isEmpty
+          ? 'all'
+          : (pages.toList()..sort()).join(',');
       return 'searchable-v1|$digest|${options.language}|${options.dpi}|'
           '${options.autoRotate}|${options.denoise}|'
           '${options.skipPagesWithText}|$pageSpec';
@@ -443,13 +464,17 @@ class TesseractSearchablePdfService implements SearchablePdfPort {
     await _resultPdfs.write(key, result.bytes);
     await _resultMeta.write(
       key,
-      Uint8List.fromList(utf8.encode(jsonEncode({
-        'recognized': result.recognizedPages,
-        'skipped': result.skippedPages,
-        'rotated': {
-          for (final e in result.rotatedPages.entries) '${e.key}': e.value,
-        },
-      }))),
+      Uint8List.fromList(
+        utf8.encode(
+          jsonEncode({
+            'recognized': result.recognizedPages,
+            'skipped': result.skippedPages,
+            'rotated': {
+              for (final e in result.rotatedPages.entries) '${e.key}': e.value,
+            },
+          }),
+        ),
+      ),
     );
   }
 

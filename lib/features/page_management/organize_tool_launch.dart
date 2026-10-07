@@ -3,10 +3,7 @@ import 'package:document_studio/features/pdf_viewer/pdf_document_route_args.dart
 
 /// Route extra when opening an organize tool with a document already loaded.
 class OrganizeToolLaunch {
-  const OrganizeToolLaunch({
-    required this.file,
-    this.password,
-  });
+  const OrganizeToolLaunch({required this.file, this.password});
 
   final LocalFileRef file;
   final String? password;

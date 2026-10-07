@@ -19,12 +19,12 @@ class HfTemplate {
   final bool builtIn;
 
   Map<String, Object?> toJson() => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'category': category,
-        'spec': spec.toJson(),
-      };
+    'id': id,
+    'name': name,
+    'description': description,
+    'category': category,
+    'spec': spec.toJson(),
+  };
 
   static HfTemplate? fromJson(Map<String, Object?> j) {
     final spec = j['spec'];
@@ -54,8 +54,11 @@ const builtInHfTemplates = <HfTemplate>[
     description: 'A quiet centered number at the bottom.',
     spec: HeaderFooterSpec(
       zones: {
-        HfZone.footerCenter:
-            HfZoneStyle(text: '{page}', sizePt: 9, colorRgb: _muted),
+        HfZone.footerCenter: HfZoneStyle(
+          text: '{page}',
+          sizePt: 9,
+          colorRgb: _muted,
+        ),
       },
     ),
   ),
@@ -86,8 +89,11 @@ const builtInHfTemplates = <HfTemplate>[
           sizePt: 9,
           colorRgb: _navy,
         ),
-        HfZone.headerRight:
-            HfZoneStyle(text: '{date}', sizePt: 9, colorRgb: _muted),
+        HfZone.headerRight: HfZoneStyle(
+          text: '{date}',
+          sizePt: 9,
+          colorRgb: _muted,
+        ),
         HfZone.footerLeft: HfZoneStyle(
           text: 'Internal use only',
           sizePt: 8,
@@ -101,7 +107,11 @@ const builtInHfTemplates = <HfTemplate>[
       },
       dateFormat: 'd MMMM yyyy',
       header: HfDecoration(ruleEnabled: true, ruleRgb: _navy, ruleWidthPt: 0.6),
-      footer: HfDecoration(ruleEnabled: true, ruleRgb: 0xB0B8C4, ruleWidthPt: 0.5),
+      footer: HfDecoration(
+        ruleEnabled: true,
+        ruleRgb: 0xB0B8C4,
+        ruleWidthPt: 0.5,
+      ),
     ),
   ),
   HfTemplate(
@@ -158,15 +168,31 @@ const builtInHfTemplates = <HfTemplate>[
     description: 'Serif running head with author, centered number.',
     spec: HeaderFooterSpec(
       zones: {
-        HfZone.headerLeft:
-            HfZoneStyle(text: '{title}', font: HfFont.times, sizePt: 10, colorRgb: _ink),
-        HfZone.headerRight:
-            HfZoneStyle(text: '{author}', font: HfFont.times, sizePt: 10, colorRgb: _ink),
-        HfZone.footerCenter:
-            HfZoneStyle(text: '{page}', font: HfFont.times, sizePt: 10, colorRgb: _ink),
+        HfZone.headerLeft: HfZoneStyle(
+          text: '{title}',
+          font: HfFont.times,
+          sizePt: 10,
+          colorRgb: _ink,
+        ),
+        HfZone.headerRight: HfZoneStyle(
+          text: '{author}',
+          font: HfFont.times,
+          sizePt: 10,
+          colorRgb: _ink,
+        ),
+        HfZone.footerCenter: HfZoneStyle(
+          text: '{page}',
+          font: HfFont.times,
+          sizePt: 10,
+          colorRgb: _ink,
+        ),
       },
       margins: HfMargins(top: 40, bottom: 40, left: 72, right: 72),
-      header: HfDecoration(ruleEnabled: true, ruleRgb: 0x444444, ruleWidthPt: 0.4),
+      header: HfDecoration(
+        ruleEnabled: true,
+        ruleRgb: 0x444444,
+        ruleWidthPt: 0.4,
+      ),
       skipFirstPage: true,
     ),
   ),
@@ -211,10 +237,16 @@ const builtInHfTemplates = <HfTemplate>[
           sizePt: 10,
           colorRgb: 0xD97706,
         ),
-        HfZone.footerLeft:
-            HfZoneStyle(text: '{file}', sizePt: 8, colorRgb: _muted),
-        HfZone.footerRight:
-            HfZoneStyle(text: '{page} / {pages}', sizePt: 8, colorRgb: _muted),
+        HfZone.footerLeft: HfZoneStyle(
+          text: '{file}',
+          sizePt: 8,
+          colorRgb: _muted,
+        ),
+        HfZone.footerRight: HfZoneStyle(
+          text: '{page} / {pages}',
+          sizePt: 8,
+          colorRgb: _muted,
+        ),
       },
       dateFormat: 'yyyy-MM-dd',
     ),
@@ -272,8 +304,11 @@ const builtInHfTemplates = <HfTemplate>[
           sizePt: 8,
           colorRgb: _muted,
         ),
-        HfZone.footerRight:
-            HfZoneStyle(text: '{page}', sizePt: 8, colorRgb: _ink),
+        HfZone.footerRight: HfZoneStyle(
+          text: '{page}',
+          sizePt: 8,
+          colorRgb: _ink,
+        ),
       },
       dateFormat: 'EEE, d MMM yyyy',
       timeFormat: 'h:mm a',

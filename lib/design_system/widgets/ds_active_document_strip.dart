@@ -21,10 +21,12 @@ class DsActiveDocumentStrip extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final border = isDark ? DsColors.borderDark : DsColors.borderLight;
-    final background =
-        isDark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight;
-    final secondary =
-        isDark ? DsColors.textSecondaryDark : DsColors.textSecondaryLight;
+    final background = isDark
+        ? DsColors.surfaceContainerDark
+        : DsColors.surfaceContainerLight;
+    final secondary = isDark
+        ? DsColors.textSecondaryDark
+        : DsColors.textSecondaryLight;
 
     final pagesLabel = pageCount == null
         ? null

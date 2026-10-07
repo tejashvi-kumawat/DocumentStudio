@@ -21,11 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Drag a rectangle on any page for a new link, or click an existing link
 /// (dashed) to change its target / rectangle or delete it.
 class ViewerAddLinkPanel extends ConsumerStatefulWidget {
-  const ViewerAddLinkPanel({
-    super.key,
-    required this.handoff,
-    this.pageCount,
-  });
+  const ViewerAddLinkPanel({super.key, required this.handoff, this.pageCount});
 
   final PdfViewerDocumentHandoff handoff;
   final int? pageCount;
@@ -264,15 +260,19 @@ class _ViewerAddLinkPanelState extends ConsumerState<ViewerAddLinkPanel> {
               editing
                   ? 'Editing link on page ${live.pageIndex1Based}'
                   : hasRect
-                      ? 'New link on page ${live.pageIndex1Based}'
-                      : 'No link selected',
+                  ? 'New link on page ${live.pageIndex1Based}'
+                  : 'No link selected',
               style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
             ),
           ),
           const SizedBox(height: DsSpacing.sm),
           SegmentedButton<bool>(
             segments: const [
-              ButtonSegment(value: false, label: Text('URL'), icon: Icon(Icons.public, size: 16)),
+              ButtonSegment(
+                value: false,
+                label: Text('URL'),
+                icon: Icon(Icons.public, size: 16),
+              ),
               ButtonSegment(
                 value: true,
                 label: Text('Page'),
@@ -294,14 +294,19 @@ class _ViewerAddLinkPanelState extends ConsumerState<ViewerAddLinkPanel> {
               isDense: true,
             ),
             style: const TextStyle(fontSize: 13),
-            keyboardType: _asPageJump ? TextInputType.number : TextInputType.url,
+            keyboardType: _asPageJump
+                ? TextInputType.number
+                : TextInputType.url,
             onSubmitted: (_) => unawaited(_apply()),
           ),
           const SizedBox(height: DsSpacing.xs),
           SwitchListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
-            title: const Text('Show link border', style: TextStyle(fontSize: 13)),
+            title: const Text(
+              'Show link border',
+              style: TextStyle(fontSize: 13),
+            ),
             value: _visibleBorder,
             onChanged: (v) => setState(() => _visibleBorder = v),
           ),

@@ -1,3 +1,5 @@
+import 'package:document_studio/features/office/office_route.dart';
+
 import 'dart:async';
 
 import 'package:document_studio/app/shell/window/ds_window.dart';
@@ -29,7 +31,16 @@ class DsShellDocumentTabBar extends StatefulWidget {
     this.menuContext,
     this.trailingFill,
     this.height = DsSpacing.titleBarHeight,
+    this.onNavigate,
+    this.pageLabel,
   });
+
+  /// Page tabs (Settings, Create PDF, new Home…) navigate with this; when
+  /// null they are not shown.
+  final ValueChanged<String>? onNavigate;
+
+  /// Label + icon for a page tab's location.
+  final ({String label, IconData icon}) Function(String location)? pageLabel;
 
   final DocumentTabsController controller;
 
@@ -145,7 +156,11 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
         Offset.zero & overlay.size,
       ),
       items: [
-        const PopupMenuItem(value: 'close', height: 36, child: Text('Close tab')),
+        const PopupMenuItem(
+          value: 'close',
+          height: 36,
+          child: Text('Close tab'),
+        ),
         PopupMenuItem(
           value: 'others',
           height: 36,
@@ -192,9 +207,7 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
           if (c.tabs.length == before) break;
         }
       case 'copy':
-        await Clipboard.setData(
-          ClipboardData(text: tab.session.sourcePath),
-        );
+        await Clipboard.setData(ClipboardData(text: tab.session.sourcePath));
     }
   }
 
@@ -210,7 +223,7 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
       label: tabs.isEmpty
           ? widget.startLabel
           : '${widget.startLabel} and open documents, '
-              '${tabs.length} document tabs',
+                '${tabs.length} document tabs',
       child: SizedBox(
         height: widget.height,
         child: LayoutBuilder(
@@ -219,16 +232,23 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
             final compact = maxW < 560;
             final startW = compact ? 40.0 : 118.0;
             final reserve = widget.trailingFill != null ? _minDragReserve : 0.0;
-            final listAvail = (maxW -
-                    startW -
-                    (widget.onOpenAnother != null ? _plusWidth : 0) -
-                    reserve -
-                    DsSpacing.sm)
-                .clamp(0.0, double.infinity);
+            final pages = widget.onNavigate == null
+                ? const <PageTab>[]
+                : controller.pageTabs;
+            final pageW = compact ? 44.0 : 150.0;
+            final listAvail =
+                (maxW -
+                        startW -
+                        pages.length * (pageW + 3) -
+                        (widget.onOpenAnother != null ? _plusWidth : 0) -
+                        reserve -
+                        DsSpacing.sm)
+                    .clamp(0.0, double.infinity);
             final minTab = compact ? 76.0 : 96.0;
             final n = tabs.length;
-            final tabW =
-                n == 0 ? 0.0 : (listAvail / n).clamp(minTab, _maxTabWidth);
+            final tabW = n == 0
+                ? 0.0
+                : (listAvail / n).clamp(minTab, _maxTabWidth);
             final listW = n == 0 ? 0.0 : (n * tabW).clamp(0.0, listAvail);
 
             return Row(
@@ -240,10 +260,49 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
                   iconOnly: compact,
                   width: startW,
                   height: tabHeight,
-                  selected: !widget.documentsVisible || !controller.hasTabs,
+                  selected:
+                      (!widget.documentsVisible || !controller.hasTabs) &&
+                      controller.activePageId == null,
                   pinned: true,
                   onActivate: widget.onActivateStart,
                 ),
+                for (final page in pages)
+                  Builder(
+                    builder: (context) {
+                      final meta =
+                          widget.pageLabel?.call(page.location) ??
+                          (label: page.location, icon: Icons.tab_rounded);
+                      return _DsTab(
+                        key: ValueKey('page_tab_${page.id}'),
+                        label: meta.label,
+                        icon: meta.icon,
+                        iconOnly: compact,
+                        width: pageW,
+                        height: tabHeight,
+                        animateIn: true,
+                        selected:
+                            !widget.documentsVisible &&
+                            controller.activePageId == page.id,
+                        onActivate: () {
+                          final loc = controller.activatePage(page.id);
+                          if (loc != null) widget.onNavigate!(loc);
+                        },
+                        onClose: () async {
+                          if (!await confirmCloseOfficePage(
+                            context,
+                            page.location,
+                          ))
+                            return;
+                          // Closing a tab in the background leaves the view as it is.
+                          final wasActive =
+                              !widget.documentsVisible &&
+                              controller.activePageId == page.id;
+                          final next = controller.closePage(page.id);
+                          if (wasActive) widget.onNavigate!(next);
+                        },
+                      );
+                    },
+                  ),
                 if (n > 0) ...[
                   const SizedBox(width: DsSpacing.xs),
                   AnimatedContainer(
@@ -272,7 +331,8 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
                       },
                       itemBuilder: (context, index) {
                         final tab = tabs[index];
-                        final selected = widget.documentsVisible &&
+                        final selected =
+                            widget.documentsVisible &&
                             !controller.isHomeActive &&
                             index == controller.activeIndex;
                         final item = _DsTab(
@@ -286,8 +346,9 @@ class _DsShellDocumentTabBarState extends State<DsShellDocumentTabBar> {
                           animateIn: !_initialIds.contains(tab.id),
                           onActivate: () => widget.onActivateDocument(index),
                           onClose: () {
-                            final i = widget.controller.tabs
-                                .indexWhere((t) => t.id == tab.id);
+                            final i = widget.controller.tabs.indexWhere(
+                              (t) => t.id == tab.id,
+                            );
                             if (i >= 0) unawaited(_closeTabAt(i));
                           },
                           onContextMenu: (pos) => _showTabMenu(index, pos),
@@ -401,11 +462,10 @@ class _DsTabState extends State<_DsTab> with SingleTickerProviderStateMixin {
     final bg = selected
         ? (isDark ? DsColors.surfaceContainerDark : DsColors.surfaceLight)
         : (_hovered
-            ? DsColors.textPrimary(brightness).withValues(alpha: 0.06)
-            : Colors.transparent);
-    final showClose = widget.onClose != null &&
-        (_hovered || selected) &&
-        widget.width >= 88;
+              ? DsColors.textPrimary(brightness).withValues(alpha: 0.06)
+              : Colors.transparent);
+    final showClose =
+        widget.onClose != null && (_hovered || selected) && widget.width >= 88;
     final curved = CurvedAnimation(
       parent: _presence,
       curve: DsMotion.switchCurve,
@@ -665,7 +725,7 @@ class _DsNewTabButtonState extends State<_DsNewTabButton> {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return Tooltip(
-      message: 'Open PDF in new tab',
+      message: 'New tab',
       waitDuration: const Duration(milliseconds: 500),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,

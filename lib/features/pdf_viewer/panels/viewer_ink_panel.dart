@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -17,7 +18,7 @@ import 'package:document_studio/infrastructure/pdf/pdf_overlay_ink_builder.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:pdfrx/pdfrx.dart';
+
 import 'dart:async';
 
 /// Compact live-page draw strip: pen, highlighter, shapes → burn on mouse-up.
@@ -75,12 +76,6 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
     super.dispose();
   }
 
-  void _flushInkNow() {
-    final live = _live;
-    if (live == null) return;
-    unawaited(_burnQueued(live));
-  }
-
   void _onLive() {
     final live = _live;
     if (live == null || !mounted) return;
@@ -132,10 +127,7 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
             PdfInkStroke(
               points: [
                 for (final o in c.pointsNorm)
-                  (
-                    o.dx * _pageWidthPt,
-                    (1 - o.dy) * _pageHeightPt,
-                  ),
+                  (o.dx * _pageWidthPt, (1 - o.dy) * _pageHeightPt),
               ],
               widthPt: c.strokeWidthPt,
               colorRgb: _rgb(c.color),
@@ -151,7 +143,9 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
           tempDir,
           'ink-${DateTime.now().microsecondsSinceEpoch}.pdf',
         );
-        await ref.read(pdfOverlayServiceProvider).applyInkStrokesOnPage(
+        await ref
+            .read(pdfOverlayServiceProvider)
+            .applyInkStrokesOnPage(
               input: working,
               outputPath: tempOut,
               pageIndex1Based: targetPage,
@@ -199,9 +193,8 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
       live.clearInk();
     } on DocumentStudioError catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.recoveryHint ?? e.message)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.recoveryHint ?? e.message)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
@@ -218,7 +211,9 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
     List<LiveDrawCommit> stamps,
     int page1Based,
   ) async {
-    await ref.read(pdfOverlayServiceProvider).applyStampLabelsOnPage(
+    await ref
+        .read(pdfOverlayServiceProvider)
+        .applyStampLabelsOnPage(
           input: input,
           outputPath: tempOut,
           pageIndex1Based: page1Based,
@@ -247,12 +242,16 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
 
   Future<void> _primePageSize({int? page1Based}) async {
     try {
-      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
+      final doc = await openPdfLazily(
+        widget.handoff.file.path,
+        password: widget.handoff.password,
+      );
       try {
-        final idx = ((page1Based ?? widget.handoff.currentPage1) - 1)
-            .clamp(0, doc.pages.length - 1);
-        final page =
-            await loadPageOnDemand(doc, idx + 1) ?? doc.pages.first;
+        final idx = ((page1Based ?? widget.handoff.currentPage1) - 1).clamp(
+          0,
+          doc.pages.length - 1,
+        );
+        final page = await loadPageOnDemand(doc, idx + 1) ?? doc.pages.first;
         if (!mounted) return;
         setState(() {
           _pageWidthPt = page.width;
@@ -323,7 +322,9 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
                       tool: LiveDrawTool.pen,
                       icon: Icons.edit_outlined,
                       label: 'Pen',
-                      shortcut: viewerToolShortcutTooltip(ViewerToolShortcutId.draw),
+                      shortcut: viewerToolShortcutTooltip(
+                        ViewerToolShortcutId.draw,
+                      ),
                     ),
                     _toolChip(
                       tool: LiveDrawTool.highlighter,
@@ -334,8 +335,9 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
                       tool: LiveDrawTool.line,
                       icon: Icons.show_chart,
                       label: 'Line',
-                      shortcut:
-                          viewerToolShortcutTooltip(ViewerToolShortcutId.line),
+                      shortcut: viewerToolShortcutTooltip(
+                        ViewerToolShortcutId.line,
+                      ),
                     ),
                     _toolChip(
                       tool: LiveDrawTool.arrow,
@@ -386,9 +388,16 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
                 Wrap(
                   spacing: 4,
                   children: [
-                    for (final label in const ['APPROVED', 'DRAFT', 'CONFIDENTIAL'])
+                    for (final label in const [
+                      'APPROVED',
+                      'DRAFT',
+                      'CONFIDENTIAL',
+                    ])
                       ActionChip(
-                        label: Text(label, style: const TextStyle(fontSize: 11)),
+                        label: Text(
+                          label,
+                          style: const TextStyle(fontSize: 11),
+                        ),
                         onPressed: () {
                           _stampCtrl.text = label;
                           live.setLabelText(label);
@@ -399,7 +408,10 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
                 ),
               ],
               const SizedBox(height: DsSpacing.sm),
-              Text('Color', style: theme.textTheme.labelLarge?.copyWith(fontSize: 13)),
+              Text(
+                'Color',
+                style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+              ),
               const SizedBox(height: DsSpacing.xs),
               Wrap(
                 spacing: 6,
@@ -450,27 +462,27 @@ class _ViewerInkPanelState extends ConsumerState<ViewerInkPanel> {
                         child: LinearProgressIndicator(minHeight: 2),
                       )
                     : live.unburnedDrawCommits.isNotEmpty
-                        ? Padding(
-                            key: const ValueKey('pending'),
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${live.unburnedDrawCommits.length} unsaved mark(s)',
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: _busy
-                                      ? null
-                                      : () => unawaited(_burnQueued(live)),
-                                  child: const Text('Save now'),
-                                ),
-                              ],
+                    ? Padding(
+                        key: const ValueKey('pending'),
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${live.unburnedDrawCommits.length} unsaved mark(s)',
+                                style: theme.textTheme.bodySmall,
+                              ),
                             ),
-                          )
-                        : const SizedBox.shrink(key: ValueKey('idle')),
+                            TextButton(
+                              onPressed: _busy
+                                  ? null
+                                  : () => unawaited(_burnQueued(live)),
+                              child: const Text('Save now'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('idle')),
               ),
             ],
           );

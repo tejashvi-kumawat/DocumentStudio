@@ -49,11 +49,7 @@ double homeToolsHubChildAspectRatio(double width) {
 }
 
 class HomeToolsHubGrid extends StatelessWidget {
-  const HomeToolsHubGrid({
-    super.key,
-    required this.tools,
-    required this.width,
-  });
+  const HomeToolsHubGrid({super.key, required this.tools, required this.width});
 
   final List<HomeTool> tools;
   final double width;

@@ -143,9 +143,7 @@ class _PdfPageScopeFieldState extends State<PdfPageScopeField> {
           Text(title, style: theme.textTheme.labelLarge),
           const SizedBox(height: DsSpacing.xs),
         ],
-        LayoutBuilder(
-          builder: (context, c) => _selector(context, c.maxWidth),
-        ),
+        LayoutBuilder(builder: (context, c) => _selector(context, c.maxWidth)),
         if (widget.kind == PdfPageScopeKind.selectedPages) ...[
           const SizedBox(height: DsSpacing.xs),
           Text(

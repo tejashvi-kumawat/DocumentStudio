@@ -135,8 +135,7 @@ class DsAppShell extends ConsumerWidget {
     );
 
     final hideDocumentTabs = dsHideDocumentTabStrip(context);
-    final documentOpen =
-        selected == 0 && tabs.hasTabs && !tabs.isHomeActive;
+    final documentOpen = selected == 0 && tabs.hasTabs && !tabs.isHomeActive;
 
     // Non-Android tablet/phone without a custom title bar: tabs at the top.
     // Android never shows the Home/document tab strip (full-screen viewer + back).
@@ -214,16 +213,14 @@ class DsAppShell extends ConsumerWidget {
             // consumes the bottom system inset — do not SafeArea bottom here.
             body: documentOpen
                 ? content
-                : SafeArea(
-                    bottom: false,
-                    child: content,
-                  ),
+                : SafeArea(bottom: false, child: content),
             bottomNavigationBar: documentOpen
                 ? null
                 : NavigationBar(
                     // Compact Acrobat-style phone chrome (40–48dp targets, 56dp bar).
                     height: DsSpacing.bottomNavHeight,
-                    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                    labelBehavior:
+                        NavigationDestinationLabelBehavior.alwaysShow,
                     selectedIndex: selected,
                     onDestinationSelected: goTo,
                     destinations: [

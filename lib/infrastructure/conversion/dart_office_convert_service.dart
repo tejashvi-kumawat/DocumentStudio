@@ -14,7 +14,7 @@ import 'package:path/path.dart' as p;
 /// Fidelity is plain text: layout, images, and charts are not preserved.
 class DartOfficeConvertService {
   DartOfficeConvertService({TextToPdfService? textToPdf})
-      : _textToPdf = textToPdf ?? TextToPdfService();
+    : _textToPdf = textToPdf ?? TextToPdfService();
 
   final TextToPdfService _textToPdf;
 

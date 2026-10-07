@@ -19,14 +19,14 @@ const _dateStampId = 'date_stamp';
 
 /// Stamp design for the Date stamp tool.
 StampDesign dateStampDesign(DateStampPrefs prefs, DateTime now) => StampDesign(
-      id: _dateStampId,
-      title: formatStampDate(now, prefs.format),
-      colorArgb: prefs.color,
-      category: StampCategory.date,
-      border: StampBorder.none,
-      shape: StampShape.rectangle,
-      filled: false,
-    );
+  id: _dateStampId,
+  title: formatStampDate(now, prefs.format),
+  colorArgb: prefs.color,
+  category: StampCategory.date,
+  border: StampBorder.none,
+  shape: StampShape.rectangle,
+  filled: false,
+);
 
 /// Built-in, dynamic, date, custom and image stamps; drag or click to place.
 class StampLibraryView extends StatefulWidget {
@@ -51,8 +51,9 @@ class StampLibraryView extends StatefulWidget {
 
 class _StampLibraryViewState extends State<StampLibraryView> {
   final _store = SavedStampStore();
-  late final TextEditingController _name =
-      TextEditingController(text: widget.userName);
+  late final TextEditingController _name = TextEditingController(
+    text: widget.userName,
+  );
   List<StampDesign> _custom = const [];
   List<SavedImageStamp> _images = const [];
   DateStampPrefs _datePrefs = DateStampPrefs(
@@ -66,8 +67,7 @@ class _StampLibraryViewState extends State<StampLibraryView> {
   DateTime _now = DateTime.now();
   int _renderGen = 0;
 
-  StampContext get _ctx =>
-      StampContext(userName: _name.text.trim(), now: _now);
+  StampContext get _ctx => StampContext(userName: _name.text.trim(), now: _now);
 
   @override
   void initState() {
@@ -118,17 +118,20 @@ class _StampLibraryViewState extends State<StampLibraryView> {
   Future<Size> _decodeSize(Uint8List bytes) async {
     if (bytes.length > 24 && bytes[0] == 0x89 && bytes[1] == 0x50) {
       int be(int o) =>
-          (bytes[o] << 24) | (bytes[o + 1] << 16) | (bytes[o + 2] << 8) | bytes[o + 3];
+          (bytes[o] << 24) |
+          (bytes[o + 1] << 16) |
+          (bytes[o + 2] << 8) |
+          bytes[o + 3];
       return Size(be(16).toDouble(), be(20).toDouble());
     }
     return const Size(300, 100);
   }
 
   List<StampDesign> get _allDesigns => [
-        ...kBuiltInStamps,
-        dateStampDesign(_datePrefs, _now),
-        ..._custom,
-      ];
+    ...kBuiltInStamps,
+    dateStampDesign(_datePrefs, _now),
+    ..._custom,
+  ];
 
   Future<void> _renderAll({bool onlyDynamic = false}) async {
     final gen = ++_renderGen;
@@ -161,7 +164,10 @@ class _StampLibraryViewState extends State<StampLibraryView> {
     final r = _rendered[d.id];
     if (r == null) return null;
     Future<SignPlaceable> refresh() async {
-      final ctx = StampContext(userName: _name.text.trim(), now: DateTime.now());
+      final ctx = StampContext(
+        userName: _name.text.trim(),
+        now: DateTime.now(),
+      );
       final design = d.category == StampCategory.date
           ? dateStampDesign(_datePrefs, ctx.now)
           : d;
@@ -261,7 +267,8 @@ class _StampLibraryViewState extends State<StampLibraryView> {
         _imageSizes[i.id] ??= await _decodeSize(i.bytes);
       }
       setState(() => _images = images);
-      if (images.isNotEmpty) widget.controller.arm(_placeableForImage(images.first));
+      if (images.isNotEmpty)
+        widget.controller.arm(_placeableForImage(images.first));
       widget.onMessage(
         prepared.hasOpaqueLightBackground
             ? 'Image stamp added (white background removed).'
@@ -308,7 +315,8 @@ class _StampLibraryViewState extends State<StampLibraryView> {
               labelText: 'Name on dynamic stamps',
               prefixIcon: const Icon(Icons.badge_outlined, size: 18),
               border: const OutlineInputBorder(),
-              helperText: 'Dynamic stamps add your name and the date / time '
+              helperText:
+                  'Dynamic stamps add your name and the date / time '
                   'when you place them.',
               helperMaxLines: 2,
               helperStyle: theme.textTheme.bodySmall?.copyWith(
@@ -354,7 +362,8 @@ class _StampLibraryViewState extends State<StampLibraryView> {
           if (_images.isEmpty)
             _EmptyHint(
               icon: Icons.image_outlined,
-              text: 'Use a company seal or logo. White backgrounds are '
+              text:
+                  'Use a company seal or logo. White backgrounds are '
                   'removed automatically.',
               action: 'Import image',
               onTap: _importImage,
@@ -611,11 +620,13 @@ class _StampCardState extends State<_StampCard> {
             color: armed
                 ? accent
                 : _hover
-                    ? accent.withValues(alpha: 0.45)
-                    : DsColors.border(theme.brightness),
+                ? accent.withValues(alpha: 0.45)
+                : DsColors.border(theme.brightness),
             width: armed ? 1.8 : 1,
           ),
-          boxShadow: DsSpacing.cardShadowLight(opacity: _hover || armed ? 0.10 : 0.03),
+          boxShadow: DsSpacing.cardShadowLight(
+            opacity: _hover || armed ? 0.10 : 0.03,
+          ),
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -626,7 +637,10 @@ class _StampCardState extends State<_StampCard> {
               children: [
                 Positioned.fill(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     child: Center(child: widget.preview),
                   ),
                 ),
@@ -650,9 +664,15 @@ class _StampCardState extends State<_StampCard> {
                             : widget.onDelete?.call(),
                         itemBuilder: (_) => [
                           if (widget.onEdit != null)
-                            const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Text('Edit'),
+                            ),
                           if (widget.onDelete != null)
-                            const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Text('Delete'),
+                            ),
                         ],
                       ),
                     ),
@@ -708,7 +728,13 @@ class _ColorRow extends StatelessWidget {
                     width: 2,
                   ),
                   boxShadow: c == value
-                      ? [BoxShadow(color: Color(c).withValues(alpha: 0.6), blurRadius: 0, spreadRadius: 2)]
+                      ? [
+                          BoxShadow(
+                            color: Color(c).withValues(alpha: 0.6),
+                            blurRadius: 0,
+                            spreadRadius: 2,
+                          ),
+                        ]
                       : null,
                 ),
               ),
@@ -728,7 +754,8 @@ Future<StampDesign?> showStampDesigner(
   return showSignSheet<StampDesign>(
     context,
     maxWidth: 560,
-    builder: (_) => _StampDesigner(initial: initial, stampContext: stampContext),
+    builder: (_) =>
+        _StampDesigner(initial: initial, stampContext: stampContext),
   );
 }
 
@@ -743,7 +770,8 @@ class _StampDesigner extends StatefulWidget {
 }
 
 class _StampDesignerState extends State<_StampDesigner> {
-  late StampDesign _d = widget.initial ??
+  late StampDesign _d =
+      widget.initial ??
       const StampDesign(
         id: '',
         title: 'APPROVED',
@@ -788,11 +816,21 @@ class _StampDesignerState extends State<_StampDesigner> {
               child: AnimatedSwitcher(
                 duration: DsMotion.hoverDuration,
                 child: StampPreview(
-                  key: ValueKey(Object.hash(
-                    _d.title, _d.subtitle, _d.colorArgb, _d.shape, _d.border,
-                    _d.filled, _d.icon, _d.includeDate, _d.includeTime,
-                    _d.includeUser, _d.dateFormat,
-                  )),
+                  key: ValueKey(
+                    Object.hash(
+                      _d.title,
+                      _d.subtitle,
+                      _d.colorArgb,
+                      _d.shape,
+                      _d.border,
+                      _d.filled,
+                      _d.icon,
+                      _d.includeDate,
+                      _d.includeTime,
+                      _d.includeUser,
+                      _d.dateFormat,
+                    ),
+                  ),
                   design: _d,
                   stampContext: ctx,
                 ),
@@ -823,9 +861,11 @@ class _StampDesignerState extends State<_StampDesigner> {
               border: OutlineInputBorder(),
               counterText: '',
             ),
-            onChanged: (v) => _set(v.trim().isEmpty
-                ? _d.copyWith(clearSubtitle: true)
-                : _d.copyWith(subtitle: v)),
+            onChanged: (v) => _set(
+              v.trim().isEmpty
+                  ? _d.copyWith(clearSubtitle: true)
+                  : _d.copyWith(subtitle: v),
+            ),
           ),
           const SignSectionLabel('Color'),
           _ColorRow(
@@ -921,11 +961,11 @@ class _StampDesignerState extends State<_StampDesigner> {
           onPressed: _d.title.trim().isEmpty
               ? null
               : () => Navigator.of(context).pop(
-                    _d.copyWith(
-                      title: _d.title.trim(),
-                      category: StampCategory.custom,
-                    ),
+                  _d.copyWith(
+                    title: _d.title.trim(),
+                    category: StampCategory.custom,
                   ),
+                ),
           icon: const Icon(Icons.check_rounded, size: 18),
           label: const Text('Save stamp'),
         ),

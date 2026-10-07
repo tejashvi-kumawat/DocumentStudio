@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:document_studio/infrastructure/pdf/edit/pdf_edit_document.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_objects.dart';

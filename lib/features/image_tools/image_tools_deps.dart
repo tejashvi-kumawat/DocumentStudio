@@ -6,8 +6,21 @@ import 'package:document_studio/infrastructure/image/image_processing_port.dart'
 
 /// Image types the converter can read.
 const kImageInputExtensions = [
-  'png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'tif', 'tiff', 'ico', 'tga',
-  'pnm', 'pgm', 'ppm', 'psd', 'exr',
+  'png',
+  'jpg',
+  'jpeg',
+  'webp',
+  'bmp',
+  'gif',
+  'tif',
+  'tiff',
+  'ico',
+  'tga',
+  'pnm',
+  'pgm',
+  'ppm',
+  'psd',
+  'exr',
 ];
 
 /// Injected dependencies for [ImageToolsScreen] so the feature avoids new Riverpod providers.
@@ -21,9 +34,7 @@ class ImageToolsDeps {
   final ImageProcessingPort imageProcessing;
 
   Future<LocalFileRef?> pickOpenImage() {
-    return fileStorage.pickOpenFile(
-      allowedExtensions: kImageInputExtensions,
-    );
+    return fileStorage.pickOpenFile(allowedExtensions: kImageInputExtensions);
   }
 
   Future<Uint8List> readBytes(LocalFileRef ref) {

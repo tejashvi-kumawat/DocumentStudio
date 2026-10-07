@@ -117,8 +117,8 @@ class DsWindowState {
 
 final dsWindowStateProvider =
     NotifierProvider<DsWindowStateNotifier, DsWindowState>(
-  DsWindowStateNotifier.new,
-);
+      DsWindowStateNotifier.new,
+    );
 
 class DsWindowStateNotifier extends Notifier<DsWindowState>
     with WindowListener {

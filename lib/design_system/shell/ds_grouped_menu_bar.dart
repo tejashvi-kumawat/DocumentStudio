@@ -82,8 +82,8 @@ class DsGroupedMenuButton extends StatelessWidget {
         final bg = open
             ? theme.colorScheme.primary.withValues(alpha: 0.14)
             : (emphasize
-                ? theme.colorScheme.primary.withValues(alpha: 0.10)
-                : null);
+                  ? theme.colorScheme.primary.withValues(alpha: 0.10)
+                  : null);
         final fg = emphasize || open
             ? theme.colorScheme.primary
             : theme.colorScheme.onSurface;
@@ -172,10 +172,7 @@ class DsGroupedMenuBar extends StatelessWidget {
     final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (leading != null) ...[
-          leading!,
-          const SizedBox(width: DsSpacing.xs),
-        ],
+        if (leading != null) ...[leading!, const SizedBox(width: DsSpacing.xs)],
         ...children,
         if (trailing != null) ...[
           const SizedBox(width: DsSpacing.xs),
@@ -185,9 +182,6 @@ class DsGroupedMenuBar extends StatelessWidget {
     );
 
     if (!scrollable) return row;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: row,
-    );
+    return SingleChildScrollView(scrollDirection: Axis.horizontal, child: row);
   }
 }

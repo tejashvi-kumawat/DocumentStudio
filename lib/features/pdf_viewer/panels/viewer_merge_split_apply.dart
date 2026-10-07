@@ -30,10 +30,9 @@ Future<void> applyMergeIntoOpenSession({
   if (session == null || !session.sameDocumentPath(handoff.file.path)) {
     throw StateError('No open document to merge into.');
   }
-  final bytes = await ref.read(pageOrganizeServiceProvider).mergeToBytes(
-        inputs: inputs,
-        passwordsByPath: passwordsByPath,
-      );
+  final bytes = await ref
+      .read(pageOrganizeServiceProvider)
+      .mergeToBytes(inputs: inputs, passwordsByPath: passwordsByPath);
   if (!context.mounted) return;
   final outcome = await session.commitBytes(Uint8List.fromList(bytes));
   if (outcome != DocumentSaveOutcome.savedInPlace) {
@@ -114,10 +113,9 @@ Future<LocalFileRef?> saveMergedPdfAsNewFile({
       handoffPath: handoff.file.path,
     ),
   );
-  final bytes = await ref.read(pageOrganizeServiceProvider).mergeToBytes(
-        inputs: inputs,
-        passwordsByPath: passwordsByPath,
-      );
+  final bytes = await ref
+      .read(pageOrganizeServiceProvider)
+      .mergeToBytes(inputs: inputs, passwordsByPath: passwordsByPath);
   if (!context.mounted) return null;
   await storage.writeAtomic(
     destinationPath: dest,
@@ -158,8 +156,7 @@ String mergeSaveAsDestination({
   if (_pathConflicts(dest, forbiddenPaths)) {
     throw const DocumentStudioError(
       code: DocumentStudioErrorCode.invalidFile,
-      message:
-          'That name is the open document. Save updates this copy. Ctrl+S writes the original file.',
+      message: 'That name is the open document. Save updates this copy. Ctrl+S writes the original file.',
     );
   }
   return dest;
@@ -191,10 +188,7 @@ String normalizeMergeSaveAsFileName(String raw) {
 }
 
 bool _pathConflicts(String dest, Set<String> forbiddenPaths) {
-  final candidates = <String>{
-    p.normalize(dest),
-    _canonicalPath(dest),
-  };
+  final candidates = <String>{p.normalize(dest), _canonicalPath(dest)};
   final forbidden = <String>{};
   for (final path in forbiddenPaths) {
     forbidden
@@ -267,10 +261,7 @@ class _MergeSaveAsNameDialogState extends State<_MergeSaveAsNameDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Save'),
-        ),
+        FilledButton(onPressed: _submit, child: const Text('Save')),
       ],
     );
   }
@@ -382,7 +373,9 @@ String allocateSplitOutputPath({
     if (!clashes) return dest;
     n++;
   }
-  throw StateError('Could not name a split file without replacing the original.');
+  throw StateError(
+    'Could not name a split file without replacing the original.',
+  );
 }
 
 String _canonicalPath(String path) {

@@ -1,3 +1,5 @@
+import 'package:document_studio/features/compose/compose_templates.dart';
+import 'package:document_studio/features/compose/template_gallery_screen.dart';
 import 'package:document_studio/features/compose/compose_screen.dart'
     show composeRoutePath;
 
@@ -13,7 +15,6 @@ import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/conversion/conversion_route.dart';
 import 'package:document_studio/features/document_lifecycle/document_save_result_actions.dart';
 import 'package:document_studio/infrastructure/conversion/blank_pdf_service.dart';
-import 'package:document_studio/infrastructure/conversion/document_compiler.dart';
 import 'package:document_studio/infrastructure/conversion/text_to_pdf_layout.dart';
 import 'package:document_studio/infrastructure/conversion/text_to_pdf_service.dart';
 import 'package:flutter/material.dart';
@@ -24,30 +25,14 @@ import 'package:path/path.dart' as p;
 enum _CreatePdfMode { text, markdown, html, latex, blank }
 
 extension on _CreatePdfMode {
-  DocumentSourceKind? get source => switch (this) {
-    _CreatePdfMode.markdown => DocumentSourceKind.markdown,
-    _CreatePdfMode.html => DocumentSourceKind.html,
-    _CreatePdfMode.latex => DocumentSourceKind.latex,
+  /// Source languages open the side-by-side writer.
+  String? get composeExt => switch (this) {
+    _CreatePdfMode.markdown => 'md',
+    _CreatePdfMode.html => 'html',
+    _CreatePdfMode.latex => 'tex',
     _ => null,
   };
 }
-
-const _starters = {
-  DocumentSourceKind.markdown: '# Title\n\nWrite **Markdown** here — headings, lists, tables, code.\n\n| Item | Qty |\n|------|-----|\n| Pens | 3   |\n\n```\ncode block\n```\n',
-  DocumentSourceKind.html: '<!doctype html>\n<html><head><meta charset="utf-8">\n<style>\n  @page { size: A4; margin: 20mm; }\n  body { font-family: Arial, sans-serif; }\n</style></head>\n<body>\n  <h1>Title</h1>\n  <p>Any HTML and CSS prints exactly as in the browser.</p>\n</body></html>\n',
-  DocumentSourceKind.latex: r'''\documentclass[11pt]{article}
-\usepackage[margin=2cm]{geometry}
-\usepackage{amsmath}
-\title{Title}
-\author{}
-\begin{document}
-\maketitle
-\section{Introduction}
-Inline math $e^{i\pi}+1=0$ and display math:
-\[ \int_0^1 x^2\,dx = \tfrac13 \]
-\end{document}
-''',
-};
 
 /// Dependencies for [CreatePdfScreen] (injected from route / tests).
 class CreatePdfDeps {
@@ -83,9 +68,6 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
   double _marginPt = 72;
 
   bool _busy = false;
-  final _sourceController = TextEditingController();
-  String? _sourceDir;
-  Map<DocumentSourceKind, String?>? _engines;
   LocalFileRef? _saved;
   String? _error;
 
@@ -100,52 +82,15 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
   }
 
   void _setMode(_CreatePdfMode m) {
-    // Markdown / HTML / LaTeX open the side-by-side writer.
-    if (m.source case final kind?) {
-      final ext = switch (kind) {
-        DocumentSourceKind.markdown => 'md',
-        DocumentSourceKind.html => 'html',
-        DocumentSourceKind.latex => 'tex',
-      };
+    if (m.composeExt case final ext?) {
       context.push('$composeRoutePath?lang=$ext');
       return;
     }
     setState(() => _mode = m);
-    final kind = m.source;
-    if (kind != null && _sourceController.text.trim().isEmpty) {
-      _sourceController.text = _starters[kind]!;
-    }
-    if (kind != null && _engines == null) {
-      const DocumentCompiler().availableEngines().then((e) {
-        if (mounted) setState(() => _engines = e);
-      });
-    }
-  }
-
-  Future<void> _openSource() async {
-    final kind = _mode.source;
-    if (kind == null) return;
-    final picked = await widget.deps.fileStorage.pickOpenFile(
-      allowedExtensions: switch (kind) {
-        DocumentSourceKind.markdown => const ['md', 'markdown', 'txt'],
-        DocumentSourceKind.html => const ['html', 'htm'],
-        DocumentSourceKind.latex => const ['tex'],
-      },
-    );
-    if (picked == null) return;
-    final text = await File(picked.path).readAsString();
-    setState(() {
-      _sourceController.text = text;
-      _sourceDir = p.dirname(picked.path);
-      if (_titleController.text.trim().isEmpty) {
-        _titleController.text = p.basenameWithoutExtension(picked.path);
-      }
-    });
   }
 
   @override
   void dispose() {
-    _sourceController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
     _pagesController.dispose();
@@ -169,7 +114,7 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
     _CreatePdfMode.text => _bodyController.text.trim().isNotEmpty,
     _CreatePdfMode.markdown ||
     _CreatePdfMode.html ||
-    _CreatePdfMode.latex => _sourceController.text.trim().isNotEmpty,
+    _CreatePdfMode.latex => false,
     _CreatePdfMode.blank =>
       _blankPages >= 1 && _blankPages <= BlankPdfService.maxPages,
   };
@@ -186,18 +131,7 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
     try {
       temp = await storage.createTempFile(prefix: 'create-pdf', suffix: '.pdf');
       final LocalFileRef created;
-      if (_mode.source case final kind?) {
-        final r = await const DocumentCompiler().compile(
-          kind: kind,
-          source: _sourceController.text,
-          outputPath: temp,
-          title: _title,
-          pageSize: _textPreset == TextToPdfPagePreset.letter ? 'Letter' : 'A4',
-          baseDir: _sourceDir,
-        );
-        if (!r.ok) throw r.error ?? 'Compile failed';
-        created = LocalFileRef(path: temp, displayName: _suggestedFileName);
-      } else if (_mode == _CreatePdfMode.text) {
+      if (_mode == _CreatePdfMode.text) {
         final base = _textPreset.layout;
         created = await widget.deps.textToPdf.fromPlainText(
           text: _bodyController.text,
@@ -246,6 +180,91 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
     }
   }
 
+  /// Right-hand pane: the writing surface for Text, a page mock-up otherwise.
+  Widget _preview(ThemeData theme, Brightness b, bool isText) {
+    if (isText) {
+      return Padding(
+        padding: const EdgeInsets.all(DsSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _bodyController,
+                enabled: !_busy,
+                onChanged: (_) => setState(() {}),
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                style: const TextStyle(
+                  fontFamily: 'DS Sans',
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Type or paste your text here…',
+                  filled: true,
+                  fillColor: theme.colorScheme.surface,
+                  contentPadding: const EdgeInsets.all(DsSpacing.xl),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: DsSpacing.sm),
+              child: Text(
+                _textStats(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: DsColors.textSecondary(b),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    final pages = _blankPages.clamp(1, BlankPdfService.maxPages);
+    final shown = pages.clamp(1, 3);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(DsSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 300,
+              width: 260,
+              child: Stack(
+                children: [
+                  for (var i = shown - 1; i >= 0; i--)
+                    Positioned(
+                      left: i * 14.0,
+                      top: i * 10.0,
+                      child: Container(
+                        width: 212,
+                        height: 280,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: DsColors.border(b)),
+                          boxShadow: DsSpacing.cardShadowLight(opacity: 0.12),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DsSpacing.lg),
+            Text(
+              '$pages ${pages == 1 ? 'blank page' : 'blank pages'} · ${_blankPreset.label}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: DsColors.textSecondary(b),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -257,7 +276,7 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
       subtitle:
           'Start a new PDF from text, Markdown, HTML, LaTeX or blank pages.',
       icon: Icons.note_add_outlined,
-      iconColor: const Color(0xFF10B981),
+      preview: _preview(theme, b, isText),
       primaryLabel: 'Create & save as…',
       primaryIcon: Icons.save_alt_rounded,
       primaryEnabled: _canCreate,
@@ -289,6 +308,34 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
         children: [
           DsToolSection(
             topPadding: false,
+            title: 'Start from a template',
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final c in TemplateCategory.values)
+                  ActionChip(
+                    avatar: Icon(c.icon, size: 18),
+                    label: Text(c.label),
+                    onPressed: _busy
+                        ? null
+                        : () => context.push(
+                            '$templateGalleryRoutePath?category=${c.name}',
+                          ),
+                  ),
+                FilledButton.tonalIcon(
+                  onPressed: _busy
+                      ? null
+                      : () => context.push(templateGalleryRoutePath),
+                  icon: const Icon(Icons.grid_view_rounded, size: 18),
+                  label: Text(
+                    'Browse all ${kComposeTemplates.length} templates',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          DsToolSection(
             title: 'Start from',
             child: DsToolChoiceGroup<_CreatePdfMode>(
               selected: _mode,
@@ -343,247 +390,139 @@ class _CreatePdfScreenState extends State<CreatePdfScreen> {
               ),
             ),
           ),
-          if (_mode.source != null)
-            DsToolSection(
-              title: switch (_mode) {
-                _CreatePdfMode.markdown => 'Markdown source',
-                _CreatePdfMode.html => 'HTML source',
-                _ => 'LaTeX source',
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: isText
+                ? Column(
+                    key: const ValueKey('text'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: Text(
-                          switch (_engines?[_mode.source]) {
-                            null when _engines == null => 'Checking compilers…',
-                            null =>
-                              _mode == _CreatePdfMode.latex
-                                  ? 'No TeX engine found — install Tectonic, TeX Live or MiKTeX.'
-                                  : 'No browser or LibreOffice found for HTML.',
-                            final e => 'Compiles with $e',
-                          },
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: DsColors.textSecondary(b),
-                          ),
+                      DsToolSection(
+                        title: 'Layout',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            DsToolChoiceGroup<TextToPdfPagePreset>(
+                              selected: _textPreset,
+                              minCardWidth: 160,
+                              onChanged: _busy
+                                  ? null
+                                  : (v) => setState(() => _textPreset = v),
+                              choices: const [
+                                DsToolChoice(
+                                  value: TextToPdfPagePreset.a4,
+                                  title: 'A4',
+                                  subtitle: '210 × 297 mm',
+                                  icon: Icons.crop_portrait_rounded,
+                                ),
+                                DsToolChoice(
+                                  value: TextToPdfPagePreset.letter,
+                                  title: 'US Letter',
+                                  subtitle: '8.5 × 11 in',
+                                  icon: Icons.crop_portrait_rounded,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: DsSpacing.md),
+                            _sliderRow(
+                              label: 'Font size',
+                              value: _fontSizePt,
+                              min: 9,
+                              max: 18,
+                              divisions: 9,
+                              unit: 'pt',
+                              onChanged: (v) => setState(() => _fontSizePt = v),
+                            ),
+                            _sliderRow(
+                              label: 'Margins',
+                              value: _marginPt,
+                              min: 36,
+                              max: 108,
+                              divisions: 6,
+                              unit: 'pt',
+                              onChanged: (v) => setState(() => _marginPt = v),
+                            ),
+                          ],
                         ),
                       ),
-                      TextButton.icon(
-                        onPressed: _busy ? null : _openSource,
-                        icon: const Icon(Icons.folder_open_outlined, size: 18),
-                        label: const Text('Open file…'),
+                    ],
+                  )
+                : Column(
+                    key: const ValueKey('blank'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      DsToolSection(
+                        title: 'Pages',
+                        child: Row(
+                          children: [
+                            IconButton.outlined(
+                              tooltip: 'Fewer pages',
+                              onPressed: _busy || _blankPages <= 1
+                                  ? null
+                                  : () => setState(
+                                      () => _pagesController.text =
+                                          '${_blankPages - 1}',
+                                    ),
+                              icon: const Icon(Icons.remove_rounded),
+                            ),
+                            const SizedBox(width: DsSpacing.sm),
+                            SizedBox(
+                              width: 88,
+                              child: TextField(
+                                controller: _pagesController,
+                                enabled: !_busy,
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                onChanged: (_) => setState(() {}),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  border: const OutlineInputBorder(),
+                                  errorText: _canCreate
+                                      ? null
+                                      : '1–${BlankPdfService.maxPages}',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: DsSpacing.sm),
+                            IconButton.outlined(
+                              tooltip: 'More pages',
+                              onPressed:
+                                  _busy ||
+                                      _blankPages >= BlankPdfService.maxPages
+                                  ? null
+                                  : () => setState(
+                                      () => _pagesController.text =
+                                          '${_blankPages + 1}',
+                                    ),
+                              icon: const Icon(Icons.add_rounded),
+                            ),
+                          ],
+                        ),
+                      ),
+                      DsToolSection(
+                        title: 'Page size',
+                        child: DsToolChoiceGroup<BlankPdfPagePreset>(
+                          selected: _blankPreset,
+                          minCardWidth: 140,
+                          onChanged: _busy
+                              ? null
+                              : (v) => setState(() => _blankPreset = v),
+                          choices: [
+                            for (final preset in BlankPdfPagePreset.values)
+                              DsToolChoice(
+                                value: preset,
+                                title: preset.label,
+                                icon: Icons.crop_portrait_rounded,
+                              ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: DsSpacing.xs),
-                  SizedBox(
-                    height: 380,
-                    child: TextField(
-                      controller: _sourceController,
-                      enabled: !_busy,
-                      onChanged: (_) => setState(() {}),
-                      maxLines: null,
-                      expands: true,
-                      textAlignVertical: TextAlignVertical.top,
-                      style: const TextStyle(
-                        fontFamily: 'DS Mono',
-                        fontSize: 13,
-                      ),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  if (_mode != _CreatePdfMode.html) ...[
-                    const SizedBox(height: DsSpacing.sm),
-                    DsToolChoiceGroup<TextToPdfPagePreset>(
-                      selected: _textPreset,
-                      minCardWidth: 160,
-                      onChanged: _busy
-                          ? null
-                          : (v) => setState(() => _textPreset = v),
-                      choices: const [
-                        DsToolChoice(
-                          value: TextToPdfPagePreset.a4,
-                          title: 'A4',
-                          icon: Icons.crop_portrait_rounded,
-                        ),
-                        DsToolChoice(
-                          value: TextToPdfPagePreset.letter,
-                          title: 'US Letter',
-                          icon: Icons.crop_portrait_rounded,
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            )
-          else
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: isText
-                  ? Column(
-                      key: const ValueKey('text'),
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        DsToolSection(
-                          title: 'Text',
-                          child: SizedBox(
-                            height: 300,
-                            child: TextField(
-                              controller: _bodyController,
-                              enabled: !_busy,
-                              onChanged: (_) => setState(() {}),
-                              maxLines: null,
-                              expands: true,
-                              textAlignVertical: TextAlignVertical.top,
-                              style: const TextStyle(fontFamily: 'DS Sans'),
-                              decoration: const InputDecoration(
-                                hintText: 'Type or paste your text here…',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: DsSpacing.xs),
-                          child: Text(
-                            _textStats(),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: DsColors.textSecondary(b),
-                            ),
-                          ),
-                        ),
-                        DsToolSection(
-                          title: 'Layout',
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              DsToolChoiceGroup<TextToPdfPagePreset>(
-                                selected: _textPreset,
-                                minCardWidth: 160,
-                                onChanged: _busy
-                                    ? null
-                                    : (v) => setState(() => _textPreset = v),
-                                choices: const [
-                                  DsToolChoice(
-                                    value: TextToPdfPagePreset.a4,
-                                    title: 'A4',
-                                    subtitle: '210 × 297 mm',
-                                    icon: Icons.crop_portrait_rounded,
-                                  ),
-                                  DsToolChoice(
-                                    value: TextToPdfPagePreset.letter,
-                                    title: 'US Letter',
-                                    subtitle: '8.5 × 11 in',
-                                    icon: Icons.crop_portrait_rounded,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: DsSpacing.md),
-                              _sliderRow(
-                                label: 'Font size',
-                                value: _fontSizePt,
-                                min: 9,
-                                max: 18,
-                                divisions: 9,
-                                unit: 'pt',
-                                onChanged: (v) =>
-                                    setState(() => _fontSizePt = v),
-                              ),
-                              _sliderRow(
-                                label: 'Margins',
-                                value: _marginPt,
-                                min: 36,
-                                max: 108,
-                                divisions: 6,
-                                unit: 'pt',
-                                onChanged: (v) => setState(() => _marginPt = v),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      key: const ValueKey('blank'),
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        DsToolSection(
-                          title: 'Pages',
-                          child: Row(
-                            children: [
-                              IconButton.outlined(
-                                tooltip: 'Fewer pages',
-                                onPressed: _busy || _blankPages <= 1
-                                    ? null
-                                    : () => setState(
-                                        () => _pagesController.text =
-                                            '${_blankPages - 1}',
-                                      ),
-                                icon: const Icon(Icons.remove_rounded),
-                              ),
-                              const SizedBox(width: DsSpacing.sm),
-                              SizedBox(
-                                width: 88,
-                                child: TextField(
-                                  controller: _pagesController,
-                                  enabled: !_busy,
-                                  textAlign: TextAlign.center,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
-                                  onChanged: (_) => setState(() {}),
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    border: const OutlineInputBorder(),
-                                    errorText: _canCreate
-                                        ? null
-                                        : '1–${BlankPdfService.maxPages}',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: DsSpacing.sm),
-                              IconButton.outlined(
-                                tooltip: 'More pages',
-                                onPressed:
-                                    _busy ||
-                                        _blankPages >= BlankPdfService.maxPages
-                                    ? null
-                                    : () => setState(
-                                        () => _pagesController.text =
-                                            '${_blankPages + 1}',
-                                      ),
-                                icon: const Icon(Icons.add_rounded),
-                              ),
-                            ],
-                          ),
-                        ),
-                        DsToolSection(
-                          title: 'Page size',
-                          child: DsToolChoiceGroup<BlankPdfPagePreset>(
-                            selected: _blankPreset,
-                            minCardWidth: 140,
-                            onChanged: _busy
-                                ? null
-                                : (v) => setState(() => _blankPreset = v),
-                            choices: [
-                              for (final preset in BlankPdfPagePreset.values)
-                                DsToolChoice(
-                                  value: preset,
-                                  title: preset.label,
-                                  icon: Icons.crop_portrait_rounded,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+          ),
           if (_busy)
             const Padding(
               padding: EdgeInsets.only(top: DsSpacing.lg),

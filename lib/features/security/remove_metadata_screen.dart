@@ -6,6 +6,7 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/shell/ds_tool_route_actions.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_save_result_actions.dart';
@@ -152,7 +153,7 @@ class _RemoveMetadataScreenState extends ConsumerState<RemoveMetadataScreen> {
     }
   }
 
-  Widget _body({required bool lockFile}) {
+  Widget _body({required bool lockFile, bool split = false}) {
     final theme = Theme.of(context);
     final qpdf = _qpdfAvailable;
     final secondary = DsColors.textSecondary(theme.brightness);
@@ -166,24 +167,26 @@ class _RemoveMetadataScreenState extends ConsumerState<RemoveMetadataScreen> {
           ),
           const SizedBox(height: DsSpacing.lg),
         ],
-        DsToolSection(
-          topPadding: false,
-          title: 'Source PDF',
-          child: lockFile
-              ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
-              : DsToolFileSource(
-                  files: [?_file],
-                  enabled: !_busy,
-                  onPick: _pick,
-                  onFilesDropped: (files) => _setFile(files.first),
-                  onRemove: (_) => _setFile(null),
-                  metaFor: (f) =>
-                      f.sizeBytes == null ? null : dsFormatBytes(f.sizeBytes!),
-                  emptyTitle: 'Drop a PDF to clean',
-                  emptySubtitle: 'Produces a copy without hidden metadata',
-                  icon: Icons.cleaning_services_outlined,
-                ),
-        ),
+        if (!split || _file != null)
+          DsToolSection(
+            topPadding: false,
+            title: 'Source PDF',
+            child: lockFile
+                ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
+                : DsToolFileSource(
+                    files: [?_file],
+                    enabled: !_busy,
+                    onPick: _pick,
+                    onFilesDropped: (files) => _setFile(files.first),
+                    onRemove: (_) => _setFile(null),
+                    metaFor: (f) => f.sizeBytes == null
+                        ? null
+                        : dsFormatBytes(f.sizeBytes!),
+                    emptyTitle: 'Drop a PDF to clean',
+                    emptySubtitle: 'Produces a copy without hidden metadata',
+                    icon: Icons.cleaning_services_outlined,
+                  ),
+          ),
         DsToolSection(
           title: 'What gets removed',
           child: Wrap(
@@ -306,7 +309,6 @@ class _RemoveMetadataScreenState extends ConsumerState<RemoveMetadataScreen> {
       title: 'Remove metadata',
       subtitle: 'Strip hidden document info before you share a PDF.',
       icon: Icons.cleaning_services_outlined,
-      iconColor: const Color(0xFF7C3AED),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => handleDsToolFormCancel(context, ref),
@@ -324,7 +326,16 @@ class _RemoveMetadataScreenState extends ConsumerState<RemoveMetadataScreen> {
         sourceFile: _file,
         sourcePassword: _inputPassword,
       ),
-      child: _body(lockFile: false),
+      preview: DsPdfPreviewPane(
+        file: _file,
+        enabled: !_busy,
+        onPick: _pick,
+        onFilesDropped: (files) => _setFile(files.first),
+        emptyTitle: 'Drop a PDF to clean',
+        emptySubtitle: 'Produces a copy without hidden metadata',
+        icon: Icons.cleaning_services_outlined,
+      ),
+      child: _body(lockFile: false, split: true),
     );
   }
 }

@@ -46,7 +46,12 @@ class PdfViewerBottomBar extends StatelessWidget {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
     final c = controller;
-    Widget icon(IconData i, String tip, VoidCallback? onTap, {bool on = false}) {
+    Widget icon(
+      IconData i,
+      String tip,
+      VoidCallback? onTap, {
+      bool on = false,
+    }) {
       return IconButton(
         tooltip: tip,
         onPressed: onTap,
@@ -63,10 +68,14 @@ class PdfViewerBottomBar extends StatelessWidget {
 
     if (vertical) return _rail(context, icon);
     return Material(
-      color: dark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight,
+      color: dark
+          ? DsColors.surfaceContainerDark
+          : DsColors.surfaceContainerLight,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: DsColors.border(theme.brightness))),
+          border: Border(
+            top: BorderSide(color: DsColors.border(theme.brightness)),
+          ),
         ),
         child: SizedBox(
           height: height,
@@ -121,10 +130,10 @@ class PdfViewerBottomBar extends StatelessWidget {
                           MenuItemButton(
                             onPressed: ready
                                 ? () => c.setZoom(
-                                      c.centerPosition,
-                                      z / 100,
-                                      duration: Duration.zero,
-                                    )
+                                    c.centerPosition,
+                                    z / 100,
+                                    duration: Duration.zero,
+                                  )
                                 : null,
                             child: Text('$z%'),
                           ),
@@ -181,15 +190,27 @@ class PdfViewerBottomBar extends StatelessWidget {
                   Center(
                     child: MenuAnchor(
                       menuChildren: [
-                        _view(PdfViewerScrollLayoutMode.continuous,
-                            'Continuous scrolling', Icons.view_day_outlined),
-                        _view(PdfViewerScrollLayoutMode.singlePage,
-                            'Single page view', Icons.crop_portrait),
-                        _view(PdfViewerScrollLayoutMode.twoPage,
-                            'Two-page view', Icons.menu_book_outlined),
+                        _view(
+                          PdfViewerScrollLayoutMode.continuous,
+                          'Continuous scrolling',
+                          Icons.view_day_outlined,
+                        ),
+                        _view(
+                          PdfViewerScrollLayoutMode.singlePage,
+                          'Single page view',
+                          Icons.crop_portrait,
+                        ),
+                        _view(
+                          PdfViewerScrollLayoutMode.twoPage,
+                          'Two-page view',
+                          Icons.menu_book_outlined,
+                        ),
                         const Divider(height: 8),
                         MenuItemButton(
-                          leadingIcon: const Icon(Icons.chrome_reader_mode_outlined, size: 18),
+                          leadingIcon: const Icon(
+                            Icons.chrome_reader_mode_outlined,
+                            size: 18,
+                          ),
                           onPressed: onReadMode,
                           child: const Text('Reading mode'),
                         ),
@@ -202,12 +223,16 @@ class PdfViewerBottomBar extends StatelessWidget {
                       builder: (context, menu, _) => Tooltip(
                         message: 'Page display / reading view',
                         child: TextButton.icon(
-                          onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+                          onPressed: () =>
+                              menu.isOpen ? menu.close() : menu.open(),
                           style: TextButton.styleFrom(
                             minimumSize: const Size(40, 28),
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
-                          icon: const Icon(Icons.auto_stories_outlined, size: 18),
+                          icon: const Icon(
+                            Icons.auto_stories_outlined,
+                            size: 18,
+                          ),
                           label: Text(
                             scrollMode.statusLabel,
                             style: const TextStyle(fontSize: 12),
@@ -258,13 +283,19 @@ class PdfViewerBottomBar extends StatelessWidget {
                 onTap: ready ? onGoToPage : null,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 2),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 3,
+                    horizontal: 2,
+                  ),
                   child: Column(
                     children: [
                       Text('$page', style: small?.copyWith(fontSize: 12)),
-                      Text('/ $total', style: small?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      )),
+                      Text(
+                        '/ $total',
+                        style: small?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -285,10 +316,10 @@ class PdfViewerBottomBar extends StatelessWidget {
                   MenuItemButton(
                     onPressed: ready
                         ? () => c.setZoom(
-                              c.centerPosition,
-                              z / 100,
-                              duration: Duration.zero,
-                            )
+                            c.centerPosition,
+                            z / 100,
+                            duration: Duration.zero,
+                          )
                         : null,
                     child: Text('$z%'),
                   ),
@@ -319,22 +350,45 @@ class PdfViewerBottomBar extends StatelessWidget {
                 ),
               ),
             ),
-            icon(Icons.remove, 'Zoom out', ready ? () => pdfViewerZoomOut(c) : null),
-            icon(Icons.fit_screen_outlined, 'Fit page', ready ? onFitPage : null),
-            icon(Icons.width_normal_outlined, 'Fit width', ready ? onFitWidth : null),
+            icon(
+              Icons.remove,
+              'Zoom out',
+              ready ? () => pdfViewerZoomOut(c) : null,
+            ),
+            icon(
+              Icons.fit_screen_outlined,
+              'Fit page',
+              ready ? onFitPage : null,
+            ),
+            icon(
+              Icons.width_normal_outlined,
+              'Fit width',
+              ready ? onFitWidth : null,
+            ),
             const Divider(height: 10, indent: 8, endIndent: 8),
             MenuAnchor(
               menuChildren: [
-                _view(PdfViewerScrollLayoutMode.continuous,
-                    'Continuous scrolling', Icons.view_day_outlined),
-                _view(PdfViewerScrollLayoutMode.singlePage,
-                    'Single page view', Icons.crop_portrait),
-                _view(PdfViewerScrollLayoutMode.twoPage,
-                    'Two-page view', Icons.menu_book_outlined),
+                _view(
+                  PdfViewerScrollLayoutMode.continuous,
+                  'Continuous scrolling',
+                  Icons.view_day_outlined,
+                ),
+                _view(
+                  PdfViewerScrollLayoutMode.singlePage,
+                  'Single page view',
+                  Icons.crop_portrait,
+                ),
+                _view(
+                  PdfViewerScrollLayoutMode.twoPage,
+                  'Two-page view',
+                  Icons.menu_book_outlined,
+                ),
                 const Divider(height: 8),
                 MenuItemButton(
-                  leadingIcon:
-                      const Icon(Icons.chrome_reader_mode_outlined, size: 18),
+                  leadingIcon: const Icon(
+                    Icons.chrome_reader_mode_outlined,
+                    size: 18,
+                  ),
                   onPressed: onReadMode,
                   child: const Text('Reading mode'),
                 ),
@@ -360,7 +414,9 @@ class PdfViewerBottomBar extends StatelessWidget {
   Widget _view(PdfViewerScrollLayoutMode m, String label, IconData i) =>
       MenuItemButton(
         leadingIcon: Icon(i, size: 18),
-        trailingIcon: scrollMode == m ? const Icon(Icons.check, size: 16) : null,
+        trailingIcon: scrollMode == m
+            ? const Icon(Icons.check, size: 16)
+            : null,
         onPressed: () => onScrollModeChanged(m),
         child: Text(label),
       );

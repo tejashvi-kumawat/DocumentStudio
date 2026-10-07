@@ -50,19 +50,18 @@ Future<LocalFileRef?> commitBytesToSession({
         String? suggestedName,
         bool quiet = true,
         bool silent = false,
-      }) =>
-          commitBytesToSession(
-            context: context,
-            storage: storage,
-            tabs: tabs,
-            session: session,
-            bytes: bytes,
-            successMessage: successMessage,
-            saveAsReason: saveAsReason,
-            suggestedName: suggestedName,
-            quiet: quiet,
-            silent: silent,
-          ),
+      }) => commitBytesToSession(
+        context: context,
+        storage: storage,
+        tabs: tabs,
+        session: session,
+        bytes: bytes,
+        successMessage: successMessage,
+        saveAsReason: saveAsReason,
+        suggestedName: suggestedName,
+        quiet: quiet,
+        silent: silent,
+      ),
     );
     final completer = _DebounceCompleter();
     documentSessionAutosave.schedule(
@@ -84,7 +83,8 @@ Future<LocalFileRef?> commitBytesToSession({
     // Working copy could not be written (extreme temp failure). Offer Save As
     // as a last resort so the edit is not lost — still not an Apply→disk path.
     if (!context.mounted) return null;
-    final reason = saveAsReason ??
+    final reason =
+        saveAsReason ??
         'Could not update the working copy. Choose a location to keep your changes.';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(reason)));
     final saved = await session.saveAs(
@@ -215,11 +215,7 @@ Future<LocalFileRef?> commitOrganizeExport({
   );
   final out = LocalFileRef(path: path, displayName: p.basename(path));
   if (context.mounted) {
-    showDocumentSaveResultActions(
-      context,
-      file: out,
-      message: successMessage,
-    );
+    showDocumentSaveResultActions(context, file: out, message: successMessage);
   }
   return out;
 }

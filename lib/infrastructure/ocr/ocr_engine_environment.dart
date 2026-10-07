@@ -77,8 +77,10 @@ class OcrEngineEnvironment {
     return codes;
   }
 
-  List<String> missingLanguages(List<String> codes) =>
-      [for (final c in codes) if (!languageDirs.containsKey(c)) c];
+  List<String> missingLanguages(List<String> codes) => [
+    for (final c in codes)
+      if (!languageDirs.containsKey(c)) c,
+  ];
 
   /// Orientation & script detection data (`osd.traineddata`) is installed.
   bool get hasOsd => languageDirs.containsKey('osd');
@@ -100,7 +102,9 @@ class OcrEngineEnvironment {
     final dirs = <String>{for (final c in needed) languageDirs[c]!};
     if (dirs.length == 1) return dirs.first;
     for (final dir in dirs) {
-      if (needed.every((c) => File(p.join(dir, '$c.traineddata')).existsSync())) {
+      if (needed.every(
+        (c) => File(p.join(dir, '$c.traineddata')).existsSync(),
+      )) {
         return dir;
       }
     }
@@ -212,8 +216,8 @@ Future<OcrEngineEnvironment> _probe(DesktopEngineResolver resolver) async {
       tesseractError: hasEng
           ? null
           : 'English OCR data (eng.traineddata) is missing from the app '
-              'bundle (assets/tessdata/). Reinstall the app, or download eng '
-              'via Add languages.',
+                'bundle (assets/tessdata/). Reinstall the app, or download eng '
+                'via Add languages.',
       languageDirs: languageDirs,
     );
   }
@@ -224,12 +228,14 @@ Future<OcrEngineEnvironment> _probe(DesktopEngineResolver resolver) async {
     tessError = _missingTesseractMessage();
   } else {
     try {
-      final v = await Process.run(resolved, ['--version'])
-          .timeout(const Duration(seconds: 10));
+      final v = await Process.run(resolved, [
+        '--version',
+      ]).timeout(const Duration(seconds: 10));
       if (v.exitCode == 0) {
         tessPath = resolved;
       } else {
-        tessError = 'OCR engine failed to start ($resolved, exit '
+        tessError =
+            'OCR engine failed to start ($resolved, exit '
             '${v.exitCode}).';
       }
     } catch (e) {
@@ -320,8 +326,7 @@ String _legacyOcrCacheDir() {
     return p.join(home, 'Library', 'Caches', 'DocumentStudio', 'ocr');
   }
   final xdg = env['XDG_CACHE_HOME'];
-  final base =
-      (xdg != null && xdg.isNotEmpty) ? xdg : p.join(home, '.cache');
+  final base = (xdg != null && xdg.isNotEmpty) ? xdg : p.join(home, '.cache');
   return p.join(base, 'document_studio', 'ocr');
 }
 
@@ -389,8 +394,9 @@ Future<void> downloadOcrLanguageData(
     ..connectionTimeout = const Duration(seconds: 20)
     ..userAgent = 'DocumentStudio';
   try {
-    final request =
-        await client.getUrl(Uri.parse('$kTessdataDownloadBase/$code.traineddata'));
+    final request = await client.getUrl(
+      Uri.parse('$kTessdataDownloadBase/$code.traineddata'),
+    );
     final response = await request.close();
     if (response.statusCode == 404) {
       throw OcrEngineBlockedException(

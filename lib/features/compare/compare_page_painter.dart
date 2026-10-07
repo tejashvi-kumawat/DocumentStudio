@@ -14,12 +14,12 @@ Color compareKindColor(CompareChangeKind k) =>
 Color compareColor(CompareChange c) => compareKindColor(c.kind);
 
 IconData compareCategoryIcon(CompareCategory c) => switch (c) {
-      CompareCategory.text => Icons.text_fields_rounded,
-      CompareCategory.formatting => Icons.format_color_text_rounded,
-      CompareCategory.images => Icons.image_outlined,
-      CompareCategory.annotations => Icons.comment_outlined,
-      CompareCategory.pages => Icons.auto_stories_outlined,
-    };
+  CompareCategory.text => Icons.text_fields_rounded,
+  CompareCategory.formatting => Icons.format_color_text_rounded,
+  CompareCategory.images => Icons.image_outlined,
+  CompareCategory.annotations => Icons.comment_outlined,
+  CompareCategory.pages => Icons.auto_stories_outlined,
+};
 
 /// Legend entries in display order (kind, label).
 const compareLegend = [
@@ -64,7 +64,8 @@ class CompareHighlightPainter extends CustomPainter {
     final rects = (oldSide ? c.aRects : c.bRects)[page];
     if (rects == null || rects.isEmpty) return;
     final color = compareColor(c);
-    final boxy = c.category == CompareCategory.images ||
+    final boxy =
+        c.category == CompareCategory.images ||
         c.category == CompareCategory.annotations;
 
     for (final n in rects) {

@@ -20,8 +20,7 @@ Future<void> openPdfInDocumentTabs(
   // Always await host resolve BEFORE openDocument so DocumentSession /
   // PdfDocumentRefKey / hardlink never see `/run/user/…/doc/…`.
   final host = await LinuxDocumentPortal.resolve(file.path);
-  final resolved =
-      host == file.path ? file : file.copyWithPath(host);
+  final resolved = host == file.path ? file : file.copyWithPath(host);
   final tabs = ref.read(documentTabsControllerProvider);
   await tabs.openDocument(
     resolved,

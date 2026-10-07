@@ -1,4 +1,5 @@
 import 'package:document_studio/infrastructure/pdf/pdf_aes256_security.dart';
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -380,8 +381,11 @@ PdfObj _encryptObjectGraph(
         if (type == 'XRef') {
           return PdfStream(dict, value.data);
         }
-        final cipher =
-            security.encryptStream(value.data, objectNumber, generation);
+        final cipher = security.encryptStream(
+          value.data,
+          objectNumber,
+          generation,
+        );
         dict['Length'] = PdfNum(cipher.length);
         return PdfStream(dict, cipher);
       default:

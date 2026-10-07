@@ -44,8 +44,7 @@ class PdfViewerLeftIconRail extends StatelessWidget {
               tooltip: 'Page thumbnails',
               icon: Icons.view_agenda_outlined,
               selected: content == PdfViewerSidebarContent.thumbnails,
-              onTap: () =>
-                  onContentChanged(PdfViewerSidebarContent.thumbnails),
+              onTap: () => onContentChanged(PdfViewerSidebarContent.thumbnails),
             ),
             _Icon(
               key: const Key('left_rail_bookmarks'),
@@ -53,6 +52,13 @@ class PdfViewerLeftIconRail extends StatelessWidget {
               icon: Icons.bookmarks_outlined,
               selected: content == PdfViewerSidebarContent.outline,
               onTap: () => onContentChanged(PdfViewerSidebarContent.outline),
+            ),
+            _Icon(
+              key: const Key('left_rail_layers'),
+              tooltip: 'Layers (objects on this page)',
+              icon: Icons.layers_outlined,
+              selected: content == PdfViewerSidebarContent.layers,
+              onTap: () => onContentChanged(PdfViewerSidebarContent.layers),
             ),
             _Icon(
               key: const Key('left_rail_attachments'),
@@ -71,12 +77,7 @@ class PdfViewerLeftIconRail extends StatelessWidget {
             ),
             if (controls case final c?) ...[
               Divider(height: 12, indent: 8, endIndent: 8, color: borderColor),
-              Expanded(
-                child: SingleChildScrollView(
-                  primary: false,
-                  child: c,
-                ),
-              ),
+              Expanded(child: SingleChildScrollView(primary: false, child: c)),
             ] else
               const Spacer(),
             if (onToggleExpanded != null)
@@ -121,10 +122,7 @@ class _Icon extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onTap,
-        child: SizedBox(
-          height: 40,
-          child: Icon(icon, size: 20, color: color),
-        ),
+        child: SizedBox(height: 40, child: Icon(icon, size: 20, color: color)),
       ),
     );
   }

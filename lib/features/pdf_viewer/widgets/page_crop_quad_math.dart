@@ -35,17 +35,25 @@ class PageCropQuadNorm {
 
   /// Axis-aligned bounding box of the quad, clamped to the page.
   Rect get boundingRect => clampNormRect(
-        Rect.fromLTRB(
-          math.min(math.min(topLeft.dx, topRight.dx),
-              math.min(bottomLeft.dx, bottomRight.dx)),
-          math.min(math.min(topLeft.dy, topRight.dy),
-              math.min(bottomLeft.dy, bottomRight.dy)),
-          math.max(math.max(topLeft.dx, topRight.dx),
-              math.max(bottomLeft.dx, bottomRight.dx)),
-          math.max(math.max(topLeft.dy, topRight.dy),
-              math.max(bottomLeft.dy, bottomRight.dy)),
-        ),
-      );
+    Rect.fromLTRB(
+      math.min(
+        math.min(topLeft.dx, topRight.dx),
+        math.min(bottomLeft.dx, bottomRight.dx),
+      ),
+      math.min(
+        math.min(topLeft.dy, topRight.dy),
+        math.min(bottomLeft.dy, bottomRight.dy),
+      ),
+      math.max(
+        math.max(topLeft.dx, topRight.dx),
+        math.max(bottomLeft.dx, bottomRight.dx),
+      ),
+      math.max(
+        math.max(topLeft.dy, topRight.dy),
+        math.max(bottomLeft.dy, bottomRight.dy),
+      ),
+    ),
+  );
 
   static PageCropQuadNorm fromRect(Rect r) {
     final c = clampNormRect(r);
@@ -85,22 +93,18 @@ PageCropQuadNorm movePageCropQuadCorner(
   required double dx,
   required double dy,
 }) {
-  Offset next(Offset o) => Offset(
-        (o.dx + dx).clamp(0.0, 1.0),
-        (o.dy + dy).clamp(0.0, 1.0),
-      );
-  return clampPageCropQuad(
-    switch (corner) {
-      PageCropQuadCorner.topLeft =>
-        base.copyWith(topLeft: next(base.topLeft)),
-      PageCropQuadCorner.topRight =>
-        base.copyWith(topRight: next(base.topRight)),
-      PageCropQuadCorner.bottomRight =>
-        base.copyWith(bottomRight: next(base.bottomRight)),
-      PageCropQuadCorner.bottomLeft =>
-        base.copyWith(bottomLeft: next(base.bottomLeft)),
-    },
-  );
+  Offset next(Offset o) =>
+      Offset((o.dx + dx).clamp(0.0, 1.0), (o.dy + dy).clamp(0.0, 1.0));
+  return clampPageCropQuad(switch (corner) {
+    PageCropQuadCorner.topLeft => base.copyWith(topLeft: next(base.topLeft)),
+    PageCropQuadCorner.topRight => base.copyWith(topRight: next(base.topRight)),
+    PageCropQuadCorner.bottomRight => base.copyWith(
+      bottomRight: next(base.bottomRight),
+    ),
+    PageCropQuadCorner.bottomLeft => base.copyWith(
+      bottomLeft: next(base.bottomLeft),
+    ),
+  });
 }
 
 /// Moves the whole quad by a normalized delta without leaving the page.

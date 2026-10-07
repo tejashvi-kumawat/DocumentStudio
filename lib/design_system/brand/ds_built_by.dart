@@ -21,7 +21,7 @@ class DsBuiltBy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = color ?? Theme.of(context).colorScheme.onSurfaceVariant;
-    final text = Row(
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
@@ -40,8 +40,18 @@ class DsBuiltBy extends StatelessWidget {
           ' with ',
           style: TextStyle(fontSize: fontSize, color: base),
         ),
-        Icon(Icons.favorite, size: fontSize + 1, color: const Color(0xFFE4002B)),
+        Icon(
+          Icons.favorite,
+          size: fontSize + 1,
+          color: const Color(0xFFE4002B),
+        ),
       ],
+    );
+    // Shrinks to fit a narrow space instead of overflowing it.
+    final text = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: row,
     );
     if (!link) return text;
     return Tooltip(

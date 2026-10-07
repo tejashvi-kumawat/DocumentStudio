@@ -4,7 +4,7 @@
 /// Release builds may override with `--dart-define=APP_VERSION=x.y.z`.
 const String kAppVersion = String.fromEnvironment(
   'APP_VERSION',
-  defaultValue: '1.1.0',
+  defaultValue: '1.2.0',
 );
 
 const String kAppName = 'Document Studio';

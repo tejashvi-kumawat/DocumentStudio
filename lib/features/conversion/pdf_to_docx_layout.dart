@@ -54,15 +54,16 @@ Future<Uint8List> pdfToDocxWithLayout({
       );
       final page = await loadPageOnDemand(doc, n);
       if (page == null) continue;
-      final blocks = (await loadEditableTextBlocksFromDoc(doc, [n]))[n] ??
+      final blocks =
+          (await loadEditableTextBlocksFromDoc(doc, [n]))[n] ??
           const <LiveTextEditTarget>[];
       if (n == 1) w.setPage(page.width, page.height, blocks);
       if (n > 1) w.pageBreak();
       final objects = pictures[n] ?? const <EditableImage>[];
-      final figures = _figureRegions(
-        [for (final o in objects) if (o.kind == EditableKind.shape) o],
-        blocks,
-      );
+      final figures = _figureRegions([
+        for (final o in objects)
+          if (o.kind == EditableKind.shape) o,
+      ], blocks);
       bool inFigure(Rect r) =>
           figures.any((f) => f.inflate(0.005).contains(r.center));
       final items = <_Item>[
@@ -81,7 +82,8 @@ Future<Uint8List> pdfToDocxWithLayout({
         if (area < 0.0015) continue; // specks, rules
         if (area > 0.85 && blocks.isNotEmpty) continue; // page background
         final jpg = await _renderCrop(page, pic.normRect, photo: true);
-        if (jpg != null) items.add(_Item.picture(pic.normRect, jpg, jpeg: true));
+        if (jpg != null)
+          items.add(_Item.picture(pic.normRect, jpg, jpeg: true));
       }
       w.addPage(_readingOrder(items), page.width, page.height);
     }
@@ -93,7 +95,7 @@ Future<Uint8List> pdfToDocxWithLayout({
 }
 
 (Map<int, List<TextFontHint>>, Map<int, List<EditableImage>>)
-    _scanFontsAndImages((String, List<int>) args) {
+_scanFontsAndImages((String, List<int>) args) {
   final (path, pages) = args;
   final bytes = File(path).readAsBytesSync();
   return (
@@ -232,12 +234,12 @@ Uint8List _encode((Uint8List, int, int, bool) a) {
 
 class _Item {
   _Item.text(LiveTextEditTarget this.block, this.font)
-      : rect = block.coverNorm ?? block.normRect,
-        png = null,
-        jpeg = false;
+    : rect = block.coverNorm ?? block.normRect,
+      png = null,
+      jpeg = false;
   _Item.picture(this.rect, Uint8List this.png, {this.jpeg = false})
-      : block = null,
-        font = null;
+    : block = null,
+      font = null;
 
   final bool jpeg;
 
@@ -307,8 +309,10 @@ class _DocxWriter {
     for (final it in items) {
       final topPt = it.rect.top * pageH;
       final before = ((topPt - lastBottomPt) * 20).round().clamp(0, 1440);
-      final indent =
-          ((it.rect.left * pageW - _marginL) * 20).round().clamp(0, 7200);
+      final indent = ((it.rect.left * pageW - _marginL) * 20).round().clamp(
+        0,
+        7200,
+      );
       if (it.png != null) {
         final wPt = math.min(it.rect.width * pageW, contentW);
         final hPt = it.rect.height * pageH * (wPt / (it.rect.width * pageW));
@@ -341,8 +345,10 @@ class _DocxWriter {
     for (final para in _splitParagraphs(b.originalText)) {
       _body
         ..write('<w:p><w:pPr>')
-        ..write('<w:spacing w:before="${first ? before : 0}" w:after="0" '
-            'w:line="$line" w:lineRule="auto"/>');
+        ..write(
+          '<w:spacing w:before="${first ? before : 0}" w:after="0" '
+          'w:line="$line" w:lineRule="auto"/>',
+        );
       if (indent > 0 && jc == null) _body.write('<w:ind w:left="$indent"/>');
       if (jc != null) _body.write('<w:jc w:val="$jc"/>');
       if (heading != null) _body.write('<w:outlineLvl w:val="$heading"/>');
@@ -519,7 +525,9 @@ class _DocxWriter {
       ..addFile(text('word/document.xml', document))
       ..addFile(text('word/_rels/document.xml.rels', docRels.toString()));
     for (final e in _media.entries) {
-      archive.addFile(ArchiveFile('word/media/${e.key}', e.value.length, e.value));
+      archive.addFile(
+        ArchiveFile('word/media/${e.key}', e.value.length, e.value),
+      );
     }
     return Uint8List.fromList(ZipEncoder().encode(archive));
   }

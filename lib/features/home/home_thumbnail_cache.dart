@@ -46,7 +46,7 @@ class HomeThumbnail {
 /// newest-request-first and requests whose card scrolled away are skipped.
 class HomeThumbnailCache {
   HomeThumbnailCache({double? renderWidth})
-      : renderWidth = renderWidth ?? _adaptiveWidth() {
+    : renderWidth = renderWidth ?? _adaptiveWidth() {
     StorageCacheManager.instance.registerMemoryCache(clear);
   }
 
@@ -96,15 +96,20 @@ class HomeThumbnailCache {
     }
     if (stat.type == FileSystemEntityType.notFound) return null;
 
-    final key = '${file.path}|${stat.size}|'
+    final key =
+        '${file.path}|${stat.size}|'
         '${stat.modified.millisecondsSinceEpoch}|${renderWidth.round()}';
     final hit = _memory.remove(key);
     if (hit != null) {
       _memory[key] = hit;
       return hit;
     }
-    return _inflight[key] ??= _resolve(file, key, stat, isWanted)
-        .whenComplete(() => _inflight.remove(key));
+    return _inflight[key] ??= _resolve(
+      file,
+      key,
+      stat,
+      isWanted,
+    ).whenComplete(() => _inflight.remove(key));
   }
 
   Future<HomeThumbnail?> _resolve(
@@ -136,8 +141,7 @@ class HomeThumbnailCache {
     _memory[key] = t;
     _memoryBytes += t.image?.length ?? 0;
     final cap = RenderBudget.current.thumbnailMemoryBytes ~/ 2;
-    while ((_memoryBytes > cap || _memory.length > 200) &&
-        _memory.length > 1) {
+    while ((_memoryBytes > cap || _memory.length > 200) && _memory.length > 1) {
       final oldest = _memory.keys.first;
       _memoryBytes -= _memory.remove(oldest)!.image?.length ?? 0;
     }

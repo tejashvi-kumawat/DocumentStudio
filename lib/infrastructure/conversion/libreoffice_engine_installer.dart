@@ -15,8 +15,8 @@ class LibreOfficeEngineInstaller {
   LibreOfficeEngineInstaller({
     http.Client? client,
     DesktopEngineResolver? resolver,
-  })  : _client = client ?? http.Client(),
-        _resolver = resolver ?? desktopEngineResolver;
+  }) : _client = client ?? http.Client(),
+       _resolver = resolver ?? desktopEngineResolver;
 
   final http.Client _client;
   final DesktopEngineResolver _resolver;
@@ -52,7 +52,9 @@ class LibreOfficeEngineInstaller {
     }
     onProgress?.call(0.02, 'Preparing download…');
     final root = await StoragePaths.init();
-    final destRoot = Directory(p.join(root.root.path, 'engines', 'libreoffice'));
+    final destRoot = Directory(
+      p.join(root.root.path, 'engines', 'libreoffice'),
+    );
     await destRoot.create(recursive: true);
     final msiPath = p.join(root.temp.path, 'libreoffice-setup.msi');
     final url = windowsMsiUrl;
@@ -60,19 +62,15 @@ class LibreOfficeEngineInstaller {
     await _download(url, msiPath, onProgress);
     onProgress?.call(0.85, 'Installing into app folder…');
     // Per-user silent install into our engines tree (not Program Files).
-    final result = await Process.run(
-      'msiexec',
-      [
-        '/i',
-        msiPath,
-        '/qn',
-        '/norestart',
-        'ALLUSERS=2',
-        'MSIINSTALLPERUSER=1',
-        'INSTALLDIR=${destRoot.path}',
-      ],
-      runInShell: true,
-    );
+    final result = await Process.run('msiexec', [
+      '/i',
+      msiPath,
+      '/qn',
+      '/norestart',
+      'ALLUSERS=2',
+      'MSIINSTALLPERUSER=1',
+      'INSTALLDIR=${destRoot.path}',
+    ], runInShell: true);
     try {
       await File(msiPath).delete();
     } catch (_) {}
@@ -138,7 +136,8 @@ class LibreOfficeEngineInstaller {
 
   Future<String?> _findSoffice(Directory root) async {
     await for (final entity in root.list(recursive: true, followLinks: false)) {
-      if (entity is File && p.basename(entity.path).toLowerCase() == 'soffice.exe') {
+      if (entity is File &&
+          p.basename(entity.path).toLowerCase() == 'soffice.exe') {
         return entity.path;
       }
     }

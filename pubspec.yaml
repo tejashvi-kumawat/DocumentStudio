@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while the build-number is used as the build suffix.
-version: 1.1.0+5
+version: 1.2.0+6
 
 environment:
   sdk: ^3.13.3
@@ -72,7 +72,11 @@ dependencies:
   flutter_math_fork: ^0.7.4
   pdf: ^3.11.0
   html: ^0.15.7
+  flutter_quill: ^11.6.0
+  xml: ^7.0.1
 
+  pdfrx_engine: any
+  http: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -84,6 +88,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   mocktail: ^1.0.5
+  msix: ^3.18.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -100,6 +105,11 @@ flutter:
     - assets/brand/
     - assets/fonts/signature/
     - assets/fonts/library/
+    - assets/office/
+    - assets/fonts/text/DejaVuSans.ttf
+    - assets/fonts/text/DejaVuSans-Bold.ttf
+    - assets/fonts/text/LICENSE-DejaVu.txt
+    - assets/fonts/text/LICENSE-Liberation.txt
     # Tesseract language packs for on-device OCR (Android/iOS plugin).
     - assets/tessdata/
     - assets/tessdata_config.json
@@ -161,3 +171,18 @@ flutter:
     - family: DS Caveat
       fonts:
         - asset: assets/fonts/signature/Caveat-Variable.ttf
+
+# Microsoft Store package (MSIX). The Store signs it, so Windows shows no
+# SmartScreen warning. Store identity (identity_name, publisher,
+# publisher_display_name) is passed at build time from Partner Center — see
+# scripts/windows/package_store_msix.ps1 and packaging/CODE_SIGNING.md.
+msix_config:
+  display_name: Document Studio
+  logo_path: assets/brand/document_studio_logo.png
+  file_extension: .pdf, .docx, .pptx
+  capabilities: internetClient
+  languages: en-us
+  store: true
+  build_windows: false
+  output_path: dist/windows
+  output_name: DocumentStudio-store

@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/large_doc_policy.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -44,7 +45,10 @@ class PdfMediaIndex extends ChangeNotifier {
   /// Extracts and opens [annot] with the system player.
   Future<String?> play(PdfMediaAnnotation annot) async {
     if (annot.uri != null) {
-      final ok = await launchUrl(annot.uri!, mode: LaunchMode.externalApplication);
+      final ok = await launchUrl(
+        annot.uri!,
+        mode: LaunchMode.externalApplication,
+      );
       return ok ? null : 'Could not open ${annot.uri}';
     }
     final session = _session;
@@ -67,7 +71,10 @@ class PdfMediaIndex extends ChangeNotifier {
     if (p.extension(name).isEmpty) name = '$name.mp4';
     final file = File(p.join(dir.path, name));
     await file.writeAsBytes(data, flush: true);
-    final ok = await launchUrl(Uri.file(file.path), mode: LaunchMode.externalApplication);
+    final ok = await launchUrl(
+      Uri.file(file.path),
+      mode: LaunchMode.externalApplication,
+    );
     return ok ? null : 'No player is installed for ${p.extension(name)} files.';
   }
 

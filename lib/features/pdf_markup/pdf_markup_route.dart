@@ -9,7 +9,9 @@ const headersFootersRoutePath = '/headers-footers';
 const pageNumbersRoutePath = '/page-numbers';
 const watermarkRoutePath = '/watermark';
 
-List<GoRoute> buildPdfMarkupRoutes({GlobalKey<NavigatorState>? parentNavigatorKey}) {
+List<GoRoute> buildPdfMarkupRoutes({
+  GlobalKey<NavigatorState>? parentNavigatorKey,
+}) {
   return [
     GoRoute(
       parentNavigatorKey: parentNavigatorKey,

@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 /// against the tessdata folder that holds the requested language(s).
 class DesktopTesseractOcrPort implements OcrPort {
   DesktopTesseractOcrPort({DesktopEngineResolver? resolver})
-      : _resolver = resolver ?? desktopEngineResolver;
+    : _resolver = resolver ?? desktopEngineResolver;
 
   final DesktopEngineResolver _resolver;
 
@@ -40,7 +40,14 @@ class DesktopTesseractOcrPort implements OcrPort {
       await File(input).writeAsBytes(prepared, flush: true);
       final text = await runTesseractProcess(
         executable: env.tesseractPath!,
-        args: [input, 'stdout', '-l', options.language, '--dpi', '${options.dpi}'],
+        args: [
+          input,
+          'stdout',
+          '-l',
+          options.language,
+          '--dpi',
+          '${options.dpi}',
+        ],
         tessdataDir: env.tessdataDirFor(options.languageCodes),
         cancelToken: cancelToken,
       );

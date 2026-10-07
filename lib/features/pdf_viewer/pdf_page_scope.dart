@@ -1,10 +1,5 @@
 /// Page targeting for viewer-embedded tools (this page, selection, all, range).
-enum PdfPageScopeKind {
-  thisPage,
-  selectedPages,
-  allPages,
-  range,
-}
+enum PdfPageScopeKind { thisPage, selectedPages, allPages, range }
 
 /// Parses expressions like `1-3,5` into 1-based page numbers within [totalPages].
 ///
@@ -19,7 +14,9 @@ PdfPageScopeParseResult parsePdfPageRangeExpression(
       .replaceAll(RegExp('[\u2012\u2013\u2014\u2212]'), '-')
       .replaceAll(RegExp(r'\s*-\s*'), '-');
   if (trimmed.isEmpty) {
-    return const PdfPageScopeParseResult.error('Enter a page range (e.g. 1-3,5).');
+    return const PdfPageScopeParseResult.error(
+      'Enter a page range (e.g. 1-3,5).',
+    );
   }
   if (totalPages < 1) {
     return const PdfPageScopeParseResult.error('Document has no pages.');
@@ -112,10 +109,10 @@ class PdfPageScopeParseResult {
   const PdfPageScopeParseResult._({this.pages, this.error});
 
   const PdfPageScopeParseResult.ok(Set<int> pages)
-      : this._(pages: pages, error: null);
+    : this._(pages: pages, error: null);
 
   const PdfPageScopeParseResult.error(String message)
-      : this._(pages: null, error: message);
+    : this._(pages: null, error: message);
 
   final Set<int>? pages;
   final String? error;
@@ -172,10 +169,10 @@ class PdfPageScopeResolveResult {
   const PdfPageScopeResolveResult._({this.pages, this.error});
 
   const PdfPageScopeResolveResult.ok(Set<int> pages)
-      : this._(pages: pages, error: null);
+    : this._(pages: pages, error: null);
 
   const PdfPageScopeResolveResult.error(String message)
-      : this._(pages: null, error: message);
+    : this._(pages: null, error: message);
 
   final Set<int>? pages;
   final String? error;

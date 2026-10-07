@@ -15,7 +15,9 @@ import 'package:document_studio/features/page_management/tools/split_tool_screen
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-List<RouteBase> buildOrganizeRoutes({GlobalKey<NavigatorState>? parentNavigatorKey}) {
+List<RouteBase> buildOrganizeRoutes({
+  GlobalKey<NavigatorState>? parentNavigatorKey,
+}) {
   return [
     GoRoute(
       parentNavigatorKey: parentNavigatorKey,
@@ -36,8 +38,9 @@ List<RouteBase> buildOrganizeRoutes({GlobalKey<NavigatorState>? parentNavigatorK
               return MergeToolScreen(initialFiles: [launch.file]);
             }
             final extra = state.extra;
-            final initialFiles =
-                extra is List<LocalFileRef> ? extra : const <LocalFileRef>[];
+            final initialFiles = extra is List<LocalFileRef>
+                ? extra
+                : const <LocalFileRef>[];
             return MergeToolScreen(initialFiles: initialFiles);
           },
         ),

@@ -1,3 +1,5 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -28,7 +30,6 @@ import 'package:document_studio/features/pdf_viewer/viewer_live_tool_session.dar
 import 'package:document_studio/infrastructure/pdf/stamp/pdf_stamp_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 const _defaultPageNumberSpec = HeaderFooterSpec(
   zones: {
@@ -147,7 +148,6 @@ class _PageNumbersScreenState extends ConsumerState<PageNumbersScreen> {
   }
 
   void _setText(String text) => _set(style: _style.copyWith(text: text));
-
 
   Future<void> _pick() async {
     final picked = await ref
@@ -710,17 +710,13 @@ class _PageNumbersScreenState extends ConsumerState<PageNumbersScreen> {
     );
     if (widget.embedInViewerPanel) return body;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _ctrl.busy ? null : () => context.pop(),
-        ),
-        title: const Text('Page numbers'),
+      appBar: DsToolAppBar(
+        title: 'Page numbers',
+        subtitle: 'Number the pages of your PDF',
+        icon: Icons.pin_outlined,
+        backEnabled: !_ctrl.busy,
       ),
-      body: SafeArea(
-        top: false,
-        child: DsMotion.fadeRiseIn(child: body),
-      ),
+      body: SafeArea(top: false, child: DsMotion.fadeRiseIn(child: body)),
     );
   }
 }

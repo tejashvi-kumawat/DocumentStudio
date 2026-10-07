@@ -48,7 +48,9 @@ class OrganizeContextToolbar extends StatelessWidget {
 
     return Material(
       elevation: 0,
-      color: isDark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight,
+      color: isDark
+          ? DsColors.surfaceContainerDark
+          : DsColors.surfaceContainerLight,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: border)),
@@ -92,27 +94,64 @@ class OrganizeContextToolbar extends StatelessWidget {
                           context,
                           'Select all',
                           onSelectAll,
-                          tip: busy ? 'Wait for the current operation' : 'Select all (Ctrl+A)',
+                          tip: busy
+                              ? 'Wait for the current operation'
+                              : 'Select all (Ctrl+A)',
                         ),
                         if (_hasSelection)
-                          _btn(context, 'Clear', onClearSelection, tip: 'Clear selection'),
+                          _btn(
+                            context,
+                            'Clear',
+                            onClearSelection,
+                            tip: 'Clear selection',
+                          ),
                       ],
                       if (_hasSelection) ...[
                         if (onRotateCw != null)
-                          _iconBtn(Icons.rotate_right, 'Rotate 90° clockwise', onRotateCw),
+                          _iconBtn(
+                            Icons.rotate_right,
+                            'Rotate 90° clockwise',
+                            onRotateCw,
+                          ),
                         if (onRotateCcw != null)
-                          _iconBtn(Icons.rotate_left, 'Rotate 90° counter-clockwise', onRotateCcw),
-                        if (onRotate180 != null) _iconBtn(Icons.flip, 'Rotate 180°', onRotate180),
+                          _iconBtn(
+                            Icons.rotate_left,
+                            'Rotate 90° counter-clockwise',
+                            onRotateCcw,
+                          ),
+                        if (onRotate180 != null)
+                          _iconBtn(Icons.flip, 'Rotate 180°', onRotate180),
                         if (onDuplicate != null)
-                          _iconBtn(Icons.copy_all_outlined, 'Duplicate selected pages', onDuplicate),
+                          _iconBtn(
+                            Icons.copy_all_outlined,
+                            'Duplicate selected pages',
+                            onDuplicate,
+                          ),
                         if (onExtract != null)
-                          _iconBtn(Icons.content_cut, 'Extract selection to new PDF', onExtract),
+                          _iconBtn(
+                            Icons.content_cut,
+                            'Extract selection to new PDF',
+                            onExtract,
+                          ),
                         if (onReplace != null)
-                          _iconBtn(Icons.swap_horiz, 'Replace from another PDF…', onReplace),
+                          _iconBtn(
+                            Icons.swap_horiz,
+                            'Replace from another PDF…',
+                            onReplace,
+                          ),
                         if (onInsertBlank != null)
-                          _iconBtn(Icons.note_add_outlined, 'Insert blank page after selection', onInsertBlank),
+                          _iconBtn(
+                            Icons.note_add_outlined,
+                            'Insert blank page after selection',
+                            onInsertBlank,
+                          ),
                         if (onDelete != null)
-                          _iconBtn(Icons.delete_outline, 'Remove selected (Delete)', onDelete, destructive: true),
+                          _iconBtn(
+                            Icons.delete_outline,
+                            'Remove selected (Delete)',
+                            onDelete,
+                            destructive: true,
+                          ),
                       ] else if (pageCount > 0 && onDelete != null) ...[
                         Padding(
                           padding: const EdgeInsets.only(left: 8),
@@ -130,7 +169,7 @@ class OrganizeContextToolbar extends StatelessWidget {
                   ),
                 ),
               ),
-              if (primaryAction != null) primaryAction!,
+              ?primaryAction,
             ],
           ),
         ),

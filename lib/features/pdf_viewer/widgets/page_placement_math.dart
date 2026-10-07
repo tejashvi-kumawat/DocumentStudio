@@ -62,7 +62,8 @@ PagePlacementNorm resizePagePlacement(
   var top = base.top;
   var right = base.left + base.width;
   var bottom = base.top + base.height;
-  final aspect = aspectWidthOverHeight ??
+  final aspect =
+      aspectWidthOverHeight ??
       (base.height > 1e-9 ? base.width / base.height : 1.0);
 
   void applyFree() {
@@ -205,11 +206,11 @@ Rect clampNormRect(
 
 /// Converts a crop [Rect] to placement and back for shared resize math.
 PagePlacementNorm normRectToPlacement(Rect r) => PagePlacementNorm(
-      left: r.left,
-      top: r.top,
-      width: r.width,
-      height: r.height,
-    );
+  left: r.left,
+  top: r.top,
+  width: r.width,
+  height: r.height,
+);
 
 Rect placementToNormRect(PagePlacementNorm p) =>
     Rect.fromLTWH(p.left, p.top, p.width, p.height);

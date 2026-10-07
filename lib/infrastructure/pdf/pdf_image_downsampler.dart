@@ -37,12 +37,17 @@ Future<PdfImageDownsampleResult> downsamplePdfJpegImages({
   bool Function()? isCancelled,
 }) async {
   final exe = await resolvedQpdfExecutable();
-  final pw = [if (password != null && password.isNotEmpty) '--password=$password'];
+  final pw = [
+    if (password != null && password.isNotEmpty) '--password=$password',
+  ];
 
-  final dump = await runQpdfProtected(
-    [...pw, '--json=2', '--json-key=qpdf', '--json-stream-data=none', inputPath],
-    (a) => Process.run(exe, a, stdoutEncoding: utf8),
-  );
+  final dump = await runQpdfProtected([
+    ...pw,
+    '--json=2',
+    '--json-key=qpdf',
+    '--json-stream-data=none',
+    inputPath,
+  ], (a) => Process.run(exe, a, stdoutEncoding: utf8));
   if (dump.exitCode != 0 && dump.exitCode != 3) {
     throw QpdfCliException(
       exitCode: dump.exitCode,
@@ -69,10 +74,12 @@ Future<PdfImageDownsampleResult> downsamplePdfJpegImages({
     final queue = List<_Candidate>.of(plan.candidates);
 
     Future<void> processOne(_Candidate c) async {
-      final raw = await runQpdfProtected(
-        [...pw, inputPath, '--show-object=${c.objectNumber}', '--raw-stream-data'],
-        (a) => Process.run(exe, a, stdoutEncoding: null),
-      );
+      final raw = await runQpdfProtected([
+        ...pw,
+        inputPath,
+        '--show-object=${c.objectNumber}',
+        '--raw-stream-data',
+      ], (a) => Process.run(exe, a, stdoutEncoding: null));
       if (raw.exitCode != 0 && raw.exitCode != 3) return;
       final original = Uint8List.fromList(raw.stdout as List<int>);
       final encoded = await Isolate.run(
@@ -90,8 +97,9 @@ Future<PdfImageDownsampleResult> downsamplePdfJpegImages({
         ..['/BitsPerComponent'] = 8
         ..['/Width'] = encoded.width
         ..['/Height'] = encoded.height
-        ..['/ColorSpace'] =
-            encoded.components == 1 ? '/DeviceGray' : '/DeviceRGB';
+        ..['/ColorSpace'] = encoded.components == 1
+            ? '/DeviceGray'
+            : '/DeviceRGB';
       updates[c.key] = {
         'stream': {'dict': dict, 'datafile': dataPath},
       };
@@ -193,7 +201,8 @@ _Plan _planFromDump(String json) {
     if (dict is! Map<String, Object?>) continue;
     if (dict['/Subtype'] != '/Image') continue;
     final filter = dict['/Filter'];
-    final isDct = filter == '/DCTDecode' ||
+    final isDct =
+        filter == '/DCTDecode' ||
         (filter is List && filter.length == 1 && filter.first == '/DCTDecode');
     if (!isDct) continue;
     if (dict['/ImageMask'] == true || dict.containsKey('/Decode')) continue;
@@ -249,12 +258,15 @@ int _jpegComponents(Uint8List b) {
       continue;
     }
     final marker = b[i + 1];
-    if (marker == 0xD8 || marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7)) {
+    if (marker == 0xD8 ||
+        marker == 0x01 ||
+        (marker >= 0xD0 && marker <= 0xD7)) {
       i += 2;
       continue;
     }
     final len = (b[i + 2] << 8) | b[i + 3];
-    final isSof = marker >= 0xC0 &&
+    final isSof =
+        marker >= 0xC0 &&
         marker <= 0xCF &&
         marker != 0xC4 &&
         marker != 0xC8 &&

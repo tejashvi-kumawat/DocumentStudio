@@ -160,8 +160,9 @@ class DerNode {
     var len = bytes[i++];
     if (len & 0x80 != 0) {
       final n = len & 0x7f;
-      if (n == 0 || i + n > bytes.length)
+      if (n == 0 || i + n > bytes.length) {
         throw FormatException('DER bad length');
+      }
       len = 0;
       for (var k = 0; k < n; k++) {
         len = (len << 8) | bytes[i++];

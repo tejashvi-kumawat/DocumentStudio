@@ -16,10 +16,7 @@ class PersistedFolderGrant {
   final String treeUri;
   final String displayName;
 
-  Map<String, String> toJson() => {
-        'uri': treeUri,
-        'name': displayName,
-      };
+  Map<String, String> toJson() => {'uri': treeUri, 'name': displayName};
 
   static PersistedFolderGrant? fromJson(Map<String, dynamic> map) {
     final uri = map['uri'] as String?;
@@ -120,8 +117,8 @@ class PersistedDocumentAccess {
   ///
   /// Call this only when opening for edit/render — listing keeps the URI only.
   static Future<LocalFileRef?> materializeForOpen(LocalFileRef ref) async {
-    final uri = ref.contentUri ??
-        (ref.path.startsWith('content://') ? ref.path : null);
+    final uri =
+        ref.contentUri ?? (ref.path.startsWith('content://') ? ref.path : null);
     if (uri == null) return ref;
     if (!Platform.isAndroid) return ref;
     try {
@@ -169,7 +166,8 @@ class PersistedDocumentGrantsNotifier
   }
 }
 
-final persistedDocumentGrantsProvider = AsyncNotifierProvider<
-    PersistedDocumentGrantsNotifier, List<PersistedFolderGrant>>(
-  PersistedDocumentGrantsNotifier.new,
-);
+final persistedDocumentGrantsProvider =
+    AsyncNotifierProvider<
+      PersistedDocumentGrantsNotifier,
+      List<PersistedFolderGrant>
+    >(PersistedDocumentGrantsNotifier.new);

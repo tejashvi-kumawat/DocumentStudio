@@ -17,9 +17,16 @@ cask "document-studio" do
     strategy :github_latest
   end
 
-  depends_on macos: ">= :monterey"
+  depends_on macos: :monterey
 
   app "Document Studio.app"
+
+  caveats <<~EOS
+    Until releases are notarized by Apple, macOS may say it cannot verify
+    Document Studio. Open it the first time with: Finder → Applications →
+    right-click Document Studio → Open → Open (or System Settings →
+    Privacy & Security → Open Anyway). Later launches open normally.
+  EOS
 
   zap trash: [
     "~/Library/Application Support/com.documentstudio.document_studio",

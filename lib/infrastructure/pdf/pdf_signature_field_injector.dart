@@ -14,14 +14,15 @@ class PdfSignatureFieldInjector {
   PdfSignatureFieldInjector({
     DesktopEngineResolver? resolver,
     Future<ProcessResult> Function(String exe, List<String> args)? run,
-  })  : _resolver = resolver ?? desktopEngineResolver,
-        _run = run ??
-            ((exe, args) => Process.run(
-                  exe,
-                  args,
-                  stdoutEncoding: systemEncoding,
-                  stderrEncoding: systemEncoding,
-                ));
+  }) : _resolver = resolver ?? desktopEngineResolver,
+       _run =
+           run ??
+           ((exe, args) => Process.run(
+             exe,
+             args,
+             stdoutEncoding: systemEncoding,
+             stderrEncoding: systemEncoding,
+           ));
 
   final DesktopEngineResolver _resolver;
   final Future<ProcessResult> Function(String exe, List<String> args) _run;
@@ -54,11 +55,7 @@ class PdfSignatureFieldInjector {
       final outPdf = File(p.join(work.path, 'out.pdf'));
       await inPdf.writeAsBytes(inputBytes, flush: true);
 
-      final dump = await _run(qpdf, [
-        '--json-output',
-        inPdf.path,
-        jsonPath,
-      ]);
+      final dump = await _run(qpdf, ['--json-output', inPdf.path, jsonPath]);
       if (dump.exitCode != 0 || !await File(jsonPath).exists()) {
         throw DocumentStudioError(
           code: DocumentStudioErrorCode.nativeEngineError,
@@ -99,7 +96,8 @@ class PdfSignatureFieldInjector {
         );
       }
 
-      final maxId = (meta['maxobjectid'] as num?)?.toInt() ?? _maxObjectId(objs);
+      final maxId =
+          (meta['maxobjectid'] as num?)?.toInt() ?? _maxObjectId(objs);
       final widgetId = maxId + 1;
       final formId = maxId + 2;
       final widgetRef = '$widgetId 0 R';
@@ -176,7 +174,8 @@ class PdfSignatureFieldInjector {
       }
 
       if ((meta['maxobjectid'] as num?)?.toInt() != formId) {
-        meta['maxobjectid'] = widgetId > ((meta['maxobjectid'] as num?)?.toInt() ?? 0)
+        meta['maxobjectid'] =
+            widgetId > ((meta['maxobjectid'] as num?)?.toInt() ?? 0)
             ? (existingFormRef != null ? widgetId : formId)
             : meta['maxobjectid'];
         if (existingFormRef == null) {

@@ -104,8 +104,8 @@ class PdfViewerToolRow extends StatelessWidget {
                         icon: Icons.edit_document,
                         enabled: enabled,
                         selected: editOn,
-                        onPressed: onToggleEdit ??
-                            () => tool(ViewerToolId.editText),
+                        onPressed:
+                            onToggleEdit ?? () => tool(ViewerToolId.editText),
                       ),
                       _DirectButton(
                         buttonKey: const Key('pdf_viewer_tool_comment'),
@@ -114,7 +114,8 @@ class PdfViewerToolRow extends StatelessWidget {
                         icon: Icons.add_comment_outlined,
                         enabled: enabled,
                         selected: commentOn,
-                        onPressed: onToggleComment ??
+                        onPressed:
+                            onToggleComment ??
                             () => onArmMarkup(MarkupTool.select),
                       ),
                       _MenuButton(
@@ -134,40 +135,84 @@ class PdfViewerToolRow extends StatelessWidget {
                           ViewerToolId.placeImage,
                         ]),
                         entries: [
-                          _Entry('Organize pages', Icons.auto_awesome_mosaic_outlined,
-                              () => tool(ViewerToolId.workspaceReorder)),
+                          _Entry(
+                            'Organize pages',
+                            Icons.auto_awesome_mosaic_outlined,
+                            () => tool(ViewerToolId.workspaceReorder),
+                          ),
                           const _Entry.divider(),
-                          _Entry('Insert pages from file', Icons.note_add_outlined,
-                              () => tool(ViewerToolId.workspaceInsert)),
-                          _Entry('Insert blank page', Icons.insert_page_break_outlined,
-                              () => tool(ViewerToolId.insertBlank)),
-                          _Entry('Insert from scanner / camera',
-                              Icons.document_scanner_outlined,
-                              () => tool(ViewerToolId.insertScan)),
-                          _Entry('Add image', Icons.add_photo_alternate_outlined,
-                              () => tool(ViewerToolId.placeImage)),
-                          _Entry('Replace pages', Icons.find_replace,
-                              () => tool(ViewerToolId.workspaceReplace)),
+                          _Entry(
+                            'Insert pages from file',
+                            Icons.note_add_outlined,
+                            () => tool(ViewerToolId.workspaceInsert),
+                          ),
+                          _Entry(
+                            'Insert blank page',
+                            Icons.insert_page_break_outlined,
+                            () => tool(ViewerToolId.insertBlank),
+                          ),
+                          _Entry(
+                            'Insert from scanner / camera',
+                            Icons.document_scanner_outlined,
+                            () => tool(ViewerToolId.insertScan),
+                          ),
+                          _Entry(
+                            'Add image',
+                            Icons.add_photo_alternate_outlined,
+                            () => tool(ViewerToolId.placeImage),
+                          ),
+                          _Entry(
+                            'Replace pages',
+                            Icons.find_replace,
+                            () => tool(ViewerToolId.workspaceReplace),
+                          ),
                           const _Entry.divider(),
-                          _Entry('Combine files', Icons.file_copy_outlined,
-                              () => tool(ViewerToolId.workspaceMerge)),
-                          _Entry('Split document', Icons.call_split,
-                              () => tool(ViewerToolId.split)),
-                          _Entry('Extract pages', Icons.content_cut,
-                              () => tool(ViewerToolId.extract)),
-                          _Entry('Delete pages', Icons.delete_outline,
-                              () => tool(ViewerToolId.deletePages)),
-                          _Entry('Duplicate pages', Icons.control_point_duplicate,
-                              () => tool(ViewerToolId.duplicate)),
-                          _Entry('Reverse order', Icons.swap_vert,
-                              () => tool(ViewerToolId.reverse)),
+                          _Entry(
+                            'Combine files',
+                            Icons.file_copy_outlined,
+                            () => tool(ViewerToolId.workspaceMerge),
+                          ),
+                          _Entry(
+                            'Split document',
+                            Icons.call_split,
+                            () => tool(ViewerToolId.split),
+                          ),
+                          _Entry(
+                            'Extract pages',
+                            Icons.content_cut,
+                            () => tool(ViewerToolId.extract),
+                          ),
+                          _Entry(
+                            'Delete pages',
+                            Icons.delete_outline,
+                            () => tool(ViewerToolId.deletePages),
+                          ),
+                          _Entry(
+                            'Duplicate pages',
+                            Icons.control_point_duplicate,
+                            () => tool(ViewerToolId.duplicate),
+                          ),
+                          _Entry(
+                            'Reverse order',
+                            Icons.swap_vert,
+                            () => tool(ViewerToolId.reverse),
+                          ),
                           const _Entry.divider(),
-                          _Entry('Header & footer', Icons.vertical_align_center,
-                              () => tool(ViewerToolId.headersFooters)),
-                          _Entry('Page numbers', Icons.format_list_numbered,
-                              () => tool(ViewerToolId.pageNumbers)),
-                          _Entry('Watermark', Icons.branding_watermark_outlined,
-                              () => tool(ViewerToolId.watermark)),
+                          _Entry(
+                            'Header & footer',
+                            Icons.vertical_align_center,
+                            () => tool(ViewerToolId.headersFooters),
+                          ),
+                          _Entry(
+                            'Page numbers',
+                            Icons.format_list_numbered,
+                            () => tool(ViewerToolId.pageNumbers),
+                          ),
+                          _Entry(
+                            'Watermark',
+                            Icons.branding_watermark_outlined,
+                            () => tool(ViewerToolId.watermark),
+                          ),
                         ],
                       ),
                       _DirectButton(
@@ -201,22 +246,39 @@ class PdfViewerToolRow extends StatelessWidget {
                           ViewerToolId.exportPng,
                         ]),
                         entries: [
-                          _Entry('Export to images', Icons.photo_library_outlined,
-                              () => tool(ViewerToolId.exportImages)),
-                          _Entry('Export to JPG', Icons.photo_outlined,
-                              () => tool(ViewerToolId.exportJpg)),
-                          _Entry('Export to PNG', Icons.image_outlined,
-                              () => tool(ViewerToolId.exportPng)),
-                          _Entry('Convert to Word / Excel / PowerPoint',
-                              Icons.description_outlined,
-                              () => tool(ViewerToolId.officeConvert)),
+                          _Entry(
+                            'Export to images',
+                            Icons.photo_library_outlined,
+                            () => tool(ViewerToolId.exportImages),
+                          ),
+                          _Entry(
+                            'Export to JPG',
+                            Icons.photo_outlined,
+                            () => tool(ViewerToolId.exportJpg),
+                          ),
+                          _Entry(
+                            'Export to PNG',
+                            Icons.image_outlined,
+                            () => tool(ViewerToolId.exportPng),
+                          ),
+                          _Entry(
+                            'Convert to Word / Excel / PowerPoint',
+                            Icons.description_outlined,
+                            () => tool(ViewerToolId.officeConvert),
+                          ),
                           const _Entry.divider(),
-                          _Entry('Make searchable (OCR)', Icons.text_snippet_outlined,
-                              () => tool(ViewerToolId.searchablePdf)),
+                          _Entry(
+                            'Make searchable (OCR)',
+                            Icons.text_snippet_outlined,
+                            () => tool(ViewerToolId.searchablePdf),
+                          ),
                           if (onOpenImageConverter != null) ...[
                             const _Entry.divider(),
-                            _Entry('Image converter (JPG, PNG, WebP…)',
-                                Icons.transform, onOpenImageConverter!),
+                            _Entry(
+                              'Image converter (JPG, PNG, WebP…)',
+                              Icons.transform,
+                              onOpenImageConverter!,
+                            ),
                           ],
                         ],
                       ),
@@ -234,19 +296,32 @@ class PdfViewerToolRow extends StatelessWidget {
                           ViewerToolId.removeMetadata,
                         ]),
                         entries: [
-                          _Entry('Encrypt with password', Icons.lock_outline,
-                              () => tool(ViewerToolId.protect)),
-                          _Entry('Remove password (decrypt)',
-                              Icons.lock_open_outlined,
-                              () => tool(ViewerToolId.unlock)),
+                          _Entry(
+                            'Encrypt with password',
+                            Icons.lock_outline,
+                            () => tool(ViewerToolId.protect),
+                          ),
+                          _Entry(
+                            'Remove password (decrypt)',
+                            Icons.lock_open_outlined,
+                            () => tool(ViewerToolId.unlock),
+                          ),
                           const _Entry.divider(),
-                          _Entry('Redact content', Icons.hide_source,
-                              () => tool(ViewerToolId.redact)),
-                          _Entry('Document properties', Icons.info_outline,
-                              () => tool(ViewerToolId.metadata)),
-                          _Entry('Remove hidden information',
-                              Icons.cleaning_services_outlined,
-                              () => tool(ViewerToolId.removeMetadata)),
+                          _Entry(
+                            'Redact content',
+                            Icons.hide_source,
+                            () => tool(ViewerToolId.redact),
+                          ),
+                          _Entry(
+                            'Document properties',
+                            Icons.info_outline,
+                            () => tool(ViewerToolId.metadata),
+                          ),
+                          _Entry(
+                            'Remove hidden information',
+                            Icons.cleaning_services_outlined,
+                            () => tool(ViewerToolId.removeMetadata),
+                          ),
                         ],
                       ),
                       _MenuButton(
@@ -260,10 +335,16 @@ class PdfViewerToolRow extends StatelessWidget {
                           ViewerToolId.fillForm,
                         ]),
                         entries: [
-                          _Entry('Sign yourself', Icons.draw_outlined,
-                              () => tool(ViewerToolId.visualSign)),
-                          _Entry('Fill a form', Icons.checklist_rtl,
-                              () => tool(ViewerToolId.fillForm)),
+                          _Entry(
+                            'Sign yourself',
+                            Icons.draw_outlined,
+                            () => tool(ViewerToolId.visualSign),
+                          ),
+                          _Entry(
+                            'Fill a form',
+                            Icons.checklist_rtl,
+                            () => tool(ViewerToolId.fillForm),
+                          ),
                         ],
                       ),
                       _DirectButton(
@@ -285,7 +366,11 @@ class PdfViewerToolRow extends StatelessWidget {
                     builder: (context, _) => Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const VerticalDivider(width: 12, indent: 12, endIndent: 12),
+                        const VerticalDivider(
+                          width: 12,
+                          indent: 12,
+                          endIndent: 12,
+                        ),
                         IconButton(
                           key: const Key('pdf_viewer_undo'),
                           tooltip: 'Undo (Ctrl+Z)',
@@ -328,10 +413,10 @@ class PdfViewerToolRow extends StatelessWidget {
 class _Entry {
   const _Entry(this.label, this.icon, this.onSelected) : isDivider = false;
   const _Entry.divider()
-      : label = '',
-        icon = Icons.circle,
-        onSelected = _noop,
-        isDivider = true;
+    : label = '',
+      icon = Icons.circle,
+      onSelected = _noop,
+      isDivider = true;
 
   static void _noop() {}
 
@@ -370,14 +455,14 @@ class _MenuButton extends StatelessWidget {
           if (entry.isDivider)
             const Divider(height: 9)
           else
-          MenuItemButton(
-            leadingIcon: Icon(entry.icon, size: 18),
-            style: const ButtonStyle(
-              minimumSize: WidgetStatePropertyAll(Size(0, 40)),
+            MenuItemButton(
+              leadingIcon: Icon(entry.icon, size: 18),
+              style: const ButtonStyle(
+                minimumSize: WidgetStatePropertyAll(Size(0, 40)),
+              ),
+              onPressed: enabled ? entry.onSelected : null,
+              child: Text(entry.label),
             ),
-            onPressed: enabled ? entry.onSelected : null,
-            child: Text(entry.label),
-          ),
       ],
       builder: (context, menu, _) {
         final open = menu.isOpen || selected;
@@ -387,37 +472,39 @@ class _MenuButton extends StatelessWidget {
             message: tooltip ?? label,
             waitDuration: const Duration(milliseconds: 400),
             child: TextButton(
-            key: buttonKey,
-            onPressed: enabled ? () => open ? menu.close() : menu.open() : null,
-            style: TextButton.styleFrom(
-              minimumSize: const Size(40, 40),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              foregroundColor: open
-                  ? DsColors.primary
-                  : theme.colorScheme.onSurface,
-              backgroundColor: open
-                  ? DsColors.primary.withValues(alpha: 0.12)
-                  : Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+              key: buttonKey,
+              onPressed: enabled
+                  ? () => open ? menu.close() : menu.open()
+                  : null,
+              style: TextButton.styleFrom(
+                minimumSize: const Size(40, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                foregroundColor: open
+                    ? DsColors.primary
+                    : theme.colorScheme.onSurface,
+                backgroundColor: open
+                    ? DsColors.primary.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Icon(open ? Icons.expand_less : Icons.expand_more, size: 16),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 18),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Icon(open ? Icons.expand_less : Icons.expand_more, size: 16),
-              ],
-            ),
-          ),
           ),
         );
       },
@@ -456,31 +543,36 @@ class _DirectButton extends StatelessWidget {
         message: tooltip ?? label,
         waitDuration: const Duration(milliseconds: 400),
         child: TextButton(
-        key: buttonKey,
-        onPressed: enabled ? onPressed : null,
-        style: TextButton.styleFrom(
-          minimumSize: const Size(40, 40),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          foregroundColor: active
-              ? DsColors.primary
-              : theme.colorScheme.onSurface,
-          backgroundColor: active
-              ? DsColors.primary.withValues(alpha: emphasize ? 0.10 : 0.12)
-              : Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          key: buttonKey,
+          onPressed: enabled ? onPressed : null,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(40, 40),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            foregroundColor: active
+                ? DsColors.primary
+                : theme.colorScheme.onSurface,
+            backgroundColor: active
+                ? DsColors.primary.withValues(alpha: emphasize ? 0.10 : 0.12)
+                : Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

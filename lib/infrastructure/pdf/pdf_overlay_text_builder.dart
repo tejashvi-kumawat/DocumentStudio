@@ -70,7 +70,8 @@ class PdfOverlayTextBuilder {
     required int pageCount,
     double Function(int pageIndex1Based)? pageWidthPt,
     double Function(int pageIndex1Based)? pageHeightPt,
-    required List<PdfOverlayTextLine> Function(int pageIndex1Based) linesForPage,
+    required List<PdfOverlayTextLine> Function(int pageIndex1Based)
+    linesForPage,
   }) {
     if (pageCount < 1) {
       throw ArgumentError.value(pageCount, 'pageCount', 'must be >= 1');
@@ -142,14 +143,12 @@ class PdfOverlayTextBuilder {
       final gs = used.isEmpty
           ? ''
           : '/ExtGState<< '
-              '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> ';
+                '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> ';
       objects.add(
         str(
           '$pageId 0 obj<< /Type /Page /Parent 2 0 R '
           '/MediaBox [0 0 $w $h] /Contents $contentId 0 R '
-          '/Resources<< /Font<< ${[
-            for (var i = 0; i < fonts.length; i++) '/F${i + 1} ${fontIds[i]} 0 R',
-          ].join(' ')} >> '
+          '/Resources<< /Font<< ${[for (var i = 0; i < fonts.length; i++) '/F${i + 1} ${fontIds[i]} 0 R'].join(' ')} >> '
           '$gs>> >>endobj',
         ),
       );
@@ -172,12 +171,15 @@ class PdfOverlayTextBuilder {
       // Subset fonts carry a six-letter tag (ISO 32000 9.6.4).
       final tag = String.fromCharCodes([
         for (var k = 0; k < 6; k++)
-          0x41 + ((chars.fold<int>(i * 7919, (a, c) => a * 31 + c) >> (k * 4)) & 0xF),
+          0x41 +
+              ((chars.fold<int>(i * 7919, (a, c) => a * 31 + c) >> (k * 4)) &
+                  0xF),
       ]);
       final ps =
           '$tag+${ttf.postScriptName.isEmpty ? 'EmbeddedFont' : ttf.postScriptName}';
       final fontFile = ttf.subset(chars);
-      final flags = 32 |
+      final flags =
+          32 |
           (ttf.isFixedPitch ? 1 : 0) |
           (ttf.italic ? 64 : 0) |
           (ttf.bold ? 262144 : 0);
@@ -211,7 +213,9 @@ class PdfOverlayTextBuilder {
     final gsByIndex = gStates.map((alpha, idx) => MapEntry(idx, alpha));
     for (var i = 0; i < gStates.length; i++) {
       objects.add(
-        str('${firstGsId + i} 0 obj<< /Type /ExtGState /ca ${gsByIndex[i]} >>endobj'),
+        str(
+          '${firstGsId + i} 0 obj<< /Type /ExtGState /ca ${gsByIndex[i]} >>endobj',
+        ),
       );
     }
 
@@ -298,7 +302,9 @@ class PdfOverlayTextBuilder {
         final cos = math.cos(rad).toStringAsFixed(4);
         final sin = math.sin(rad).toStringAsFixed(4);
         buf.write('1 0 0 1 $x $y cm ');
-        buf.write('$cos $sin ${(-math.sin(rad)).toStringAsFixed(4)} $cos 0 0 cm ');
+        buf.write(
+          '$cos $sin ${(-math.sin(rad)).toStringAsFixed(4)} $cos 0 0 cm ',
+        );
         var tx = 0.0;
         var ty = 0.0;
         if (line.centerAtAnchor) {

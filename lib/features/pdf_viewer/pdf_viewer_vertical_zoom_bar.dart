@@ -27,7 +27,6 @@ class _PdfViewerVerticalZoomBarState extends State<PdfViewerVerticalZoomBar> {
   static const _w = 36.0;
   static const _h = 250.0;
 
-
   static const _minZoom = 0.25;
   static const _maxZoom = 8.0;
 
@@ -46,126 +45,147 @@ class _PdfViewerVerticalZoomBarState extends State<PdfViewerVerticalZoomBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
-    return LayoutBuilder(builder: (context, c) {
-      final off = PdfViewerVerticalZoomBar.sessionOffset;
-      final right = off.dx.clamp(4.0, (c.maxWidth - _w - 4).clamp(4.0, 4000));
-      final bottom = off.dy.clamp(4.0, (c.maxHeight - _h - 4).clamp(4.0, 4000));
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            right: right.toDouble(),
-            bottom: bottom.toDouble(),
-            child: Material(
-          color: (dark ? const Color(0xFF2B2B2B) : Colors.white)
-              .withValues(alpha: 0.94),
-          elevation: 3,
-          borderRadius: BorderRadius.circular(20),
-          child: ListenableBuilder(
-            listenable: controller,
-            builder: (context, _) {
-              final ready = controller.isReady;
-              final zoom = ready ? controller.currentZoom : 1.0;
-              return SizedBox(
-                width: _w,
-                height: _h,
-                child: Column(
-                  children: [
-                    // Drag this handle to move the zoom bar anywhere.
-                    MouseRegion(
-                      cursor: SystemMouseCursors.grab,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onPanUpdate: (d) => setState(() {
-                          final o = PdfViewerVerticalZoomBar.sessionOffset;
-                          PdfViewerVerticalZoomBar.sessionOffset = Offset(
-                            (o.dx - d.delta.dx).clamp(4.0, c.maxWidth - _w - 4),
-                            (o.dy - d.delta.dy).clamp(4.0, c.maxHeight - _h - 4),
-                          );
-                        }),
-                        child: SizedBox(
-                          height: 18,
-                          width: _w,
-                          child: Icon(
-                            Icons.drag_indicator,
-                            size: 14,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Zoom in',
-                      iconSize: 18,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: ready
-                          ? () => unawaited(
-                                _setZoom((zoom * 1.25).clamp(_minZoom, _maxZoom)),
-                              )
-                          : null,
-                      icon: const Icon(Icons.add),
-                    ),
-                    Expanded(
-                      child: RotatedBox(
-                        quarterTurns: 3,
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2,
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 6,
+    return LayoutBuilder(
+      builder: (context, c) {
+        final off = PdfViewerVerticalZoomBar.sessionOffset;
+        final right = off.dx.clamp(4.0, (c.maxWidth - _w - 4).clamp(4.0, 4000));
+        final bottom = off.dy.clamp(
+          4.0,
+          (c.maxHeight - _h - 4).clamp(4.0, 4000),
+        );
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Positioned(
+              right: right.toDouble(),
+              bottom: bottom.toDouble(),
+              child: Material(
+                color: (dark ? const Color(0xFF2B2B2B) : Colors.white)
+                    .withValues(alpha: 0.94),
+                elevation: 3,
+                borderRadius: BorderRadius.circular(20),
+                child: ListenableBuilder(
+                  listenable: controller,
+                  builder: (context, _) {
+                    final ready = controller.isReady;
+                    final zoom = ready ? controller.currentZoom : 1.0;
+                    return SizedBox(
+                      width: _w,
+                      height: _h,
+                      child: Column(
+                        children: [
+                          // Drag this handle to move the zoom bar anywhere.
+                          MouseRegion(
+                            cursor: SystemMouseCursors.grab,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanUpdate: (d) => setState(() {
+                                final o =
+                                    PdfViewerVerticalZoomBar.sessionOffset;
+                                PdfViewerVerticalZoomBar.sessionOffset = Offset(
+                                  (o.dx - d.delta.dx).clamp(
+                                    4.0,
+                                    c.maxWidth - _w - 4,
+                                  ),
+                                  (o.dy - d.delta.dy).clamp(
+                                    4.0,
+                                    c.maxHeight - _h - 4,
+                                  ),
+                                );
+                              }),
+                              child: SizedBox(
+                                height: 18,
+                                width: _w,
+                                child: Icon(
+                                  Icons.drag_indicator,
+                                  size: 14,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ),
-                            overlayShape: SliderComponentShape.noOverlay,
-                            activeTrackColor: DsColors.primary,
-                            thumbColor: DsColors.primary,
                           ),
-                          child: Slider(
-                            min: _toSlider(_minZoom),
-                            max: _toSlider(_maxZoom),
-                            value: _toSlider(zoom),
-                            onChanged: ready
-                                ? (v) => unawaited(_setZoom(_fromSlider(v)))
+                          IconButton(
+                            tooltip: 'Zoom in',
+                            iconSize: 18,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: ready
+                                ? () => unawaited(
+                                    _setZoom(
+                                      (zoom * 1.25).clamp(_minZoom, _maxZoom),
+                                    ),
+                                  )
                                 : null,
+                            icon: const Icon(Icons.add),
                           ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Zoom out',
-                      iconSize: 18,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: ready
-                          ? () => unawaited(
-                                _setZoom((zoom / 1.25).clamp(_minZoom, _maxZoom)),
-                              )
-                          : null,
-                      icon: const Icon(Icons.remove),
-                    ),
-                    Tooltip(
-                      message: 'Reset to 100%',
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: ready ? () => unawaited(_setZoom(1)) : null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            '${(zoom * 100).round()}%',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                          Expanded(
+                            child: RotatedBox(
+                              quarterTurns: 3,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 2,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 6,
+                                  ),
+                                  overlayShape: SliderComponentShape.noOverlay,
+                                  activeTrackColor: DsColors.primary,
+                                  thumbColor: DsColors.primary,
+                                ),
+                                child: Slider(
+                                  min: _toSlider(_minZoom),
+                                  max: _toSlider(_maxZoom),
+                                  value: _toSlider(zoom),
+                                  onChanged: ready
+                                      ? (v) =>
+                                            unawaited(_setZoom(_fromSlider(v)))
+                                      : null,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          IconButton(
+                            tooltip: 'Zoom out',
+                            iconSize: 18,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: ready
+                                ? () => unawaited(
+                                    _setZoom(
+                                      (zoom / 1.25).clamp(_minZoom, _maxZoom),
+                                    ),
+                                  )
+                                : null,
+                            icon: const Icon(Icons.remove),
+                          ),
+                          Tooltip(
+                            message: 'Reset to 100%',
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: ready
+                                  ? () => unawaited(_setZoom(1))
+                                  : null,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Text(
+                                  '${(zoom * 100).round()}%',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
-          ),
+              ),
             ),
-          ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }

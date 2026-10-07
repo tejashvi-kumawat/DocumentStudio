@@ -240,9 +240,7 @@ class PdfDocumentCache {
     if (doc != null) {
       unawaited(doc.dispose());
     } else {
-      unawaited(
-        e.opening.then((d) => d.dispose(), onError: (Object _) {}),
-      );
+      unawaited(e.opening.then((d) => d.dispose(), onError: (Object _) {}));
     }
   }
 
@@ -262,9 +260,7 @@ class PdfDocumentCache {
       if (doc != null) {
         unawaited(doc.dispose());
       } else {
-        unawaited(
-          e.opening.then((d) => d.dispose(), onError: (Object _) {}),
-        );
+        unawaited(e.opening.then((d) => d.dispose(), onError: (Object _) {}));
       }
     }
   }

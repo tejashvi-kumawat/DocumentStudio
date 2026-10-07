@@ -7,15 +7,13 @@ bool pdfViewerShowsToolsRail({
   required bool presentationMode,
   required bool readMode,
   required bool userToolsRailEnabled,
-}) =>
-    !presentationMode && !readMode && userToolsRailEnabled;
+}) => !presentationMode && !readMode && userToolsRailEnabled;
 
 bool pdfViewerShowsLeftRail({
   required bool presentationMode,
   required bool readMode,
   required bool userSidebarEnabled,
-}) =>
-    !presentationMode && !readMode && userSidebarEnabled;
+}) => !presentationMode && !readMode && userSidebarEnabled;
 
 class PdfViewerToggleReadModeIntent extends Intent {
   const PdfViewerToggleReadModeIntent();

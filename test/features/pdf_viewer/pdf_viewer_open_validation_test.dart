@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:document_studio/core/errors/document_studio_error.dart';
-import 'package:document_studio/core/pdf/pdf_open_limits.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_open_validation.dart';
 import 'package:document_studio/infrastructure/pdf/pdf_render_port.dart';

@@ -24,8 +24,7 @@ const _menuStyle = MenuStyle(
 PdfDocumentRouteArgs pdfViewerToolHandoff({
   required LocalFileRef file,
   String? password,
-}) =>
-    PdfDocumentRouteArgs(file: file, password: password);
+}) => PdfDocumentRouteArgs(file: file, password: password);
 
 Future<void> showPdfViewerDocumentContextMenu({
   required BuildContext context,
@@ -106,14 +105,12 @@ Future<void> pdfViewerToolsPrintDocument({
     await service.printPdf(file);
   } on PrintException catch (e) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(e.message)));
   } catch (e) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Print failed: $e')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Print failed: $e')));
   }
 }
 
@@ -136,10 +133,10 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
       pdfViewerToolHandoff(file: file, password: password);
 
   PdfViewerDocumentHandoff get _docHandoff => PdfViewerDocumentHandoff(
-        file: file,
-        password: password,
-        currentPage1: currentPage1 ?? 1,
-      );
+    file: file,
+    password: password,
+    currentPage1: currentPage1 ?? 1,
+  );
 
   /// Prefer the in-viewer panel (open document + session Apply). Fall back to
   /// the organize route with [PdfDocumentRouteArgs] so the file is not lost.
@@ -195,23 +192,25 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.dashboard_customize_outlined,
               onPressed: handoffEnabled
                   ? () => context.push(
-                        '/workspace',
-                        extra: WorkspaceLaunchArgs(
-                          files: [file],
-                          passwordsByPath: password != null &&
-                                  password!.isNotEmpty
-                              ? {file.path: password!}
-                              : const {},
-                        ),
-                      )
+                      '/workspace',
+                      extra: WorkspaceLaunchArgs(
+                        files: [file],
+                        passwordsByPath:
+                            password != null && password!.isNotEmpty
+                            ? {file.path: password!}
+                            : const {},
+                      ),
+                    )
                   : null,
             ),
             denseItem(
               label: 'All organize tools',
               icon: Icons.apps_outlined,
               onPressed: handoffEnabled
-                  ? () =>
-                      context.push(OrganizeToolCatalog.hubPath, extra: _handoff)
+                  ? () => context.push(
+                      OrganizeToolCatalog.hubPath,
+                      extra: _handoff,
+                    )
                   : null,
             ),
             denseItem(
@@ -295,12 +294,9 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.compress,
               onPressed: handoffEnabled
                   ? () => PdfViewerDocumentActions.compress(
-                        context,
-                        PdfViewerDocumentHandoff(
-                          file: file,
-                          password: password,
-                        ),
-                      )
+                      context,
+                      PdfViewerDocumentHandoff(file: file, password: password),
+                    )
                   : null,
             ),
             denseItem(
@@ -308,13 +304,13 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.image_outlined,
               onPressed: handoffEnabled
                   ? () => context.push(
-                        pdfToImagesRoutePath,
-                        extra: PdfToImagesRouteArgs(
-                          file: file,
-                          page1: currentPage1,
-                          password: password,
-                        ),
-                      )
+                      pdfToImagesRoutePath,
+                      extra: PdfToImagesRouteArgs(
+                        file: file,
+                        page1: currentPage1,
+                        password: password,
+                      ),
+                    )
                   : null,
             ),
             denseItem(
@@ -322,16 +318,16 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.photo_outlined,
               onPressed: handoffEnabled
                   ? () => context.push(
-                        Uri(
-                          path: pdfToImagesRoutePath,
-                          queryParameters: const {'format': 'jpeg'},
-                        ).toString(),
-                        extra: PdfToImagesRouteArgs(
-                          file: file,
-                          page1: currentPage1,
-                          password: password,
-                        ),
-                      )
+                      Uri(
+                        path: pdfToImagesRoutePath,
+                        queryParameters: const {'format': 'jpeg'},
+                      ).toString(),
+                      extra: PdfToImagesRouteArgs(
+                        file: file,
+                        page1: currentPage1,
+                        password: password,
+                      ),
+                    )
                   : null,
             ),
             denseItem(
@@ -339,16 +335,16 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.image_outlined,
               onPressed: handoffEnabled
                   ? () => context.push(
-                        Uri(
-                          path: pdfToImagesRoutePath,
-                          queryParameters: const {'format': 'png'},
-                        ).toString(),
-                        extra: PdfToImagesRouteArgs(
-                          file: file,
-                          page1: currentPage1,
-                          password: password,
-                        ),
-                      )
+                      Uri(
+                        path: pdfToImagesRoutePath,
+                        queryParameters: const {'format': 'png'},
+                      ).toString(),
+                      extra: PdfToImagesRouteArgs(
+                        file: file,
+                        page1: currentPage1,
+                        password: password,
+                      ),
+                    )
                   : null,
             ),
           ],
@@ -376,12 +372,12 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.description_outlined,
               onPressed: handoffEnabled
                   ? () => context.push(
-                        metadataRoutePath,
-                        extra: MetadataEditorRouteArgs(
-                          file: file,
-                          password: password,
-                        ),
-                      )
+                      metadataRoutePath,
+                      extra: MetadataEditorRouteArgs(
+                        file: file,
+                        password: password,
+                      ),
+                    )
                   : null,
             ),
             denseItem(
@@ -402,13 +398,13 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.vertical_align_center_outlined,
               onPressed: handoffEnabled
                   ? () => openViewerToolPanelOr(
-                        context,
-                        ViewerToolId.headersFooters,
-                        () => context.push(
-                          headersFootersRoutePath,
-                          extra: _handoff,
-                        ),
-                      )
+                      context,
+                      ViewerToolId.headersFooters,
+                      () => context.push(
+                        headersFootersRoutePath,
+                        extra: _handoff,
+                      ),
+                    )
                   : null,
             ),
             denseItem(
@@ -416,10 +412,10 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.branding_watermark_outlined,
               onPressed: handoffEnabled
                   ? () => openViewerToolPanelOr(
-                        context,
-                        ViewerToolId.watermark,
-                        () => context.push(watermarkRoutePath, extra: _handoff),
-                      )
+                      context,
+                      ViewerToolId.watermark,
+                      () => context.push(watermarkRoutePath, extra: _handoff),
+                    )
                   : null,
             ),
             denseItem(
@@ -427,13 +423,10 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.format_list_numbered,
               onPressed: handoffEnabled
                   ? () => openViewerToolPanelOr(
-                        context,
-                        ViewerToolId.pageNumbers,
-                        () => context.push(
-                          pageNumbersRoutePath,
-                          extra: _handoff,
-                        ),
-                      )
+                      context,
+                      ViewerToolId.pageNumbers,
+                      () => context.push(pageNumbersRoutePath, extra: _handoff),
+                    )
                   : null,
             ),
           ],
@@ -447,10 +440,10 @@ class PdfViewerDocumentToolsMenu extends ConsumerWidget {
               icon: Icons.print,
               onPressed: handoffEnabled
                   ? () => pdfViewerToolsPrintDocument(
-                        context: context,
-                        ref: ref,
-                        file: file,
-                      )
+                      context: context,
+                      ref: ref,
+                      file: file,
+                    )
                   : null,
             ),
           ],

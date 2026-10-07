@@ -109,10 +109,8 @@ class QpdfEngineFetch {
     if (!File(wrapper).existsSync()) {
       throw StateError('qpdf was downloaded but the app wrapper is missing.');
     }
-    await File(p.join(engines.path, '.qpdf-fetch-complete')).writeAsString(
-      url,
-      flush: true,
-    );
+    await File(p.join(engines.path, '.qpdf-fetch-complete'))
+        .writeAsString(url, flush: true);
     if (!debugDesktopEngineExtraRoots.contains(engines.path)) {
       debugDesktopEngineExtraRoots = [
         ...debugDesktopEngineExtraRoots,
@@ -120,10 +118,7 @@ class QpdfEngineFetch {
       ];
     }
     if (!debugQpdfExtraSearchRoots.contains(engines.path)) {
-      debugQpdfExtraSearchRoots = [
-        ...debugQpdfExtraSearchRoots,
-        engines.path,
-      ];
+      debugQpdfExtraSearchRoots = [...debugQpdfExtraSearchRoots, engines.path];
     }
     debugQpdfExecutableOverride = wrapper;
     invalidateQpdfExecutableCache();
@@ -155,9 +150,7 @@ class QpdfEngineFetch {
       final request = await client.getUrl(Uri.parse(url));
       final response = await request.close();
       if (response.statusCode != 200) {
-        throw StateError(
-          'qpdf download failed (HTTP ${response.statusCode}).',
-        );
+        throw StateError('qpdf download failed (HTTP ${response.statusCode}).');
       }
       final sink = File(destZip).openWrite();
       await response.pipe(sink);
@@ -169,27 +162,35 @@ class QpdfEngineFetch {
   static Future<void> _unzip(String zipPath, String destDir) async {
     await Directory(destDir).create(recursive: true);
     if (Platform.isWindows) {
-      final result = await Process.run(
-        'powershell',
-        [
-          '-NoProfile',
-          '-Command',
-          "Expand-Archive -LiteralPath '$zipPath' -DestinationPath '$destDir' -Force",
-        ],
-      );
+      final result = await Process.run('powershell', [
+        '-NoProfile',
+        '-Command',
+        "Expand-Archive -LiteralPath '$zipPath' -DestinationPath '$destDir' -Force",
+      ]);
       if (result.exitCode != 0) {
         throw StateError('Could not unpack the qpdf zip.');
       }
       return;
     }
-    final unzip = await Process.run('unzip', ['-q', '-o', zipPath, '-d', destDir]);
+    final unzip = await Process.run('unzip', [
+      '-q',
+      '-o',
+      zipPath,
+      '-d',
+      destDir,
+    ]);
     if (unzip.exitCode == 0) return;
-    final python = await Process.run(
-      'python3',
-      ['-m', 'zipfile', '-e', zipPath, destDir],
-    );
+    final python = await Process.run('python3', [
+      '-m',
+      'zipfile',
+      '-e',
+      zipPath,
+      destDir,
+    ]);
     if (python.exitCode != 0) {
-      throw StateError('Could not unpack the qpdf zip (need unzip or python3).');
+      throw StateError(
+        'Could not unpack the qpdf zip (need unzip or python3).',
+      );
     }
   }
 

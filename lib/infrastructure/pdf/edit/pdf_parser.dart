@@ -346,9 +346,7 @@ Uint8List _undoPredictor(Uint8List data, PdfDict parms) {
           final pa = (up - upLeft).abs();
           final pb = (left - upLeft).abs();
           final pc = (left + up - 2 * upLeft).abs();
-          final pred = (pa <= pb && pa <= pc)
-              ? left
-              : (pb <= pc ? up : upLeft);
+          final pred = (pa <= pb && pa <= pc) ? left : (pb <= pc ? up : upLeft);
           row[i] = (row[i] + pred) & 0xff;
       }
     }

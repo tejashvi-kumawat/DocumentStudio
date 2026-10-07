@@ -8,6 +8,7 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/shell/ds_tool_route_actions.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/compression/compress_service.dart';
@@ -20,11 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Standalone `/compress` tool: pick a PDF, choose a level, save a smaller copy.
 class CompressScreen extends ConsumerStatefulWidget {
-  const CompressScreen({
-    super.key,
-    this.initialFile,
-    this.initialPassword,
-  });
+  const CompressScreen({super.key, this.initialFile, this.initialPassword});
 
   final LocalFileRef? initialFile;
   final String? initialPassword;
@@ -67,7 +64,9 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
   }
 
   Future<void> _refreshQpdf() async {
-    final ok = await ref.read(compressServiceProvider).isQpdfPreferredAvailable();
+    final ok = await ref
+        .read(compressServiceProvider)
+        .isQpdfPreferredAvailable();
     if (mounted) setState(() => _qpdfAvailable = ok);
   }
 
@@ -80,12 +79,32 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
       _estimate = null;
     });
     if (file.sizeBytes == null) {
-      File(file.path).length().then((n) {
-        if (mounted && _file?.path == file.path) {
-          setState(() => _fileBytes = n);
-        }
-      }).catchError((_) {});
+      File(file.path)
+          .length()
+          .then((n) {
+            if (mounted && _file?.path == file.path) {
+              setState(() => _fileBytes = n);
+            }
+          })
+          .catchError((_) {});
     }
+  }
+
+  void _clearFile() => setState(() {
+    _file = null;
+    _fileBytes = null;
+    _password = null;
+    _result = null;
+    _estimate = null;
+  });
+
+  Future<void> _unlock() async {
+    final pw = await promptPdfPasswordAfterRejection(context);
+    if (pw == null || pw.isEmpty || !mounted) return;
+    setState(() {
+      _password = pw;
+      _estimate = null;
+    });
   }
 
   Future<void> _pick() async {
@@ -142,7 +161,9 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
     });
     var retry = false;
     try {
-      final result = await ref.read(compressServiceProvider).estimateCompress(
+      final result = await ref
+          .read(compressServiceProvider)
+          .estimateCompress(
             input: file,
             options: _options(),
             password: _password,
@@ -179,7 +200,9 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
     });
     var retry = false;
     try {
-      final result = await ref.read(compressServiceProvider).compressAndPromptSave(
+      final result = await ref
+          .read(compressServiceProvider)
+          .compressAndPromptSave(
             handle: job,
             input: file,
             options: _options(),
@@ -255,8 +278,17 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
       title: 'Compress PDF',
       subtitle: 'Shrink a PDF on this device — nothing is uploaded.',
       icon: Icons.compress_rounded,
-      iconColor: const Color(0xFF0EA5E9),
       headerTrailing: _EngineChip(qpdf: qpdf, onRecheck: _refreshQpdf),
+      preview: DsPdfPreviewPane(
+        file: file,
+        password: _password,
+        onUnlock: _unlock,
+        enabled: !_busy,
+        onPick: _pick,
+        onFilesDropped: (files) => _setFile(files.first),
+        emptyTitle: 'Drop a PDF here',
+        emptySubtitle: 'or browse to choose the file you want to shrink',
+      ),
       primaryLabel: 'Compress & save as…',
       primaryIcon: Icons.save_alt_rounded,
       primaryEnabled: canRun,
@@ -266,29 +298,25 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DsToolSection(
-            title: 'Source PDF',
-            topPadding: false,
-            child: DsToolFileSource(
-              files: [?file],
-              enabled: !_busy,
-              onPick: _pick,
-              onFilesDropped: (files) => _setFile(files.first),
-              onRemove: (_) => setState(() {
-                _file = null;
-                _fileBytes = null;
-                _result = null;
-                _estimate = null;
-              }),
-              metaFor: (_) =>
-                  _fileBytes == null ? null : dsFormatBytes(_fileBytes!),
-              emptyTitle: 'Drop a PDF here',
-              emptySubtitle: 'or browse to choose the file you want to shrink',
+          if (file != null)
+            DsToolSection(
+              title: 'Source PDF',
+              topPadding: false,
+              child: DsToolFileSource(
+                files: [file],
+                enabled: !_busy,
+                onPick: _pick,
+                onFilesDropped: (files) => _setFile(files.first),
+                onRemove: (_) => _clearFile(),
+                metaFor: (_) =>
+                    _fileBytes == null ? null : dsFormatBytes(_fileBytes!),
+              ),
             ),
-          ),
           DsToolSection(
             title: 'Compression level',
-            subtitle: PdfCompressOptions.fromProfile(_profile).effectDescription,
+            topPadding: file != null,
+            subtitle: PdfCompressOptions.fromProfile(_profile)
+                .effectDescription,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -297,7 +325,7 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
                   onChanged: _busy
                       ? null
                       : (v) => _changeOption(() => _profile = v),
-                  minCardWidth: 150,
+                  minCardWidth: 240,
                   choices: const [
                     DsToolChoice(
                       value: CompressProfile.smallest,
@@ -347,35 +375,33 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
             ),
           ),
           DsToolSection(
-            child: Row(
+            title: 'Estimated size',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                OutlinedButton.icon(
-                  onPressed: file == null || _busy || _estimating
-                      ? null
-                      : _estimateSize,
-                  icon: _estimating
-                      ? const SizedBox.square(
-                          dimension: 14,
-                          child: DsAdaptiveProgress(size: 14),
-                        )
-                      : const Icon(Icons.speed_rounded, size: 18),
-                  label: Text(_estimating ? 'Estimating…' : 'Preview size'),
-                ),
-                const SizedBox(width: DsSpacing.md),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _estimate == null
-                        ? const SizedBox.shrink()
-                        : Text(
-                            key: ValueKey(_estimate!.afterBytes),
-                            '${dsFormatBytes(_estimate!.beforeBytes)} → '
-                                '${dsFormatBytes(_estimate!.afterBytes)}. '
-                                '${_estimate!.afterBytes >= _estimate!.beforeBytes ? 'Not smaller.' : '(${_estimate!.percentSaved.toStringAsFixed(0)}% smaller)'}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: DsColors.textSecondary(b),
-                            ),
-                          ),
+                if (_estimate case final e?)
+                  _SizeCompare(before: e.beforeBytes, after: e.afterBytes)
+                else
+                  Text(
+                    'See how small the file gets before you save it.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: DsColors.textSecondary(b),
+                    ),
+                  ),
+                const SizedBox(height: DsSpacing.md),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: file == null || _busy || _estimating
+                        ? null
+                        : _estimateSize,
+                    icon: _estimating
+                        ? const SizedBox.square(
+                            dimension: 14,
+                            child: DsAdaptiveProgress(size: 14),
+                          )
+                        : const Icon(Icons.speed_rounded, size: 18),
+                    label: Text(_estimating ? 'Estimating…' : 'Preview size'),
                   ),
                 ),
               ],
@@ -417,8 +443,11 @@ class _CompressScreenState extends ConsumerState<CompressScreen> {
                     : DsResultTone.success,
                 stats: [
                   DsResultStat('Before', dsFormatBytes(r.beforeBytes)),
-                  DsResultStat('After', dsFormatBytes(r.afterBytes),
-                      highlight: true),
+                  DsResultStat(
+                    'After',
+                    dsFormatBytes(r.afterBytes),
+                    highlight: true,
+                  ),
                   DsResultStat(
                     'Saved',
                     dsFormatBytes(
@@ -503,13 +532,17 @@ class _EngineChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (label, color, tip) = switch (qpdf) {
-      null => ('Checking engine…', DsColors.textSecondary(theme.brightness), ''),
+      null => (
+        'Checking engine…',
+        DsColors.textSecondary(theme.brightness),
+        '',
+      ),
       true => ('qpdf engine', DsColors.success, 'Full-strength compression'),
       false => (
-          'On-device engine',
-          DsColors.success,
-          'Built-in PDF compression (no external tools required).',
-        ),
+        'On-device engine',
+        DsColors.success,
+        'Built-in PDF compression (no external tools required).',
+      ),
     };
     return Tooltip(
       message: tip,
@@ -543,6 +576,82 @@ class _EngineChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Before / after sizes as two bars on a common scale.
+class _SizeCompare extends StatelessWidget {
+  const _SizeCompare({required this.before, required this.after});
+
+  final int before;
+  final int after;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final b = theme.brightness;
+    final smaller = after < before;
+    final saved = before == 0 ? 0 : (before - after) * 100 / before;
+    Widget bar(String label, int bytes, Color color) => Row(
+      children: [
+        SizedBox(
+          width: 52,
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: DsColors.textSecondary(b),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(
+                end: before == 0 ? 0 : (bytes / before).clamp(0.0, 1.0),
+              ),
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeOutCubic,
+              builder: (_, v, _) => LinearProgressIndicator(
+                value: v,
+                minHeight: 8,
+                color: color,
+                backgroundColor: DsColors.border(b).withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 72,
+          child: Text(
+            dsFormatBytes(bytes),
+            textAlign: TextAlign.right,
+            style: theme.textTheme.labelMedium,
+          ),
+        ),
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        bar('Before', before, DsColors.textSecondary(b)),
+        const SizedBox(height: DsSpacing.sm),
+        bar(
+          'After',
+          after,
+          smaller ? DsColors.success : DsColors.textSecondary(b),
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        Text(
+          smaller
+              ? '${saved.toStringAsFixed(0)}% smaller'
+              : 'Not smaller — this file is already well optimised.',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: smaller ? DsColors.success : DsColors.textSecondary(b),
+          ),
+        ),
+      ],
     );
   }
 }

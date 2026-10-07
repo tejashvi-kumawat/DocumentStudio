@@ -171,7 +171,9 @@ class LinuxDocumentPortal {
         environment: clean,
         includeParentEnvironment: false,
       );
-      final parsed = r.exitCode == 0 ? _parseHostPathStdout('${r.stdout}') : null;
+      final parsed = r.exitCode == 0
+          ? _parseHostPathStdout('${r.stdout}')
+          : null;
       if (parsed != null && parsed.isNotEmpty) return parsed;
     } catch (_) {}
     try {
@@ -208,16 +210,16 @@ class LinuxDocumentPortal {
   }
 
   static List<String> _gdbusArgs(String id) => [
-        'call',
-        '--session',
-        '--dest',
-        'org.freedesktop.portal.Documents',
-        '--object-path',
-        '/org/freedesktop/portal/documents',
-        '--method',
-        'org.freedesktop.portal.Documents.GetHostPaths',
-        "['$id']",
-      ];
+    'call',
+    '--session',
+    '--dest',
+    'org.freedesktop.portal.Documents',
+    '--object-path',
+    '/org/freedesktop/portal/documents',
+    '--method',
+    'org.freedesktop.portal.Documents.GetHostPaths',
+    "['$id']",
+  ];
 
   /// ({'5045f77': b'/home/me/Downloads/a.pdf'},)
   ///
@@ -339,7 +341,7 @@ class _Libc {
 
   static DynamicLibrary? _lib;
   static int Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Uint8>, int)?
-      _getxattr;
+  _getxattr;
   static int Function(int, Pointer<Utf8>, int, int, Pointer<Uint8>)? _statx;
   static bool _tried = false;
 
@@ -359,17 +361,22 @@ class _Libc {
   }
 
   static int Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Uint8>, int)?
-      get getxattr {
+  get getxattr {
     final existing = _getxattr;
     if (existing != null) return existing;
     final lib = _library;
     if (lib == null) return null;
     try {
-      return _getxattr = lib.lookupFunction<
-          IntPtr Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Uint8>, IntPtr),
-          int Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Uint8>, int)>(
-        'getxattr',
-      );
+      return _getxattr = lib
+          .lookupFunction<
+            IntPtr Function(
+              Pointer<Utf8>,
+              Pointer<Utf8>,
+              Pointer<Uint8>,
+              IntPtr,
+            ),
+            int Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Uint8>, int)
+          >('getxattr');
     } catch (_) {
       return null;
     }
@@ -381,9 +388,11 @@ class _Libc {
     final lib = _library;
     if (lib == null) return null;
     try {
-      return _statx = lib.lookupFunction<
-          Int32 Function(Int32, Pointer<Utf8>, Int32, Uint32, Pointer<Uint8>),
-          int Function(int, Pointer<Utf8>, int, int, Pointer<Uint8>)>('statx');
+      return _statx = lib
+          .lookupFunction<
+            Int32 Function(Int32, Pointer<Utf8>, Int32, Uint32, Pointer<Uint8>),
+            int Function(int, Pointer<Utf8>, int, int, Pointer<Uint8>)
+          >('statx');
     } catch (_) {
       return null;
     }
@@ -419,8 +428,16 @@ class _GioDocuments {
 }
 
 class _GioBindings {
-  _GioBindings._(this._call, this._parse, this._print, this._unrefVariant,
-      this._free, this._unrefObject, this._errorFree, this._bus);
+  _GioBindings._(
+    this._call,
+    this._parse,
+    this._print,
+    this._unrefVariant,
+    this._free,
+    this._unrefObject,
+    this._errorFree,
+    this._bus,
+  );
 
   final Pointer<Void> Function(
     Pointer<Void>,
@@ -434,14 +451,16 @@ class _GioBindings {
     int,
     Pointer<Void>,
     Pointer<Pointer<Void>>,
-  ) _call;
+  )
+  _call;
   final Pointer<Void> Function(
     Pointer<Void>,
     Pointer<Utf8>,
     Pointer<Utf8>,
     Pointer<Pointer<Utf8>>,
     Pointer<Pointer<Void>>,
-  ) _parse;
+  )
+  _parse;
   final Pointer<Utf8> Function(Pointer<Void>, int) _print;
   final void Function(Pointer<Void>) _unrefVariant;
   final void Function(Pointer<Void>) _free;
@@ -468,65 +487,73 @@ class _GioBindings {
     }
     return _GioBindings._(
       gio.lookupFunction<
-          Pointer<Void> Function(
-            Pointer<Void>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Void>,
-            Pointer<Void>,
-            Int32,
-            Int32,
-            Pointer<Void>,
-            Pointer<Pointer<Void>>,
-          ),
-          Pointer<Void> Function(
-            Pointer<Void>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Void>,
-            Pointer<Void>,
-            int,
-            int,
-            Pointer<Void>,
-            Pointer<Pointer<Void>>,
-          )>('g_dbus_connection_call_sync'),
+        Pointer<Void> Function(
+          Pointer<Void>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Void>,
+          Pointer<Void>,
+          Int32,
+          Int32,
+          Pointer<Void>,
+          Pointer<Pointer<Void>>,
+        ),
+        Pointer<Void> Function(
+          Pointer<Void>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Void>,
+          Pointer<Void>,
+          int,
+          int,
+          Pointer<Void>,
+          Pointer<Pointer<Void>>,
+        )
+      >('g_dbus_connection_call_sync'),
       gio.lookupFunction<
-          Pointer<Void> Function(
-            Pointer<Void>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Pointer<Utf8>>,
-            Pointer<Pointer<Void>>,
-          ),
-          Pointer<Void> Function(
-            Pointer<Void>,
-            Pointer<Utf8>,
-            Pointer<Utf8>,
-            Pointer<Pointer<Utf8>>,
-            Pointer<Pointer<Void>>,
-          )>('g_variant_parse'),
+        Pointer<Void> Function(
+          Pointer<Void>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Pointer<Utf8>>,
+          Pointer<Pointer<Void>>,
+        ),
+        Pointer<Void> Function(
+          Pointer<Void>,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          Pointer<Pointer<Utf8>>,
+          Pointer<Pointer<Void>>,
+        )
+      >('g_variant_parse'),
       glib.lookupFunction<
-          Pointer<Utf8> Function(Pointer<Void>, Int32),
-          Pointer<Utf8> Function(Pointer<Void>, int)>('g_variant_print'),
-      glib.lookupFunction<Void Function(Pointer<Void>),
-          void Function(Pointer<Void>)>('g_variant_unref'),
-      glib.lookupFunction<Void Function(Pointer<Void>),
-          void Function(Pointer<Void>)>('g_free'),
-      gobject.lookupFunction<Void Function(Pointer<Void>),
-          void Function(Pointer<Void>)>('g_object_unref'),
-      glib.lookupFunction<Void Function(Pointer<Void>),
-          void Function(Pointer<Void>)>('g_error_free'),
+        Pointer<Utf8> Function(Pointer<Void>, Int32),
+        Pointer<Utf8> Function(Pointer<Void>, int)
+      >('g_variant_print'),
+      glib.lookupFunction<
+        Void Function(Pointer<Void>),
+        void Function(Pointer<Void>)
+      >('g_variant_unref'),
+      glib.lookupFunction<
+        Void Function(Pointer<Void>),
+        void Function(Pointer<Void>)
+      >('g_free'),
+      gobject.lookupFunction<
+        Void Function(Pointer<Void>),
+        void Function(Pointer<Void>)
+      >('g_object_unref'),
+      glib.lookupFunction<
+        Void Function(Pointer<Void>),
+        void Function(Pointer<Void>)
+      >('g_error_free'),
       gio.lookupFunction<
-          Pointer<Void> Function(Int32, Pointer<Void>, Pointer<Pointer<Void>>),
-          Pointer<Void> Function(
-            int,
-            Pointer<Void>,
-            Pointer<Pointer<Void>>,
-          )>('g_bus_get_sync'),
+        Pointer<Void> Function(Int32, Pointer<Void>, Pointer<Pointer<Void>>),
+        Pointer<Void> Function(int, Pointer<Void>, Pointer<Pointer<Void>>)
+      >('g_bus_get_sync'),
     );
   }
 

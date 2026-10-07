@@ -102,8 +102,10 @@ class StoragePaths {
     if (!Platform.isWindows) {
       // Spawning a process costs ~20–60 ms; keep it off the startup path.
       unawaited(
-        Process.run('chmod', ['700', paths.dir(StorageArea.digitalIds).path])
-            .then((_) {}, onError: (Object _) {}),
+        Process.run('chmod', [
+          '700',
+          paths.dir(StorageArea.digitalIds).path,
+        ]).then((_) {}, onError: (Object _) {}),
       );
     }
     _instance = paths;
@@ -179,8 +181,9 @@ class StoragePaths {
     }
     try {
       // Pre-sandbox thumbnails from the Home page cache.
-      final oldHomeThumbs =
-          Directory(p.join(paths.cacheRoot.path, 'home_thumbnails'));
+      final oldHomeThumbs = Directory(
+        p.join(paths.cacheRoot.path, 'home_thumbnails'),
+      );
       if (oldHomeThumbs.existsSync()) {
         oldHomeThumbs.deleteSync(recursive: true);
       }

@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 
 /// DS-ORG-008 — reverse all page order, preview, then export.
 class ReverseToolScreen extends StatelessWidget {
-  const ReverseToolScreen({
-    super.key,
-    this.initialFile,
-    this.initialPassword,
-  });
+  const ReverseToolScreen({super.key, this.initialFile, this.initialPassword});
 
   final LocalFileRef? initialFile;
   final String? initialPassword;

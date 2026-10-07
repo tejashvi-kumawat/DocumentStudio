@@ -11,10 +11,7 @@ import 'package:path/path.dart' as p;
 /// - `document_studio.exe --tool compress C:\docs\a.pdf`
 /// - `document_studio.exe --tool merge a.pdf b.pdf`
 class CliLaunchArgs {
-  const CliLaunchArgs({
-    this.files = const [],
-    this.tool,
-  });
+  const CliLaunchArgs({this.files = const [], this.tool});
 
   final List<String> files;
   final String? tool;
@@ -111,7 +108,7 @@ class CliLaunchArgs {
   }
 
   List<LocalFileRef> get fileRefs => [
-        for (final path in files)
-          LocalFileRef(path: path, displayName: p.basename(path)),
-      ];
+    for (final path in files)
+      LocalFileRef(path: path, displayName: p.basename(path)),
+  ];
 }

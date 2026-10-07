@@ -39,25 +39,27 @@ class _DsHoverLiftState extends State<DsHoverLift> {
       onEnter: widget.enabled ? (_) => setState(() => _hovered = true) : null,
       onExit: widget.enabled
           ? (_) => setState(() {
-                _hovered = false;
-                _pressed = false;
-              })
+              _hovered = false;
+              _pressed = false;
+            })
           : null,
       cursor: widget.enabled && widget.onTap != null
           ? SystemMouseCursors.click
           : MouseCursor.defer,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _pressed = true) : null,
+        onTapDown: widget.enabled
+            ? (_) => setState(() => _pressed = true)
+            : null,
         onTapUp: widget.enabled
             ? (_) {
                 setState(() => _pressed = false);
                 widget.onTap?.call();
               }
             : null,
-        onTapCancel:
-            widget.enabled ? () => setState(() => _pressed = false) : null,
+        onTapCancel: widget.enabled
+            ? () => setState(() => _pressed = false)
+            : null,
         onSecondaryTapUp: widget.enabled ? widget.onSecondaryTapUp : null,
         child: AnimatedContainer(
           duration: DsMotion.hoverDuration,

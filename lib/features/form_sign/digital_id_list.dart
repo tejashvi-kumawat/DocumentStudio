@@ -65,8 +65,8 @@ class SigningCredentialCard extends StatelessWidget {
                       c.isSelfSigned
                           ? 'Self-signed'
                           : (c.issuerCommonName.isEmpty
-                              ? c.source.groupTitle
-                              : 'Issuer: ${c.issuerCommonName}'),
+                                ? c.source.groupTitle
+                                : 'Issuer: ${c.issuerCommonName}'),
                       style: theme.textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -82,11 +82,17 @@ class SigningCredentialCard extends StatelessWidget {
                           else if (c.isNotYetValid)
                             const _Badge('Not yet valid', Color(0xFFB7791F))
                           else if (c.isExpiringSoon)
-                            const _Badge('Expires in 30 days', Color(0xFFB7791F)),
+                            const _Badge(
+                              'Expires in 30 days',
+                              Color(0xFFB7791F),
+                            ),
                           if (!c.canSignDocuments)
                             const _Badge('Not for signing', Color(0xFFB7791F)),
                           if (c.keyDescription.isNotEmpty)
-                            _Badge(c.keyDescription, DsColors.textSecondaryLight),
+                            _Badge(
+                              c.keyDescription,
+                              DsColors.textSecondaryLight,
+                            ),
                           if (c.hardwareBacked)
                             const _Badge('Hardware key', DsColors.primary),
                           if (c.protectedAuthPath)
@@ -112,13 +118,13 @@ class SigningCredentialCard extends StatelessWidget {
   }
 
   IconData _iconFor(SigningCredentialSource s) => switch (s) {
-        SigningCredentialSource.smartCard => Icons.credit_card,
-        SigningCredentialSource.keychain => Icons.key,
-        SigningCredentialSource.windowsStore => Icons.desktop_windows_outlined,
-        SigningCredentialSource.nss => Icons.language,
-        SigningCredentialSource.imported => Icons.badge_outlined,
-        SigningCredentialSource.selfSigned => Icons.verified_user_outlined,
-      };
+    SigningCredentialSource.smartCard => Icons.credit_card,
+    SigningCredentialSource.keychain => Icons.key,
+    SigningCredentialSource.windowsStore => Icons.desktop_windows_outlined,
+    SigningCredentialSource.nss => Icons.language,
+    SigningCredentialSource.imported => Icons.badge_outlined,
+    SigningCredentialSource.selfSigned => Icons.verified_user_outlined,
+  };
 }
 
 class _Badge extends StatelessWidget {
@@ -254,15 +260,12 @@ class DigitalIdListState extends State<DigitalIdList> {
       grouped.putIfAbsent(c.source, () => []).add(c);
     }
     final showUsbSection = SigningCredentialService.supportsSystemStores;
-    final sources = SigningCredentialSource.values
-        .where((s) {
-          if (s == SigningCredentialSource.smartCard && showUsbSection) {
-            return true;
-          }
-          return grouped[s]?.isNotEmpty == true;
-        })
-        .toList()
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final sources = SigningCredentialSource.values.where((s) {
+      if (s == SigningCredentialSource.smartCard && showUsbSection) {
+        return true;
+      }
+      return grouped[s]?.isNotEmpty == true;
+    }).toList()..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     final nonUsbEmpty = _items
         .where((c) => c.source != SigningCredentialSource.smartCard)
         .isEmpty;
@@ -290,8 +293,7 @@ class DigitalIdListState extends State<DigitalIdList> {
         ),
         for (final source in sources) ...[
           _GroupHeader(
-            title:
-                '${source.groupTitle} · ${grouped[source]?.length ?? 0}',
+            title: '${source.groupTitle} · ${grouped[source]?.length ?? 0}',
             open: _openGroups.contains(source),
             onToggle: () => setState(() {
               if (!_openGroups.add(source)) _openGroups.remove(source);
@@ -328,11 +330,11 @@ class DigitalIdListState extends State<DigitalIdList> {
             child: Text(
               showUsbSection
                   ? 'No other digital IDs yet. Import a .p12 / .pfx or create '
-                      'a self-signed ID (install a PKCS#11 driver under '
-                      'Drivers… if your token is not detected).'
+                        'a self-signed ID (install a PKCS#11 driver under '
+                        'Drivers… if your token is not detected).'
                   : 'No digital IDs yet. Import a .p12 / .pfx file or create a '
-                      'self-signed ID. USB tokens and smart cards are supported '
-                      'on the desktop app only.',
+                        'self-signed ID. USB tokens and smart cards are supported '
+                        'on the desktop app only.',
               style: theme.textTheme.bodySmall,
             ),
           ),
@@ -362,9 +364,7 @@ class _GroupHeader extends StatelessWidget {
         padding: const EdgeInsets.only(top: DsSpacing.sm, bottom: 4),
         child: Row(
           children: [
-            Expanded(
-              child: Text(title, style: theme.textTheme.labelMedium),
-            ),
+            Expanded(child: Text(title, style: theme.textTheme.labelMedium)),
             Icon(
               open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
               size: 18,

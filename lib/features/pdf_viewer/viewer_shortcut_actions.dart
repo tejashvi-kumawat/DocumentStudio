@@ -61,5 +61,5 @@ class ViewerShortcutActionsNotifier extends Notifier<ViewerShortcutActions> {
 
 final viewerShortcutActionsProvider =
     NotifierProvider<ViewerShortcutActionsNotifier, ViewerShortcutActions>(
-  ViewerShortcutActionsNotifier.new,
-);
+      ViewerShortcutActionsNotifier.new,
+    );

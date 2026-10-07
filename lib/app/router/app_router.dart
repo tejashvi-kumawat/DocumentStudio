@@ -1,3 +1,6 @@
+import 'package:document_studio/features/compose/compose_templates.dart';
+import 'package:document_studio/features/compose/template_gallery_screen.dart';
+import 'package:document_studio/features/office/office_route.dart';
 import 'package:document_studio/features/compose/compose_model.dart';
 import 'package:document_studio/features/compose/compose_screen.dart';
 import 'package:document_studio/app/shell/ds_document_tab_shell.dart';
@@ -25,11 +28,15 @@ import 'package:go_router/go_router.dart';
 
 /// Root navigator for full-screen routes and global shortcuts.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final _shellNavigatorToolsKey =
-    GlobalKey<NavigatorState>(debugLabel: 'shellTools');
-final _shellNavigatorSettingsKey =
-    GlobalKey<NavigatorState>(debugLabel: 'shellSettings');
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final _shellNavigatorToolsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellTools',
+);
+final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellSettings',
+);
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -76,10 +83,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra;
           if (extra is ViewerRouteArgs) {
-            return PdfViewerScreen(
-              file: extra.file,
-              password: extra.password,
-            );
+            return PdfViewerScreen(file: extra.file, password: extra.password);
           }
           if (extra is LocalFileRef) {
             return PdfViewerScreen(file: extra);
@@ -96,23 +100,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ...buildOrganizeRoutes(parentNavigatorKey: rootNavigatorKey),
       ...buildDocumentWorkspaceRoutes(parentNavigatorKey: rootNavigatorKey),
       buildCreatePdfRoute(parentNavigatorKey: rootNavigatorKey),
+      buildOfficeRoute(parentNavigatorKey: rootNavigatorKey),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: composeRoutePath,
         builder: (context, state) => ComposeScreen(
+          key: ValueKey(state.uri.toString()),
           language: ComposeLanguage.values.firstWhere(
             (l) => l.extension == state.uri.queryParameters['lang'],
             orElse: () => ComposeLanguage.markdown,
           ),
+          templateId: state.uri.queryParameters['template'],
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: templateGalleryRoutePath,
+        builder: (context, state) => TemplateGalleryScreen(
+          initialCategory: TemplateCategory.values
+              .where((c) => c.name == state.uri.queryParameters['category'])
+              .firstOrNull,
         ),
       ),
       buildImagesToPdfRoute(parentNavigatorKey: rootNavigatorKey),
       buildPdfToImagesRoute(parentNavigatorKey: rootNavigatorKey),
       buildOfficeConvertRoute(parentNavigatorKey: rootNavigatorKey),
       buildScanRoute(parentNavigatorKey: rootNavigatorKey),
-      ...buildConversionFormatAliasRoutes(
-        parentNavigatorKey: rootNavigatorKey,
-      ),
+      ...buildConversionFormatAliasRoutes(parentNavigatorKey: rootNavigatorKey),
       ...buildSecurityRoutes(parentNavigatorKey: rootNavigatorKey),
       buildSearchablePdfRoute(parentNavigatorKey: rootNavigatorKey),
       buildImageOcrRoute(parentNavigatorKey: rootNavigatorKey),

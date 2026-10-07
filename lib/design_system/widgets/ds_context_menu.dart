@@ -82,14 +82,15 @@ class DsContextMenuPanel extends StatelessWidget {
               for (final e in entries)
                 switch (e) {
                   DsMenuDivider() => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Divider(
-                        height: 1,
-                        thickness: 1,
-                        color:
-                            dark ? const Color(0xFF444444) : const Color(0xFFE4E4E4),
-                      ),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: dark
+                          ? const Color(0xFF444444)
+                          : const Color(0xFFE4E4E4),
                     ),
+                  ),
                   DsMenuItem() => _Row(item: e, onDismiss: onDismiss),
                 },
             ],
@@ -115,8 +116,8 @@ class _Row extends StatelessWidget {
     final color = !enabled
         ? base.withValues(alpha: 0.38)
         : item.destructive
-            ? const Color(0xFFD7373F)
-            : base;
+        ? const Color(0xFFD7373F)
+        : base;
     final style = TextStyle(fontSize: 12.5, color: color, height: 1.1);
     final row = SizedBox(
       height: 28,
@@ -127,11 +128,15 @@ class _Row extends StatelessWidget {
             child: item.checked
                 ? Icon(Icons.check, size: 15, color: color)
                 : item.icon == null
-                    ? null
-                    : Icon(item.icon, size: 16, color: color),
+                ? null
+                : Icon(item.icon, size: 16, color: color),
           ),
           Expanded(
-            child: Text(item.label, style: style, overflow: TextOverflow.ellipsis),
+            child: Text(
+              item.label,
+              style: style,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           if (item.shortcut != null)
             Padding(
@@ -168,7 +173,8 @@ class _Row extends StatelessWidget {
           onEnter: (_) => enabled ? controller.open() : null,
           child: InkWell(
             hoverColor: hover,
-            onTap: () => controller.isOpen ? controller.close() : controller.open(),
+            onTap: () =>
+                controller.isOpen ? controller.close() : controller.open(),
             child: row,
           ),
         ),
@@ -196,8 +202,14 @@ Future<void> showDsContextMenu(
 ) {
   final size = MediaQuery.sizeOf(context);
   final h = DsContextMenuPanel.estimateHeight(entries);
-  final left = globalPosition.dx.clamp(8.0, (size.width - 260).clamp(8.0, 4000));
-  final top = globalPosition.dy.clamp(8.0, (size.height - h - 16).clamp(8.0, 4000));
+  final left = globalPosition.dx.clamp(
+    8.0,
+    (size.width - 260).clamp(8.0, 4000),
+  );
+  final top = globalPosition.dy.clamp(
+    8.0,
+    (size.height - h - 16).clamp(8.0, 4000),
+  );
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,

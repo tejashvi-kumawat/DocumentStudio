@@ -4,9 +4,7 @@ import 'package:document_studio/domain/models/local_file_ref.dart';
 
 /// Platform-agnostic file access. UI must use this port, not direct IO.
 abstract class FileStoragePort {
-  Future<LocalFileRef?> pickOpenFile({
-    List<String>? allowedExtensions,
-  });
+  Future<LocalFileRef?> pickOpenFile({List<String>? allowedExtensions});
 
   /// Multi-select open dialog (desktop/mobile file picker).
   Future<List<LocalFileRef>> pickOpenFiles({
@@ -41,5 +39,8 @@ abstract class FileStoragePort {
 
   Future<void> deleteIfExists(String path);
 
-  Future<LocalFileRef> copyToTemp(LocalFileRef source, {required String prefix});
+  Future<LocalFileRef> copyToTemp(
+    LocalFileRef source, {
+    required String prefix,
+  });
 }

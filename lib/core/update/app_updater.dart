@@ -46,6 +46,10 @@ class AppUpdate {
 /// * Linux — downloads the `.deb` and opens it with the system installer.
 ///
 /// Same release assets WinGet / Homebrew use — nothing else is hosted.
+/// Microsoft Store build (`--dart-define=DS_STORE_BUILD=true`): the Store
+/// installs updates itself and does not allow apps to update on their own.
+const kStoreBuild = bool.fromEnvironment('DS_STORE_BUILD');
+
 class AppUpdater {
   AppUpdater._();
   static final AppUpdater instance = AppUpdater._();
@@ -65,7 +69,10 @@ class AppUpdater {
   }
 
   /// Newer release, or null when up to date / offline.
-  Future<AppUpdate?> check({Duration timeout = const Duration(seconds: 12)}) async {
+  Future<AppUpdate?> check({
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
+    if (kStoreBuild) return null;
     final client = HttpClient()..connectionTimeout = timeout;
     try {
       final req = await client.getUrl(Uri.parse(_api));
@@ -84,7 +91,8 @@ class AppUpdater {
         return null;
       }
       final asset = _assetFor(
-        (j['assets'] as List<dynamic>? ?? const []).cast<Map<String, dynamic>>(),
+        (j['assets'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>(),
       );
       final digest = asset?['digest'] as String?;
       final update = AppUpdate(
@@ -145,7 +153,9 @@ class AppUpdater {
       req.headers.set(HttpHeaders.userAgentHeader, 'DocumentStudio-Updater');
       final res = await req.close();
       if (res.statusCode != 200) return 'Download failed (${res.statusCode}).';
-      final total = res.contentLength > 0 ? res.contentLength : (u.assetSize ?? 0);
+      final total = res.contentLength > 0
+          ? res.contentLength
+          : (u.assetSize ?? 0);
       final sink = file.openWrite();
       final hashOut = _DigestSink();
       final hasher = sha256.startChunkedConversion(hashOut);
@@ -190,11 +200,10 @@ class AppUpdater {
         '/NORESTART /SP- /CLOSEAPPLICATIONS\r\n'
         'start "" "$exe"\r\n',
       );
-      await Process.start(
-        'cmd',
-        ['/c', script.path],
-        mode: ProcessStartMode.detached,
-      );
+      await Process.start('cmd', [
+        '/c',
+        script.path,
+      ], mode: ProcessStartMode.detached);
       // Quit so the installer can replace our files.
       Timer(const Duration(milliseconds: 600), () => exit(0));
       return null;
@@ -217,9 +226,8 @@ class AppUpdater {
 /// Semantic-version compare (`1.10.0` > `1.9.2`); extra labels ignored.
 int compareVersions(String a, String b) {
   List<int> parts(String v) => [
-        for (final s in v.split(RegExp(r'[.+-]')).take(3))
-          int.tryParse(s) ?? 0,
-      ];
+    for (final s in v.split(RegExp(r'[.+-]')).take(3)) int.tryParse(s) ?? 0,
+  ];
   final x = parts(a), y = parts(b);
   for (var i = 0; i < 3; i++) {
     final xi = i < x.length ? x[i] : 0;

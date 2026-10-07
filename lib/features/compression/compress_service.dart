@@ -29,12 +29,10 @@ class CompressResult {
 
 class CompressService {
   CompressService({
-    required PdfStructurePort structure,
-    required FileStoragePort storage,
-    required JobRunner jobs,
-  })  : _structure = structure,
-        _storage = storage,
-        _jobs = jobs;
+    required this._structure,
+    required this._storage,
+    required this._jobs,
+  });
 
   final PdfStructurePort _structure;
   final FileStoragePort _storage;
@@ -129,10 +127,13 @@ class CompressService {
           throw const DocumentStudioError(
             code: DocumentStudioErrorCode.invalidPdf,
             message: 'Output grew unexpectedly; aborting as a safety measure.',
-            recoveryHint: 'Try a different profile or check if the PDF is damaged.',
+            recoveryHint:
+                'Try a different profile or check if the PDF is damaged.',
           );
         }
-        report(const JobProgress(fraction: 0.7, message: 'Choose save location'));
+        report(
+          const JobProgress(fraction: 0.7, message: 'Choose save location'),
+        );
         // Never save a copy that is bigger than the original.
         final grew = after >= before;
         final bytes = await File(grew ? input.path : tempOut).readAsBytes();
@@ -222,7 +223,7 @@ class CompressService {
   /// smallest → a harsher last resort, measuring each, and reports progress.
   /// Returns the options to use plus whether the target was reached.
   Future<({PdfCompressOptions options, bool reached, int? bestBytes})>
-      chooseOptionsForTarget({
+  chooseOptionsForTarget({
     required LocalFileRef input,
     required int targetBytes,
     String? password,

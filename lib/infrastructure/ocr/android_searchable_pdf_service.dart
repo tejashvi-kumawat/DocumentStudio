@@ -23,7 +23,7 @@ import 'package:pdfrx/pdfrx.dart';
 /// an invisible Helvetica layer is stamped with pure-Dart [PdfEditDocument].
 class AndroidSearchablePdfService implements SearchablePdfPort {
   AndroidSearchablePdfService({AndroidTesseractOcrPort? ocr})
-      : _ocr = ocr ?? const AndroidTesseractOcrPort();
+    : _ocr = ocr ?? const AndroidTesseractOcrPort();
 
   final AndroidTesseractOcrPort _ocr;
 
@@ -75,13 +75,13 @@ class AndroidSearchablePdfService implements SearchablePdfPort {
     final stopwatch = Stopwatch()..start();
     final token = cancelToken ?? OcrCancelToken();
     void report(double f, String msg, int done, int total) => onProgress?.call(
-          SearchablePdfProgress(
-            fraction: f.clamp(0.0, 1.0),
-            message: msg,
-            pagesDone: done,
-            pagesTotal: total,
-          ),
-        );
+      SearchablePdfProgress(
+        fraction: f.clamp(0.0, 1.0),
+        message: msg,
+        pagesDone: done,
+        pagesTotal: total,
+      ),
+    );
 
     report(0, 'Checking OCR engine…', 0, 0);
     final status = await probeEngine(language: options.language);
@@ -107,14 +107,19 @@ class AndroidSearchablePdfService implements SearchablePdfPort {
         final requested = (pages1Based == null || pages1Based.isEmpty)
             ? [for (var i = 1; i <= pageCount; i++) i]
             : (pages1Based.where((n) => n >= 1 && n <= pageCount).toList()
-              ..sort());
+                ..sort());
         if (requested.isEmpty) {
           throw OcrEngineBlockedException('No valid pages to recognize.');
         }
 
         final toOcr = <int>[];
         if (options.skipPagesWithText) {
-          report(0.02, 'Checking pages for existing text…', 0, requested.length);
+          report(
+            0.02,
+            'Checking pages for existing text…',
+            0,
+            requested.length,
+          );
           for (final n in requested) {
             token.throwIfCancelled();
             if (await _pageHasText(doc.pages[n - 1])) {
@@ -169,8 +174,12 @@ class AndroidSearchablePdfService implements SearchablePdfPort {
       }
 
       token.throwIfCancelled();
-      report(0.94, 'Adding invisible text layer…', recognized.length,
-          recognized.length);
+      report(
+        0.94,
+        'Adding invisible text layer…',
+        recognized.length,
+        recognized.length,
+      );
       final inputBytes = await File(file.path).readAsBytes();
       final outBytes = stampOcrTextLayers(inputBytes, layers);
       report(1, 'Done', recognized.length, recognized.length);
@@ -251,10 +260,10 @@ class AndroidSearchablePdfService implements SearchablePdfPort {
     final lines = plain.isEmpty
         ? const <String>[]
         : plain
-            .split(RegExp(r'\n+'))
-            .map((s) => s.trim())
-            .where((s) => s.isNotEmpty)
-            .toList();
+              .split(RegExp(r'\n+'))
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
     return PageOcrTextLayer(
       page1Based: pageNumber,
       words: const [],

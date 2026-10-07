@@ -5,24 +5,20 @@ import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:path/path.dart' as p;
 
 /// Page size presets for blank PDF creation ([DS-CREATE-005]).
-enum BlankPdfPagePreset {
-  a4,
-  letter,
-  legal,
-}
+enum BlankPdfPagePreset { a4, letter, legal }
 
 extension BlankPdfPagePresetX on BlankPdfPagePreset {
   String get label => switch (this) {
-        BlankPdfPagePreset.a4 => 'A4',
-        BlankPdfPagePreset.letter => 'US Letter',
-        BlankPdfPagePreset.legal => 'US Legal',
-      };
+    BlankPdfPagePreset.a4 => 'A4',
+    BlankPdfPagePreset.letter => 'US Letter',
+    BlankPdfPagePreset.legal => 'US Legal',
+  };
 
   (double widthPt, double heightPt) get mediaBox => switch (this) {
-        BlankPdfPagePreset.a4 => (595.0, 842.0),
-        BlankPdfPagePreset.letter => (612.0, 792.0),
-        BlankPdfPagePreset.legal => (612.0, 1008.0),
-      };
+    BlankPdfPagePreset.a4 => (595.0, 842.0),
+    BlankPdfPagePreset.letter => (612.0, 792.0),
+    BlankPdfPagePreset.legal => (612.0, 1008.0),
+  };
 }
 
 /// Creates multi-page blank PDFs locally ([DS-CREATE-005] minimal path).

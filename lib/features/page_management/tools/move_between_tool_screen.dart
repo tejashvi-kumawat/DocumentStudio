@@ -54,7 +54,10 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
   Future<int?> _pageCount(LocalFileRef file) async {
     final pdf = ref.read(pdfRenderPortProvider);
     try {
-      return (await pdf.loadInfo(file, password: _passwords[file.path])).pageCount;
+      return (await pdf.loadInfo(
+        file,
+        password: _passwords[file.path],
+      )).pageCount;
     } on DocumentStudioError catch (e) {
       if (e.code != DocumentStudioErrorCode.passwordRequired) rethrow;
       if (!mounted) return null;
@@ -120,7 +123,9 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
     final job = JobHandle<LocalFileRef>();
     setState(() => _activeJob = job);
     try {
-      final out = await ref.read(pageOrganizeServiceProvider).exportWorkspace(
+      final out = await ref
+          .read(pageOrganizeServiceProvider)
+          .exportWorkspace(
             handle: job,
             pages: pages,
             suggestedName: 'moved-${_dest!.displayName}',
@@ -136,6 +141,7 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
           );
       if (!mounted) return;
       await ref.read(recentsProvider.notifier).addRecent(out);
+      if (!mounted) return;
       showDocumentSaveResultActions(
         context,
         file: out,
@@ -144,9 +150,8 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
       );
     } on DocumentStudioError catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.recoveryHint ?? e.message)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.recoveryHint ?? e.message)));
     } finally {
       if (mounted) {
         setState(() {
@@ -166,7 +171,8 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
 
     return OrganizeToolScaffold(
       title: 'Move between documents',
-      subtitle: 'Select pages in source, choose destination and insert position',
+      subtitle:
+          'Select pages in source, choose destination and insert position',
       busy: _busy,
       statusMessage: _status,
       progress: _progress,
@@ -175,7 +181,9 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
           : () => ref.read(jobRunnerProvider).requestCancel(_activeJob!),
       actions: [
         FilledButton(
-          onPressed: _dest == null || movingCount == 0 || _busy ? null : _exportDest,
+          onPressed: _dest == null || movingCount == 0 || _busy
+              ? null
+              : _exportDest,
           child: const Text('Save destination PDF'),
         ),
       ],
@@ -184,124 +192,138 @@ class _MoveBetweenToolScreenState extends ConsumerState<MoveBetweenToolScreen> {
         children: [
           Expanded(
             child: OrganizeDropTarget(
-        enabled: !_busy,
-        onFilesDropped: (files) async {
-          if (files.isEmpty) return;
-          if (_source == null) {
-            await _loadSource(files.first);
-          } else if (_dest == null) {
-            await _loadDest(files.first);
-          }
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          children: [
-            OrganizeToolStepStrip(
-              steps: const [
-                'Source PDF',
-                'Select pages',
-                'Destination & save',
-              ],
-              activeIndex: _source == null
-                  ? 0
-                  : (movingCount == 0 ? 1 : (_dest == null ? 1 : 2)),
-            ),
-            if (_source != null || _dest != null)
-              OrganizeWorkflowStrip(
-                tone: OrganizeWorkflowTone.info,
-                message: movingCount > 0 && _dest != null
-                    ? '$movingCount page(s) → ${_dest!.displayName} at index $_insertIndex — preview before save'
-                    : _source == null
-                        ? 'Open source PDF and select pages to move'
-                        : 'Select pages in source, then open destination',
-              ),
-            Text('Source document', style: theme.textTheme.labelLarge),
-            const SizedBox(height: 8),
-            if (_source == null)
-              OrganizeDropZone(
-                onBrowse: () async {
-                  final f = await ref.read(fileStorageProvider).pickOpenFile(
-                        allowedExtensions: ['pdf'],
-                      );
-                  if (f != null) await _loadSource(f);
-                },
-                title: 'Open source PDF',
-                subtitle: 'Pages to move',
-              )
-            else
-              SizedBox(
-                height: 220,
-                child: OrganizePageGrid(
-                  pages: _sourcePages,
-                  selectedIds: _selectedSourceIds,
-                  passwordsByPath: _passwords,
-                  enableDragReorder: false,
-                  onTap: (page, index, {required shift, required ctrlOrMeta}) {
-                    setState(() {
-                      if (ctrlOrMeta) {
-                        if (_selectedSourceIds.contains(page.id)) {
-                          _selectedSourceIds.remove(page.id);
-                        } else {
-                          _selectedSourceIds.add(page.id);
-                        }
-                      } else {
-                        _selectedSourceIds
-                          ..clear()
-                          ..add(page.id);
-                      }
-                    });
-                  },
-                  onReorder: (_, __) {},
-                  onMoveDelta: (_, __) {},
-                ),
-              ),
-            const SizedBox(height: 16),
-            Text('Destination document', style: theme.textTheme.labelLarge),
-            const SizedBox(height: 8),
-            if (_dest == null)
-              OrganizeDropZone(
-                onBrowse: () async {
-                  final f = await ref.read(fileStorageProvider).pickOpenFile(
-                        allowedExtensions: ['pdf'],
-                      );
-                  if (f != null) await _loadDest(f);
-                },
-                title: 'Open destination PDF',
-                subtitle: 'Insert moved pages here',
-              )
-            else ...[
-              Text(_dest!.displayName, style: theme.textTheme.titleSmall),
-              if (_destPages.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('Insert at index (0 = start)', style: theme.textTheme.bodySmall),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Slider.adaptive(
-                        min: 0,
-                        max: _destPages.length.toDouble(),
-                        divisions: _destPages.length,
-                        value: _insertIndex.toDouble(),
-                        label: '$_insertIndex',
-                        onChanged: _busy
-                            ? null
-                            : (v) => setState(() => _insertIndex = v.round()),
+              enabled: !_busy,
+              onFilesDropped: (files) async {
+                if (files.isEmpty) return;
+                if (_source == null) {
+                  await _loadSource(files.first);
+                } else if (_dest == null) {
+                  await _loadDest(files.first);
+                }
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                children: [
+                  OrganizeToolStepStrip(
+                    steps: const [
+                      'Source PDF',
+                      'Select pages',
+                      'Destination & save',
+                    ],
+                    activeIndex: _source == null
+                        ? 0
+                        : (movingCount == 0 ? 1 : (_dest == null ? 1 : 2)),
+                  ),
+                  if (_source != null || _dest != null)
+                    OrganizeWorkflowStrip(
+                      tone: OrganizeWorkflowTone.info,
+                      message: movingCount > 0 && _dest != null
+                          ? '$movingCount page(s) → ${_dest!.displayName} at index $_insertIndex — preview before save'
+                          : _source == null
+                          ? 'Open source PDF and select pages to move'
+                          : 'Select pages in source, then open destination',
+                    ),
+                  Text('Source document', style: theme.textTheme.labelLarge),
+                  const SizedBox(height: 8),
+                  if (_source == null)
+                    OrganizeDropZone(
+                      onBrowse: () async {
+                        final f = await ref
+                            .read(fileStorageProvider)
+                            .pickOpenFile(allowedExtensions: ['pdf']);
+                        if (f != null) await _loadSource(f);
+                      },
+                      title: 'Open source PDF',
+                      subtitle: 'Pages to move',
+                    )
+                  else
+                    SizedBox(
+                      height: 220,
+                      child: OrganizePageGrid(
+                        pages: _sourcePages,
+                        selectedIds: _selectedSourceIds,
+                        passwordsByPath: _passwords,
+                        enableDragReorder: false,
+                        onTap:
+                            (
+                              page,
+                              index, {
+                              required shift,
+                              required ctrlOrMeta,
+                            }) {
+                              setState(() {
+                                if (ctrlOrMeta) {
+                                  if (_selectedSourceIds.contains(page.id)) {
+                                    _selectedSourceIds.remove(page.id);
+                                  } else {
+                                    _selectedSourceIds.add(page.id);
+                                  }
+                                } else {
+                                  _selectedSourceIds
+                                    ..clear()
+                                    ..add(page.id);
+                                }
+                              });
+                            },
+                        onReorder: (_, _) {},
+                        onMoveDelta: (_, _) {},
                       ),
                     ),
-                    Text('$_insertIndex'),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Destination document',
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  if (_dest == null)
+                    OrganizeDropZone(
+                      onBrowse: () async {
+                        final f = await ref
+                            .read(fileStorageProvider)
+                            .pickOpenFile(allowedExtensions: ['pdf']);
+                        if (f != null) await _loadDest(f);
+                      },
+                      title: 'Open destination PDF',
+                      subtitle: 'Insert moved pages here',
+                    )
+                  else ...[
+                    Text(_dest!.displayName, style: theme.textTheme.titleSmall),
+                    if (_destPages.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Insert at index (0 = start)',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider.adaptive(
+                              min: 0,
+                              max: _destPages.length.toDouble(),
+                              divisions: _destPages.length,
+                              value: _insertIndex.toDouble(),
+                              label: '$_insertIndex',
+                              onChanged: _busy
+                                  ? null
+                                  : (v) => setState(
+                                      () => _insertIndex = v.round(),
+                                    ),
+                            ),
+                          ),
+                          Text('$_insertIndex'),
+                        ],
+                      ),
+                    ],
+                    if (movingCount > 0)
+                      Text(
+                        'Preview: $movingCount page(s) inserted at position $_insertIndex '
+                        '→ ${_destPages.length + movingCount} pages total',
+                        style: theme.textTheme.bodySmall,
+                      ),
                   ],
-                ),
-              ],
-              if (movingCount > 0)
-                Text(
-                  'Preview: $movingCount page(s) inserted at position $_insertIndex '
-                  '→ ${_destPages.length + movingCount} pages total',
-                  style: theme.textTheme.bodySmall,
-                ),
-            ],
-          ],
-        ),
-      ),
+                ],
+              ),
+            ),
           ),
           DsStatusBar(
             compact: true,

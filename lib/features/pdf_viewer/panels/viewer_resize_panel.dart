@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -78,9 +79,13 @@ class _ViewerResizePanelState extends ConsumerState<ViewerResizePanel> {
     _document = null;
     await prev?.dispose();
     try {
-      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
+      final doc = await openPdfLazily(
+        widget.handoff.file.path,
+        password: widget.handoff.password,
+      );
       final pageIndex = math.max(0, widget.handoff.currentPage1 - 1);
-      final page = await loadPageOnDemand(
+      final page =
+          await loadPageOnDemand(
             doc,
             (pageIndex + 1).clamp(1, doc.pages.length),
           ) ??
@@ -149,7 +154,8 @@ class _ViewerResizePanelState extends ConsumerState<ViewerResizePanel> {
     setState(() => _busy = true);
     try {
       final LocalFileRef out;
-      final useQpdf = !kIsWeb &&
+      final useQpdf =
+          !kIsWeb &&
           !Platform.isAndroid &&
           await isQpdfCliPageBoxEditAvailable();
       if (useQpdf) {
@@ -163,10 +169,9 @@ class _ViewerResizePanelState extends ConsumerState<ViewerResizePanel> {
               : {input.path: password},
         );
       } else {
-        final temp = await ref.read(fileStorageProvider).createTempFile(
-              prefix: 'resize',
-              suffix: '.pdf',
-            );
+        final temp = await ref
+            .read(fileStorageProvider)
+            .createTempFile(prefix: 'resize', suffix: '.pdf');
         out = await DartPdfPageBox.setPageSize(
           input: input,
           pageNumbers1Based: pages,
@@ -197,7 +202,8 @@ class _ViewerResizePanelState extends ConsumerState<ViewerResizePanel> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -214,113 +220,110 @@ class _ViewerResizePanelState extends ConsumerState<ViewerResizePanel> {
       primaryBusy: _busy,
       onPrimary: _busy ? null : _apply,
       children: [
-            PdfPageScopeField(
-              kind: _scopeKind,
-              onKindChanged: (k) => setState(() => _scopeKind = k),
-              rangeExpression: _rangeExpression,
-              onRangeExpressionChanged: (v) =>
-                  setState(() => _rangeExpression = v),
-              selectedPageCount: widget.selectedPages1Based.length,
-              rangeError: _rangeError,
+        PdfPageScopeField(
+          kind: _scopeKind,
+          onKindChanged: (k) => setState(() => _scopeKind = k),
+          rangeExpression: _rangeExpression,
+          onRangeExpressionChanged: (v) => setState(() => _rangeExpression = v),
+          selectedPageCount: widget.selectedPages1Based.length,
+          rangeError: _rangeError,
+        ),
+        const SizedBox(height: DsSpacing.md),
+        Text(
+          'Paper size',
+          style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: DsSpacing.xs),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final s in PdfPaperSize.values)
+              ChoiceChip(
+                label: Text(
+                  s.name.toUpperCase(),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                selected: _paperSize == s,
+                showCheckmark: false,
+                visualDensity: VisualDensity.compact,
+                onSelected: _busy
+                    ? null
+                    : (selected) {
+                        if (selected) setState(() => _paperSize = s);
+                      },
+              ),
+          ],
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        Text(
+          'Sets MediaBox and CropBox. Page content is not scaled or deleted.',
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: DsSpacing.md),
+        Text(
+          'Size preview',
+          style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: DsSpacing.xs),
+        Text(_sizePreview, style: theme.textTheme.bodySmall),
+        const SizedBox(height: DsSpacing.sm),
+        SizedBox(
+          height: 140,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: DsColors.groupedBackgroundLight,
+              border: Border.all(color: DsColors.borderLight),
+              borderRadius: BorderRadius.circular(4),
             ),
-            const SizedBox(height: DsSpacing.md),
-            Text(
-              'Paper size',
-              style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
-            ),
-            const SizedBox(height: DsSpacing.xs),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                for (final s in PdfPaperSize.values)
-                  ChoiceChip(
-                    label: Text(
-                      s.name.toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
+                if (_document != null)
+                  Opacity(
+                    opacity: 0.35,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: _pageWidthPt,
+                        height: _pageHeightPt,
+                        child: PdfPageView(
+                          document: _document!,
+                          pageNumber: widget.handoff.currentPage1,
+                          maximumDpi: 72,
+                          decoration: const BoxDecoration(color: Colors.white),
+                        ),
+                      ),
                     ),
-                    selected: _paperSize == s,
-                    showCheckmark: false,
-                    visualDensity: VisualDensity.compact,
-                    onSelected: _busy
-                        ? null
-                        : (selected) {
-                            if (selected) setState(() => _paperSize = s);
-                          },
                   ),
+                Center(
+                  child: AspectRatio(
+                    aspectRatio: previewAspect,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xFFE4002B),
+                          width: 2,
+                        ),
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
+                      child: Center(
+                        child: Text(
+                          _paperSize.name.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: const Color(0xFFE4002B),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: DsSpacing.sm),
-            Text(
-              'Sets MediaBox and CropBox. Page content is not scaled or deleted.',
-              style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
-            ),
-            const SizedBox(height: DsSpacing.md),
-            Text(
-              'Size preview',
-              style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
-            ),
-            const SizedBox(height: DsSpacing.xs),
-            Text(_sizePreview, style: theme.textTheme.bodySmall),
-            const SizedBox(height: DsSpacing.sm),
-            SizedBox(
-              height: 140,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: DsColors.groupedBackgroundLight,
-                  border: Border.all(color: DsColors.borderLight),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (_document != null)
-                      Opacity(
-                        opacity: 0.35,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: SizedBox(
-                            width: _pageWidthPt,
-                            height: _pageHeightPt,
-                            child: PdfPageView(
-                              document: _document!,
-                              pageNumber: widget.handoff.currentPage1,
-                              maximumDpi: 72,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    Center(
-                      child: AspectRatio(
-                        aspectRatio: previewAspect,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: const Color(0xFFE4002B),
-                              width: 2,
-                            ),
-                            color: Colors.white.withValues(alpha: 0.15),
-                          ),
-                          child: Center(
-                            child: Text(
-                              _paperSize.name.toUpperCase(),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: const Color(0xFFE4002B),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
+        ),
+      ],
     );
   }
 }

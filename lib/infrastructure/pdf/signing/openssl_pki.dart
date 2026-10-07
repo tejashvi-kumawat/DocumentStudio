@@ -133,20 +133,24 @@ extendedKeyUsage = emailProtection, clientAuth
       if (r.exitCode != 0) {
         throw StateError('Failed to create certificate: ${r.stderr}');
       }
-      r = await Process.run(openssl, [
-        'pkcs12',
-        '-export',
-        '-inkey',
-        key,
-        '-in',
-        cert,
-        '-out',
-        outP12Path,
-        '-passout',
-        'env:$_pwVar',
-        '-name',
-        cn,
-      ], environment: {_pwVar: password});
+      r = await Process.run(
+        openssl,
+        [
+          'pkcs12',
+          '-export',
+          '-inkey',
+          key,
+          '-in',
+          cert,
+          '-out',
+          outP12Path,
+          '-passout',
+          'env:$_pwVar',
+          '-name',
+          cn,
+        ],
+        environment: {_pwVar: password},
+      );
       if (r.exitCode != 0) {
         throw StateError('Failed to export PKCS#12: ${r.stderr}');
       }
@@ -182,17 +186,21 @@ extendedKeyUsage = emailProtection, clientAuth
     final cert = p.join(work.path, 'cert.pem');
     final derPath = p.join(work.path, 'cert.der');
 
-    var r = await Process.run(openssl, [
-      'pkcs12',
-      '-in',
-      p12Path,
-      '-passin',
-      'env:$_pwVar',
-      '-nocerts',
-      '-nodes',
-      '-out',
-      key,
-    ], environment: {_pwVar: password});
+    var r = await Process.run(
+      openssl,
+      [
+        'pkcs12',
+        '-in',
+        p12Path,
+        '-passin',
+        'env:$_pwVar',
+        '-nocerts',
+        '-nodes',
+        '-out',
+        key,
+      ],
+      environment: {_pwVar: password},
+    );
     if (r.exitCode != 0) {
       await work.delete(recursive: true);
       final err = r.stderr.toString();
@@ -203,17 +211,21 @@ extendedKeyUsage = emailProtection, clientAuth
       }
       throw StateError('Could not unlock PKCS#12: $err');
     }
-    r = await Process.run(openssl, [
-      'pkcs12',
-      '-in',
-      p12Path,
-      '-passin',
-      'env:$_pwVar',
-      '-clcerts',
-      '-nokeys',
-      '-out',
-      cert,
-    ], environment: {_pwVar: password});
+    r = await Process.run(
+      openssl,
+      [
+        'pkcs12',
+        '-in',
+        p12Path,
+        '-passin',
+        'env:$_pwVar',
+        '-clcerts',
+        '-nokeys',
+        '-out',
+        cert,
+      ],
+      environment: {_pwVar: password},
+    );
     if (r.exitCode != 0) {
       await work.delete(recursive: true);
       throw StateError('Could not read certificate from PKCS#12: ${r.stderr}');
@@ -353,7 +365,6 @@ String describeOpenSslError(Object error) {
       .replaceFirst(RegExp(r'^Exception:\s*'), '')
       .replaceFirst(RegExp(r'^Bad state:\s*'), '');
 }
-
 
 /// Scratch directory only the current user can enter — private keys are
 /// briefly written here for openssl.

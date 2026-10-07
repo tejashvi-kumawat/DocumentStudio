@@ -20,16 +20,16 @@ class PdfViewerScrollModeToolbarControl extends StatelessWidget {
   static const _segmentBreakpoint = 880.0;
 
   IconData get _icon => switch (mode) {
-        PdfViewerScrollLayoutMode.continuous => Icons.article_outlined,
-        PdfViewerScrollLayoutMode.singlePage => Icons.view_agenda_outlined,
-        PdfViewerScrollLayoutMode.twoPage => Icons.menu_book_outlined,
-      };
+    PdfViewerScrollLayoutMode.continuous => Icons.article_outlined,
+    PdfViewerScrollLayoutMode.singlePage => Icons.view_agenda_outlined,
+    PdfViewerScrollLayoutMode.twoPage => Icons.menu_book_outlined,
+  };
 
   String get _tooltip => switch (mode) {
-        PdfViewerScrollLayoutMode.continuous => 'Continuous scroll',
-        PdfViewerScrollLayoutMode.singlePage => 'Single page',
-        PdfViewerScrollLayoutMode.twoPage => 'Two page spread',
-      };
+    PdfViewerScrollLayoutMode.continuous => 'Continuous scroll',
+    PdfViewerScrollLayoutMode.singlePage => 'Single page',
+    PdfViewerScrollLayoutMode.twoPage => 'Two page spread',
+  };
 
   Future<void> _openMenu(BuildContext context) async {
     final box = context.findRenderObject() as RenderBox?;
@@ -85,8 +85,7 @@ class PdfViewerScrollModeToolbarControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final useSegments =
-        MediaQuery.sizeOf(context).width >= _segmentBreakpoint;
+    final useSegments = MediaQuery.sizeOf(context).width >= _segmentBreakpoint;
 
     if (useSegments) {
       return DsToolbarSegmentedControl<PdfViewerScrollLayoutMode>(

@@ -43,9 +43,11 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
         .pickOpenFile(allowedExtensions: const ['pdf']);
     if (picked == null || !mounted) return;
     if (picked.path == widget.handoff.file.path) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Choose a different PDF to compare with this one.'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choose a different PDF to compare with this one.'),
+        ),
+      );
       return;
     }
     setState(() => _other = CompareSource(picked));
@@ -54,11 +56,13 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
   void _compare() {
     final other = _other;
     if (other == null) return;
-    unawaited(openCompareWorkspace(
-      context,
-      oldSource: _currentIsNew ? other : _current,
-      newSource: _currentIsNew ? _current : other,
-    ));
+    unawaited(
+      openCompareWorkspace(
+        context,
+        oldSource: _currentIsNew ? other : _current,
+        newSource: _currentIsNew ? _current : other,
+      ),
+    );
   }
 
   @override
@@ -73,7 +77,8 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
         .toList();
     final currentRole = _currentIsNew ? 'REVISED' : 'ORIGINAL';
     final otherRole = _currentIsNew ? 'ORIGINAL' : 'REVISED';
-    Color accent(bool revised) => revised ? compareChangedColor : _originalAccent;
+    Color accent(bool revised) =>
+        revised ? compareChangedColor : _originalAccent;
 
     final currentCard = _SlotCard(
       key: const ValueKey('current'),
@@ -111,15 +116,19 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
             'Compare two versions of a PDF side by side. Word changes are '
             'highlighted on the pages; formatting, images, annotations and '
             'inserted, deleted or moved pages are listed too.',
-            style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, color: secondary),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 13,
+              color: secondary,
+            ),
           ),
           const SizedBox(height: DsSpacing.lg),
           AnimatedSwitcher(
             duration: DsMotion.switchDuration,
             transitionBuilder: (c, a) => DsMotion.fadeRiseTransition(a, c),
             child: KeyedSubtree(
-                key: ValueKey('a-$_currentIsNew-${_other?.file.path}'),
-                child: first),
+              key: ValueKey('a-$_currentIsNew-${_other?.file.path}'),
+              child: first,
+            ),
           ),
           Center(
             child: Padding(
@@ -140,30 +149,38 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
             duration: DsMotion.switchDuration,
             transitionBuilder: (c, a) => DsMotion.fadeRiseTransition(a, c),
             child: KeyedSubtree(
-                key: ValueKey('b-$_currentIsNew-${_other?.file.path}'),
-                child: second),
+              key: ValueKey('b-$_currentIsNew-${_other?.file.path}'),
+              child: second,
+            ),
           ),
           if (tabs.isNotEmpty) ...[
             const SizedBox(height: DsSpacing.lg),
-            Text('OPEN DOCUMENTS',
-                style: theme.textTheme.labelSmall?.copyWith(
-                    color: secondary,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w700)),
+            Text(
+              'OPEN DOCUMENTS',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: secondary,
+                letterSpacing: 0.8,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(height: DsSpacing.xs),
             for (final t in tabs)
               ListTile(
                 dense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(DsSpacing.radiusButton)),
+                  borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
+                ),
                 leading: const Icon(Icons.tab_outlined, size: 18),
-                title: Text(t.file.displayName,
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                title: Text(
+                  t.file.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 selected: _other?.file.path == t.file.path,
                 onTap: () => setState(
-                    () => _other = CompareSource(t.file, password: t.password)),
+                  () => _other = CompareSource(t.file, password: t.password),
+                ),
               ),
           ],
           const SizedBox(height: DsSpacing.lg),
@@ -174,11 +191,14 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
             onPressed: _other == null ? null : _compare,
           ),
           const SizedBox(height: DsSpacing.xl),
-          Text('DETECTS',
-              style: theme.textTheme.labelSmall?.copyWith(
-                  color: secondary,
-                  letterSpacing: 0.8,
-                  fontWeight: FontWeight.w700)),
+          Text(
+            'DETECTS',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: secondary,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: DsSpacing.sm),
           for (final c in CompareCategory.values)
             Padding(
@@ -188,9 +208,12 @@ class _ViewerComparePanelState extends ConsumerState<ViewerComparePanel> {
                   Icon(compareCategoryIcon(c), size: 16, color: secondary),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(c.description,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(fontSize: 12.5)),
+                    child: Text(
+                      c.description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 12.5,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -257,19 +280,27 @@ class _SlotCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(role,
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          color: accent)),
-                  Text(title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(fontSize: 13)),
-                  Text(subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: DsColors.textSecondary(brightness))),
+                  Text(
+                    role,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: accent,
+                    ),
+                  ),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+                  ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: DsColors.textSecondary(brightness),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -312,11 +343,14 @@ class _EmptySlot extends StatelessWidget {
             const Icon(Icons.add_circle_outline, color: compareChangedColor),
             const SizedBox(width: DsSpacing.sm),
             Flexible(
-              child: Text('Choose the $role PDF…',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(color: compareChangedColor)),
+              child: Text(
+                'Choose the $role PDF…',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: compareChangedColor,
+                ),
+              ),
             ),
           ],
         ),

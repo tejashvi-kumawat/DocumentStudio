@@ -101,7 +101,9 @@ class _HomeToolsHubCardState extends State<HomeToolsHubCard> {
                 if (badge != null)
                   Text(
                     badge,
-                    style: theme.textTheme.labelSmall?.copyWith(color: secondary),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: secondary,
+                    ),
                   )
                 else
                   Icon(Icons.chevron_right, size: 18, color: secondary),

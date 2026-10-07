@@ -2,13 +2,9 @@ import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/domain/organize/organize_page_ref.dart';
 
 /// All pages of [file] in document order (1-based page numbers).
-List<OrganizePageRef> buildDocumentPageList(
-  LocalFileRef file,
-  int totalPages,
-) {
+List<OrganizePageRef> buildDocumentPageList(LocalFileRef file, int totalPages) {
   return [
-    for (var n = 1; n <= totalPages; n++)
-      OrganizePageRef.fromFilePage(file, n),
+    for (var n = 1; n <= totalPages; n++) OrganizePageRef.fromFilePage(file, n),
   ];
 }
 
@@ -18,9 +14,7 @@ List<OrganizePageRef> pagesForExtract(
   Set<int> selectedPages1Based,
 ) {
   final sorted = selectedPages1Based.toList()..sort();
-  return [
-    for (final n in sorted) OrganizePageRef.fromFilePage(file, n),
-  ];
+  return [for (final n in sorted) OrganizePageRef.fromFilePage(file, n)];
 }
 
 /// Remaining pages after removing [deletePages1Based].
@@ -46,9 +40,7 @@ List<OrganizePageRef> pagesForDuplicate(
     final ref = OrganizePageRef.fromFilePage(file, n);
     list.add(ref);
     if (duplicatePages1Based.contains(n)) {
-      list.add(
-        OrganizePageRef.fromFilePage(file, n),
-      );
+      list.add(OrganizePageRef.fromFilePage(file, n));
     }
   }
   return list;
@@ -72,9 +64,7 @@ List<OrganizePageRef> pagesForReorder(
   var insertAt = toIndex0;
   if (insertAt > fromIndex0) insertAt -= 1;
   order.insert(insertAt.clamp(0, order.length), page);
-  return [
-    for (final n in order) OrganizePageRef.fromFilePage(file, n),
-  ];
+  return [for (final n in order) OrganizePageRef.fromFilePage(file, n)];
 }
 
 /// Replace [slots1Based] with pages from [source], in order.
@@ -141,8 +131,7 @@ List<OrganizePageRef> pagesForReverse(LocalFileRef file, int totalPages) {
   ];
 }
 
-int normalizeRotationDegrees(int degrees) =>
-    ((degrees % 360) + 360) % 360;
+int normalizeRotationDegrees(int degrees) => ((degrees % 360) + 360) % 360;
 
 /// Apply [deltaDegrees] to pages in [rotatePages1Based]; others unchanged.
 List<OrganizePageRef> pagesForRotate(

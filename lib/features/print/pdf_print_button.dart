@@ -14,19 +14,14 @@ final printServiceProvider = Provider<PrintService>((ref) {
 /// Viewer agent: add to `AppBar.actions`, e.g.
 /// `PdfPrintButton(file: widget.file)`.
 class PdfPrintButton extends ConsumerWidget {
-  const PdfPrintButton({
-    super.key,
-    required this.file,
-    this.printService,
-  });
+  const PdfPrintButton({super.key, required this.file, this.printService});
 
   final LocalFileRef file;
   final PrintService? printService;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final PrintService service =
-        printService ?? ref.read(printServiceProvider);
+    final PrintService service = printService ?? ref.read(printServiceProvider);
     return IconButton(
       tooltip: 'Print',
       icon: const Icon(Icons.print),
@@ -39,14 +34,12 @@ class PdfPrintButton extends ConsumerWidget {
       await service.printPdf(file);
     } on PrintException catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Print failed: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Print failed: $e')));
     }
   }
 }

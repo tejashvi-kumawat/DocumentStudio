@@ -35,8 +35,11 @@ List<A11yFinding> checkPdfAccessibility(Uint8List bytes) {
     final showsTitle = displayTitle is PdfBool && displayTitle.value;
     out.add(
       hasTitle && showsTitle
-          ? const A11yFinding(A11ySeverity.pass, 'Document title',
-              'A title is set and shown in the window title.')
+          ? const A11yFinding(
+              A11ySeverity.pass,
+              'Document title',
+              'A title is set and shown in the window title.',
+            )
           : const A11yFinding(
               A11ySeverity.fail,
               'Document title',
@@ -64,8 +67,11 @@ List<A11yFinding> checkPdfAccessibility(Uint8List bytes) {
     final markedTrue = doc.resolve(marked?['Marked']);
     out.add(
       tagged && markedTrue is PdfBool && markedTrue.value
-          ? const A11yFinding(A11ySeverity.pass, 'Tagged PDF',
-              'The file has a structure tree.')
+          ? const A11yFinding(
+              A11ySeverity.pass,
+              'Tagged PDF',
+              'The file has a structure tree.',
+            )
           : const A11yFinding(
               A11ySeverity.fail,
               'Tagged PDF',
@@ -102,8 +108,11 @@ List<A11yFinding> checkPdfAccessibility(Uint8List bytes) {
       );
     } else {
       out.add(
-        const A11yFinding(A11ySeverity.pass, 'Real text',
-            'Pages contain selectable text.'),
+        const A11yFinding(
+          A11ySeverity.pass,
+          'Real text',
+          'Pages contain selectable text.',
+        ),
       );
     }
 
@@ -111,8 +120,11 @@ List<A11yFinding> checkPdfAccessibility(Uint8List bytes) {
     if (n > 20) {
       out.add(
         cat.containsKey('Outlines')
-            ? const A11yFinding(A11ySeverity.pass, 'Bookmarks',
-                'Long document has bookmarks.')
+            ? const A11yFinding(
+                A11ySeverity.pass,
+                'Bookmarks',
+                'Long document has bookmarks.',
+              )
             : A11yFinding(
                 A11ySeverity.warning,
                 'Bookmarks',
@@ -134,8 +146,11 @@ List<A11yFinding> checkPdfAccessibility(Uint8List bytes) {
     if (fields > 0) {
       out.add(
         unlabeled == 0
-            ? const A11yFinding(A11ySeverity.pass, 'Form fields',
-                'Every field has a description.')
+            ? const A11yFinding(
+                A11ySeverity.pass,
+                'Form fields',
+                'Every field has a description.',
+              )
             : A11yFinding(
                 A11ySeverity.warning,
                 'Form fields',

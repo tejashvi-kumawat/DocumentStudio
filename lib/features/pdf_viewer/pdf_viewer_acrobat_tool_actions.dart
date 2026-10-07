@@ -52,7 +52,7 @@ void runPdfViewerAcrobatTool({
   if (panelTool != null) {
     final useBlockedPanel =
         panelTool.isBlockedCapability &&
-            availability == PdfViewerAcrobatToolAvailability.blocked;
+        availability == PdfViewerAcrobatToolAvailability.blocked;
     final useWorkingPanel = !panelTool.isBlockedCapability;
     if (useBlockedPanel || useWorkingPanel) {
       openViewerToolPanelOr(context, panelTool, () {
@@ -149,11 +149,7 @@ void _pushToolRoute(
   final args = doc.documentArgs;
   switch (toolId) {
     case 'compress':
-      pushCompressForPdf(
-        context,
-        file: doc.file,
-        password: doc.password,
-      );
+      pushCompressForPdf(context, file: doc.file, password: doc.password);
     case 'protect':
       rememberViewerToolReturnFromContext(context, args);
       context.push(protectRoutePath, extra: args);
@@ -219,7 +215,8 @@ void _runOrganizeTool(
   PdfViewerDocumentActions.organizeTool(context, doc, tool.routePath);
 }
 
-ViewerToolId? _viewerPanelForOrganizeId(String organizeId) => switch (organizeId) {
+ViewerToolId? _viewerPanelForOrganizeId(String organizeId) =>
+    switch (organizeId) {
       'crop' => ViewerToolId.crop,
       'resize' => ViewerToolId.resize,
       'split' => ViewerToolId.split,
@@ -266,14 +263,14 @@ void _pushOrganizeRoute(
 
 /// Comment and add-text rows that arm the markup editor instead of a form panel.
 MarkupTool? _markupToolForAcrobatId(String toolId) => switch (toolId) {
-      'markup_text' => MarkupTool.text,
-      'comment_highlight' => MarkupTool.highlight,
-      'comment_underline' => MarkupTool.underline,
-      'comment_strikeout' => MarkupTool.strikeout,
-      'comment_note' => MarkupTool.note,
-      'comment_callout' => MarkupTool.callout,
-      _ => null,
-    };
+  'markup_text' => MarkupTool.text,
+  'comment_highlight' => MarkupTool.highlight,
+  'comment_underline' => MarkupTool.underline,
+  'comment_strikeout' => MarkupTool.strikeout,
+  'comment_note' => MarkupTool.note,
+  'comment_callout' => MarkupTool.callout,
+  _ => null,
+};
 
 /// Nearest working alternative from a blocked tool card.
 void runPdfViewerAcrobatToolAlternative({

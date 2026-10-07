@@ -24,7 +24,9 @@ class OrganizeGridLayoutMetrics {
 
   double get _tileWidth {
     final inner =
-        viewportWidth - padding.horizontal - (crossAxisCount - 1) * crossAxisSpacing;
+        viewportWidth -
+        padding.horizontal -
+        (crossAxisCount - 1) * crossAxisSpacing;
     return inner / crossAxisCount;
   }
 
@@ -35,12 +37,17 @@ class OrganizeGridLayoutMetrics {
     final row = index ~/ crossAxisCount;
     final col = index % crossAxisCount;
     final left = padding.left + col * (_tileWidth + crossAxisSpacing);
-    final top = padding.top + row * (tileHeight + mainAxisSpacing) - scrollOffset;
+    final top =
+        padding.top + row * (tileHeight + mainAxisSpacing) - scrollOffset;
     return Rect.fromLTWH(left, top, _tileWidth, tileHeight);
   }
 
   /// [localInViewport] is in the scroll view's viewport coordinates (0 at visible top).
-  Rect contentRectFromViewportDrag(Offset start, Offset end, double scrollOffset) {
+  Rect contentRectFromViewportDrag(
+    Offset start,
+    Offset end,
+    double scrollOffset,
+  ) {
     final top = math.min(start.dy, end.dy) + scrollOffset;
     final bottom = math.max(start.dy, end.dy) + scrollOffset;
     final left = math.min(start.dx, end.dx);
@@ -48,10 +55,15 @@ class OrganizeGridLayoutMetrics {
     return Rect.fromLTRB(left, top, right, bottom);
   }
 
-  bool viewportPointHitsTile(Offset localInViewport, int index, double scrollOffset) {
-    return tileRectInContent(index, scrollOffset).contains(
-      Offset(localInViewport.dx, localInViewport.dy + scrollOffset),
-    );
+  bool viewportPointHitsTile(
+    Offset localInViewport,
+    int index,
+    double scrollOffset,
+  ) {
+    return tileRectInContent(
+      index,
+      scrollOffset,
+    ).contains(Offset(localInViewport.dx, localInViewport.dy + scrollOffset));
   }
 
   Set<int> indicesIntersectingContentRect(Rect contentRect) {
@@ -80,10 +92,7 @@ class OrganizeMarqueeBand {
 }
 
 class OrganizeMarqueeOverlayPainter extends CustomPainter {
-  OrganizeMarqueeOverlayPainter({
-    required this.band,
-    required this.color,
-  });
+  OrganizeMarqueeOverlayPainter({required this.band, required this.color});
 
   final OrganizeMarqueeBand? band;
   final Color color;
@@ -183,7 +192,10 @@ class OrganizeGridEdgeAutoScroller {
   void tick() {
     if (_velocity == 0 || !scrollController.hasClients) return;
     final pos = scrollController.position;
-    final next = (pos.pixels + _velocity).clamp(pos.minScrollExtent, pos.maxScrollExtent);
+    final next = (pos.pixels + _velocity).clamp(
+      pos.minScrollExtent,
+      pos.maxScrollExtent,
+    );
     if (next != pos.pixels) {
       scrollController.jumpTo(next);
     }

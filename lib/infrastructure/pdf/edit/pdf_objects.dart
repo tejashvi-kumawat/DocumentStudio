@@ -84,7 +84,7 @@ final class PdfArray extends PdfObj {
 
 final class PdfDict extends PdfObj {
   PdfDict([Map<String, PdfObj>? entries])
-      : entries = entries ?? <String, PdfObj>{};
+    : entries = entries ?? <String, PdfObj>{};
 
   /// Keys without the leading slash.
   final Map<String, PdfObj> entries;
@@ -200,9 +200,8 @@ class PdfWriterSink {
   static String _escapeName(String name) {
     final sb = StringBuffer();
     for (final c in latin1.encode(name)) {
-      final regular = c > 0x20 &&
-          c < 0x7f &&
-          !'()<>[]{}/%#'.codeUnits.contains(c);
+      final regular =
+          c > 0x20 && c < 0x7f && !'()<>[]{}/%#'.codeUnits.contains(c);
       if (regular) {
         sb.writeCharCode(c);
       } else {

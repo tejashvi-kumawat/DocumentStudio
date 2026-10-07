@@ -25,15 +25,9 @@ class ViewerWorkspaceHandoffPanel extends StatelessWidget {
       onPrimary: () =>
           PdfViewerDocumentActions.openDocumentWorkspace(context, handoff),
       children: [
-        Text(
-          title,
-          style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
-        ),
+        Text(title, style: theme.textTheme.labelLarge?.copyWith(fontSize: 13)),
         const SizedBox(height: 4),
-        Text(
-          reason,
-          style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
-        ),
+        Text(reason, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
       ],
     );
   }

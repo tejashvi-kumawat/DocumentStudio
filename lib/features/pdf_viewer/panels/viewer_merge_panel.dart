@@ -30,11 +30,7 @@ class _MergeEntry {
 /// when the user saves the document (Save / Ctrl+S).
 /// Save as writes a new PDF and leaves this document alone.
 class ViewerMergePanel extends ConsumerStatefulWidget {
-  const ViewerMergePanel({
-    super.key,
-    required this.handoff,
-    this.pageCount,
-  });
+  const ViewerMergePanel({super.key, required this.handoff, this.pageCount});
 
   final PdfViewerDocumentHandoff handoff;
   final int? pageCount;
@@ -73,8 +69,8 @@ class _ViewerMergePanelState extends ConsumerState<ViewerMergePanel> {
     if (locked < 0) return;
     final current = _sources[locked];
     final fileChanged = current.file.path != widget.handoff.file.path;
-    final countChanged = widget.pageCount != null &&
-        widget.pageCount != current.pageCount;
+    final countChanged =
+        widget.pageCount != null && widget.pageCount != current.pageCount;
     if (!fileChanged && !countChanged) return;
     final password = widget.handoff.password;
     if (fileChanged && password != null && password.isNotEmpty) {
@@ -90,9 +86,9 @@ class _ViewerMergePanelState extends ConsumerState<ViewerMergePanel> {
   }
 
   Future<void> _addFiles() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFiles(
-          allowedExtensions: const ['pdf'],
-        );
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFiles(allowedExtensions: const ['pdf']);
     if (picked.isEmpty || !mounted) return;
     final added = <_MergeEntry>[];
     for (final file in picked) {
@@ -111,10 +107,9 @@ class _ViewerMergePanelState extends ConsumerState<ViewerMergePanel> {
 
   Future<void> _loadPageCount(_MergeEntry entry) async {
     try {
-      final info = await ref.read(pdfRenderPortProvider).loadInfo(
-            entry.file,
-            password: _passwordsByPath[entry.file.path],
-          );
+      final info = await ref
+          .read(pdfRenderPortProvider)
+          .loadInfo(entry.file, password: _passwordsByPath[entry.file.path]);
       if (!mounted) return;
       setState(() {
         entry.pageCount = info.pageCount;
@@ -151,7 +146,9 @@ class _ViewerMergePanelState extends ConsumerState<ViewerMergePanel> {
     try {
       final typed = await promptMergeSaveAsName(
         context,
-        suggestedName: suggestedMergeSaveAsName(widget.handoff.file.displayName),
+        suggestedName: suggestedMergeSaveAsName(
+          widget.handoff.file.displayName,
+        ),
       );
       if (typed == null || !mounted) return;
       await _write(newFile: true, fileName: typed);
@@ -208,7 +205,8 @@ class _ViewerMergePanelState extends ConsumerState<ViewerMergePanel> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -230,80 +228,80 @@ class _ViewerMergePanelState extends ConsumerState<ViewerMergePanel> {
       secondaryBusy: _busy && _savingAs,
       onSecondary: canMerge ? _saveAs : null,
       children: [
-          Text(
-            'Other PDFs are combined in the order below. '
-            'Save updates this open document. Ctrl+S writes the original file. '
-            'Save as writes a new PDF and leaves this document unchanged.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 12,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+        Text(
+          'Other PDFs are combined in the order below. '
+          'Save updates this open document. Ctrl+S writes the original file. '
+          'Save as writes a new PDF and leaves this document unchanged.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 12,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(height: DsSpacing.sm),
-          ReorderableListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            buildDefaultDragHandles: false,
-            itemCount: _sources.length,
-            onReorderItem: (oldIndex, newIndex) {
-              if (_busy) return;
-              setState(() {
-                final item = _sources.removeAt(oldIndex);
-                _sources.insert(newIndex, item);
-              });
-            },
-            itemBuilder: (context, index) {
-              final source = _sources[index];
-              final pages = source.loading
-                  ? '…'
-                  : source.pageCount == null
-                      ? null
-                      : '${source.pageCount} pages';
-              return ListTile(
-                key: ValueKey('${source.locked}:${source.file.path}'),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: ReorderableDragStartListener(
-                  index: index,
-                  child: Icon(
-                    Icons.drag_handle,
-                    size: 20,
-                    color: _busy ? theme.disabledColor : null,
-                  ),
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          itemCount: _sources.length,
+          onReorderItem: (oldIndex, newIndex) {
+            if (_busy) return;
+            setState(() {
+              final item = _sources.removeAt(oldIndex);
+              _sources.insert(newIndex, item);
+            });
+          },
+          itemBuilder: (context, index) {
+            final source = _sources[index];
+            final pages = source.loading
+                ? '…'
+                : source.pageCount == null
+                ? null
+                : '${source.pageCount} pages';
+            return ListTile(
+              key: ValueKey('${source.locked}:${source.file.path}'),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: ReorderableDragStartListener(
+                index: index,
+                child: Icon(
+                  Icons.drag_handle,
+                  size: 20,
+                  color: _busy ? theme.disabledColor : null,
                 ),
-                title: Text(
-                  source.file.displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(
-                  source.locked
-                      ? 'This document${pages == null ? '' : ' · $pages'}'
-                      : (pages ?? 'PDF'),
-                  style: theme.textTheme.bodySmall,
-                ),
-                trailing: source.locked
-                    ? Icon(Icons.lock_outline, size: 18, color: DsColors.primary)
-                    : IconButton(
-                        tooltip: 'Remove',
-                        onPressed: _busy
-                            ? null
-                            : () => setState(() => _sources.removeAt(index)),
-                        icon: const Icon(Icons.close, size: 18),
-                      ),
-              );
-            },
+              ),
+              title: Text(
+                source.file.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                source.locked
+                    ? 'This document${pages == null ? '' : ' · $pages'}'
+                    : (pages ?? 'PDF'),
+                style: theme.textTheme.bodySmall,
+              ),
+              trailing: source.locked
+                  ? Icon(Icons.lock_outline, size: 18, color: DsColors.primary)
+                  : IconButton(
+                      tooltip: 'Remove',
+                      onPressed: _busy
+                          ? null
+                          : () => setState(() => _sources.removeAt(index)),
+                      icon: const Icon(Icons.close, size: 18),
+                    ),
+            );
+          },
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _busy ? null : _addFiles,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add PDFs'),
           ),
-          const SizedBox(height: DsSpacing.sm),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: _busy ? null : _addFiles,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add PDFs'),
-            ),
-          ),
-        ],
+        ),
+      ],
     );
   }
 }

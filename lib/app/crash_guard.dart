@@ -35,9 +35,8 @@ abstract final class CrashGuard {
       return true; // handled: do not terminate
     };
     // A render error leaves a grey box instead of a red screen of text.
-    ErrorWidget.builder = (details) => kReleaseMode
-        ? const SizedBox.shrink()
-        : ErrorWidget(details.exception);
+    ErrorWidget.builder = (details) =>
+        kReleaseMode ? const SizedBox.shrink() : ErrorWidget(details.exception);
   }
 
   /// Memory pressure from the OS: drop decoded images so the app survives.

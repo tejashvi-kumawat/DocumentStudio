@@ -18,12 +18,10 @@ import 'package:pdfrx/pdfrx.dart';
 
 class PageOrganizeService {
   PageOrganizeService({
-    required PdfStructurePort structure,
-    required FileStoragePort storage,
-    required JobRunner jobs,
-  })  : _structure = structure,
-        _storage = storage,
-        _jobs = jobs;
+    required this._structure,
+    required this._storage,
+    required this._jobs,
+  });
 
   final PdfStructurePort _structure;
   final FileStoragePort _storage;
@@ -53,7 +51,9 @@ class PageOrganizeService {
     return _jobs.run(
       handle: jobHandle,
       work: (report, cancelToken) async {
-        onProgress?.call(const JobProgress(fraction: 0.1, message: 'Assembling pages'));
+        onProgress?.call(
+          const JobProgress(fraction: 0.1, message: 'Assembling pages'),
+        );
         report(const JobProgress(fraction: 0.1, message: 'Assembling pages'));
         final prepared = unlockMismatchedPasswords
             ? await _unlockMismatchedPasswords(pages, passwordsByPath)
@@ -65,7 +65,9 @@ class PageOrganizeService {
         );
         final bytes = await File(tempOut).readAsBytes();
         report(const JobProgress(fraction: 0.85, message: 'Export ready'));
-        onProgress?.call(const JobProgress(fraction: 0.85, message: 'Export ready'));
+        onProgress?.call(
+          const JobProgress(fraction: 0.85, message: 'Export ready'),
+        );
         return (tempPath: tempOut, bytes: bytes);
       },
     );
@@ -82,7 +84,9 @@ class PageOrganizeService {
     return _jobs.run(
       handle: jobHandle,
       work: (report, cancelToken) async {
-        onProgress?.call(const JobProgress(fraction: 0.1, message: 'Assembling pages'));
+        onProgress?.call(
+          const JobProgress(fraction: 0.1, message: 'Assembling pages'),
+        );
         report(const JobProgress(fraction: 0.1, message: 'Assembling pages'));
         final tempOut = await _assemblePagesToTempPath(
           pages: pages,
@@ -90,8 +94,12 @@ class PageOrganizeService {
           cancelToken: cancelToken,
         );
         final bytes = await File(tempOut).readAsBytes();
-        report(const JobProgress(fraction: 0.65, message: 'Choose save location'));
-        onProgress?.call(const JobProgress(fraction: 0.65, message: 'Choose save location'));
+        report(
+          const JobProgress(fraction: 0.65, message: 'Choose save location'),
+        );
+        onProgress?.call(
+          const JobProgress(fraction: 0.65, message: 'Choose save location'),
+        );
         final savePath = await _storage.pickSavePath(
           suggestedName: suggestedName,
           bytes: bytes,
@@ -172,7 +180,7 @@ class PageOrganizeService {
   /// with a different password (or none) is written to an unlocked temp so
   /// the open document can still be assembled.
   Future<({List<OrganizePageRef> pages, Map<String, String>? passwords})>
-      _unlockMismatchedPasswords(
+  _unlockMismatchedPasswords(
     List<OrganizePageRef> pages,
     Map<String, String>? passwordsByPath,
   ) async {
@@ -206,10 +214,7 @@ class PageOrganizeService {
     ];
     final remaining = Map<String, String>.from(passwords)
       ..removeWhere((path, _) => replacements.containsKey(path));
-    return (
-      pages: next,
-      passwords: remaining.isEmpty ? null : remaining,
-    );
+    return (pages: next, passwords: remaining.isEmpty ? null : remaining);
   }
 
   bool _everyPathSharesOnePassword(
@@ -290,8 +295,12 @@ class PageOrganizeService {
           );
         }
         final bytes = await File(tempOut).readAsBytes();
-        report(const JobProgress(fraction: 0.7, message: 'Choose save location'));
-        onProgress?.call(const JobProgress(fraction: 0.7, message: 'Choose save location'));
+        report(
+          const JobProgress(fraction: 0.7, message: 'Choose save location'),
+        );
+        onProgress?.call(
+          const JobProgress(fraction: 0.7, message: 'Choose save location'),
+        );
         final savePath = await _storage.pickSavePath(
           suggestedName: suggestedName,
           bytes: bytes,
@@ -407,7 +416,10 @@ class PageOrganizeService {
     required String suggestedName,
   }) async {
     final tempDir = await _storage.getTempDirectory();
-    final tempOut = p.join(tempDir, 'reorder-${DateTime.now().microsecondsSinceEpoch}.pdf');
+    final tempOut = p.join(
+      tempDir,
+      'reorder-${DateTime.now().microsecondsSinceEpoch}.pdf',
+    );
     await _structure.reorderPages(
       input: input,
       newOrder1Based: newOrder1Based,
@@ -432,10 +444,7 @@ class PageOrganizeService {
         await File(temp).writeAsBytes(bytes, flush: true);
       },
     );
-    return LocalFileRef(
-      path: savePath,
-      displayName: p.basename(savePath),
-    );
+    return LocalFileRef(path: savePath, displayName: p.basename(savePath));
   }
 
   Future<List<LocalFileRef>> splitEveryNAndPromptSave({
@@ -454,7 +463,12 @@ class PageOrganizeService {
     return _jobs.run(
       handle: handle,
       work: (report, cancelToken) async {
-        report(JobProgress(fraction: 0.15, message: 'Splitting every $pagesPerFile pages'));
+        report(
+          JobProgress(
+            fraction: 0.15,
+            message: 'Splitting every $pagesPerFile pages',
+          ),
+        );
         onProgress?.call(JobProgress(fraction: 0.15, message: 'Splitting'));
         final tempDir = await _storage.getTempDirectory();
         final parts = await _structure.splitEveryNPages(
@@ -474,12 +488,14 @@ class PageOrganizeService {
         for (var i = 0; i < parts.length; i++) {
           final part = parts[i];
           final bytes = await File(part.path).readAsBytes();
-          report(JobProgress(
-            fraction: 0.2 + 0.7 * (i + 1) / parts.length,
-            message: 'Save part ${i + 1} of ${parts.length}',
-          ));
+          report(
+            JobProgress(
+              fraction: 0.2 + 0.7 * (i + 1) / parts.length,
+              message: 'Save part ${i + 1} of ${parts.length}',
+            ),
+          );
           final savePath = await _storage.pickSavePath(
-            suggestedName: '${namePrefix}-part${i + 1}.pdf',
+            suggestedName: '$namePrefix-part${i + 1}.pdf',
             bytes: bytes,
             allowedExtensions: ['pdf'],
             mimeType: 'application/pdf',
@@ -496,7 +512,9 @@ class PageOrganizeService {
               await File(temp).writeAsBytes(bytes, flush: true);
             },
           );
-          saved.add(LocalFileRef(path: savePath, displayName: p.basename(savePath)));
+          saved.add(
+            LocalFileRef(path: savePath, displayName: p.basename(savePath)),
+          );
         }
         return saved;
       },
@@ -520,10 +538,12 @@ class PageOrganizeService {
     return _jobs.run(
       handle: jobHandle,
       work: (report, cancelToken) async {
-        report(JobProgress(
-          fraction: 0.15,
-          message: 'Splitting into ${rangesPages1Based.length} parts',
-        ));
+        report(
+          JobProgress(
+            fraction: 0.15,
+            message: 'Splitting into ${rangesPages1Based.length} parts',
+          ),
+        );
         onProgress?.call(JobProgress(fraction: 0.15, message: 'Splitting'));
         final tempDir = await _storage.getTempDirectory();
         final parts = await _structure.splitByRanges(
@@ -543,16 +563,20 @@ class PageOrganizeService {
         for (var i = 0; i < parts.length; i++) {
           final part = parts[i];
           final bytes = await File(part.path).readAsBytes();
-          report(JobProgress(
-            fraction: 0.2 + 0.7 * (i + 1) / parts.length,
-            message: 'Save part ${i + 1} of ${parts.length}',
-          ));
-          onProgress?.call(JobProgress(
-            fraction: 0.2 + 0.7 * (i + 1) / parts.length,
-            message: 'Save part ${i + 1} of ${parts.length}',
-          ));
+          report(
+            JobProgress(
+              fraction: 0.2 + 0.7 * (i + 1) / parts.length,
+              message: 'Save part ${i + 1} of ${parts.length}',
+            ),
+          );
+          onProgress?.call(
+            JobProgress(
+              fraction: 0.2 + 0.7 * (i + 1) / parts.length,
+              message: 'Save part ${i + 1} of ${parts.length}',
+            ),
+          );
           final savePath = await _storage.pickSavePath(
-            suggestedName: '${namePrefix}-part${i + 1}.pdf',
+            suggestedName: '$namePrefix-part${i + 1}.pdf',
             bytes: bytes,
             allowedExtensions: ['pdf'],
             mimeType: 'application/pdf',
@@ -569,7 +593,9 @@ class PageOrganizeService {
               await File(temp).writeAsBytes(bytes, flush: true);
             },
           );
-          saved.add(LocalFileRef(path: savePath, displayName: p.basename(savePath)));
+          saved.add(
+            LocalFileRef(path: savePath, displayName: p.basename(savePath)),
+          );
         }
         return saved;
       },
@@ -599,7 +625,9 @@ class PageOrganizeService {
           );
         }
         report(const JobProgress(fraction: 0.1, message: 'Splitting'));
-        onProgress?.call(const JobProgress(fraction: 0.1, message: 'Splitting'));
+        onProgress?.call(
+          const JobProgress(fraction: 0.1, message: 'Splitting'),
+        );
         final tempDir = await _storage.getTempDirectory();
         final parts = await _structure.splitByRanges(
           input: input,
@@ -616,7 +644,7 @@ class PageOrganizeService {
         }
         final saved = <LocalFileRef>[];
         for (var i = 0; i < parts.length; i++) {
-          final dest = p.join(outDir, '${namePrefix}-part${i + 1}.pdf');
+          final dest = p.join(outDir, '$namePrefix-part${i + 1}.pdf');
           final bytes = await File(parts[i].path).readAsBytes();
           await _storage.writeAtomic(
             destinationPath: dest,
@@ -625,14 +653,18 @@ class PageOrganizeService {
             },
           );
           saved.add(LocalFileRef(path: dest, displayName: p.basename(dest)));
-          report(JobProgress(
-            fraction: 0.2 + 0.75 * (i + 1) / parts.length,
-            message: 'Wrote part ${i + 1} of ${parts.length}',
-          ));
-          onProgress?.call(JobProgress(
-            fraction: 0.2 + 0.75 * (i + 1) / parts.length,
-            message: 'Wrote part ${i + 1} of ${parts.length}',
-          ));
+          report(
+            JobProgress(
+              fraction: 0.2 + 0.75 * (i + 1) / parts.length,
+              message: 'Wrote part ${i + 1} of ${parts.length}',
+            ),
+          );
+          onProgress?.call(
+            JobProgress(
+              fraction: 0.2 + 0.75 * (i + 1) / parts.length,
+              message: 'Wrote part ${i + 1} of ${parts.length}',
+            ),
+          );
         }
         return saved;
       },
@@ -681,11 +713,16 @@ class PageOrganizeService {
             message: 'Cancelled',
           );
         }
-        report(const JobProgress(fraction: 0.65, message: 'Choose save location'));
+        report(
+          const JobProgress(fraction: 0.65, message: 'Choose save location'),
+        );
         onProgress?.call(
           const JobProgress(fraction: 0.65, message: 'Choose save location'),
         );
-        final outRef = LocalFileRef(path: tempOut, displayName: 'crop-temp.pdf');
+        final outRef = LocalFileRef(
+          path: tempOut,
+          displayName: 'crop-temp.pdf',
+        );
         final bytes = await _storage.readBytes(outRef);
         final savePath = await _storage.pickSavePath(
           suggestedName: suggestedName,
@@ -763,11 +800,16 @@ class PageOrganizeService {
             message: 'Cancelled',
           );
         }
-        report(const JobProgress(fraction: 0.65, message: 'Choose save location'));
+        report(
+          const JobProgress(fraction: 0.65, message: 'Choose save location'),
+        );
         onProgress?.call(
           const JobProgress(fraction: 0.65, message: 'Choose save location'),
         );
-        final outRef = LocalFileRef(path: tempOut, displayName: 'resize-temp.pdf');
+        final outRef = LocalFileRef(
+          path: tempOut,
+          displayName: 'resize-temp.pdf',
+        );
         final bytes = await _storage.readBytes(outRef);
         final savePath = await _storage.pickSavePath(
           suggestedName: suggestedName,
@@ -809,7 +851,10 @@ class PageOrganizeService {
     required PdfCropRectPt box,
     Map<String, String>? passwordsByPath,
   }) async {
-    final tempOut = await _storage.createTempFile(prefix: 'crop-box', suffix: '.pdf');
+    final tempOut = await _storage.createTempFile(
+      prefix: 'crop-box',
+      suffix: '.pdf',
+    );
     final password = pageBoxPasswordForExportPath(
       passwordsByPath: passwordsByPath,
       filePath: input.path,
@@ -919,7 +964,10 @@ class PageOrganizeService {
     required PdfPaperSize paperSize,
     Map<String, String>? passwordsByPath,
   }) async {
-    final tempOut = await _storage.createTempFile(prefix: 'resize', suffix: '.pdf');
+    final tempOut = await _storage.createTempFile(
+      prefix: 'resize',
+      suffix: '.pdf',
+    );
     final password = pageBoxPasswordForExportPath(
       passwordsByPath: passwordsByPath,
       filePath: input.path,

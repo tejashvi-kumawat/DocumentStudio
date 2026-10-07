@@ -1,49 +1,33 @@
 import 'package:document_studio/features/annotations/markup/markup_tool_icon.dart';
+
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/features/annotations/markup/markup_editor_controller.dart';
 import 'package:document_studio/features/annotations/markup/markup_tool.dart';
+import 'package:document_studio/features/pdf_viewer/quick_tools/quick_tools.dart';
+import 'package:document_studio/features/pdf_viewer/quick_tools/quick_tools_panel.dart';
+import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:flutter/material.dart';
 
-/// Shapes behind the one shapes button. Acrobat order, only tools that exist.
-/// Connected lines is not a [MarkupTool].
-const pdfViewerMarkupShapeTools = <MarkupTool>[
-  MarkupTool.line,
-  MarkupTool.arrow,
-  MarkupTool.rectangle,
-  MarkupTool.ellipse,
-  MarkupTool.callout,
-  MarkupTool.polygon,
-  MarkupTool.cloud,
-];
-
-const _markTools = <MarkupTool>[
-  MarkupTool.highlight,
-  MarkupTool.underline,
-  MarkupTool.strikeout,
-];
-
-String _shapeLabel(MarkupTool tool) => switch (tool) {
-  MarkupTool.ellipse => 'Circle',
-  MarkupTool.callout => 'Text callout',
-  _ => tool.label,
-};
-
-/// Floating comment tools on the open PDF page.
+/// Floating Quick Tools on the open PDF page.
 ///
-/// One button on the right of the page, left of the Tools rail (the parent
-/// stacks this on the page, not over that rail or the top tool row). Drag
-/// the grip to move it; it stays inside the page. On a phone it sits inset
-/// from the edges. Collapsed and dragged position last for this process
-/// session. Color, bold, size, and alignment stay on the floating format bar.
+/// A slim rail on the right of the page, left of the Tools rail. It holds
+/// the tools the user pinned (comment tools and any viewer tool; the blue
+/// "…" opens every tool and lets them pin, unpin and reorder, like Acrobat's
+/// "Customize quick tools"). Drag the grip to move it; it stays inside the
+/// page. On a phone it sits inset from the edges. Collapsed state and
+/// position last for this process session; the pinned tools are saved.
 class PdfViewerMarkupPalette extends StatefulWidget {
   const PdfViewerMarkupPalette({
     super.key,
     required this.enabled,
     required this.markup,
     required this.onSelect,
+    this.onViewerTool,
+    this.activeViewerTool,
     this.pageRightInset = 8,
     this.pageBottomInset = 8,
   });
@@ -51,6 +35,12 @@ class PdfViewerMarkupPalette extends StatefulWidget {
   final bool enabled;
   final MarkupEditorController markup;
   final ValueChanged<MarkupTool> onSelect;
+
+  /// Opens a viewer tool pinned to the bar (Edit PDF, Redact, Crop…).
+  final ValueChanged<ViewerToolId>? onViewerTool;
+
+  /// The viewer tool currently open, shown as selected on the bar.
+  final ViewerToolId? activeViewerTool;
 
   /// Extra gap on the right of the page (in addition to the edge inset).
   final double pageRightInset;
@@ -89,6 +79,8 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
   void initState() {
     super.initState();
     PdfViewerMarkupPalette.collapsed.addListener(_onSessionChanged);
+    QuickToolsConfig.instance.addListener(_scheduleClamp);
+    unawaited(QuickToolsConfig.instance.ensureLoaded());
     _scheduleClamp();
   }
 
@@ -104,6 +96,7 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
   @override
   void dispose() {
     PdfViewerMarkupPalette.collapsed.removeListener(_onSessionChanged);
+    QuickToolsConfig.instance.removeListener(_scheduleClamp);
     super.dispose();
   }
 
@@ -133,31 +126,17 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
   ) {
     final pad = MediaQuery.paddingOf(context);
     final insetL = math.max(_edge, pad.left);
-    final insetR = math.max(
-      _edge,
-      math.max(pad.right, widget.pageRightInset),
-    );
+    final insetR = math.max(_edge, math.max(pad.right, widget.pageRightInset));
     final insetT = _topEdge;
     final insetB = math.max(
       _edge,
       math.max(pad.bottom, widget.pageBottomInset),
     );
     final minLeft = math.min(insetL, math.max(0.0, stack.width - bar.width));
-    final maxLeft = math.max(
-      minLeft,
-      stack.width - insetR - bar.width,
-    );
+    final maxLeft = math.max(minLeft, stack.width - insetR - bar.width);
     final minTop = math.min(insetT, math.max(0.0, stack.height - bar.height));
-    final maxTop = math.max(
-      minTop,
-      stack.height - insetB - bar.height,
-    );
-    return (
-      minLeft: minLeft,
-      maxLeft: maxLeft,
-      minTop: minTop,
-      maxTop: maxTop,
-    );
+    final maxTop = math.max(minTop, stack.height - insetB - bar.height);
+    return (minLeft: minLeft, maxLeft: maxLeft, minTop: minTop, maxTop: maxTop);
   }
 
   Offset _originFor(Size stack, Size bar) {
@@ -199,6 +178,7 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
       listenable: Listenable.merge([
         widget.markup,
         PdfViewerMarkupPalette.collapsed,
+        QuickToolsConfig.instance,
       ]),
       builder: (context, _) {
         return LayoutBuilder(
@@ -248,7 +228,9 @@ class _PdfViewerMarkupPaletteState extends State<PdfViewerMarkupPalette> {
                             collapsed: collapsed,
                             enabled: widget.enabled,
                             armed: armed,
+                            activeViewerTool: widget.activeViewerTool,
                             onSelect: widget.onSelect,
+                            onViewerTool: widget.onViewerTool,
                             onDrag: _dragBy,
                           ),
                         ),
@@ -270,15 +252,33 @@ class _Bar extends StatelessWidget {
     required this.collapsed,
     required this.enabled,
     required this.armed,
+    required this.activeViewerTool,
     required this.onSelect,
+    required this.onViewerTool,
     required this.onDrag,
   });
 
   final bool collapsed;
   final bool enabled;
   final MarkupTool? armed;
+  final ViewerToolId? activeViewerTool;
   final ValueChanged<MarkupTool> onSelect;
+  final ValueChanged<ViewerToolId>? onViewerTool;
   final ValueChanged<Offset> onDrag;
+
+  bool _isOn(QuickToolDef t) => t.markup != null
+      ? armed == t.markup
+      : (t.viewer != null && activeViewerTool == t.viewer);
+
+  void _run(QuickToolDef t) {
+    QuickToolsConfig.instance.used(t.id);
+    final m = t.markup;
+    if (m != null) {
+      onSelect(m);
+    } else {
+      onViewerTool?.call(t.viewer!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -287,103 +287,65 @@ class _Bar extends StatelessWidget {
     final surface = isDark
         ? DsColors.surfaceContainerDark
         : DsColors.surfaceContainerLight;
+    final cfg = QuickToolsConfig.instance;
+    final ids = [...cfg.pinned, ?cfg.recent];
     return Material(
       key: const Key('pdf_viewer_markup_palette'),
       elevation: 6,
       shadowColor: const Color(0x330F172A),
       color: surface,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: border),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 2),
-            _DragGrip(onDrag: onDrag),
-            _CollapseButton(collapsed: collapsed),
-            if (!collapsed)
+            _DragGrip(
+              onDrag: onDrag,
+              onDoubleTap: () =>
+                  PdfViewerMarkupPalette.setSessionCollapsed(true),
+              collapsed: collapsed,
+            ),
+            if (collapsed)
+              _CollapseButton(collapsed: collapsed)
+            else ...[
               Flexible(
                 fit: FlexFit.loose,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 2),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _IconTool(
-                        tool: MarkupTool.select,
-                        enabled: enabled,
-                        selected: armed == MarkupTool.select,
-                        onPressed: () => onSelect(MarkupTool.select),
-                      ),
-                      const _Sep(),
-                      _IconTool(
-                        tool: MarkupTool.note,
-                        tooltip: 'Add a sticky note',
-                        enabled: enabled,
-                        selected: armed == MarkupTool.note,
-                        onPressed: () => onSelect(MarkupTool.note),
-                      ),
-                      _GroupButton(
-                        label: 'Text',
-                        tools: const [MarkupTool.text, MarkupTool.callout],
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
-                      _GroupButton(
-                        label: 'Mark up text',
-                        tools: const [
-                          MarkupTool.highlight,
-                          MarkupTool.underline,
-                          MarkupTool.strikeout,
-                          MarkupTool.squiggly,
-                        ],
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
-                      const _Sep(),
-                      _GroupButton(
-                        label: 'Draw',
-                        tools: const [
-                          MarkupTool.pen,
-                          MarkupTool.highlighter,
-                          MarkupTool.eraser,
-                        ],
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
-                      _GroupButton(
-                        label: 'Shapes',
-                        tools: const [
-                          MarkupTool.line,
-                          MarkupTool.arrow,
-                          MarkupTool.rectangle,
-                          MarkupTool.ellipse,
-                          MarkupTool.polygon,
-                          MarkupTool.cloud,
-                        ],
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
-                      const _Sep(),
-                      _GroupButton(
-                        label: 'Insert',
-                        tools: const [MarkupTool.link, MarkupTool.image],
-                        enabled: enabled,
-                        armed: armed,
-                        onSelect: onSelect,
-                      ),
+                      for (final id in ids)
+                        if (quickToolById(id) case final t?)
+                          _QuickButton(
+                            def: t,
+                            enabled:
+                                enabled &&
+                                (t.markup != null || onViewerTool != null),
+                            selected: _isOn(t),
+                            temporary: id == cfg.recent,
+                            onPressed: () => _run(t),
+                          ),
                     ],
                   ),
                 ),
               ),
-            if (collapsed) const SizedBox(height: 2),
+              _MoreButton(
+                onOpen: (anchor) => showQuickToolsPanel(
+                  context,
+                  anchor: anchor,
+                  enabled: enabled,
+                  isOn: _isOn,
+                  onRun: _run,
+                  onHide: () =>
+                      PdfViewerMarkupPalette.setSessionCollapsed(true),
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
           ],
         ),
       ),
@@ -391,38 +353,50 @@ class _Bar extends StatelessWidget {
   }
 }
 
-class _Sep extends StatelessWidget {
-  const _Sep();
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
-        child: Divider(height: 1, color: DsColors.border(Theme.of(context).brightness)),
-      );
-}
-
+/// Slim handle on top of the rail: drag to move; double-click to hide.
 class _DragGrip extends StatelessWidget {
-  const _DragGrip({required this.onDrag});
+  const _DragGrip({
+    required this.onDrag,
+    required this.onDoubleTap,
+    required this.collapsed,
+  });
 
   final ValueChanged<Offset> onDrag;
+  final VoidCallback onDoubleTap;
+  final bool collapsed;
 
   @override
   Widget build(BuildContext context) {
-    final color = DsColors.textSecondary(Theme.of(context).brightness);
+    final color = DsColors.textSecondary(Theme.of(context).brightness)
+        .withValues(alpha: 0.45);
     return MouseRegion(
       cursor: SystemMouseCursors.grab,
-      child: Listener(
-        key: const Key('pdf_viewer_markup_palette_drag'),
-        behavior: HitTestBehavior.opaque,
-        onPointerMove: (event) {
-          if (event.down) onDrag(event.delta);
-        },
-        child: Tooltip(
-          message: 'Move comment tools',
-          child: SizedBox(
-            width: PdfViewerMarkupPalette.railWidth,
-            height: 18,
-            child: Icon(Icons.drag_indicator, size: 16, color: color),
+      child: GestureDetector(
+        onDoubleTap: collapsed ? null : onDoubleTap,
+        child: Listener(
+          key: const Key('pdf_viewer_markup_palette_drag'),
+          behavior: HitTestBehavior.opaque,
+          onPointerMove: (event) {
+            if (event.down) onDrag(event.delta);
+          },
+          child: Tooltip(
+            message: collapsed
+                ? 'Move quick tools'
+                : 'Move quick tools (double-click to hide)',
+            child: SizedBox(
+              width: PdfViewerMarkupPalette.railWidth,
+              height: 16,
+              child: Center(
+                child: Container(
+                  width: 22,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -443,7 +417,7 @@ class _CollapseButton extends StatelessWidget {
             ? 'pdf_viewer_markup_palette_expand'
             : 'pdf_viewer_markup_palette_collapse',
       ),
-      tooltip: collapsed ? 'Comment tools' : 'Hide comment tools',
+      tooltip: collapsed ? 'Quick tools' : 'Hide quick tools',
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(
@@ -460,173 +434,87 @@ class _CollapseButton extends StatelessWidget {
   }
 }
 
-class _IconTool extends StatelessWidget {
-  const _IconTool({
-    required this.tool,
+/// One pinned tool: a quiet icon with a soft hover and a tinted selected
+/// state. No menu arrows: everything else is under the blue "…".
+class _QuickButton extends StatefulWidget {
+  const _QuickButton({
+    required this.def,
     required this.enabled,
     required this.selected,
     required this.onPressed,
-    this.tooltip,
-    this.tight = false,
+    this.temporary = false,
   });
 
-  final MarkupTool tool;
+  final QuickToolDef def;
   final bool enabled;
   final bool selected;
+  final bool temporary;
   final VoidCallback onPressed;
-  final String? tooltip;
-  final bool tight;
+
+  @override
+  State<_QuickButton> createState() => _QuickButtonState();
+}
+
+class _QuickButtonState extends State<_QuickButton> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      key: Key('pdf_viewer_markup_palette_${tool.name}'),
-      tooltip: tool.shortcutHint == null
-          ? (tooltip ?? tool.label)
-          : '${tooltip ?? tool.label}  (${tool.shortcutHint})',
-      visualDensity: VisualDensity.compact,
-      iconSize: 22,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 36),
-      onPressed: enabled ? onPressed : null,
-      style: IconButton.styleFrom(
-        foregroundColor: selected
-            ? DsColors.primary
-            : Theme.of(context).colorScheme.onSurface,
-        backgroundColor: selected
-            ? DsColors.primary.withValues(alpha: 0.12)
-            : Colors.transparent,
-        shape: const RoundedRectangleBorder(),
-      ),
-      icon: MarkupToolIcon(tool, size: 22),
-    );
-  }
-}
-
-
-/// A tool button with a small ▾ that opens the rest of its group, like
-/// Acrobat's comment bar. The button repeats the last tool used from the
-/// group; the arrow (or a right-click) lists every tool with its shortcut.
-class _GroupButton extends StatefulWidget {
-  const _GroupButton({
-    required this.label,
-    required this.tools,
-    required this.enabled,
-    required this.armed,
-    required this.onSelect,
-  });
-
-  final String label;
-  final List<MarkupTool> tools;
-  final bool enabled;
-  final MarkupTool? armed;
-  final ValueChanged<MarkupTool> onSelect;
-
-  @override
-  State<_GroupButton> createState() => _GroupButtonState();
-}
-
-class _GroupButtonState extends State<_GroupButton> {
-  late MarkupTool _last = widget.tools.first;
-
-  MarkupTool get _shown =>
-      widget.armed != null && widget.tools.contains(widget.armed)
-          ? widget.armed!
-          : _last;
-
-  Future<void> _openMenu() async {
-    final box = context.findRenderObject()! as RenderBox;
-    final overlay =
-        Overlay.of(context).context.findRenderObject()! as RenderBox;
-    final topLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
-    final pos = RelativeRect.fromLTRB(
-      topLeft.dx - 190,
-      topLeft.dy,
-      overlay.size.width - topLeft.dx,
-      0,
-    );
-    final picked = await showMenu<MarkupTool>(
-      context: context,
-      position: pos,
-      constraints: const BoxConstraints(minWidth: 190),
-      items: [
-        for (final t in widget.tools)
-          PopupMenuItem<MarkupTool>(
-            value: t,
-            height: 34,
-            child: Row(
+    final theme = Theme.of(context);
+    final d = widget.def;
+    final hint = d.markup?.shortcutHint;
+    final color = !widget.enabled
+        ? theme.disabledColor
+        : widget.selected
+        ? DsColors.primary
+        : theme.colorScheme.onSurface.withValues(alpha: 0.86);
+    return Tooltip(
+      message: hint == null ? d.title : '${d.title}  ($hint)',
+      waitDuration: const Duration(milliseconds: 400),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        cursor: widget.enabled ? SystemMouseCursors.click : MouseCursor.defer,
+        child: GestureDetector(
+          key: Key('pdf_viewer_markup_palette_${d.id}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.enabled ? widget.onPressed : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 110),
+            width: 38,
+            height: 36,
+            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              color: widget.selected
+                  ? DsColors.primary.withValues(alpha: 0.13)
+                  : (_hover && widget.enabled
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.07)
+                        : Colors.transparent),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                MarkupToolIcon(t, size: 16),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(_shapeLabel(t), style: const TextStyle(fontSize: 13)),
-                ),
-                if (t.shortcutHint != null)
-                  Text(
-                    t.shortcutHint!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                d.markup != null
+                    ? MarkupToolIcon(d.markup!, size: 21, color: color)
+                    : Icon(d.icon, size: 21, color: color),
+                // A tool picked from "More" that is not pinned yet.
+                if (widget.temporary)
+                  Positioned(
+                    right: -2,
+                    bottom: -1,
+                    child: Container(
+                      width: 5,
+                      height: 5,
+                      decoration: const BoxDecoration(
+                        color: DsColors.primary,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
               ],
             ),
-          ),
-      ],
-    );
-    if (picked != null) {
-      setState(() => _last = picked);
-      widget.onSelect(picked);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tool = _shown;
-    final on = widget.armed != null && widget.tools.contains(widget.armed);
-    final color =
-        on ? DsColors.primary : Theme.of(context).colorScheme.onSurface;
-    final hint = tool.shortcutHint;
-    return Tooltip(
-      message: hint == null
-          ? _shapeLabel(tool)
-          : '${_shapeLabel(tool)}  ($hint)',
-      child: GestureDetector(
-        onSecondaryTap: widget.enabled ? _openMenu : null,
-        child: SizedBox(
-          width: 40,
-          height: 36,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: InkWell(
-                  onTap: widget.enabled
-                      ? () {
-                          setState(() => _last = tool);
-                          widget.onSelect(tool);
-                        }
-                      : null,
-                  child: Container(
-                    color: on ? DsColors.primary.withValues(alpha: 0.12) : null,
-                    alignment: Alignment.center,
-                    child: MarkupToolIcon(tool, size: 22, color: color),
-                  ),
-                ),
-              ),
-              // Acrobat-style corner marker: opens the rest of the group.
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: InkWell(
-                  onTap: widget.enabled ? _openMenu : null,
-                  child: SizedBox(
-                    width: 11,
-                    height: 11,
-                    child: CustomPaint(painter: _CornerTriangle(color)),
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -634,20 +522,38 @@ class _GroupButtonState extends State<_GroupButton> {
   }
 }
 
-class _CornerTriangle extends CustomPainter {
-  _CornerTriangle(this.color);
-  final Color color;
+/// The blue "…" under the tools: all tools and the customise panel.
+class _MoreButton extends StatelessWidget {
+  const _MoreButton({required this.onOpen});
+
+  final ValueChanged<Rect> onOpen;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(size.width, size.height * 0.35)
-      ..lineTo(size.width, size.height)
-      ..lineTo(size.width * 0.35, size.height)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color.withValues(alpha: 0.85));
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context) => Tooltip(
+        message: 'More tools · customise this bar',
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(5, 3, 5, 0),
+          child: Material(
+            color: DsColors.primary,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              key: const Key('pdf_viewer_markup_palette_more'),
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                final box = context.findRenderObject()! as RenderBox;
+                onOpen(box.localToGlobal(Offset.zero) & box.size);
+              },
+              child: const SizedBox(
+                width: 36,
+                height: 30,
+                child: Icon(Icons.more_horiz, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(_CornerTriangle old) => old.color != color;
 }

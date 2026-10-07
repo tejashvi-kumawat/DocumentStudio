@@ -57,8 +57,10 @@ class DsSidebarNotifier extends Notifier<DsSidebarState> {
       final prefs = await SharedPreferences.getInstance();
       state = DsSidebarState(
         collapsed: prefs.getBool(_kCollapsed) ?? state.collapsed,
-        width: (prefs.getDouble(_kWidth) ?? state.width)
-            .clamp(DsSidebarState.minWidth, DsSidebarState.maxWidth),
+        width: (prefs.getDouble(_kWidth) ?? state.width).clamp(
+          DsSidebarState.minWidth,
+          DsSidebarState.maxWidth,
+        ),
         collapsedSections:
             prefs.getStringList(_kSections)?.toSet() ?? state.collapsedSections,
       );

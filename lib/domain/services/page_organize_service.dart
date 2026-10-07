@@ -9,12 +9,10 @@ import 'package:path/path.dart' as p;
 
 class PageOrganizeService {
   PageOrganizeService({
-    required PdfStructurePort structure,
-    required FileStoragePort storage,
-    required JobRunner jobs,
-  })  : _structure = structure,
-        _storage = storage,
-        _jobs = jobs;
+    required this._structure,
+    required this._storage,
+    required this._jobs,
+  });
 
   final PdfStructurePort _structure;
   final FileStoragePort _storage;
@@ -55,10 +53,7 @@ class PageOrganizeService {
             await _writeBytes(temp, bytes);
           },
         );
-        return LocalFileRef(
-          path: savePath,
-          displayName: p.basename(savePath),
-        );
+        return LocalFileRef(path: savePath, displayName: p.basename(savePath));
       },
     );
   }

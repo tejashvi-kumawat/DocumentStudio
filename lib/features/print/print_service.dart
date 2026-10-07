@@ -12,19 +12,18 @@ import 'package:document_studio_qpdf/document_studio_qpdf.dart';
 import 'package:path/path.dart' as p;
 
 /// Builds a one-page PDF from raster bytes for the print dialog.
-typedef RasterPrintPdfBuilder = Future<Uint8List> Function(Uint8List imageBytes);
+typedef RasterPrintPdfBuilder = Future<Uint8List> Function(
+  Uint8List imageBytes,
+);
 
 /// Sends a local PDF to the OS print dialog.
 class PrintService {
   PrintService({
-    required FileStoragePort storage,
-    PrintGateway gateway = const PrintingGateway(),
-    RasterPrintPdfBuilder? rasterPrintPdfBuilder,
+    required this._storage,
+    this._gateway = const PrintingGateway(),
+    this._rasterPrintPdfBuilder,
     QpdfCliRunner? qpdf,
-  })  : _storage = storage,
-        _gateway = gateway,
-        _rasterPrintPdfBuilder = rasterPrintPdfBuilder,
-        _qpdf = qpdf ?? QpdfCliRunner();
+  }) : _qpdf = qpdf ?? QpdfCliRunner();
 
   final FileStoragePort _storage;
   final PrintGateway _gateway;
@@ -105,7 +104,8 @@ class PrintService {
     );
   }
 
-  Future<Uint8List> _loadPdfBytes(LocalFileRef file) => _storage.readBytes(file);
+  Future<Uint8List> _loadPdfBytes(LocalFileRef file) =>
+      _storage.readBytes(file);
 
   Future<Uint8List> _decryptForPrint(
     LocalFileRef file,

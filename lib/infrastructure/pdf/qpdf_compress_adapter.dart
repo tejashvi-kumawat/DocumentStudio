@@ -14,8 +14,8 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
   QpdfCompressRoutingAdapter({
     QpdfCliRunner? cli,
     PdfrxStructureAdapter? pdfrxFallback,
-  })  : _cli = cli ?? QpdfCliRunner(),
-        _pdfrx = pdfrxFallback ?? PdfrxStructureAdapter();
+  }) : _cli = cli ?? QpdfCliRunner(),
+       _pdfrx = pdfrxFallback ?? PdfrxStructureAdapter();
 
   final QpdfCliRunner _cli;
   final PdfrxStructureAdapter _pdfrx;
@@ -96,12 +96,11 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required List sources,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.assemblePageSources(
-        sources: sources.cast(),
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.assemblePageSources(
+    sources: sources.cast(),
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> merge({
@@ -109,13 +108,12 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required String outputPath,
     String? password,
     Map<String, String>? passwordsByPath,
-  }) =>
-      _pdfrx.merge(
-        inputs: inputs,
-        outputPath: outputPath,
-        password: password,
-        passwordsByPath: passwordsByPath,
-      );
+  }) => _pdfrx.merge(
+    inputs: inputs,
+    outputPath: outputPath,
+    password: password,
+    passwordsByPath: passwordsByPath,
+  );
 
   @override
   Future<List<LocalFileRef>> splitByRanges({
@@ -124,14 +122,13 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required String outputDirectory,
     required String namePrefix,
     String? password,
-  }) =>
-      _pdfrx.splitByRanges(
-        input: input,
-        rangesPages1Based: rangesPages1Based,
-        outputDirectory: outputDirectory,
-        namePrefix: namePrefix,
-        password: password,
-      );
+  }) => _pdfrx.splitByRanges(
+    input: input,
+    rangesPages1Based: rangesPages1Based,
+    outputDirectory: outputDirectory,
+    namePrefix: namePrefix,
+    password: password,
+  );
 
   @override
   Future<bool> supportsPageBoxEditing() => _pdfrx.supportsPageBoxEditing();
@@ -143,14 +140,13 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required PdfCropMarginPreset margin,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.cropPages(
-        input: input,
-        pageNumbers1Based: pageNumbers1Based,
-        margin: margin,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.cropPages(
+    input: input,
+    pageNumbers1Based: pageNumbers1Based,
+    margin: margin,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> cropPagesToBox({
@@ -159,14 +155,13 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required PdfCropRectPt box,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.cropPagesToBox(
-        input: input,
-        pageNumbers1Based: pageNumbers1Based,
-        box: box,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.cropPagesToBox(
+    input: input,
+    pageNumbers1Based: pageNumbers1Based,
+    box: box,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> setPageSize({
@@ -175,14 +170,13 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required PdfPaperSize paperSize,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.setPageSize(
-        input: input,
-        pageNumbers1Based: pageNumbers1Based,
-        paperSize: paperSize,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.setPageSize(
+    input: input,
+    pageNumbers1Based: pageNumbers1Based,
+    paperSize: paperSize,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> extractPages({
@@ -190,13 +184,12 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required List<int> pageNumbers1Based,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.extractPages(
-        input: input,
-        pageNumbers1Based: pageNumbers1Based,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.extractPages(
+    input: input,
+    pageNumbers1Based: pageNumbers1Based,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<List<LocalFileRef>> splitEveryNPages({
@@ -205,14 +198,13 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required String outputDirectory,
     required String namePrefix,
     String? password,
-  }) =>
-      _pdfrx.splitEveryNPages(
-        input: input,
-        pagesPerFile: pagesPerFile,
-        outputDirectory: outputDirectory,
-        namePrefix: namePrefix,
-        password: password,
-      );
+  }) => _pdfrx.splitEveryNPages(
+    input: input,
+    pagesPerFile: pagesPerFile,
+    outputDirectory: outputDirectory,
+    namePrefix: namePrefix,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> deletePages({
@@ -220,13 +212,12 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required Set<int> deletePages1Based,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.deletePages(
-        input: input,
-        deletePages1Based: deletePages1Based,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.deletePages(
+    input: input,
+    deletePages1Based: deletePages1Based,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> reorderPages({
@@ -234,13 +225,12 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required List<int> newOrder1Based,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.reorderPages(
-        input: input,
-        newOrder1Based: newOrder1Based,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.reorderPages(
+    input: input,
+    newOrder1Based: newOrder1Based,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> rotatePages({
@@ -248,23 +238,21 @@ class QpdfCompressRoutingAdapter implements PdfStructurePort {
     required Map<int, int> pageRotationsDegrees,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.rotatePages(
-        input: input,
-        pageRotationsDegrees: pageRotationsDegrees,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.rotatePages(
+    input: input,
+    pageRotationsDegrees: pageRotationsDegrees,
+    outputPath: outputPath,
+    password: password,
+  );
 
   @override
   Future<LocalFileRef> reversePages({
     required LocalFileRef input,
     required String outputPath,
     String? password,
-  }) =>
-      _pdfrx.reversePages(
-        input: input,
-        outputPath: outputPath,
-        password: password,
-      );
+  }) => _pdfrx.reversePages(
+    input: input,
+    outputPath: outputPath,
+    password: password,
+  );
 }

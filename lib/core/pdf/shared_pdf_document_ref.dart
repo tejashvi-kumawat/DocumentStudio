@@ -20,11 +20,11 @@ import 'package:pdfrx/pdfrx.dart';
 /// [dispose] from the owning widget's `dispose`.
 class SharedPdfDocumentHandle {
   SharedPdfDocumentHandle(String path, {this.password})
-      : path = LinuxDocumentPortal.resolveSync(path),
-        _initial = PdfDocumentCache.instance.acquire(
-          LinuxDocumentPortal.resolveSync(path),
-          password: password,
-        ) {
+    : path = LinuxDocumentPortal.resolveSync(path),
+      _initial = PdfDocumentCache.instance.acquire(
+        LinuxDocumentPortal.resolveSync(path),
+        password: password,
+      ) {
     _initial?.ignore();
   }
 
@@ -47,8 +47,9 @@ class SharedPdfDocumentHandle {
   Future<PdfDocument> _load() async {
     final pending = _initial;
     _initial = null;
-    final lease = await (pending ??
-        PdfDocumentCache.instance.acquire(path, password: password));
+    final lease =
+        await (pending ??
+            PdfDocumentCache.instance.acquire(path, password: password));
     if (_disposed) {
       lease.release();
       return lease.document;

@@ -54,7 +54,9 @@ class ScanScreen extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     body,
-                    style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: secondary,
+                    ),
                   ),
                 ],
               ),
@@ -68,7 +70,6 @@ class ScanScreen extends StatelessWidget {
       title: 'Scan to PDF',
       subtitle: 'Turn photos of paper documents into a PDF.',
       icon: Icons.document_scanner_outlined,
-      iconColor: const Color(0xFF10B981),
       primaryLabel: 'Choose photos',
       primaryIcon: Icons.add_photo_alternate_outlined,
       onPrimary: () => context.push('$imagesToPdfRoutePath?format=scan'),
@@ -78,7 +79,8 @@ class ScanScreen extends StatelessWidget {
         children: [
           const DsToolResultCard(
             title: 'Camera capture is not built in yet',
-            message: 'Take photos with your phone or scanner app, then combine '
+            message:
+                'Take photos with your phone or scanner app, then combine '
                 'them here. Everything stays on this device.',
             tone: DsResultTone.info,
           ),

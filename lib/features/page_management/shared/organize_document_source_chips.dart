@@ -37,9 +37,7 @@ class OrganizeDocumentSourceChips extends StatelessWidget {
     final showAllSelected = highlightSourcePath == null;
 
     return Material(
-      color: isDark
-          ? DsColors.surfaceContainerDark
-          : DsColors.groupedCellLight,
+      color: isDark ? DsColors.surfaceContainerDark : DsColors.groupedCellLight,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: border)),
@@ -109,9 +107,7 @@ class _SourceTab extends StatelessWidget {
           : Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
-        side: BorderSide(
-          color: selected ? DsColors.primary : border,
-        ),
+        side: BorderSide(color: selected ? DsColors.primary : border),
       ),
       child: InkWell(
         onTap: enabled ? onTap : null,
@@ -128,9 +124,7 @@ class _SourceTab extends StatelessWidget {
             style: theme.textTheme.labelLarge?.copyWith(
               fontSize: 13,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-              color: selected
-                  ? DsColors.primary
-                  : (enabled ? null : secondary),
+              color: selected ? DsColors.primary : (enabled ? null : secondary),
             ),
           ),
         ),

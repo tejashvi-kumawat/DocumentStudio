@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 
 /// DS-ORG-006 — insert pages from another PDF, reorder, then export.
 class InsertToolScreen extends StatelessWidget {
-  const InsertToolScreen({
-    super.key,
-    this.initialFile,
-    this.initialPassword,
-  });
+  const InsertToolScreen({super.key, this.initialFile, this.initialPassword});
 
   final LocalFileRef? initialFile;
   final String? initialPassword;

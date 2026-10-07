@@ -24,11 +24,7 @@ const officeConvertRoutePath = '/office-convert';
 
 /// Optional handoff from the PDF viewer (file + current page for export).
 class PdfToImagesRouteArgs {
-  const PdfToImagesRouteArgs({
-    required this.file,
-    this.page1,
-    this.password,
-  });
+  const PdfToImagesRouteArgs({required this.file, this.page1, this.password});
 
   final LocalFileRef file;
   final int? page1;
@@ -179,13 +175,11 @@ GoRoute buildImagesToPdfRoute({
     parentNavigatorKey: parentNavigatorKey,
     path: imagesToPdfRoutePath,
     builder: (context, state) {
-      final options =
-          ImagesToPdfRouteOptions.fromQuery(state.uri.queryParameters['format']);
+      final options = ImagesToPdfRouteOptions.fromQuery(
+        state.uri.queryParameters['format'],
+      );
       if (depsForTests != null) {
-        return ImagesToPdfScreen(
-          deps: depsForTests,
-          routeOptions: options,
-        );
+        return ImagesToPdfScreen(deps: depsForTests, routeOptions: options);
       }
       return Consumer(
         builder: (context, ref, _) {
@@ -207,8 +201,9 @@ GoRoute buildPdfToImagesRoute({
     parentNavigatorKey: parentNavigatorKey,
     path: pdfToImagesRoutePath,
     builder: (context, state) {
-      final options =
-          PdfToImagesRouteOptions.fromQuery(state.uri.queryParameters['format']);
+      final options = PdfToImagesRouteOptions.fromQuery(
+        state.uri.queryParameters['format'],
+      );
       final extra = state.extra;
       LocalFileRef? initialPdf;
       int? initialPage;
@@ -222,9 +217,7 @@ GoRoute buildPdfToImagesRoute({
       }
       final pageParam = state.uri.queryParameters['page'];
       final pageFromQuery = int.tryParse(pageParam ?? '');
-      if (initialPage == null &&
-          pageFromQuery != null &&
-          pageFromQuery >= 1) {
+      if (initialPage == null && pageFromQuery != null && pageFromQuery >= 1) {
         initialPage = pageFromQuery;
       }
       if (depsForTests != null) {

@@ -10,12 +10,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Unburned marks on [page] (ink, shapes, stamps, text markup).
-List<LiveDrawCommit> liveCommitsForPage(ViewerLiveToolSession live, int page) => [
-      for (final c in live.queuedDrawCommits)
-        if ((c.pageIndex1Based > 0 ? c.pageIndex1Based : live.pageIndex1Based) ==
-            page)
-          c,
-    ];
+List<LiveDrawCommit> liveCommitsForPage(
+  ViewerLiveToolSession live,
+  int page,
+) => [
+  for (final c in live.queuedDrawCommits)
+    if ((c.pageIndex1Based > 0 ? c.pageIndex1Based : live.pageIndex1Based) ==
+        page)
+      c,
+];
 
 /// Paints committed marks exactly as the writer burns them (same widths in
 /// points, colors, opacity, stamp and note layout).
@@ -84,7 +87,12 @@ Paint _strokePaint(Color color, double opacity, double widthPx) => Paint()
   ..strokeJoin = StrokeJoin.round
   ..isAntiAlias = true;
 
-void paintLiveCommit(Canvas canvas, Size size, LiveDrawCommit c, LivePageGeom geom) {
+void paintLiveCommit(
+  Canvas canvas,
+  Size size,
+  LiveDrawCommit c,
+  LivePageGeom geom,
+) {
   final kind = c.markupKind;
   final pxPerPt = geom.pxPerPt;
   if (kind != null) {
@@ -174,8 +182,13 @@ class _LiveStrokePainter extends CustomPainter {
       return;
     }
     if (pts.length < 2) return;
-    final shape = ViewerLiveToolSession.expandShapePoints(tool, pts.first, pts.last);
-    final closed = tool == LiveDrawTool.rectangle ||
+    final shape = ViewerLiveToolSession.expandShapePoints(
+      tool,
+      pts.first,
+      pts.last,
+    );
+    final closed =
+        tool == LiveDrawTool.rectangle ||
         tool == LiveDrawTool.ellipse ||
         tool == LiveDrawTool.callout;
     canvas.drawPath(_polylinePath(shape, size, closed: closed), paint);
@@ -218,7 +231,8 @@ class _LiveInkLayerState extends State<LiveInkLayer> {
       case LiveDrawTool.line:
       case LiveDrawTool.arrow:
         final len = math.sqrt(dx * dx + dy * dy);
-        final ang = (math.atan2(dy, dx) / (math.pi / 4)).round() * (math.pi / 4);
+        final ang =
+            (math.atan2(dy, dx) / (math.pi / 4)).round() * (math.pi / 4);
         return Offset(
           (startNorm.dx + math.cos(ang) * len / w).clamp(0.0, 1.0),
           (startNorm.dy + math.sin(ang) * len / h).clamp(0.0, 1.0),
@@ -313,11 +327,12 @@ class _LiveInkLayerState extends State<LiveInkLayer> {
                   tool: tool,
                   color: highlighter
                       ? (live.markupColor.toARGB32() == 0xFFE4002B
-                          ? kLiveHighlightColor
-                          : live.markupColor)
+                            ? kLiveHighlightColor
+                            : live.markupColor)
                       : live.markupColor,
                   opacity: highlighter ? kLiveHighlightOpacity : 1,
-                  widthPx: (highlighter
+                  widthPx:
+                      (highlighter
                           ? math.max(live.strokeWidthPt, 8)
                           : live.strokeWidthPt) *
                       _g.pxPerPt,
@@ -355,18 +370,22 @@ List<Rect> snapMarkupBands({
     for (final r in lines)
       switch (kind) {
         LiveMarkupKind.highlight => Rect.fromLTRB(
-            r.left,
-            r.top - r.height * 0.08,
-            r.right,
-            r.bottom + r.height * 0.08,
-          ),
-        LiveMarkupKind.underline =>
-          Rect.fromLTRB(r.left, r.bottom, r.right, r.bottom + thick(r)),
+          r.left,
+          r.top - r.height * 0.08,
+          r.right,
+          r.bottom + r.height * 0.08,
+        ),
+        LiveMarkupKind.underline => Rect.fromLTRB(
+          r.left,
+          r.bottom,
+          r.right,
+          r.bottom + thick(r),
+        ),
         LiveMarkupKind.strikethrough => () {
-            final cy = r.top + r.height * 0.55;
-            final t = thick(r);
-            return Rect.fromLTRB(r.left, cy - t / 2, r.right, cy + t / 2);
-          }(),
+          final cy = r.top + r.height * 0.55;
+          final t = thick(r);
+          return Rect.fromLTRB(r.left, cy - t / 2, r.right, cy + t / 2);
+        }(),
         LiveMarkupKind.note => r,
       },
   ];
@@ -381,8 +400,12 @@ List<Rect> _selectTextLines(List<Rect> chars, Offset a, Offset b) {
     for (var i = 0; i < chars.length; i++) {
       final r = chars[i];
       if (r.width <= 0 || r.height <= 0) continue;
-      final dx = p.dx < r.left ? r.left - p.dx : (p.dx > r.right ? p.dx - r.right : 0.0);
-      final dy = p.dy < r.top ? r.top - p.dy : (p.dy > r.bottom ? p.dy - r.bottom : 0.0);
+      final dx = p.dx < r.left
+          ? r.left - p.dx
+          : (p.dx > r.right ? p.dx - r.right : 0.0);
+      final dy = p.dy < r.top
+          ? r.top - p.dy
+          : (p.dy > r.bottom ? p.dy - r.bottom : 0.0);
       final d = dx * dx * 4 + dy * dy * 16;
       if (d < bestD) {
         bestD = d;
@@ -408,9 +431,9 @@ List<Rect> _selectTextLines(List<Rect> chars, Offset a, Offset b) {
       cur = r;
       continue;
     }
-    final overlap =
-        math.min(cur.bottom, r.bottom) - math.max(cur.top, r.top);
-    final sameLine = overlap > 0.5 * math.min(cur.height, r.height) &&
+    final overlap = math.min(cur.bottom, r.bottom) - math.max(cur.top, r.top);
+    final sameLine =
+        overlap > 0.5 * math.min(cur.height, r.height) &&
         r.left >= cur.left - cur.height;
     if (sameLine) {
       cur = cur.expandToInclude(r);
@@ -515,8 +538,9 @@ class _LiveMarkupLayerState extends State<LiveMarkupLayer> {
     final commits = liveCommitsForPage(_live, _g.pageNumber);
     final kind = _live.markupKind;
     final previewColor = switch (kind) {
-      LiveMarkupKind.highlight =>
-        kLiveHighlightColor.withValues(alpha: kLiveHighlightOpacity),
+      LiveMarkupKind.highlight => kLiveHighlightColor.withValues(
+        alpha: kLiveHighlightOpacity,
+      ),
       LiveMarkupKind.underline => kLiveUnderlineColor,
       LiveMarkupKind.strikethrough => kLiveStrikeColor,
       LiveMarkupKind.note => kLiveNoteFill,

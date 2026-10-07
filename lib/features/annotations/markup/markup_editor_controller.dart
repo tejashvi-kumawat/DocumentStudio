@@ -1,4 +1,5 @@
 import 'package:document_studio/core/settings/app_prefs.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
 

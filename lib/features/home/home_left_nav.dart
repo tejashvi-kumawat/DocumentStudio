@@ -36,10 +36,7 @@ class HomeLeftNav extends StatelessWidget {
     return SizedBox(
       width: 220,
       child: Padding(
-        padding: const EdgeInsets.only(
-          top: DsSpacing.lg,
-          right: DsSpacing.md,
-        ),
+        padding: const EdgeInsets.only(top: DsSpacing.lg, right: DsSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -126,8 +123,8 @@ class _HomeNavRow extends StatelessWidget {
               color: selected
                   ? primary
                   : (isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight),
+                        ? DsColors.textPrimaryDark
+                        : DsColors.textPrimaryLight),
             ),
           ),
         ),

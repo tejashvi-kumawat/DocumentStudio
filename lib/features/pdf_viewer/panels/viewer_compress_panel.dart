@@ -57,8 +57,10 @@ class _ViewerCompressPanelState extends ConsumerState<ViewerCompressPanel> {
   String? _inputPassword() {
     final prompted = _password;
     if (prompted != null && prompted.isNotEmpty) return prompted;
-    final fromSession =
-        ref.read(documentTabsControllerProvider).activeSession?.password;
+    final fromSession = ref
+        .read(documentTabsControllerProvider)
+        .activeSession
+        ?.password;
     if (fromSession != null && fromSession.isNotEmpty) return fromSession;
     final handoff = widget.handoff.password;
     if (handoff != null && handoff.isNotEmpty) return handoff;
@@ -103,8 +105,9 @@ class _ViewerCompressPanelState extends ConsumerState<ViewerCompressPanel> {
       return e.message;
     }
     if (e is QpdfCliException) {
-      final detail =
-          e.stderr.trim().isEmpty ? e.stdout.trim() : e.stderr.trim();
+      final detail = e.stderr.trim().isEmpty
+          ? e.stdout.trim()
+          : e.stderr.trim();
       return detail.isEmpty ? e.toString() : detail;
     }
     return '$e';
@@ -239,58 +242,55 @@ class _ViewerCompressPanelState extends ConsumerState<ViewerCompressPanel> {
       onPrimary: () => unawaited(_apply()),
       notice: _error == null
           ? null
-          : Text(
-              _error!,
-              style: bodyStyle?.copyWith(color: DsColors.primary),
-            ),
+          : Text(_error!, style: bodyStyle?.copyWith(color: DsColors.primary)),
       children: [
-              Text('Compression level', style: labelStyle),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final profile in kCompressPanelProfiles)
-                    ChoiceChip(
-                      label: Text(
-                        PdfCompressOptions.fromProfile(profile).userLabel,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      selected: _profile == profile,
-                      onSelected: _busy || _estimating
-                          ? null
-                          : (selected) {
-                              if (!selected) return;
-                              setState(() {
-                                _profile = profile;
-                                _sizeNote = null;
-                                _error = null;
-                              });
-                            },
-                    ),
-                ],
-              ),
-              const SizedBox(height: DsSpacing.sm),
-              Text(options.effectDescription, style: bodyStyle),
-              const SizedBox(height: DsSpacing.md),
-              OutlinedButton(
-                onPressed: _busy || _estimating
+        Text('Compression level', style: labelStyle),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final profile in kCompressPanelProfiles)
+              ChoiceChip(
+                label: Text(
+                  PdfCompressOptions.fromProfile(profile).userLabel,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                selected: _profile == profile,
+                onSelected: _busy || _estimating
                     ? null
-                    : () => unawaited(_estimateSize()),
-                child: Text(
-                  _estimating ? 'Estimating…' : 'Estimate',
-                  style: const TextStyle(fontSize: 13),
-                ),
+                    : (selected) {
+                        if (!selected) return;
+                        setState(() {
+                          _profile = profile;
+                          _sizeNote = null;
+                          _error = null;
+                        });
+                      },
               ),
-              if (_sizeNote != null) ...[
-                const SizedBox(height: DsSpacing.sm),
-                Text(
-                  _sizeNote!,
-                  key: const Key('viewer_compress_estimate'),
-                  style: bodyStyle?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ],
+          ],
+        ),
+        const SizedBox(height: DsSpacing.sm),
+        Text(options.effectDescription, style: bodyStyle),
+        const SizedBox(height: DsSpacing.md),
+        OutlinedButton(
+          onPressed: _busy || _estimating
+              ? null
+              : () => unawaited(_estimateSize()),
+          child: Text(
+            _estimating ? 'Estimating…' : 'Estimate',
+            style: const TextStyle(fontSize: 13),
+          ),
+        ),
+        if (_sizeNote != null) ...[
+          const SizedBox(height: DsSpacing.sm),
+          Text(
+            _sizeNote!,
+            key: const Key('viewer_compress_estimate'),
+            style: bodyStyle?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ],
+      ],
     );
   }
 }

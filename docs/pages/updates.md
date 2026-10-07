@@ -2,11 +2,12 @@
 
 Keep Document Studio current without hunting for a new installer every time.
 
-## Latest: v1.1.0
+## Latest: v1.2.0
 
-Major desktop upgrade — richer Acrobat-style viewer chrome, stronger edit/redact/security pipelines, compose & conversion improvements, and packaging for Windows / macOS / Linux.
+Word and PowerPoint editors, a customizable Quick Tools bar, tool pages with a live preview pane, PDF files opening as tabs in the running app, faster PDF editing with better font identification, and qpdf-free watermark, header/footer, page-number and link tools.
 
-- [Release v1.1.0](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0)
+- [Release v1.2.0](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.2.0)
+- [Previous: v1.1.0](https://github.com/tejashvi-kumawat/DocumentStudio/releases/tag/v1.1.0)
 - [Download & install](#/install)
 
 ## Recommended: CLI

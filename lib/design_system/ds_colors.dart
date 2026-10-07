@@ -12,12 +12,14 @@ abstract final class DsColors {
   static const success = Color(0xFF059669);
   static const warning = Color(0xFFD97706);
   static const error = Color(0xFFDC2626);
+
   /// Alias used by Fill & Sign / validation chrome.
   static const danger = error;
 
   static const surfaceDark = Color(0xFF0F172A);
   static const surfaceContainerDark = Color(0xFF1E293B);
   static const textPrimaryDark = Color(0xFFF1F5F9);
+
   /// Slightly lifted from slate-400 for AA on grouped dark surfaces.
   static const textSecondaryDark = Color(0xFFA8B4C8);
   static const borderDark = Color(0xFF334155);
@@ -51,7 +53,9 @@ abstract final class DsColors {
       brightness == Brightness.dark ? textPrimaryDark : textPrimaryLight;
 
   static Color groupedBackground(Brightness brightness) =>
-      brightness == Brightness.dark ? groupedBackgroundDark : groupedBackgroundLight;
+      brightness == Brightness.dark
+      ? groupedBackgroundDark
+      : groupedBackgroundLight;
 
   static Color groupedCell(Brightness brightness) =>
       brightness == Brightness.dark ? groupedCellDark : groupedCellLight;

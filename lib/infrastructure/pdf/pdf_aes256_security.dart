@@ -142,11 +142,7 @@ class PdfAes256SecurityMaterial implements PdfSecurityMaterial {
 
     final oVal = _random(8);
     final oKey = _random(8);
-    final o = Uint8List.fromList([
-      ...hashR6(opw, oVal, u),
-      ...oVal,
-      ...oKey,
-    ]);
+    final o = Uint8List.fromList([...hashR6(opw, oVal, u), ...oVal, ...oKey]);
     final oe = _aesCbcNoPad(hashR6(opw, oKey, u), zeroIv, fileKey);
 
     final permsPlain = Uint8List.fromList([

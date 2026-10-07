@@ -66,8 +66,9 @@ List<PdfViewerAcrobatToolDefinition> buildPdfViewerAcrobatToolCatalog(
   WidgetRef ref,
 ) {
   final ocrBlocked = isOcrEngineBlocked(ref.read(ocrPortProvider));
-  final searchableBlocked =
-      isSearchablePdfEngineBlocked(ref.read(searchablePdfPortProvider));
+  final searchableBlocked = isSearchablePdfEngineBlocked(
+    ref.read(searchablePdfPortProvider),
+  );
 
   final organizeAndCombine = OrganizeToolCatalog.tools.map((t) {
     final combine = _combineOrganizeIds.contains(t.id);
@@ -319,8 +320,9 @@ List<PdfViewerAcrobatToolDefinition> buildPdfViewerAcrobatToolCatalog(
       availability: searchableBlocked
           ? PdfViewerAcrobatToolAvailability.blocked
           : PdfViewerAcrobatToolAvailability.available,
-      blockedReason:
-          searchableBlocked ? BlockedSearchablePdfPort.blockedReason : null,
+      blockedReason: searchableBlocked
+          ? BlockedSearchablePdfPort.blockedReason
+          : null,
     ),
   ];
 
@@ -426,9 +428,9 @@ List<PdfViewerAcrobatToolDefinition> pdfViewerAcrobatToolsInGroup(
 /// A row in the All tools pane: one tool, or a named group of tools.
 class PdfViewerAcrobatRailEntry {
   const PdfViewerAcrobatRailEntry.tool(this.tool)
-      : title = '',
-        icon = null,
-        tools = const [];
+    : title = '',
+      icon = null,
+      tools = const [];
   const PdfViewerAcrobatRailEntry.group({
     required this.title,
     required this.icon,
@@ -457,7 +459,10 @@ const _acrobatToolNames = <String, (String, IconData)>{
   'export_images': ('Images (all formats)', Icons.photo_library_outlined),
   'export_jpg': ('JPEG', Icons.photo_outlined),
   'export_png': ('PNG', Icons.image_outlined),
-  'office_convert': ('Microsoft Word / Excel / PowerPoint', Icons.description_outlined),
+  'office_convert': (
+    'Microsoft Word / Excel / PowerPoint',
+    Icons.description_outlined,
+  ),
   'create_pdf': ('From text', Icons.picture_as_pdf_outlined),
   'images_to_pdf': ('From images', Icons.collections_outlined),
   'office_to_pdf': ('From Microsoft Office', Icons.description_outlined),
@@ -467,7 +472,10 @@ const _acrobatToolNames = <String, (String, IconData)>{
   'stamps': ('Stamp', Icons.approval),
   'digital_sign': ('Certificates', Icons.workspace_premium_outlined),
   'ocr_image': ('Recognize text in an image', Icons.image_search_outlined),
-  'ocr_searchable_pdf': ('Recognize text in this file', Icons.text_snippet_outlined),
+  'ocr_searchable_pdf': (
+    'Recognize text in this file',
+    Icons.text_snippet_outlined,
+  ),
   'protect': ('Encrypt with password', Icons.lock_outline),
   'unlock': ('Remove password', Icons.lock_open_outlined),
   'accessibility_tags': ('Accessibility', Icons.accessibility_new),
@@ -518,21 +526,17 @@ List<PdfViewerAcrobatRailEntry> buildPdfViewerAcrobatRail(
     return t;
   }
 
-  List<PdfViewerAcrobatToolDefinition> takeAll(List<String> ids) =>
-      [for (final id in ids) ?take(id)];
+  List<PdfViewerAcrobatToolDefinition> takeAll(List<String> ids) => [
+    for (final id in ids) ?take(id),
+  ];
 
   PdfViewerAcrobatRailEntry? group(
     String title,
     IconData icon,
     List<PdfViewerAcrobatToolDefinition> list,
-  ) =>
-      list.isEmpty
-          ? null
-          : PdfViewerAcrobatRailEntry.group(
-              title: title,
-              icon: icon,
-              tools: list,
-            );
+  ) => list.isEmpty
+      ? null
+      : PdfViewerAcrobatRailEntry.group(title: title, icon: icon, tools: list);
 
   PdfViewerAcrobatRailEntry? single(String id) {
     final t = take(id);
@@ -553,51 +557,73 @@ List<PdfViewerAcrobatRailEntry> buildPdfViewerAcrobatRail(
 
   final entries = <PdfViewerAcrobatRailEntry?>[
     single('edit_text'),
-    group('Export a PDF', Icons.ios_share, takeAll(
-      ['export_images', 'export_jpg', 'export_png', 'office_convert'],
-    )),
-    group('Create a PDF', Icons.note_add_outlined, takeAll(
-      ['create_pdf', 'images_to_pdf', 'office_to_pdf', 'insert_scan'],
-    )),
-    group('Combine files', Icons.file_copy_outlined, takeAll([
-      'organize_merge',
-      'organize_insert',
-      'organize_replace',
-      'organize_move_between',
-    ])),
+    group(
+      'Export a PDF',
+      Icons.ios_share,
+      takeAll(['export_images', 'export_jpg', 'export_png', 'office_convert']),
+    ),
+    group(
+      'Create a PDF',
+      Icons.note_add_outlined,
+      takeAll(['create_pdf', 'images_to_pdf', 'office_to_pdf', 'insert_scan']),
+    ),
+    group(
+      'Combine files',
+      Icons.file_copy_outlined,
+      takeAll([
+        'organize_merge',
+        'organize_insert',
+        'organize_replace',
+        'organize_move_between',
+      ]),
+    ),
     group('Organize pages', Icons.auto_awesome_mosaic_outlined, [
       ...takeAll(organizeIds),
       ...takeAll(['headers_footers', 'page_numbers']),
     ]),
-    group('Add comments', Icons.add_comment_outlined, takeAll([
-      'markup_text',
-      'comment_highlight',
-      'comment_underline',
-      'comment_strikeout',
-      'comment_note',
-      'comment_callout',
-      'ink',
-    ])),
-    group('Fill & Sign', Icons.history_edu_outlined, takeAll(
-      ['visual_sign', 'fill_form', 'stamps', 'digital_sign'],
-    )),
-    group('Scan & OCR', Icons.document_scanner_outlined, takeAll(
-      ['ocr_searchable_pdf', 'ocr_image'],
-    )),
-    group('Protect a PDF', Icons.shield_outlined, takeAll(
-      ['protect', 'unlock', 'accessibility_tags'],
-    )),
+    group(
+      'Add comments',
+      Icons.add_comment_outlined,
+      takeAll([
+        'markup_text',
+        'comment_highlight',
+        'comment_underline',
+        'comment_strikeout',
+        'comment_note',
+        'comment_callout',
+        'ink',
+      ]),
+    ),
+    group(
+      'Fill & Sign',
+      Icons.history_edu_outlined,
+      takeAll(['visual_sign', 'fill_form', 'stamps', 'digital_sign']),
+    ),
+    group(
+      'Scan & OCR',
+      Icons.document_scanner_outlined,
+      takeAll(['ocr_searchable_pdf', 'ocr_image']),
+    ),
+    group(
+      'Protect a PDF',
+      Icons.shield_outlined,
+      takeAll(['protect', 'unlock', 'accessibility_tags']),
+    ),
     single('redact'),
     single('compress'),
     single('compare'),
-    group('Customize', Icons.tune, takeAll([
-      'watermark',
-      'place_image',
-      'add_link',
-      'metadata',
-      'remove_metadata',
-      'batch',
-    ])),
+    group(
+      'Customize',
+      Icons.tune,
+      takeAll([
+        'watermark',
+        'place_image',
+        'add_link',
+        'metadata',
+        'remove_metadata',
+        'batch',
+      ]),
+    ),
   ];
   final rest = [
     for (final t in tools)

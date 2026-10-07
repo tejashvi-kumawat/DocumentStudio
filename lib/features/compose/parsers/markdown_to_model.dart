@@ -67,8 +67,9 @@ List<CBlock> _blocks(List<md.Node> nodes) {
   final out = <CBlock>[];
   for (final n in nodes) {
     if (n is md.Text) {
-      if (n.text.trim().isNotEmpty)
+      if (n.text.trim().isNotEmpty) {
         out.add(CPara(_inlines([n], const CStyle())));
+      }
       continue;
     }
     if (n is! md.Element) continue;

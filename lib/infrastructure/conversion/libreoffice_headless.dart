@@ -28,7 +28,8 @@ class LibreOfficeHeadless {
   static Future<Directory> _sharedProfile() async {
     final cached = _profile;
     if (cached != null && cached.existsSync()) return cached;
-    final root = StoragePaths.maybeInstance?.root.path ?? Directory.systemTemp.path;
+    final root =
+        StoragePaths.maybeInstance?.root.path ?? Directory.systemTemp.path;
     final dir = Directory(p.join(root, 'engines', 'lo_profile'));
     await dir.create(recursive: true);
     return _profile = dir;
@@ -158,12 +159,12 @@ class LibreOfficeHeadless {
         run(exe: exe, workDir: outDir, args: args);
 
     Never fail(ProcessResult r, String what) => throw StateError(
-          formatConvertError(
-            'LibreOffice $what failed (exit ${r.exitCode})',
-            stderr: r.stderr.toString(),
-            exitCode: r.exitCode,
-          ),
-        );
+      formatConvertError(
+        'LibreOffice $what failed (exit ${r.exitCode})',
+        stderr: r.stderr.toString(),
+        exitCode: r.exitCode,
+      ),
+    );
 
     if (target == 'xlsx') {
       // Calc cannot open a PDF as a spreadsheet: go through HTML tables.
@@ -193,9 +194,7 @@ class LibreOfficeHeadless {
     final r = await go([
       isDoc ? pdfWriterInfilter : '--infilter=impress_pdf_import',
       '--convert-to',
-      isDoc
-          ? 'docx:MS Word 2007 XML'
-          : 'pptx:Impress MS PowerPoint 2007 XML',
+      isDoc ? 'docx:MS Word 2007 XML' : 'pptx:Impress MS PowerPoint 2007 XML',
       '--outdir',
       outDir,
       pdfPath,

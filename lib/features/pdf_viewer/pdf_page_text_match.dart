@@ -18,7 +18,11 @@ class PdfPageTextMatch {
 }
 
 /// Converts a PDF-space [PdfRect] (bottom-left origin) to UI-normalized top-left.
-ui.Rect pdfRectToNormTopLeft(PdfRect r, double pageWidthPt, double pageHeightPt) {
+ui.Rect pdfRectToNormTopLeft(
+  PdfRect r,
+  double pageWidthPt,
+  double pageHeightPt,
+) {
   final w = pageWidthPt <= 0 ? 1.0 : pageWidthPt;
   final h = pageHeightPt <= 0 ? 1.0 : pageHeightPt;
   final left = (r.left / w).clamp(0.0, 1.0);

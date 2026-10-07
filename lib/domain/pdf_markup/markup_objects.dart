@@ -367,7 +367,7 @@ class TextBoxMarkup extends MarkupObject {
     super.locked,
     super.groupId,
     super.opacity,
-    required Rect frame,
+    required this._frame,
     this.rotation = 0,
     this.text = '',
     this.fontFamily = MarkupFontFamily.sans,
@@ -387,7 +387,7 @@ class TextBoxMarkup extends MarkupObject {
     this.autoWidth = false,
     this.lines = const [],
     this.calloutPoints = const [],
-  }) : _frame = frame;
+  });
 
   final Rect _frame;
   @override
@@ -652,7 +652,7 @@ class ImageMarkup extends MarkupObject {
     super.locked,
     super.groupId,
     super.opacity,
-    required Rect frame,
+    required this._frame,
     this.rotation = 0,
     this.flipH = false,
     this.flipV = false,
@@ -661,7 +661,7 @@ class ImageMarkup extends MarkupObject {
     this.borderColor,
     this.borderWidth = 0,
     required this.bytes,
-  }) : _frame = frame;
+  });
 
   final Rect _frame;
   @override

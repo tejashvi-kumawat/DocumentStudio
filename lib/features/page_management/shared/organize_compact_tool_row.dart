@@ -25,7 +25,9 @@ class OrganizeCompactToolRow extends StatelessWidget {
             ? () => context.push(tool.routePath)
             : () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${tool.label} is not available yet.')),
+                  SnackBar(
+                    content: Text('${tool.label} is not available yet.'),
+                  ),
                 );
               },
         child: Padding(
@@ -35,9 +37,7 @@ class OrganizeCompactToolRow extends StatelessWidget {
               Icon(
                 tool.icon,
                 size: 22,
-                color: enabled
-                    ? theme.colorScheme.primary
-                    : secondary,
+                color: enabled ? theme.colorScheme.primary : secondary,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -68,7 +68,9 @@ class OrganizeCompactToolRow extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 8),
                   child: Text(
                     'Soon',
-                    style: theme.textTheme.labelSmall?.copyWith(color: secondary),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: secondary,
+                    ),
                   ),
                 )
               else

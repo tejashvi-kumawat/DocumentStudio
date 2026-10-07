@@ -76,8 +76,7 @@ class _HomeDocumentsPanelState extends ConsumerState<HomeDocumentsPanel> {
     return switch (section) {
       HomeSidebarSection.starred => widget.favorites,
       HomeSidebarSection.recent ||
-      HomeSidebarSection.yourDocuments =>
-        widget.recents,
+      HomeSidebarSection.yourDocuments => widget.recents,
     };
   }
 
@@ -359,9 +358,7 @@ class _HomeDocumentsPanelState extends ConsumerState<HomeDocumentsPanel> {
                           icon: Icon(
                             starred ? Icons.star : Icons.star_border,
                             size: 18,
-                            color: starred
-                                ? theme.colorScheme.primary
-                                : muted,
+                            color: starred ? theme.colorScheme.primary : muted,
                           ),
                           onPressed: () => widget.onToggleFavorite(file),
                         ),
@@ -378,17 +375,9 @@ class _HomeDocumentsPanelState extends ConsumerState<HomeDocumentsPanel> {
                             height: 32,
                           ),
                           iconSize: 18,
-                          icon: Icon(
-                            Icons.more_vert,
-                            size: 18,
-                            color: muted,
-                          ),
-                          onSelected: (mode) => homeOpenPdfWithMode(
-                            context,
-                            ref,
-                            file,
-                            mode,
-                          ),
+                          icon: Icon(Icons.more_vert, size: 18, color: muted),
+                          onSelected: (mode) =>
+                              homeOpenPdfWithMode(context, ref, file, mode),
                           itemBuilder: (context) => [
                             PopupMenuItem(
                               value: HomePdfOpenMode.editPages,
@@ -413,8 +402,11 @@ class _HomeDocumentsPanelState extends ConsumerState<HomeDocumentsPanel> {
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
                             tooltip: 'Remove from Recents',
-                            icon: Icon(Icons.close_rounded,
-                                size: 16, color: muted),
+                            icon: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: muted,
+                            ),
                             onPressed: () => ref
                                 .read(recentsProvider.notifier)
                                 .removeRecent(file.path),

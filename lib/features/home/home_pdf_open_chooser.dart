@@ -53,7 +53,9 @@ class _HomePdfOpenChooserDialog extends StatelessWidget {
     return Center(
       child: Material(
         key: const Key('home_pdf_open_chooser'),
-        color: isDark ? DsColors.surfaceContainerDark : theme.colorScheme.surface,
+        color: isDark
+            ? DsColors.surfaceContainerDark
+            : theme.colorScheme.surface,
         elevation: 8,
         shadowColor: Colors.black26,
         shape: RoundedRectangleBorder(
@@ -79,10 +81,7 @@ class _HomePdfOpenChooserDialog extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Open PDF',
-                      style: theme.textTheme.titleMedium,
-                    ),
+                    Text('Open PDF', style: theme.textTheme.titleMedium),
                     const SizedBox(height: DsSpacing.xs),
                     Text(
                       'View opens the reader. Edit pages opens the workspace '
@@ -122,11 +121,11 @@ class _OpenModeTile extends StatelessWidget {
   final HomePdfOpenMode mode;
 
   IconData get _icon => switch (mode) {
-        HomePdfOpenMode.read => Icons.menu_book_outlined,
-        HomePdfOpenMode.editPages => Icons.dashboard_customize_outlined,
-        HomePdfOpenMode.compress => Icons.compress_outlined,
-        HomePdfOpenMode.protect => Icons.lock_outline,
-      };
+    HomePdfOpenMode.read => Icons.menu_book_outlined,
+    HomePdfOpenMode.editPages => Icons.dashboard_customize_outlined,
+    HomePdfOpenMode.compress => Icons.compress_outlined,
+    HomePdfOpenMode.protect => Icons.lock_outline,
+  };
 
   @override
   Widget build(BuildContext context) {

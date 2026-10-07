@@ -1,5 +1,10 @@
+import 'package:document_studio/core/legal/bundled_licenses.dart';
+import 'package:document_studio/features/office/office_route.dart';
+import 'package:document_studio/core/storage/local_file_storage.dart';
+import 'package:document_studio/design_system/widgets/ds_file_browser.dart';
 import 'package:document_studio/core/update/app_updater.dart';
 import 'package:document_studio/core/settings/app_prefs.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -28,6 +33,7 @@ import 'package:pdfrx/pdfrx.dart';
 Future<void> bootstrap() async {
   PerfLog.mark('startup.begin');
   WidgetsFlutterBinding.ensureInitialized();
+  registerBundledLicenses();
   final storage = await StoragePaths.init();
   // Scratch dirs of tools and bundled engines land in the app's temp/ box.
   IOOverrides.global = StorageIOOverrides(storage.temp);
@@ -35,7 +41,10 @@ Future<void> bootstrap() async {
   final supportEngines = p.join(storage.root.path, 'engines');
   Directory(supportEngines).createSync(recursive: true);
   if (!debugDesktopEngineExtraRoots.contains(supportEngines)) {
-    debugDesktopEngineExtraRoots = [...debugDesktopEngineExtraRoots, supportEngines];
+    debugDesktopEngineExtraRoots = [
+      ...debugDesktopEngineExtraRoots,
+      supportEngines,
+    ];
   }
   if (!debugQpdfExtraSearchRoots.contains(supportEngines)) {
     debugQpdfExtraSearchRoots = [...debugQpdfExtraSearchRoots, supportEngines];
@@ -45,8 +54,7 @@ Future<void> bootstrap() async {
   // Align qpdf package lookup with the shared desktop engine resolver
   // (bundled engines/ before PATH). Not awaited: the first qpdf job is never
   // before the first frame, and a PATH probe spawns `which`.
-  if (!kIsWeb &&
-      (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+  if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
     unawaited(
       desktopEngineResolver.resolveQpdf().then((qpdf) {
         if (qpdf != null) debugQpdfExecutableOverride ??= qpdf;
@@ -59,6 +67,19 @@ Future<void> bootstrap() async {
     PerfLog.time('startup.windowInitialize', DsWindow.initialize),
   ]);
 
+  // Desktop: open files with Document Studio's own browser.
+  if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+    LocalFileStorage.inAppPicker =
+        ({List<String>? extensions, bool multiple = false}) async {
+          final ctx = rootNavigatorKey.currentContext;
+          if (ctx == null || !ctx.mounted) return null;
+          return showDsFileBrowser(
+            ctx,
+            extensions: extensions,
+            multiple: multiple,
+          );
+        };
+  }
   final container = ProviderContainer();
   PerfLog.mark('startup.runApp');
   runApp(
@@ -82,7 +103,7 @@ Future<void> bootstrap() async {
       unawaited(StorageCacheManager.instance.startupMaintenance());
     });
     // Quiet update check; the title bar shows "Update" when one exists.
-    if (AppPrefs.autoUpdateCheck && !kDebugMode) {
+    if (AppPrefs.autoUpdateCheck && !kDebugMode && !kStoreBuild) {
       Timer(const Duration(seconds: 8), () {
         unawaited(AppUpdater.instance.check());
       });
@@ -94,16 +115,26 @@ Future<void> bootstrap() async {
 void _openLaunchArgs(ProviderContainer container) {
   if (kIsWeb) return;
   if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) return;
-  // A second launch (Explorer "Open with") forwards its argv to this process.
-  if (Platform.isWindows) {
-    const MethodChannel('document_studio/open').setMethodCallHandler((call) async {
-      if (call.method != 'open') return;
-      final raw = (call.arguments as List?)?.cast<String>() ?? const <String>[];
-      final forwarded = CliLaunchArgs.parse(raw);
-      if (forwarded.hasWork) {
-        _openLaunch(container, forwarded, delay: Duration.zero);
-      }
-    });
+  // A second launch ("Open with", double-click) forwards its argv to this
+  // process, and macOS hands over files the same way, so they open as tabs
+  // here instead of in a second window.
+  const MethodChannel('document_studio/open').setMethodCallHandler((
+    call,
+  ) async {
+    if (call.method != 'open') return;
+    final raw = (call.arguments as List?)?.cast<String>() ?? const <String>[];
+    final forwarded = CliLaunchArgs.parse(raw);
+    if (forwarded.hasWork) {
+      _openLaunch(container, forwarded, delay: Duration.zero);
+    }
+  });
+  if (Platform.isMacOS) {
+    // Tell the macOS shell it can now deliver Finder-opened files.
+    unawaited(
+      const MethodChannel('document_studio/open')
+          .invokeMethod<void>('ready')
+          .catchError((_) {}),
+    );
   }
   final launch = CliLaunchArgs.fromProcess();
   if (!launch.hasWork) return;
@@ -125,11 +156,12 @@ void _openLaunch(
     var openedPdf = false;
 
     for (final file in launch.fileRefs) {
+      if (isOfficePath(file.path)) {
+        router.go(officeLocation(path: file.path));
+        continue;
+      }
       if (file.isPdf) {
-        await tabs.openDocument(
-          file,
-          openToolPanel: panel,
-        );
+        await tabs.openDocument(file, openToolPanel: panel);
         panel = null;
         openedPdf = true;
         continue;

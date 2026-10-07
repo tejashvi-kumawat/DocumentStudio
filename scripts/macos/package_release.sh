@@ -34,15 +34,31 @@ fi
 echo "==> bundle engines into $APP"
 bash "$ROOT/scripts/bundle_macos_engines.sh" "$APP"
 
-echo "==> ad-hoc codesign"
-codesign --force --deep --sign - "$APP" || {
-  echo "WARNING: codesign failed; continuing." >&2
-}
+# Developer ID + notarization when configured, ad-hoc otherwise
+# (see scripts/macos/sign_and_notarize.sh).
+# shellcheck source=sign_and_notarize.sh
+source "$ROOT/scripts/macos/sign_and_notarize.sh"
+ds_sign_app "$APP"
+
+VERSION="$(grep -E '^version:' "$ROOT/pubspec.yaml" | head -1 | sed -E 's/version:[[:space:]]*([^+]+).*/\1/')"
+
+if ds_has_identity && ds_has_notary; then
+  # Notarize the app itself first so the copy inside the DMG/ZIP is stapled
+  # and opens offline without a warning.
+  NOTARY_ZIP="$(mktemp -d)/DocumentStudio-notarize.zip"
+  ditto -c -k --keepParent "$APP" "$NOTARY_ZIP"
+  ds_notarize "$NOTARY_ZIP" "$APP"
+  rm -f "$NOTARY_ZIP"
+fi
 
 echo "==> package DMG / ZIP"
 bash "$ROOT/scripts/macos_dmg.sh" "$APP"
 
-VERSION="$(grep -E '^version:' "$ROOT/pubspec.yaml" | head -1 | sed -E 's/version:[[:space:]]*([^+]+).*/\1/')"
+DMG="$ROOT/dist/macos/DocumentStudio-${VERSION}-macos.dmg"
+if [[ -f "$DMG" ]]; then
+  ds_sign_file "$DMG"
+  ds_notarize "$DMG" "$DMG"
+fi
 echo
 echo "Done."
 echo "  dist/macos/DocumentStudio-${VERSION}-macos.dmg"

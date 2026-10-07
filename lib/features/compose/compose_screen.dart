@@ -1,7 +1,11 @@
+import 'package:document_studio/features/compose/template_gallery_screen.dart'
+    show templateGalleryRoutePath;
+import 'package:document_studio/features/compose/compose_templates.dart';
+import 'package:flutter/rendering.dart' show RenderEditable;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:document_studio/app/providers.dart';
@@ -33,12 +37,22 @@ Future<(Uint8List, ComposeDoc)> compileCompose(
   String source, {
   String? baseDir,
   String pageSize = 'A4',
+  bool? serif,
+  double? fontSize,
+  double? marginPt,
 }) async {
-  final doc = switch (language) {
+  var doc = switch (language) {
     ComposeLanguage.markdown => markdownToCompose(source, pageSize: pageSize),
     ComposeLanguage.html => htmlToCompose(source, pageSize: pageSize),
     ComposeLanguage.latex => latexToCompose(source),
   };
+  if (language != ComposeLanguage.latex) {
+    doc = doc.copyWith(
+      serif: serif,
+      baseFontSize: fontSize,
+      marginPt: marginPt,
+    );
+  }
   final bytes = await renderComposePdf(
     doc,
     fonts: await ComposeFonts.load(),
@@ -52,9 +66,16 @@ Future<(Uint8List, ComposeDoc)> compileCompose(
 /// switch between them on a narrow window), syntax colouring, snippets with
 /// help for every command / tag, autocomplete, open / save source, export.
 class ComposeScreen extends ConsumerStatefulWidget {
-  const ComposeScreen({super.key, this.language = ComposeLanguage.markdown});
+  const ComposeScreen({
+    super.key,
+    this.language = ComposeLanguage.markdown,
+    this.templateId,
+  });
 
   final ComposeLanguage language;
+
+  /// Start from this template instead of the saved draft.
+  final String? templateId;
 
   @override
   ConsumerState<ComposeScreen> createState() => _ComposeScreenState();
@@ -69,6 +90,7 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
   final _editorScroll = ScrollController();
 
   String _name = 'Untitled';
+  bool _templateApplied = false;
   String? _sourcePath;
   String _pageSize = 'A4';
   bool _autoCompile = true;
@@ -82,6 +104,9 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
   bool _dirtyAfterCompile = false;
   Uint8List? _pdf;
   int _pdfRevision = 0;
+
+  /// Inputs of the last successful compile; used to skip no-op rebuilds.
+  String? _lastCompileFingerprint;
   ComposeDoc? _doc;
   String? _error;
   int _ms = 0;
@@ -89,6 +114,21 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
   // Autocomplete.
   List<ComposeSnippet> _suggestions = const [];
   int _prefixLength = 0;
+  int _selIndex = 0;
+  final _fieldKey = GlobalKey();
+  final _editorStackKey = GlobalKey();
+  Offset? _caret;
+
+  // Format (Markdown / HTML; LaTeX sets these in \documentclass).
+  bool _serif = false;
+  double _fontSize = 11;
+  double _marginPt = 56;
+
+  // Find & replace.
+  bool _findOpen = false;
+  final _findCtrl = TextEditingController();
+  final _replaceCtrl = TextEditingController();
+  int _findIndex = -1;
 
   @override
   void initState() {
@@ -106,12 +146,25 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
       ..dispose();
     _focus.dispose();
     _editorScroll.dispose();
+    _findCtrl.dispose();
+    _replaceCtrl.dispose();
     super.dispose();
   }
 
   String get _draftKey => 'compose_draft_${_lang.extension}';
 
   Future<void> _restoreDraft() async {
+    final tpl = widget.templateId == null
+        ? null
+        : templateById(widget.templateId!);
+    if (tpl != null && tpl.language == _lang && !_templateApplied) {
+      _templateApplied = true;
+      _name = tpl.name;
+      _ctrl.text = tpl.source;
+      _ctrl.selection = const TextSelection.collapsed(offset: 0);
+      unawaited(_compile());
+      return;
+    }
     String? text;
     try {
       text = (await SharedPreferences.getInstance()).getString(_draftKey);
@@ -124,15 +177,31 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
     unawaited(_compile());
   }
 
+  /// Longer pause before auto-compile on large sources so typing does not
+  /// thrash parse → PDF → preview.
+  Duration _compileDebounce({bool afterBusy = false}) {
+    final n = _ctrl.text.length;
+    final baseMs = n < 20000
+        ? 650
+        : n < 80000
+        ? 1200
+        : 1800;
+    if (!afterBusy) return Duration(milliseconds: baseMs);
+    return Duration(milliseconds: (baseMs ~/ 2).clamp(300, 1500));
+  }
+
+  String _compileFingerprint() {
+    final baseDir = _sourcePath == null ? '' : p.dirname(_sourcePath!);
+    return '${_lang.name}\x00$_pageSize\x00$_serif\x00$_fontSize'
+        '\x00$_marginPt\x00$baseDir\x00${_ctrl.text}';
+  }
+
   void _onChanged() {
     _updateSuggestions();
     _dirtyAfterCompile = true;
     if (_autoCompile) {
       _debounce?.cancel();
-      _debounce = Timer(
-        const Duration(milliseconds: 650),
-        () => unawaited(_compile()),
-      );
+      _debounce = Timer(_compileDebounce(), () => unawaited(_compile()));
     }
     // Drafts survive closing the app (per language).
     _draftTimer?.cancel();
@@ -152,6 +221,11 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
       _dirtyAfterCompile = true;
       return;
     }
+    final fingerprint = _compileFingerprint();
+    if (fingerprint == _lastCompileFingerprint && _pdf != null) {
+      _dirtyAfterCompile = false;
+      return;
+    }
     _compiling = true;
     _dirtyAfterCompile = false;
     if (mounted) setState(() {});
@@ -162,8 +236,12 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
         _ctrl.text,
         baseDir: _sourcePath == null ? null : p.dirname(_sourcePath!),
         pageSize: _pageSize,
+        serif: _serif,
+        fontSize: _fontSize,
+        marginPt: _marginPt,
       );
       if (!mounted) return;
+      _lastCompileFingerprint = fingerprint;
       setState(() {
         _pdf = bytes;
         _pdfRevision++;
@@ -180,7 +258,7 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
       if (_dirtyAfterCompile && _autoCompile && mounted) {
         _debounce?.cancel();
         _debounce = Timer(
-          const Duration(milliseconds: 300),
+          _compileDebounce(afterBusy: true),
           () => unawaited(_compile()),
         );
       }
@@ -221,6 +299,232 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
     ];
     _prefixLength = typed.length;
     _suggestions = [...exact, ...list].take(12).toList();
+    _selIndex = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _locateCaret());
+  }
+
+  /// Where the caret is on screen, for the suggestion list.
+  void _locateCaret() {
+    if (!mounted) return;
+    RenderEditable? editable;
+    void visit(Element e) {
+      if (editable != null) return;
+      final ro = e.renderObject;
+      if (ro is RenderEditable) {
+        editable = ro;
+        return;
+      }
+      e.visitChildren(visit);
+    }
+
+    (_fieldKey.currentContext as Element?)?.visitChildren(visit);
+    final stackBox =
+        _editorStackKey.currentContext?.findRenderObject() as RenderBox?;
+    final ed = editable;
+    if (ed == null || stackBox == null || !ed.attached) return;
+    final sel = _ctrl.selection;
+    if (!sel.isValid) return;
+    final rect = ed.getLocalRectForCaret(TextPosition(offset: sel.baseOffset));
+    final global = ed.localToGlobal(rect.bottomLeft);
+    final local = stackBox.globalToLocal(global);
+    if (_caret != local) setState(() => _caret = local);
+  }
+
+  /// Arrow keys / Enter / Tab / Esc drive the suggestion list.
+  KeyEventResult _onEditorKey(FocusNode node, KeyEvent e) {
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final k = e.logicalKey;
+    // Enter after \begin{env} closes the environment (LaTeX), like Overleaf.
+    if (_suggestions.isEmpty &&
+        _lang == ComposeLanguage.latex &&
+        k == LogicalKeyboardKey.enter &&
+        !HardwareKeyboard.instance.isShiftPressed) {
+      final sel = _ctrl.selection;
+      if (sel.isValid && sel.isCollapsed) {
+        final before = _ctrl.text.substring(0, sel.baseOffset);
+        final lineStart = before.lastIndexOf('\n') + 1;
+        final line = before.substring(lineStart);
+        final m = RegExp(r'^(\s*)\\begin\{([^}]+)\}(\[[^\]]*\])?\s*$')
+            .firstMatch(line);
+        if (m != null) {
+          final env = m.group(2)!;
+          final indent = m.group(1)!;
+          final after = _ctrl.text.substring(sel.baseOffset);
+          final open = RegExp('\\\\begin\\{${RegExp.escape(env)}\\}')
+              .allMatches(_ctrl.text)
+              .length;
+          final close = RegExp('\\\\end\\{${RegExp.escape(env)}\\}')
+              .allMatches(_ctrl.text)
+              .length;
+          if (open > close || !after.contains('\\end{$env}')) {
+            final item = const {'itemize', 'enumerate'}.contains(env)
+                ? '\\item '
+                : '';
+            _ctrl.insertSnippet('\n$indent  $item\$|\n$indent\\end{$env}');
+            return KeyEventResult.handled;
+          }
+        }
+      }
+    }
+    if (_suggestions.isEmpty) return KeyEventResult.ignored;
+    if (k == LogicalKeyboardKey.arrowDown) {
+      setState(() => _selIndex = (_selIndex + 1) % _suggestions.length);
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.arrowUp) {
+      setState(
+        () => _selIndex =
+            (_selIndex - 1 + _suggestions.length) % _suggestions.length,
+      );
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.tab) {
+      _acceptSuggestion(
+        _suggestions[_selIndex.clamp(0, _suggestions.length - 1)],
+      );
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.escape) {
+      setState(() => _suggestions = const []);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  // ------------------------------------------------------- find / replace
+
+  List<int> _matches() {
+    final q = _findCtrl.text;
+    if (q.isEmpty) return const [];
+    final t = _ctrl.text.toLowerCase();
+    final needle = q.toLowerCase();
+    final out = <int>[];
+    var i = t.indexOf(needle);
+    while (i >= 0) {
+      out.add(i);
+      i = t.indexOf(needle, i + needle.length);
+    }
+    return out;
+  }
+
+  void _findStep(int dir) {
+    final m = _matches();
+    if (m.isEmpty) return;
+    _findIndex = (_findIndex + dir) % m.length;
+    if (_findIndex < 0) _findIndex += m.length;
+    final at = m[_findIndex];
+    _ctrl.selection = TextSelection(
+      baseOffset: at,
+      extentOffset: at + _findCtrl.text.length,
+    );
+    _focus.requestFocus();
+    setState(() {});
+  }
+
+  void _replaceOne() {
+    final sel = _ctrl.selection;
+    if (sel.isValid &&
+        !sel.isCollapsed &&
+        sel.textInside(_ctrl.text).toLowerCase() ==
+            _findCtrl.text.toLowerCase()) {
+      _ctrl.insertSnippet(_replaceCtrl.text);
+    }
+    _findStep(1);
+  }
+
+  void _replaceAll() {
+    final q = _findCtrl.text;
+    if (q.isEmpty) return;
+    final re = RegExp(RegExp.escape(q), caseSensitive: false);
+    final n = re.allMatches(_ctrl.text).length;
+    _ctrl.text = _ctrl.text.replaceAll(re, _replaceCtrl.text);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Replaced $n')));
+  }
+
+  // -------------------------------------------------------------- outline
+
+  /// Headings of the source with their offsets (for "Outline").
+  List<(int level, String title, int offset)> _outline() {
+    final out = <(int, String, int)>[];
+    final t = _ctrl.text;
+    final re = switch (_lang) {
+      ComposeLanguage.latex => RegExp(
+        r'\\(chapter|section|subsection|subsubsection)\*?\{([^}]*)\}',
+      ),
+      ComposeLanguage.markdown => RegExp(r'^(#{1,6})\s+(.+)$', multiLine: true),
+      ComposeLanguage.html => RegExp(
+        r'<h([1-6])[^>]*>([\s\S]*?)</h>',
+        caseSensitive: false,
+      ),
+    };
+    for (final m in re.allMatches(t)) {
+      final level = switch (_lang) {
+        ComposeLanguage.latex =>
+          const {
+                'chapter': 1,
+                'section': 1,
+                'subsection': 2,
+                'subsubsection': 3,
+              }[m.group(1)] ??
+              1,
+        ComposeLanguage.markdown => m.group(1)!.length,
+        ComposeLanguage.html => int.parse(m.group(1)!),
+      };
+      out.add((
+        level,
+        m.group(2)!.replaceAll(RegExp(r'<[^>]+>'), '').trim(),
+        m.start,
+      ));
+    }
+    return out;
+  }
+
+  void _jumpTo(int offset) {
+    _ctrl.selection = TextSelection.collapsed(offset: offset);
+    _focus.requestFocus();
+    // Scroll roughly to the line.
+    final line = '\n'.allMatches(_ctrl.text.substring(0, offset)).length;
+    if (_editorScroll.hasClients) {
+      final y = (line * 13.5 * _Gutter.lineHeight - 80).clamp(
+        0.0,
+        _editorScroll.position.maxScrollExtent,
+      );
+      _editorScroll.animateTo(
+        y,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _applyTemplate(ComposeTemplate t) async {
+    final ok =
+        _ctrl.text.trim().isEmpty ||
+        await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text('Start from "${t.name}"?'),
+                content: const Text('This replaces the text in the editor.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Replace'),
+                  ),
+                ],
+              ),
+            ) ==
+            true;
+    if (!ok) return;
+    _ctrl.text = t.source;
+    _ctrl.selection = const TextSelection.collapsed(offset: 0);
+    unawaited(_compile());
   }
 
   void _acceptSuggestion(ComposeSnippet s) {
@@ -345,6 +649,8 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
             _insert(_wrap('bold')),
         const SingleActivator(LogicalKeyboardKey.keyI, control: true): () =>
             _insert(_wrap('italic')),
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
+            setState(() => _findOpen = !_findOpen),
         const SingleActivator(LogicalKeyboardKey.slash, control: true): () =>
             setState(() => _showHelp = !_showHelp),
       },
@@ -572,6 +878,174 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
     ],
   };
 
+  Widget _menuButton({
+    required IconData icon,
+    required String label,
+    required List<Widget> children,
+  }) {
+    return MenuAnchor(
+      menuChildren: children,
+      builder: (context, menu, _) => TextButton.icon(
+        style: TextButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+        onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+        icon: Icon(icon, size: 18),
+        label: Text('$label ▾', style: const TextStyle(fontSize: 12.5)),
+      ),
+    );
+  }
+
+  Widget _findBar(ThemeData theme) {
+    final m = _matches();
+    return Material(
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            SizedBox(
+              width: 180,
+              child: TextField(
+                controller: _findCtrl,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  hintText: 'Find',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() => _findIndex = -1),
+                onSubmitted: (_) => _findStep(1),
+              ),
+            ),
+            Text(
+              m.isEmpty
+                  ? '0'
+                  : '${_findIndex < 0 ? 0 : _findIndex + 1}/${m.length}',
+              style: theme.textTheme.labelSmall,
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Previous',
+              icon: const Icon(Icons.keyboard_arrow_up),
+              onPressed: () => _findStep(-1),
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Next',
+              icon: const Icon(Icons.keyboard_arrow_down),
+              onPressed: () => _findStep(1),
+            ),
+            SizedBox(
+              width: 180,
+              child: TextField(
+                controller: _replaceCtrl,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  hintText: 'Replace with',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            TextButton(onPressed: _replaceOne, child: const Text('Replace')),
+            TextButton(onPressed: _replaceAll, child: const Text('All')),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Close',
+              icon: const Icon(Icons.close),
+              onPressed: () => setState(() => _findOpen = false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Overleaf-style completion list under the caret.
+  Widget _suggestionPopup(ThemeData theme, BoxConstraints box) {
+    const w = 360.0;
+    final c = _caret!;
+    final left = c.dx.clamp(
+      0.0,
+      (box.maxWidth - w - 40).clamp(0.0, double.infinity),
+    );
+    final rowH = 44.0;
+    final h = (_suggestions.length * rowH).clamp(rowH, rowH * 6);
+    final below = c.dy + h + 8 < box.maxHeight;
+    return Positioned(
+      left: left,
+      top: below ? c.dy + 4 : null,
+      bottom: below
+          ? null
+          : (box.maxHeight - c.dy + 22).clamp(0.0, box.maxHeight),
+      width: w,
+      height: h,
+      child: Material(
+        elevation: 6,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
+        color: theme.colorScheme.surface,
+        child: ListView.builder(
+          padding: EdgeInsets.zero,
+          itemCount: _suggestions.length,
+          itemExtent: rowH,
+          itemBuilder: (context, i) {
+            final s = _suggestions[i];
+            final sel = i == _selIndex;
+            return InkWell(
+              onTap: () => _acceptSuggestion(s),
+              child: Container(
+                color: sel ? DsColors.primary.withValues(alpha: 0.12) : null,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          s.trigger ?? s.label,
+                          style: const TextStyle(
+                            fontFamily: 'DS Mono',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            s.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                        if (sel)
+                          Text('Tab ↹', style: theme.textTheme.labelSmall),
+                      ],
+                    ),
+                    Text(
+                      s.help,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _editorPane(ThemeData theme) {
     final dark = theme.brightness == Brightness.dark;
     final sel = _ctrl.selection;
@@ -596,6 +1070,152 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 children: [
+                  _menuButton(
+                    icon: Icons.add_box_outlined,
+                    label: 'Insert',
+                    children: [
+                      for (final cat in {
+                        for (final sn in snippetsFor(_lang)) sn.category,
+                      })
+                        SubmenuButton(
+                          menuChildren: [
+                            for (final sn in snippetsFor(
+                              _lang,
+                            ).where((x) => x.category == cat))
+                              MenuItemButton(
+                                onPressed: () => _insert(sn.insert),
+                                trailingIcon: sn.trigger == null
+                                    ? null
+                                    : Text(
+                                        sn.trigger!,
+                                        style: const TextStyle(
+                                          fontFamily: 'DS Mono',
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                child: Tooltip(
+                                  message: sn.help,
+                                  child: Text(sn.label),
+                                ),
+                              ),
+                          ],
+                          child: Text(cat),
+                        ),
+                    ],
+                  ),
+                  _menuButton(
+                    icon: Icons.auto_awesome_mosaic_outlined,
+                    label: 'Templates',
+                    children: [
+                      MenuItemButton(
+                        leadingIcon: const Icon(
+                          Icons.grid_view_rounded,
+                          size: 18,
+                        ),
+                        onPressed: () => context.push(templateGalleryRoutePath),
+                        child: const Text('Browse all templates…'),
+                      ),
+                      const Divider(height: 8),
+                      for (final t in templatesFor(_lang))
+                        MenuItemButton(
+                          onPressed: () => _applyTemplate(t),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(t.name),
+                              Text(
+                                t.description,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  _menuButton(
+                    icon: Icons.format_list_bulleted,
+                    label: 'Outline',
+                    children: [
+                      for (final (level, title, offset) in _outline())
+                        MenuItemButton(
+                          onPressed: () => _jumpTo(offset),
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 12.0 * (level - 1)),
+                            child: Text(title.isEmpty ? '(untitled)' : title),
+                          ),
+                        ),
+                      if (_outline().isEmpty)
+                        const MenuItemButton(
+                          onPressed: null,
+                          child: Text('No headings yet'),
+                        ),
+                    ],
+                  ),
+                  if (_lang != ComposeLanguage.latex)
+                    _menuButton(
+                      icon: Icons.text_format,
+                      label: 'Format',
+                      children: [
+                        MenuItemButton(
+                          trailingIcon: _serif
+                              ? null
+                              : const Icon(Icons.check, size: 16),
+                          onPressed: () {
+                            setState(() => _serif = false);
+                            unawaited(_compile());
+                          },
+                          child: const Text('Sans-serif text'),
+                        ),
+                        MenuItemButton(
+                          trailingIcon: _serif
+                              ? const Icon(Icons.check, size: 16)
+                              : null,
+                          onPressed: () {
+                            setState(() => _serif = true);
+                            unawaited(_compile());
+                          },
+                          child: const Text('Serif text'),
+                        ),
+                        const Divider(height: 8),
+                        for (final fs in const [10.0, 11.0, 12.0, 14.0])
+                          MenuItemButton(
+                            trailingIcon: _fontSize == fs
+                                ? const Icon(Icons.check, size: 16)
+                                : null,
+                            onPressed: () {
+                              setState(() => _fontSize = fs);
+                              unawaited(_compile());
+                            },
+                            child: Text('${fs.round()} pt text'),
+                          ),
+                        const Divider(height: 8),
+                        for (final (label, m) in const [
+                          ('Narrow margins', 36.0),
+                          ('Normal margins', 56.0),
+                          ('Wide margins', 80.0),
+                        ])
+                          MenuItemButton(
+                            trailingIcon: _marginPt == m
+                                ? const Icon(Icons.check, size: 16)
+                                : null,
+                            onPressed: () {
+                              setState(() => _marginPt = m);
+                              unawaited(_compile());
+                            },
+                            child: Text(label),
+                          ),
+                      ],
+                    ),
+                  IconButton(
+                    tooltip: 'Find & replace (Ctrl+F)',
+                    iconSize: 19,
+                    visualDensity: VisualDensity.compact,
+                    isSelected: _findOpen,
+                    icon: const Icon(Icons.find_replace),
+                    onPressed: () => setState(() => _findOpen = !_findOpen),
+                  ),
+                  const VerticalDivider(width: 12, indent: 8, endIndent: 8),
                   for (final (icon, tip, snippet) in _quick)
                     IconButton(
                       tooltip: tip,
@@ -609,6 +1229,7 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
             ),
           ),
           const Divider(height: 1),
+          if (_findOpen) _findBar(theme),
           Expanded(
             child: LayoutBuilder(
               builder: (context, box) {
@@ -624,36 +1245,57 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
                       dark: dark,
                     ),
                     Expanded(
-                      child: TextField(
-                        controller: _ctrl,
-                        focusNode: _focus,
-                        scrollController: _editorScroll,
-                        maxLines: null,
-                        expands: true,
-                        keyboardType: TextInputType.multiline,
-                        textAlignVertical: TextAlignVertical.top,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        smartQuotesType: SmartQuotesType.disabled,
-                        smartDashesType: SmartDashesType.disabled,
-                        style: TextStyle(
-                          fontFamily: 'DS Mono',
-                          fontSize: 13.5,
-                          height: _Gutter.lineHeight,
-                          color: dark
-                              ? const Color(0xFFE6EDF3)
-                              : const Color(0xFF1F2328),
-                        ),
-                        strutStyle: const StrutStyle(
-                          fontFamily: 'DS Mono',
-                          fontSize: 13.5,
-                          height: _Gutter.lineHeight,
-                          forceStrutHeight: true,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.fromLTRB(8, 10, 12, 40),
-                        ),
+                      child: Stack(
+                        key: _editorStackKey,
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(
+                            child: Focus(
+                              canRequestFocus: false,
+                              skipTraversal: true,
+                              onKeyEvent: _onEditorKey,
+                              child: TextField(
+                                key: _fieldKey,
+                                controller: _ctrl,
+                                focusNode: _focus,
+                                scrollController: _editorScroll,
+                                maxLines: null,
+                                expands: true,
+                                keyboardType: TextInputType.multiline,
+                                textAlignVertical: TextAlignVertical.top,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                smartQuotesType: SmartQuotesType.disabled,
+                                smartDashesType: SmartDashesType.disabled,
+                                style: TextStyle(
+                                  fontFamily: 'DS Mono',
+                                  fontSize: 13.5,
+                                  height: _Gutter.lineHeight,
+                                  color: dark
+                                      ? const Color(0xFFE6EDF3)
+                                      : const Color(0xFF1F2328),
+                                ),
+                                strutStyle: const StrutStyle(
+                                  fontFamily: 'DS Mono',
+                                  fontSize: 13.5,
+                                  height: _Gutter.lineHeight,
+                                  forceStrutHeight: true,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.fromLTRB(
+                                    8,
+                                    10,
+                                    12,
+                                    40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_suggestions.isNotEmpty && _caret != null)
+                            _suggestionPopup(theme, box),
+                        ],
                       ),
                     ),
                   ],
@@ -661,42 +1303,6 @@ class _ComposeScreenState extends ConsumerState<ComposeScreen> {
               },
             ),
           ),
-          if (_suggestions.isNotEmpty)
-            Material(
-              elevation: 2,
-              color: theme.colorScheme.surfaceContainerHigh,
-              child: SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  children: [
-                    for (final s in _suggestions)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: Tooltip(
-                          message: '${s.help}\n\n${s.preview}',
-                          child: ActionChip(
-                            visualDensity: VisualDensity.compact,
-                            label: Text(
-                              s.trigger ?? s.label,
-                              style: const TextStyle(
-                                fontFamily: 'DS Mono',
-                                fontSize: 12.5,
-                              ),
-                            ),
-                            avatar: const Icon(Icons.keyboard_tab, size: 14),
-                            onPressed: () => _acceptSuggestion(s),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
           Container(
             height: 26,
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -931,8 +1537,8 @@ class _Gutter extends StatelessWidget {
   }
 }
 
-/// The compiled PDF as page images (rendered on this device, swapped in
-/// only when ready, so the preview never flashes empty while you type).
+/// The compiled PDF as page images. Previous pages stay visible while the
+/// new revision rasters page-by-page so the top of the doc updates quickly.
 class _PdfPagesPreview extends StatefulWidget {
   const _PdfPagesPreview({required this.bytes, required this.revision});
 
@@ -949,6 +1555,9 @@ class _PdfPagesPreviewState extends State<_PdfPagesPreview> {
   int _renderedFor = -1;
   double _width = 0;
 
+  /// Bumped on every render start so in-flight work can cancel itself.
+  int _renderSeq = 0;
+
   @override
   void didUpdateWidget(covariant _PdfPagesPreview oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -957,6 +1566,7 @@ class _PdfPagesPreviewState extends State<_PdfPagesPreview> {
 
   @override
   void dispose() {
+    _renderSeq++;
     for (final i in _pages) {
       i.dispose();
     }
@@ -968,7 +1578,11 @@ class _PdfPagesPreviewState extends State<_PdfPagesPreview> {
     unawaited(_render(widget.revision, _width));
   }
 
+  bool _renderStillCurrent(int seq, int revision) =>
+      mounted && seq == _renderSeq && revision == widget.revision;
+
   Future<void> _render(int revision, double width) async {
+    final seq = ++_renderSeq;
     final dpr = MediaQuery.devicePixelRatioOf(context);
     PdfDocument? doc;
     try {
@@ -976,9 +1590,16 @@ class _PdfPagesPreviewState extends State<_PdfPagesPreview> {
         widget.bytes,
         sourceName: 'compose-$revision',
       );
-      final images = <ui.Image>[];
-      for (final page in doc.pages.take(60)) {
-        final w = (width * _zoom * dpr).clamp(200.0, 4000.0);
+      if (!_renderStillCurrent(seq, revision)) return;
+
+      final pageCount = doc.pages.length.clamp(0, 60);
+      for (var i = 0; i < pageCount; i++) {
+        final page = doc.pages[i];
+        // Supersampled so text stays crisp when the image is scaled down.
+        final w = (width * _zoom * (dpr < 2 ? 2.0 : dpr) * 1.25).clamp(
+          400.0,
+          5000.0,
+        );
         final h = w * page.height / page.width;
         final img = await page.render(
           fullWidth: w,
@@ -986,23 +1607,33 @@ class _PdfPagesPreviewState extends State<_PdfPagesPreview> {
           backgroundColor: 0xffffffff,
         );
         if (img == null) continue;
-        images.add(await img.createImage());
+        final uiImage = await img.createImage();
         img.dispose();
-        if (revision != widget.revision) break;
-      }
-      if (!mounted || revision != widget.revision) {
-        for (final i in images) {
-          i.dispose();
+        if (!_renderStillCurrent(seq, revision)) {
+          uiImage.dispose();
+          return;
         }
-        return;
+        ui.Image? toDispose;
+        setState(() {
+          final next = List<ui.Image>.of(_pages);
+          if (i < next.length) {
+            toDispose = next[i];
+            next[i] = uiImage;
+          } else {
+            next.add(uiImage);
+          }
+          _pages = next;
+          _renderedFor = revision;
+        });
+        toDispose?.dispose();
       }
-      final old = _pages;
-      setState(() {
-        _pages = images;
-        _renderedFor = revision;
-      });
-      for (final i in old) {
-        i.dispose();
+      if (!_renderStillCurrent(seq, revision)) return;
+      if (_pages.length > pageCount) {
+        final excess = _pages.sublist(pageCount);
+        setState(() => _pages = _pages.sublist(0, pageCount));
+        for (final img in excess) {
+          img.dispose();
+        }
       }
     } catch (_) {
     } finally {
@@ -1050,7 +1681,7 @@ class _PdfPagesPreviewState extends State<_PdfPagesPreview> {
                         image: img,
                         width: dw,
                         height: dw * img.height / img.width,
-                        filterQuality: FilterQuality.medium,
+                        filterQuality: FilterQuality.high,
                       ),
                     ),
                   );

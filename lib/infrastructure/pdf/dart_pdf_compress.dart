@@ -1,5 +1,6 @@
 import 'package:document_studio/core/errors/document_studio_error.dart';
 import 'package:document_studio/core/pdf/large_doc_policy.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -26,8 +27,7 @@ int dartPdfImageCompressPasses(int firstPassBytes) =>
 
 /// Second-pass JPEG quality: 10 points below the preset (Smallest 40→30,
 /// Extreme 45→35, Recommended 60→50).
-int dartPdfSecondPassQuality(int jpegQuality) =>
-    math.max(1, jpegQuality - 10);
+int dartPdfSecondPassQuality(int jpegQuality) => math.max(1, jpegQuality - 10);
 
 /// Second-pass longest edge: 80% of the preset cap (1000→800, 1200→960,
 /// 1600→1280).
@@ -59,7 +59,8 @@ class DartPdfCompress {
     PdfCompressOptions options = const PdfCompressOptions(),
     String? password,
   }) async {
-    if (await File(input.path).length() > LargeDocPolicy.inMemoryCompressLimit) {
+    if (await File(input.path).length() >
+        LargeDocPolicy.inMemoryCompressLimit) {
       throw const DocumentStudioError(
         code: DocumentStudioErrorCode.outOfMemory,
         message: 'This file is too large to compress without the qpdf engine.',
@@ -93,7 +94,11 @@ class DartPdfCompress {
     PdfCompressOptions options = const PdfCompressOptions(),
     String? password,
   }) async {
-    final produced = await _produce(input, options: options, password: password);
+    final produced = await _produce(
+      input,
+      options: options,
+      password: password,
+    );
     if (produced.length < input.length) return produced;
     return input;
   }
@@ -177,7 +182,10 @@ class DartPdfCompress {
             doc.setObject(PdfRef(num, doc.generationOf(num)), next);
             shrunk.add(num);
           } else if (options.recompressFlate) {
-            final flate = _recompressFlateStream(obj, level: ZLibOption.maxLevel);
+            final flate = _recompressFlateStream(
+              obj,
+              level: ZLibOption.maxLevel,
+            );
             if (flate != null) {
               doc.setObject(PdfRef(num, doc.generationOf(num)), flate);
             }
@@ -194,7 +202,8 @@ class DartPdfCompress {
       if (!options.recompressFlate) continue;
       final textOnly = pages.textOnlyStreams.contains(num);
       final level = textOnly ? ZLibOption.maxLevel : ZLibOption.defaultLevel;
-      final next = _recompressFlateStream(obj, level: level) ??
+      final next =
+          _recompressFlateStream(obj, level: level) ??
           (pages.contentStreams.contains(num) || textOnly
               ? _deflateRawStream(obj, level: level)
               : null);
@@ -254,7 +263,11 @@ class DartPdfCompress {
     final frame = _decodeImage(src, w, h);
     if (frame == null) return null;
 
-    final first = _jpegPass(frame, maxSidePx: _capPx(maxSidePx), quality: jpegQuality);
+    final first = _jpegPass(
+      frame,
+      maxSidePx: _capPx(maxSidePx),
+      quality: jpegQuality,
+    );
     if (first == null) return null;
     var best = first;
     if (dartPdfImageCompressPasses(first.bytes.length) == 2) {
@@ -308,7 +321,9 @@ class DartPdfCompress {
     if (cs != 'DeviceRGB' && cs != 'DeviceGray') return null;
     late final Uint8List decoded;
     try {
-      decoded = filters.isEmpty ? src.data : decodeStreamData(src.dict, src.data);
+      decoded = filters.isEmpty
+          ? src.data
+          : decodeStreamData(src.dict, src.data);
     } catch (_) {
       return null;
     }
@@ -360,7 +375,10 @@ class DartPdfCompress {
     );
   }
 
-  static PdfStream? _recompressFlateStream(PdfStream src, {required int level}) {
+  static PdfStream? _recompressFlateStream(
+    PdfStream src, {
+    required int level,
+  }) {
     final filters = _filterNames(src.dict);
     if (filters.length != 1) return null;
     if (filters.first != 'FlateDecode' && filters.first != 'Fl') return null;
@@ -372,7 +390,12 @@ class DartPdfCompress {
     } catch (_) {
       return null;
     }
-    return _deflateBytes(src.dict, decoded, level: level, original: src.data.length);
+    return _deflateBytes(
+      src.dict,
+      decoded,
+      level: level,
+      original: src.data.length,
+    );
   }
 
   static PdfStream? _deflateRawStream(PdfStream src, {required int level}) {
@@ -380,7 +403,12 @@ class DartPdfCompress {
     if (src.dict.nameOf('Subtype') == 'Image') return null;
     final type = src.dict.nameOf('Type');
     if (type == 'ObjStm' || type == 'XRef' || type == 'Metadata') return null;
-    return _deflateBytes(src.dict, src.data, level: level, original: src.data.length);
+    return _deflateBytes(
+      src.dict,
+      src.data,
+      level: level,
+      original: src.data.length,
+    );
   }
 
   static PdfStream? _deflateBytes(
@@ -433,10 +461,7 @@ class DartPdfCompress {
     } on PdfEditException {
       // Damaged page tree: still compress image objects, skip page policy.
     }
-    return _PageFacts(
-      textOnlyStreams: textOnly,
-      contentStreams: content,
-    );
+    return _PageFacts(textOnlyStreams: textOnly, contentStreams: content);
   }
 
   static List<_RasterTarget> _unshrunkFullPageImages(
@@ -526,13 +551,16 @@ class DartPdfCompress {
     final stream = doc.getObject(ref.num);
     if (stream is! PdfStream) return null;
     final geo = doc.pageGeometry(page1);
-    final matrixFull = scan.cmWidth != null &&
+    final matrixFull =
+        scan.cmWidth != null &&
         scan.cmHeight != null &&
         scan.cmWidth! >= geo.cropWidth * 0.75 &&
         scan.cmHeight! >= geo.cropHeight * 0.75;
     final w = (stream.dict['Width'] as PdfNum?)?.i ?? 0;
     final h = (stream.dict['Height'] as PdfNum?)?.i ?? 0;
-    final large = math.max(w, h) >= 800 || stream.data.length > kDartPdfImageSecondPassBytes;
+    final large =
+        math.max(w, h) >= 800 ||
+        stream.data.length > kDartPdfImageSecondPassBytes;
     if (!matrixFull && !large) return null;
     return _RasterTarget(page1 - 1, ref.num);
   }
@@ -558,7 +586,11 @@ class DartPdfCompress {
     return buf.toString();
   }
 
-  static PdfRef? _imageRefNamed(PdfEditDocument doc, PdfDict page, String name) {
+  static PdfRef? _imageRefNamed(
+    PdfEditDocument doc,
+    PdfDict page,
+    String name,
+  ) {
     final res = doc.dictOf(doc.inherited(page, 'Resources'));
     final xo = doc.dictOf(res?['XObject']);
     final v = xo?[name];
@@ -678,74 +710,74 @@ class DartPdfCompress {
           continue;
         }
         try {
-        final page = opened.pages[target.pageIndex];
-        final loaded = await page.loadText();
-        final text = loaded?.fullText.trim() ?? '';
-        if (text.isNotEmpty) continue;
-        final longest = math.max(page.width, page.height);
-        final scale = longest <= 0
-            ? 1.0
-            : (maxSidePx / longest).clamp(0.15, 4.0).toDouble();
-        final rendered = await page.render(
-          fullWidth: math.max(1.0, page.width * scale),
-          fullHeight: math.max(1.0, page.height * scale),
-        );
-        if (rendered == null) continue;
-        Uint8List jpeg;
-        var width = rendered.width;
-        var height = rendered.height;
-        try {
-          final frame = img.Image.fromBytes(
-            width: rendered.width,
-            height: rendered.height,
-            bytes: rendered.pixels.buffer,
-            bytesOffset: rendered.pixels.offsetInBytes,
-            order: img.ChannelOrder.bgra,
-            numChannels: 4,
-          ).convert(numChannels: 3);
-          var current = frame;
-          jpeg = Uint8List.fromList(
-            img.encodeJpg(current, quality: jpegQuality.clamp(1, 100)),
+          final page = opened.pages[target.pageIndex];
+          final loaded = await page.loadText();
+          final text = loaded?.fullText.trim() ?? '';
+          if (text.isNotEmpty) continue;
+          final longest = math.max(page.width, page.height);
+          final scale = longest <= 0
+              ? 1.0
+              : (maxSidePx / longest).clamp(0.15, 4.0).toDouble();
+          final rendered = await page.render(
+            fullWidth: math.max(1.0, page.width * scale),
+            fullHeight: math.max(1.0, page.height * scale),
           );
-          if (jpeg.length > kDartPdfImageSecondPassBytes) {
-            final edge = dartPdfSecondPassMaxPx(maxSidePx);
-            final side = math.max(current.width, current.height);
-            if (side > edge) {
-              final s = edge / side;
-              current = img.copyResize(
-                current,
-                width: math.max(1, (current.width * s).round()),
-                height: math.max(1, (current.height * s).round()),
-                interpolation: img.Interpolation.average,
-              );
-            }
-            final second = Uint8List.fromList(
-              img.encodeJpg(
-                current,
-                quality: dartPdfSecondPassQuality(jpegQuality),
-              ),
+          if (rendered == null) continue;
+          Uint8List jpeg;
+          var width = rendered.width;
+          var height = rendered.height;
+          try {
+            final frame = img.Image.fromBytes(
+              width: rendered.width,
+              height: rendered.height,
+              bytes: rendered.pixels.buffer,
+              bytesOffset: rendered.pixels.offsetInBytes,
+              order: img.ChannelOrder.bgra,
+              numChannels: 4,
+            ).convert(numChannels: 3);
+            var current = frame;
+            jpeg = Uint8List.fromList(
+              img.encodeJpg(current, quality: jpegQuality.clamp(1, 100)),
             );
-            if (second.length < jpeg.length) {
-              jpeg = second;
-              width = current.width;
-              height = current.height;
+            if (jpeg.length > kDartPdfImageSecondPassBytes) {
+              final edge = dartPdfSecondPassMaxPx(maxSidePx);
+              final side = math.max(current.width, current.height);
+              if (side > edge) {
+                final s = edge / side;
+                current = img.copyResize(
+                  current,
+                  width: math.max(1, (current.width * s).round()),
+                  height: math.max(1, (current.height * s).round()),
+                  interpolation: img.Interpolation.average,
+                );
+              }
+              final second = Uint8List.fromList(
+                img.encodeJpg(
+                  current,
+                  quality: dartPdfSecondPassQuality(jpegQuality),
+                ),
+              );
+              if (second.length < jpeg.length) {
+                jpeg = second;
+                width = current.width;
+                height = current.height;
+              }
             }
+          } finally {
+            rendered.dispose();
           }
-        } finally {
-          rendered.dispose();
-        }
-        replacements[target.imageObject] = PdfStream(
-          PdfDict({
-            'Type': const PdfName('XObject'),
-            'Subtype': const PdfName('Image'),
-            'Width': PdfNum(width),
-            'Height': PdfNum(height),
-            'ColorSpace': const PdfName('DeviceRGB'),
-            'BitsPerComponent': const PdfNum(8),
-            'Filter': const PdfName('DCTDecode'),
-          }),
-          jpeg,
-        );
+          replacements[target.imageObject] = PdfStream(
+            PdfDict({
+              'Type': const PdfName('XObject'),
+              'Subtype': const PdfName('Image'),
+              'Width': PdfNum(width),
+              'Height': PdfNum(height),
+              'ColorSpace': const PdfName('DeviceRGB'),
+              'BitsPerComponent': const PdfNum(8),
+              'Filter': const PdfName('DCTDecode'),
+            }),
+            jpeg,
+          );
         } catch (_) {
           continue;
         }
@@ -954,8 +986,23 @@ class _ContentScan {
 
 const _textOps = {'Tj', 'TJ', "'", '"', 'BT'};
 const _paintOps = {
-  'm', 'l', 'c', 'v', 'y', 'h', 're',
-  'S', 's', 'f', 'F', 'f*', 'B', 'B*', 'b', 'b*', 'sh',
+  'm',
+  'l',
+  'c',
+  'v',
+  'y',
+  'h',
+  're',
+  'S',
+  's',
+  'f',
+  'F',
+  'f*',
+  'B',
+  'B*',
+  'b',
+  'b*',
+  'sh',
 };
 
 _ContentScan _scanContent(String s) {
@@ -1080,12 +1127,7 @@ int _skipAngleDict(String s, int i) {
 }
 
 bool _isPdfSpace(int c) =>
-    c == 0x00 ||
-    c == 0x09 ||
-    c == 0x0a ||
-    c == 0x0c ||
-    c == 0x0d ||
-    c == 0x20;
+    c == 0x00 || c == 0x09 || c == 0x0a || c == 0x0c || c == 0x0d || c == 0x20;
 
 bool _isPdfDelim(int c) =>
     _isPdfSpace(c) ||

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:document_studio/features/document_lifecycle/document_session_autosave.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_controller_safe.dart';

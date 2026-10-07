@@ -123,9 +123,8 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
       setState(() => _estimate = result);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Estimate failed: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Estimate failed: $e')));
     } finally {
       if (mounted) setState(() => _estimating = false);
     }
@@ -216,8 +215,7 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
       }
       if (widget.lockSourceFile) {
         final before = await File(_file!.path).length();
-        final session =
-            ref.read(documentTabsControllerProvider).activeSession;
+        final session = ref.read(documentTabsControllerProvider).activeSession;
         if (session == null) return;
         final storage = ref.read(fileStorageProvider);
         final tempDir = await storage.getTempDirectory();
@@ -267,7 +265,8 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
           ref: ref,
           context: context,
           tempPath: tempOut,
-          successMessage: 'Compressed from ${_fmtBytes(before)} to '
+          successMessage:
+              'Compressed from ${_fmtBytes(before)} to '
               '${_fmtBytes(after)}.',
         );
         if (saved != null && mounted) {
@@ -304,10 +303,10 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
         password: _password,
         message: result.afterBytes >= result.beforeBytes
             ? '${_fmtBytes(result.beforeBytes)} → '
-                '${_fmtBytes(result.afterBytes)}. Not smaller.'
+                  '${_fmtBytes(result.afterBytes)}. Not smaller.'
             : 'Saved — ${_fmtBytes(result.beforeBytes)} → '
-                '${_fmtBytes(result.afterBytes)} '
-                '(${result.percentSaved.toStringAsFixed(0)}% smaller)',
+                  '${_fmtBytes(result.afterBytes)} '
+                  '(${result.percentSaved.toStringAsFixed(0)}% smaller)',
       );
     } on DocumentStudioError catch (e) {
       if (e.code == DocumentStudioErrorCode.processCancelled) return;
@@ -377,8 +376,9 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final secondary =
-        isDark ? DsColors.textSecondaryDark : DsColors.textSecondaryLight;
+    final secondary = isDark
+        ? DsColors.textSecondaryDark
+        : DsColors.textSecondaryLight;
     final qpdf = _qpdfAvailable;
     final lockFile = widget.lockSourceFile && _file != null;
 
@@ -397,9 +397,7 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                       'Compression runs on this device with the built-in PDF '
                       'engine. Smallest, Extreme, and Recommended re-encode '
                       'photos as JPEG. Text pages stay selectable.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 13,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
                     ),
                   ),
                 ),
@@ -410,8 +408,7 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                   child: _file == null
                       ? DsEmptyState(
                           title: 'No PDF selected',
-                          subtitle:
-                              'Pick a file, then run compress from the options panel.',
+                          subtitle: 'Pick a file, then run compress from the options panel.',
                         )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,7 +475,9 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                               ? CompressProfile.custom
                               : _profile,
                         ).effectDescription,
-                        style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: secondary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: DsSpacing.sm),
@@ -510,16 +509,17 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           'The gentlest level that fits is chosen automatically.',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: secondary),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: secondary,
+                          ),
                         ),
                       ),
                     TextButton(
                       onPressed: _busy
                           ? null
                           : () => setState(
-                                () => _profile = CompressProfile.custom,
-                              ),
+                              () => _profile = CompressProfile.custom,
+                            ),
                       child: Text(
                         _profile == CompressProfile.custom
                             ? 'Custom options'
@@ -537,9 +537,9 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                         onChanged: _busy
                             ? null
                             : (v) => setState(() {
-                                  _customDownsample = v;
-                                  _estimate = null;
-                                }),
+                                _customDownsample = v;
+                                _estimate = null;
+                              }),
                       ),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
@@ -551,9 +551,9 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                         onChanged: _busy
                             ? null
                             : (v) => setState(() {
-                                  _customOptimizeImages = v;
-                                  _estimate = null;
-                                }),
+                                _customOptimizeImages = v;
+                                _estimate = null;
+                              }),
                       ),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
@@ -563,9 +563,9 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                         onChanged: _busy
                             ? null
                             : (v) => setState(() {
-                                  _customRecompressFlate = v;
-                                  _estimate = null;
-                                }),
+                                _customRecompressFlate = v;
+                                _estimate = null;
+                              }),
                       ),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
@@ -577,9 +577,9 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                         onChanged: _busy
                             ? null
                             : (v) => setState(() {
-                                  _customLinearize = v;
-                                  _estimate = null;
-                                }),
+                                _customLinearize = v;
+                                _estimate = null;
+                              }),
                       ),
                     ],
                     const SizedBox(height: DsSpacing.sm),
@@ -596,8 +596,8 @@ class _CompressToolFormState extends ConsumerState<CompressToolForm> {
                       Text(
                         key: const Key('compress_estimate_result'),
                         '${_fmtBytes(_estimate!.beforeBytes)} → '
-                            '${_fmtBytes(_estimate!.afterBytes)}. '
-                            '${_estimate!.afterBytes >= _estimate!.beforeBytes ? 'Not smaller.' : '(${_estimate!.percentSaved.toStringAsFixed(0)}% smaller)'}',
+                        '${_fmtBytes(_estimate!.afterBytes)}. '
+                        '${_estimate!.afterBytes >= _estimate!.beforeBytes ? 'Not smaller.' : '(${_estimate!.percentSaved.toStringAsFixed(0)}% smaller)'}',
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -741,14 +741,15 @@ class CompressStatsHighlight extends StatelessWidget {
             horizontal: DsSpacing.lg,
           ),
           decoration: BoxDecoration(
-            color: (shrunk ? DsColors.success : theme.colorScheme.surfaceContainerHighest)
-                .withValues(alpha: shrunk ? 0.12 : 1),
+            color:
+                (shrunk
+                        ? DsColors.success
+                        : theme.colorScheme.surfaceContainerHighest)
+                    .withValues(alpha: shrunk ? 0.12 : 1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            shrunk
-                ? '${saved.toStringAsFixed(1)}% smaller'
-                : 'Not smaller',
+            shrunk ? '${saved.toStringAsFixed(1)}% smaller' : 'Not smaller',
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               color: shrunk ? DsColors.success : theme.colorScheme.onSurface,

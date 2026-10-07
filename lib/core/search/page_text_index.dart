@@ -16,11 +16,7 @@ import 'package:pdfrx/pdfrx.dart';
 /// never the text itself). A query can only be on pages whose filter contains
 /// every trigram of the query — false positives are harmless, misses impossible.
 class PageTextIndex {
-  PageTextIndex({
-    required this.path,
-    this.password,
-    this.isBusy,
-  });
+  PageTextIndex({required this.path, this.password, this.isBusy});
 
   final String path;
   final String? password;
@@ -71,12 +67,14 @@ class PageTextIndex {
     // Start measuring around the requested page if nothing is loading yet.
     final page = doc.pages[n - 1];
     if (page.isLoaded) return page;
-    unawaited(doc.loadPagesProgressively(
-      startPageNumber: n,
-      loadUnitDuration: const Duration(milliseconds: 40),
-      onPageLoadProgress: (loaded, total, _) =>
-          !_disposed && !doc.pages[n - 1].isLoaded,
-    ));
+    unawaited(
+      doc.loadPagesProgressively(
+        startPageNumber: n,
+        loadUnitDuration: const Duration(milliseconds: 40),
+        onPageLoadProgress: (loaded, total, _) =>
+            !_disposed && !doc.pages[n - 1].isLoaded,
+      ),
+    );
     return page.waitForLoaded(timeout: const Duration(seconds: 20));
   }
 
@@ -88,8 +86,11 @@ class PageTextIndex {
     if (identical(f, _noText)) return true;
     if (needle.length < 3) return false;
     for (var i = 0; i + 3 <= needle.length; i++) {
-      final h = _hash(needle.codeUnitAt(i), needle.codeUnitAt(i + 1),
-          needle.codeUnitAt(i + 2));
+      final h = _hash(
+        needle.codeUnitAt(i),
+        needle.codeUnitAt(i + 1),
+        needle.codeUnitAt(i + 2),
+      );
       if (f[h >> 3] & (1 << (h & 7)) == 0) return true;
     }
     return false;
@@ -106,7 +107,11 @@ class PageTextIndex {
     if (t.isEmpty) return _noText;
     final f = Uint8List(_bits >> 3);
     for (var i = 0; i + 3 <= t.length; i++) {
-      final h = _hash(t.codeUnitAt(i), t.codeUnitAt(i + 1), t.codeUnitAt(i + 2));
+      final h = _hash(
+        t.codeUnitAt(i),
+        t.codeUnitAt(i + 1),
+        t.codeUnitAt(i + 2),
+      );
       f[h >> 3] |= 1 << (h & 7);
     }
     return f;
@@ -138,16 +143,18 @@ class PageTextIndex {
       final doc = await document();
       if (doc == null) return;
       // Measure all pages in small slices so renders interleave.
-      unawaited(doc.loadPagesProgressively(
-        loadUnitDuration: const Duration(milliseconds: 40),
-        onPageLoadProgress: (loaded, total, _) async {
-          while (isBusy?.call() == true && !_disposed) {
-            await Future<void>.delayed(const Duration(milliseconds: 120));
-          }
-          await Future<void>.delayed(const Duration(milliseconds: 4));
-          return !_disposed && gen == _generation;
-        },
-      ));
+      unawaited(
+        doc.loadPagesProgressively(
+          loadUnitDuration: const Duration(milliseconds: 40),
+          onPageLoadProgress: (loaded, total, _) async {
+            while (isBusy?.call() == true && !_disposed) {
+              await Future<void>.delayed(const Duration(milliseconds: 120));
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 4));
+            return !_disposed && gen == _generation;
+          },
+        ),
+      );
       final total = doc.pages.length;
       _bits = total <= 5000 ? 8192 : (total <= 20000 ? 4096 : 2048);
       for (var n = 1; n <= total; n++) {
@@ -166,7 +173,8 @@ class PageTextIndex {
           text = (await page.loadText())?.fullText;
         } catch (_) {}
         _filters[n] = _filterFor(text ?? '');
-        if (n % 3 == 0) await Future<void>.delayed(const Duration(milliseconds: 3));
+        if (n % 3 == 0)
+          await Future<void>.delayed(const Duration(milliseconds: 3));
       }
       if (gen == _generation) _complete = true;
     } catch (_) {

@@ -50,14 +50,22 @@ List<String> stampLines(StampDesign design, StampContext ctx) {
     design.title.trim().isEmpty ? 'STAMP' : design.title.trim(),
     if (sub != null && sub.isNotEmpty) sub,
     if (byline.isNotEmpty)
-      design.includeUser && when.isNotEmpty ? byline.join(' at ') : byline.first,
+      design.includeUser && when.isNotEmpty
+          ? byline.join(' at ')
+          : byline.first,
   ];
 }
 
 /// Measured stamp: all sizes are PDF points (1 logical pixel = 1 pt).
 class StampLayout {
-  StampLayout._(this.design, this.painters, this.size, this.iconSize,
-      this.padLeft, this.padTop);
+  StampLayout._(
+    this.design,
+    this.painters,
+    this.size,
+    this.iconSize,
+    this.padLeft,
+    this.padTop,
+  );
 
   final StampDesign design;
   final List<TextPainter> painters;
@@ -131,8 +139,9 @@ class StampLayout {
       case StampShape.rectangle:
         return Path()..addRect(r);
       case StampShape.rounded:
-        return Path()
-          ..addRRect(RRect.fromRectAndRadius(r, Radius.circular(r.height * 0.18)));
+        return Path()..addRRect(
+          RRect.fromRectAndRadius(r, Radius.circular(r.height * 0.18)),
+        );
       case StampShape.oval:
         return Path()..addOval(r);
       case StampShape.arrow:
@@ -142,10 +151,15 @@ class StampLayout {
           ..moveTo(r.left, r.center.dy)
           ..lineTo(r.left + tip, r.top)
           ..lineTo(r.right - rad, r.top)
-          ..arcToPoint(Offset(r.right, r.top + rad), radius: Radius.circular(rad))
+          ..arcToPoint(
+            Offset(r.right, r.top + rad),
+            radius: Radius.circular(rad),
+          )
           ..lineTo(r.right, r.bottom - rad)
-          ..arcToPoint(Offset(r.right - rad, r.bottom),
-              radius: Radius.circular(rad))
+          ..arcToPoint(
+            Offset(r.right - rad, r.bottom),
+            radius: Radius.circular(rad),
+          )
           ..lineTo(r.left + tip, r.bottom)
           ..close();
     }
@@ -176,8 +190,11 @@ class StampLayout {
     final innerH = size.height - padTop * 2;
     var x = padLeft;
     if (iconSize > 0) {
-      _paintIcon(canvas, Rect.fromLTWH(x, padTop + (innerH - iconSize) / 2,
-          iconSize, iconSize), color);
+      _paintIcon(
+        canvas,
+        Rect.fromLTWH(x, padTop + (innerH - iconSize) / 2, iconSize, iconSize),
+        color,
+      );
       x += iconSize + 6;
     }
     var y = padTop + (innerH - textH) / 2;
@@ -264,16 +281,15 @@ class StampPreview extends StatelessWidget {
     final layout = StampLayout.of(design, stampContext);
     final child = FittedBox(
       fit: BoxFit.contain,
-      child: CustomPaint(
-        size: layout.size,
-        painter: _StampPainter(layout),
-      ),
+      child: CustomPaint(size: layout.size, painter: _StampPainter(layout)),
     );
     final h = maxHeight;
-    return h == null ? child : ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: h),
-      child: child,
-    );
+    return h == null
+        ? child
+        : ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: h),
+            child: child,
+          );
   }
 }
 

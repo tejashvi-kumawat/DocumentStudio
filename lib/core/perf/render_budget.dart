@@ -63,10 +63,10 @@ class RenderBudget {
 
   /// Pixels per screen pixel actually used (tier default unless overridden).
   double get effectiveOversample => switch (userQuality) {
-        'high' => math.max(oversample, 1.5),
-        'fast' => 1.0,
-        _ => oversample,
-      };
+    'high' => math.max(oversample, 1.5),
+    'fast' => 1.0,
+    _ => oversample,
+  };
 
   static RenderBudget get current => _current ??= _detect();
 
@@ -103,44 +103,44 @@ class RenderBudget {
     }
     final budget = switch (tier) {
       DeviceTier.low => RenderBudget._(
-          tier: tier,
-          totalRamBytes: ram,
-          viewerImageCacheBytes: 64 * _mb,
-          cacheExtent: 0.5,
-          pageImageCachingDelay: const Duration(milliseconds: 40),
-          limitPdfiumImageCache: true,
-          thumbnailMemoryBytes: 16 * _mb,
-          renderConcurrency: 1,
-          oversample: 1.0,
-          maxRenderLongEdgePx: 4096,
-        ),
+        tier: tier,
+        totalRamBytes: ram,
+        viewerImageCacheBytes: 64 * _mb,
+        cacheExtent: 0.5,
+        pageImageCachingDelay: const Duration(milliseconds: 40),
+        limitPdfiumImageCache: true,
+        thumbnailMemoryBytes: 16 * _mb,
+        renderConcurrency: 1,
+        oversample: 1.0,
+        maxRenderLongEdgePx: 4096,
+      ),
       DeviceTier.mid => RenderBudget._(
-          tier: tier,
-          totalRamBytes: ram,
-          viewerImageCacheBytes: 160 * _mb,
-          cacheExtent: 0.75,
-          pageImageCachingDelay: const Duration(milliseconds: 20),
-          limitPdfiumImageCache: false,
-          thumbnailMemoryBytes: 32 * _mb,
-          renderConcurrency: 2,
-          oversample: 1.5,
-          maxRenderLongEdgePx: 6144,
-        ),
+        tier: tier,
+        totalRamBytes: ram,
+        viewerImageCacheBytes: 160 * _mb,
+        cacheExtent: 0.75,
+        pageImageCachingDelay: const Duration(milliseconds: 20),
+        limitPdfiumImageCache: false,
+        thumbnailMemoryBytes: 32 * _mb,
+        renderConcurrency: 2,
+        oversample: 1.5,
+        maxRenderLongEdgePx: 6144,
+      ),
       DeviceTier.high => RenderBudget._(
-          tier: tier,
-          totalRamBytes: ram,
-          // About 1/24 of RAM: 330 MB on 8 GB, 512 MB from 12 GB up.
-          viewerImageCacheBytes: ram == null
-              ? 256 * _mb
-              : (ram ~/ 24).clamp(256 * _mb, 512 * _mb),
-          cacheExtent: 1.0,
-          pageImageCachingDelay: const Duration(milliseconds: 12),
-          limitPdfiumImageCache: false,
-          thumbnailMemoryBytes: 64 * _mb,
-          renderConcurrency: math.min(3, math.max(2, cpus ~/ 4)),
-          oversample: 1.5,
-          maxRenderLongEdgePx: 8192,
-        ),
+        tier: tier,
+        totalRamBytes: ram,
+        // About 1/24 of RAM: 330 MB on 8 GB, 512 MB from 12 GB up.
+        viewerImageCacheBytes: ram == null
+            ? 256 * _mb
+            : (ram ~/ 24).clamp(256 * _mb, 512 * _mb),
+        cacheExtent: 1.0,
+        pageImageCachingDelay: const Duration(milliseconds: 12),
+        limitPdfiumImageCache: false,
+        thumbnailMemoryBytes: 64 * _mb,
+        renderConcurrency: math.min(3, math.max(2, cpus ~/ 4)),
+        oversample: 1.5,
+        maxRenderLongEdgePx: 8192,
+      ),
     };
     if (!kReleaseMode) {
       debugPrint(
@@ -177,8 +177,11 @@ class RenderBudget {
     try {
       status.cast<Uint32>().value = 64; // dwLength
       final kernel = DynamicLibrary.open('kernel32.dll');
-      final call = kernel.lookupFunction<Int32 Function(Pointer<Uint8>),
-          int Function(Pointer<Uint8>)>('GlobalMemoryStatusEx');
+      final call = kernel
+          .lookupFunction<
+            Int32 Function(Pointer<Uint8>),
+            int Function(Pointer<Uint8>)
+          >('GlobalMemoryStatusEx');
       if (call(status) == 0) return null;
       // ullTotalPhys sits at byte offset 8.
       return (status + 8).cast<Uint64>().value;

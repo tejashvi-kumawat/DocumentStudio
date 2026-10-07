@@ -92,11 +92,7 @@ class DsToolbar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class _TitleBlock extends StatelessWidget {
-  const _TitleBlock({
-    required this.title,
-    this.subtitle,
-    required this.dense,
-  });
+  const _TitleBlock({required this.title, this.subtitle, required this.dense});
 
   final String title;
   final String? subtitle;
@@ -167,18 +163,15 @@ class DsToolbarIconButton extends StatelessWidget {
           icon: Icon(icon, size: iconSize),
           iconSize: iconSize,
           padding: EdgeInsets.zero,
-          constraints: BoxConstraints(
-            minWidth: minSide,
-            minHeight: minSide,
-          ),
+          constraints: BoxConstraints(minWidth: minSide, minHeight: minSide),
           visualDensity: VisualDensity.compact,
           style: IconButton.styleFrom(
             backgroundColor: selected ? selectedFill : null,
             foregroundColor: selected
                 ? theme.colorScheme.primary
                 : (isDark
-                    ? DsColors.textPrimaryDark
-                    : DsColors.textPrimaryLight),
+                      ? DsColors.textPrimaryDark
+                      : DsColors.textPrimaryLight),
           ),
         ),
       ),
@@ -326,10 +319,7 @@ class DsToolbarLabeledGroup extends StatelessWidget {
     final theme = Theme.of(context);
     final secondary = DsColors.textSecondary(theme.brightness);
 
-    final row = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: children,
-    );
+    final row = Row(mainAxisSize: MainAxisSize.min, children: children);
     if (label.isEmpty) {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: dense ? 1 : DsSpacing.xs),
@@ -362,11 +352,7 @@ class DsToolbarLabeledGroup extends StatelessWidget {
 
 /// Flat icon-only toolbar row for PDF viewer (tabs sit above this bar).
 class DsAcrobatIconToolbar extends StatelessWidget {
-  const DsAcrobatIconToolbar({
-    super.key,
-    this.leading,
-    required this.actions,
-  });
+  const DsAcrobatIconToolbar({super.key, this.leading, required this.actions});
 
   final Widget? leading;
   final Widget actions;
@@ -386,7 +372,7 @@ class DsAcrobatIconToolbar extends StatelessWidget {
         height: kDsToolbarHeightAcrobat,
         child: Row(
           children: [
-            if (leading != null) leading!,
+            ?leading,
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,

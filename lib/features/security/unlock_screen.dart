@@ -5,6 +5,7 @@ import 'package:document_studio/core/storage/file_storage_port.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/shell/ds_tool_route_actions.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_save_result_actions.dart';
@@ -22,10 +23,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 class UnlockDeps {
-  const UnlockDeps({
-    required this.fileStorage,
-    required this.encryptPort,
-  });
+  const UnlockDeps({required this.fileStorage, required this.encryptPort});
 
   final FileStoragePort fileStorage;
   final PdfEncryptPort encryptPort;
@@ -111,7 +109,8 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
       });
       return;
     }
-    final needsPassword = protection == PdfProtectionState.openPassword ||
+    final needsPassword =
+        protection == PdfProtectionState.openPassword ||
         protection == PdfProtectionState.unknown;
     if (password.isEmpty && needsPassword) {
       final prompted = await promptPdfPassword(context);
@@ -201,7 +200,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
     });
   }
 
-  Widget _formBody({required bool lockFile}) {
+  Widget _formBody({required bool lockFile, bool split = false}) {
     final theme = Theme.of(context);
     final qpdf = _qpdfAvailable;
 
@@ -215,28 +214,31 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
           ),
           const SizedBox(height: DsSpacing.lg),
         ],
-        DsToolSection(
-          topPadding: false,
-          title: 'Source file',
-          subtitle: 'Encrypted PDF to decrypt',
-          child: lockFile
-              ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
-              : DsToolFileSource(
-                  files: [?_file],
-                  enabled: !_busy,
-                  onPick: _pick,
-                  onFilesDropped: (files) => _setFile(files.first),
-                  onRemove: (_) => _setFile(null),
-                  metaFor: (f) =>
-                      f.sizeBytes == null ? null : dsFormatBytes(f.sizeBytes!),
-                  emptyTitle: 'Drop a protected PDF',
-                  emptySubtitle: 'You will need its password if it has one',
-                  icon: Icons.lock_open_rounded,
-                ),
-        ),
+        if (!split || _file != null)
+          DsToolSection(
+            topPadding: false,
+            title: 'Source file',
+            subtitle: 'Encrypted PDF to decrypt',
+            child: lockFile
+                ? Text(_file!.displayName, style: theme.textTheme.titleSmall)
+                : DsToolFileSource(
+                    files: [?_file],
+                    enabled: !_busy,
+                    onPick: _pick,
+                    onFilesDropped: (files) => _setFile(files.first),
+                    onRemove: (_) => _setFile(null),
+                    metaFor: (f) => f.sizeBytes == null
+                        ? null
+                        : dsFormatBytes(f.sizeBytes!),
+                    emptyTitle: 'Drop a protected PDF',
+                    emptySubtitle: 'You will need its password if it has one',
+                    icon: Icons.lock_open_rounded,
+                  ),
+          ),
         DsToolSection(
           title: 'Password',
-          subtitle: 'Leave empty if the PDF opens without a password and only '
+          subtitle:
+              'Leave empty if the PDF opens without a password and only '
               'blocks printing, copying, or editing',
           child: TextField(
             key: const Key('unlock_password'),
@@ -309,7 +311,6 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
       title: 'Decrypt',
       subtitle: 'Remove the password and save a new copy.',
       icon: Icons.lock_open_rounded,
-      iconColor: const Color(0xFF7C3AED),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => handleDsToolFormCancel(context, ref),
@@ -331,7 +332,16 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
             ? widget.initialPassword
             : _passwordController.text,
       ),
-      child: _formBody(lockFile: false),
+      preview: DsPdfPreviewPane(
+        file: _file,
+        enabled: !_busy,
+        onPick: _pick,
+        onFilesDropped: (files) => _setFile(files.first),
+        emptyTitle: 'Drop a protected PDF',
+        emptySubtitle: 'You will need its password if it has one',
+        icon: Icons.lock_open_rounded,
+      ),
+      child: _formBody(lockFile: false, split: true),
     );
   }
 }

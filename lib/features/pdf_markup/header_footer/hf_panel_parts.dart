@@ -37,7 +37,9 @@ class HfExistingBanner extends StatelessWidget {
                   padding: const EdgeInsets.all(DsSpacing.sm + 2),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF7E6),
-                    borderRadius: BorderRadius.circular(DsSpacing.radiusGrouped),
+                    borderRadius: BorderRadius.circular(
+                      DsSpacing.radiusGrouped,
+                    ),
                     border: Border.all(color: const Color(0xFFF5C26B)),
                   ),
                   child: Column(
@@ -45,8 +47,11 @@ class HfExistingBanner extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.layers_outlined,
-                              size: 18, color: Color(0xFFB45309)),
+                          const Icon(
+                            Icons.layers_outlined,
+                            size: 18,
+                            color: Color(0xFFB45309),
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -84,8 +89,10 @@ class HfExistingBanner extends StatelessWidget {
                                   ? null
                                   : controller.loadExistingSettings,
                               icon: const Icon(Icons.edit_note, size: 16),
-                              label: const Text('Edit existing',
-                                  style: TextStyle(fontSize: 12)),
+                              label: const Text(
+                                'Edit existing',
+                                style: TextStyle(fontSize: 12),
+                              ),
                             ),
                           TextButton.icon(
                             style: TextButton.styleFrom(
@@ -93,10 +100,14 @@ class HfExistingBanner extends StatelessWidget {
                               foregroundColor: DsColors.error,
                             ),
                             onPressed: controller.busy ? null : onRemove,
-                            icon: const Icon(Icons.delete_sweep_outlined,
-                                size: 16),
-                            label: const Text('Remove',
-                                style: TextStyle(fontSize: 12)),
+                            icon: const Icon(
+                              Icons.delete_sweep_outlined,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              'Remove',
+                              style: TextStyle(fontSize: 12),
+                            ),
                           ),
                         ],
                       ),
@@ -134,11 +145,13 @@ class HfActionBar extends StatelessWidget {
     final pad = compact ? DsSpacing.pagePaddingCompact : DsSpacing.xl;
     final issues = controller.issues;
     final n = controller.targetPageCount;
-    final canApply = !controller.busy &&
+    final canApply =
+        !controller.busy &&
         !controller.loading &&
         controller.document != null &&
         issues.isEmpty;
-    final label = applyLabel ??
+    final label =
+        applyLabel ??
         (controller.existing.hasExisting
             ? 'Replace on $n page${n == 1 ? '' : 's'}'
             : 'Apply to $n page${n == 1 ? '' : 's'}');
@@ -176,19 +189,17 @@ class HfActionBar extends StatelessWidget {
     final saveButton = onSaveTemplate == null
         ? null
         : compact
-            ? TextButton.icon(
-                onPressed: saveEnabled ? onSaveTemplate : null,
-                icon: const Icon(Icons.bookmark_add_outlined),
-                label: const Text('Save as template'),
-              )
-            : OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: Size(0, controlH),
-                ),
-                onPressed: saveEnabled ? onSaveTemplate : null,
-                icon: const Icon(Icons.bookmark_add_outlined),
-                label: const Text('Save as template'),
-              );
+        ? TextButton.icon(
+            onPressed: saveEnabled ? onSaveTemplate : null,
+            icon: const Icon(Icons.bookmark_add_outlined),
+            label: const Text('Save as template'),
+          )
+        : OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(minimumSize: Size(0, controlH)),
+            onPressed: saveEnabled ? onSaveTemplate : null,
+            icon: const Icon(Icons.bookmark_add_outlined),
+            label: const Text('Save as template'),
+          );
 
     return Material(
       color: theme.colorScheme.surface,
@@ -223,22 +234,22 @@ class HfActionBar extends StatelessWidget {
                               'err',
                             )
                           : issues.isNotEmpty && !controller.loading
-                              ? _note(
-                                  theme,
-                                  Icons.info_outline,
-                                  DsColors.warning,
-                                  issues.first,
-                                  'issue',
-                                )
-                              : controller.justApplied
-                                  ? _note(
-                                      theme,
-                                      Icons.check_circle_outline,
-                                      DsColors.success,
-                                      'Applied. Edit any option to preview again.',
-                                      'ok',
-                                    )
-                                  : const SizedBox.shrink(key: ValueKey('none')),
+                          ? _note(
+                              theme,
+                              Icons.info_outline,
+                              DsColors.warning,
+                              issues.first,
+                              'issue',
+                            )
+                          : controller.justApplied
+                          ? _note(
+                              theme,
+                              Icons.check_circle_outline,
+                              DsColors.success,
+                              'Applied. Edit any option to preview again.',
+                              'ok',
+                            )
+                          : const SizedBox.shrink(key: ValueKey('none')),
                     ),
                     if (compact) ...[
                       SizedBox(
@@ -248,13 +259,7 @@ class HfActionBar extends StatelessWidget {
                       ),
                       ?saveButton,
                     ] else
-                      Row(
-                        children: [
-                          ?saveButton,
-                          const Spacer(),
-                          applyButton,
-                        ],
-                      ),
+                      Row(children: [?saveButton, const Spacer(), applyButton]),
                   ],
                 ),
               ),

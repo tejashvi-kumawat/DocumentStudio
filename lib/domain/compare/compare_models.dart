@@ -18,20 +18,20 @@ class NormRect {
   double get cy => (t + b) / 2;
 
   NormRect union(NormRect o) => NormRect(
-        math.min(l, o.l),
-        math.min(t, o.t),
-        math.max(r, o.r),
-        math.max(b, o.b),
-      );
+    math.min(l, o.l),
+    math.min(t, o.t),
+    math.max(r, o.r),
+    math.max(b, o.b),
+  );
 
   NormRect inflate(double d) => NormRect(l - d, t - d, r + d, b + d);
 
   NormRect clamp01() => NormRect(
-        l.clamp(0.0, 1.0),
-        t.clamp(0.0, 1.0),
-        r.clamp(0.0, 1.0),
-        b.clamp(0.0, 1.0),
-      );
+    l.clamp(0.0, 1.0),
+    t.clamp(0.0, 1.0),
+    r.clamp(0.0, 1.0),
+    b.clamp(0.0, 1.0),
+  );
 
   double iou(NormRect o) {
     final il = math.max(l, o.l);
@@ -152,36 +152,36 @@ class CompareDocData {
 }
 
 String pdfAnnotSubtypeLabel(int subtype) => switch (subtype) {
-      1 => 'Note',
-      2 => 'Link',
-      3 => 'Text box',
-      4 => 'Line',
-      5 => 'Rectangle',
-      6 => 'Ellipse',
-      7 => 'Polygon',
-      8 => 'Polyline',
-      9 => 'Highlight',
-      10 => 'Underline',
-      11 => 'Squiggly',
-      12 => 'Strikeout',
-      13 => 'Stamp',
-      14 => 'Caret',
-      15 => 'Ink',
-      16 => 'Popup',
-      17 => 'File attachment',
-      18 => 'Sound',
-      19 => 'Movie',
-      20 => 'Form field',
-      21 => 'Screen',
-      22 => 'Printer mark',
-      23 => 'Trap net',
-      24 => 'Watermark',
-      25 => '3D',
-      26 => 'Rich media',
-      27 => 'XFA widget',
-      28 => 'Redaction',
-      _ => 'Annotation',
-    };
+  1 => 'Note',
+  2 => 'Link',
+  3 => 'Text box',
+  4 => 'Line',
+  5 => 'Rectangle',
+  6 => 'Ellipse',
+  7 => 'Polygon',
+  8 => 'Polyline',
+  9 => 'Highlight',
+  10 => 'Underline',
+  11 => 'Squiggly',
+  12 => 'Strikeout',
+  13 => 'Stamp',
+  14 => 'Caret',
+  15 => 'Ink',
+  16 => 'Popup',
+  17 => 'File attachment',
+  18 => 'Sound',
+  19 => 'Movie',
+  20 => 'Form field',
+  21 => 'Screen',
+  22 => 'Printer mark',
+  23 => 'Trap net',
+  24 => 'Watermark',
+  25 => '3D',
+  26 => 'Rich media',
+  27 => 'XFA widget',
+  28 => 'Redaction',
+  _ => 'Annotation',
+};
 
 /// Thrown when a compare run is cancelled (new run, screen closed, user).
 class CompareCancelled implements Exception {
@@ -228,11 +228,11 @@ const compareReplaceRgb = 0xE59A0C;
 const compareChangedRgb = 0x2F6FDE;
 
 int compareKindRgb(CompareChangeKind k) => switch (k) {
-      CompareChangeKind.inserted => compareInsertRgb,
-      CompareChangeKind.deleted => compareDeleteRgb,
-      CompareChangeKind.replaced => compareReplaceRgb,
-      CompareChangeKind.changed || CompareChangeKind.moved => compareChangedRgb,
-    };
+  CompareChangeKind.inserted => compareInsertRgb,
+  CompareChangeKind.deleted => compareDeleteRgb,
+  CompareChangeKind.replaced => compareReplaceRgb,
+  CompareChangeKind.changed || CompareChangeKind.moved => compareChangedRgb,
+};
 
 int compareChangeRgb(CompareChange c) => compareKindRgb(c.kind);
 
@@ -323,15 +323,15 @@ class CompareResult {
     required this.changes,
     required this.elapsed,
     this.movedAtoB = const {},
-  })  : rowOfA = {
-          for (var i = 0; i < rows.length; i++)
-            if (rows[i].a != null) rows[i].a!: i,
-        },
-        rowOfB = {
-          for (var i = 0; i < rows.length; i++)
-            if (rows[i].b != null) rows[i].b!: i,
-        },
-        movedBtoA = {for (final e in movedAtoB.entries) e.value: e.key};
+  }) : rowOfA = {
+         for (var i = 0; i < rows.length; i++)
+           if (rows[i].a != null) rows[i].a!: i,
+       },
+       rowOfB = {
+         for (var i = 0; i < rows.length; i++)
+           if (rows[i].b != null) rows[i].b!: i,
+       },
+       movedBtoA = {for (final e in movedAtoB.entries) e.value: e.key};
 
   final CompareDocData oldDoc;
   final CompareDocData newDoc;
@@ -348,8 +348,7 @@ class CompareResult {
   bool get formattingAvailable => oldDoc.hasFontInfo && newDoc.hasFontInfo;
   bool get imagesAvailable => oldDoc.hasImageInfo && newDoc.hasImageInfo;
 
-  int count(CompareCategory c) =>
-      changes.where((e) => e.category == c).length;
+  int count(CompareCategory c) => changes.where((e) => e.category == c).length;
 
   int countKind(CompareCategory c, CompareChangeKind k) =>
       changes.where((e) => e.category == c && e.kind == k).length;

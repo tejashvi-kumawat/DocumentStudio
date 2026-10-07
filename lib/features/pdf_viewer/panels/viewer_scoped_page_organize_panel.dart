@@ -97,17 +97,16 @@ class _ViewerScopedPageOrganizePanelState
     return r.pages;
   }
 
-  String _describe(Set<int> pages) => pages.length == 1
-      ? 'page ${pages.first}'
-      : '${pages.length} pages';
+  String _describe(Set<int> pages) =>
+      pages.length == 1 ? 'page ${pages.first}' : '${pages.length} pages';
 
   String get _applyKey => switch (widget.mode) {
-        ViewerScopedOrganizeMode.extract => 'viewer_extract_apply',
-        ViewerScopedOrganizeMode.delete => 'viewer_delete_apply',
-        ViewerScopedOrganizeMode.duplicate => 'viewer_duplicate_apply',
-        ViewerScopedOrganizeMode.rotate => 'viewer_rotate_apply',
-        ViewerScopedOrganizeMode.insertBlank => 'viewer_blank_apply',
-      };
+    ViewerScopedOrganizeMode.extract => 'viewer_extract_apply',
+    ViewerScopedOrganizeMode.delete => 'viewer_delete_apply',
+    ViewerScopedOrganizeMode.duplicate => 'viewer_duplicate_apply',
+    ViewerScopedOrganizeMode.rotate => 'viewer_rotate_apply',
+    ViewerScopedOrganizeMode.insertBlank => 'viewer_blank_apply',
+  };
 
   Future<void> _commitInPlace(
     List<OrganizePageRef> pages, {
@@ -129,9 +128,8 @@ class _ViewerScopedPageOrganizePanelState
       await work();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -191,12 +189,9 @@ class _ViewerScopedPageOrganizePanelState
     await _run(() async {
       final blank = await ref.read(blankPageFactoryProvider).blankPageFile();
       if (!mounted) return;
-      final pages = pagesForBlankInsertAfter(
-        widget.handoff.file,
-        total,
-        {_page},
-        blank,
-      );
+      final pages = pagesForBlankInsertAfter(widget.handoff.file, total, {
+        _page,
+      }, blank);
       await _commitInPlace(
         pages,
         successMessage: 'Inserted blank after page $_page.',
@@ -254,14 +249,14 @@ class _ViewerScopedPageOrganizePanelState
       final remaining = pagesForDelete(file, total, targets);
       await _commitInPlace(
         remaining,
-        successMessage:
-            'Removed ${_describe(targets)} from the open document.',
+        successMessage: 'Removed ${_describe(targets)} from the open document.',
       );
     });
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -300,60 +295,56 @@ class _ViewerScopedPageOrganizePanelState
               _ => null,
             },
       children: [
-          Text(
-            'Page $_page${ready ? ' of $total' : ''}',
-            style: theme.textTheme.titleSmall,
+        Text(
+          'Page $_page${ready ? ' of $total' : ''}',
+          style: theme.textTheme.titleSmall,
+        ),
+        const SizedBox(height: DsSpacing.xs),
+        Text(switch (widget.mode) {
+          ViewerScopedOrganizeMode.extract => 'Saves the chosen pages as a new PDF. Optionally remove them from the open file.',
+          ViewerScopedOrganizeMode.delete =>
+            'Removes the chosen pages from the open document (undoable).',
+          ViewerScopedOrganizeMode.duplicate =>
+            'Copies each chosen page right after itself in the open document.',
+          ViewerScopedOrganizeMode.rotate =>
+            'Rotates the chosen pages in the open document. '
+                '${viewerToolShortcutTooltip(ViewerToolShortcutId.rotateLeft)} / '
+                '${viewerToolShortcutTooltip(ViewerToolShortcutId.rotateRight)}.',
+          ViewerScopedOrganizeMode.insertBlank =>
+            'Inserts one blank page after this page in the open document.',
+        }, style: theme.textTheme.bodySmall),
+        if (widget.mode != ViewerScopedOrganizeMode.insertBlank) ...[
+          const SizedBox(height: DsSpacing.md),
+          PdfPageScopeField(
+            kind: _scope,
+            onKindChanged: (k) => setState(() {
+              _scope = k;
+              _rangeError = null;
+            }),
+            rangeExpression: _range,
+            onRangeExpressionChanged: (v) => setState(() {
+              _range = v;
+              _rangeError = null;
+            }),
+            selectedPageCount: widget.selectedPages1Based.length,
+            rangeError: _rangeError,
+            enabled: !_busy,
           ),
-          const SizedBox(height: DsSpacing.xs),
-          Text(
-            switch (widget.mode) {
-              ViewerScopedOrganizeMode.extract =>
-                'Saves the chosen pages as a new PDF. Optionally remove them from the open file.',
-              ViewerScopedOrganizeMode.delete =>
-                'Removes the chosen pages from the open document (undoable).',
-              ViewerScopedOrganizeMode.duplicate =>
-                'Copies each chosen page right after itself in the open document.',
-              ViewerScopedOrganizeMode.rotate =>
-                'Rotates the chosen pages in the open document. '
-                    '${viewerToolShortcutTooltip(ViewerToolShortcutId.rotateLeft)} / '
-                    '${viewerToolShortcutTooltip(ViewerToolShortcutId.rotateRight)}.',
-              ViewerScopedOrganizeMode.insertBlank =>
-                'Inserts one blank page after this page in the open document.',
-            },
-            style: theme.textTheme.bodySmall,
-          ),
-          if (widget.mode != ViewerScopedOrganizeMode.insertBlank) ...[
-            const SizedBox(height: DsSpacing.md),
-            PdfPageScopeField(
-              kind: _scope,
-              onKindChanged: (k) => setState(() {
-                _scope = k;
-                _rangeError = null;
-              }),
-              rangeExpression: _range,
-              onRangeExpressionChanged: (v) => setState(() {
-                _range = v;
-                _rangeError = null;
-              }),
-              selectedPageCount: widget.selectedPages1Based.length,
-              rangeError: _rangeError,
-              enabled: !_busy,
-            ),
-          ],
-          if (widget.mode == ViewerScopedOrganizeMode.extract)
-            SwitchListTile(
-              key: const Key('viewer_extract_delete_after'),
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Delete after extract'),
-              subtitle: const Text(
-                'Remove the extracted pages from the open document after saving',
-              ),
-              value: _deleteAfterExtract,
-              onChanged: _busy
-                  ? null
-                  : (v) => setState(() => _deleteAfterExtract = v),
-            ),
         ],
+        if (widget.mode == ViewerScopedOrganizeMode.extract)
+          SwitchListTile(
+            key: const Key('viewer_extract_delete_after'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Delete after extract'),
+            subtitle: const Text(
+              'Remove the extracted pages from the open document after saving',
+            ),
+            value: _deleteAfterExtract,
+            onChanged: _busy
+                ? null
+                : (v) => setState(() => _deleteAfterExtract = v),
+          ),
+      ],
     );
   }
 }

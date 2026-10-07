@@ -50,10 +50,7 @@ double pageSimilarity(Uint32List? a, Uint32List? b) {
 /// inserted/deleted rows; equally sized unmatched runs between two matches are
 /// paired so a heavily rewritten page is still diffed rather than reported as
 /// delete + insert.
-List<ComparePagePair> alignPages(
-  List<Uint32List?> a,
-  List<Uint32List?> b,
-) {
+List<ComparePagePair> alignPages(List<Uint32List?> a, List<Uint32List?> b) {
   final n = a.length;
   final m = b.length;
   if (n == 0 || m == 0) {
@@ -80,7 +77,9 @@ List<ComparePagePair> alignPages(
   final band = n * m > 1000000 ? (n - m).abs() + 60 : 1 << 30;
   final w = m + 1;
   final score = Float32List((n + 1) * w);
-  final dir = Uint8List((n + 1) * w); // 0 diag, 1 up (delete a), 2 left (insert b)
+  final dir = Uint8List(
+    (n + 1) * w,
+  ); // 0 diag, 1 up (delete a), 2 left (insert b)
   for (var i = 1; i <= n; i++) {
     dir[i * w] = 1;
   }
@@ -142,8 +141,14 @@ Map<int, int> detectMovedPages(
   List<Uint32List?> b, {
   double minSimilarity = 0.5,
 }) {
-  final dels = [for (final r in rows) if (r.b == null) r.a!];
-  final ins = [for (final r in rows) if (r.a == null) r.b!];
+  final dels = [
+    for (final r in rows)
+      if (r.b == null) r.a!,
+  ];
+  final ins = [
+    for (final r in rows)
+      if (r.a == null) r.b!,
+  ];
   if (dels.isEmpty || ins.isEmpty || dels.length * ins.length > 250000) {
     return const {};
   }

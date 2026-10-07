@@ -34,8 +34,8 @@ class HeaderFooterController extends ChangeNotifier {
     this.kind = PdfStampKind.headerFooter,
     this.defaultSpec = defaultHeaderFooterSpec,
     HfTemplateStore? store,
-  })  : service = PdfHeaderFooterService(kind: kind),
-        _store = store ?? HfTemplateStore();
+  }) : service = PdfHeaderFooterService(kind: kind),
+       _store = store ?? HfTemplateStore();
 
   final String kind;
   final HeaderFooterSpec defaultSpec;
@@ -84,14 +84,13 @@ class HeaderFooterController extends ChangeNotifier {
     LocalFileRef? file, {
     bool showGuides = false,
     bool showFocus = true,
-  }) =>
-      HeaderFooterPreviewState(
-        spec: _spec,
-        doc: docInfo(file),
-        visible: !_justApplied,
-        showGuides: showGuides,
-        focusZone: showFocus ? _focus : null,
-      );
+  }) => HeaderFooterPreviewState(
+    spec: _spec,
+    doc: docInfo(file),
+    visible: !_justApplied,
+    showGuides: showGuides,
+    focusZone: showFocus ? _focus : null,
+  );
 
   void _notify() {
     if (!_disposed) notifyListeners();
@@ -120,7 +119,10 @@ class HeaderFooterController extends ChangeNotifier {
     final forFileF = _store.loadForFile(kind, file.path);
     try {
       final bytes = await File(file.path).readAsBytes();
-      final (doc, found) = await service.load(bytes, fileName: file.displayName);
+      final (doc, found) = await service.load(
+        bytes,
+        fileName: file.displayName,
+      );
       _document = doc;
       _existing = found;
     } catch (e) {
@@ -190,7 +192,10 @@ class HeaderFooterController extends ChangeNotifier {
   Future<void> refresh(LocalFileRef file) async {
     try {
       final bytes = await File(file.path).readAsBytes();
-      final (doc, found) = await service.load(bytes, fileName: file.displayName);
+      final (doc, found) = await service.load(
+        bytes,
+        fileName: file.displayName,
+      );
       _document = doc;
       _existing = found;
     } catch (_) {}

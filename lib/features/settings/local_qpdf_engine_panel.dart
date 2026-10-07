@@ -53,39 +53,40 @@ class _LocalQpdfEnginePanelState extends State<LocalQpdfEnginePanel> {
       padding: const EdgeInsets.only(bottom: DsSpacing.lg),
       child: DsToolPanel(
         title: 'PDF engine',
-        subtitle: 'qpdf ships inside the desktop app. '
+        subtitle:
+            'qpdf ships inside the desktop app. '
             'This download runs only if that copy is missing.',
         child: FutureBuilder<bool>(
-        future: _ready,
-        builder: (context, snap) {
-          final ready = snap.data;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                switch (ready) {
+          future: _ready,
+          builder: (context, snap) {
+            final ready = snap.data;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(switch (ready) {
                   null => 'Checking the bundled qpdf…',
                   true => 'qpdf is included with this app.',
                   false => 'qpdf is not in the app folder yet.',
-                },
-              ),
-              if (ready == false) ...[
-                const SizedBox(height: DsSpacing.sm),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FilledButton(
-                    onPressed: _busy ? null : _download,
-                    child: Text(_busy ? 'Downloading qpdf…' : 'Download qpdf'),
+                }),
+                if (ready == false) ...[
+                  const SizedBox(height: DsSpacing.sm),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton(
+                      onPressed: _busy ? null : _download,
+                      child: Text(
+                        _busy ? 'Downloading qpdf…' : 'Download qpdf',
+                      ),
+                    ),
                   ),
-                ),
+                ],
+                if (_detail != null) ...[
+                  const SizedBox(height: DsSpacing.sm),
+                  Text(_detail!),
+                ],
               ],
-              if (_detail != null) ...[
-                const SizedBox(height: DsSpacing.sm),
-                Text(_detail!),
-              ],
-            ],
-          );
-        },
+            );
+          },
         ),
       ),
     );

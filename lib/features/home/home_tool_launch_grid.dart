@@ -25,14 +25,11 @@ class HomeToolLaunchGrid extends StatelessWidget {
     final radius = BorderRadius.circular(DsSpacing.radiusCard);
 
     BoxDecoration gridDecoration() => BoxDecoration(
-          color: fill,
-          border: Border.all(
-            color: border,
-            width: isDark ? 1 : 0.5,
-          ),
-          borderRadius: radius,
-          boxShadow: isDark ? null : DsSpacing.cardShadowLight(opacity: 0.05),
-        );
+      color: fill,
+      border: Border.all(color: border, width: isDark ? 1 : 0.5),
+      borderRadius: radius,
+      boxShadow: isDark ? null : DsSpacing.cardShadowLight(opacity: 0.05),
+    );
 
     if (columns <= 1) {
       return _borderedList(
@@ -59,8 +56,7 @@ class HomeToolLaunchGrid extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (var c = 0; c < columns; c++) ...[
-                    if (c > 0)
-                      VerticalDivider(width: 1, color: border),
+                    if (c > 0) VerticalDivider(width: 1, color: border),
                     Expanded(
                       child: c < rows[r].length
                           ? HomeQuickToolRow(tool: rows[r][c])

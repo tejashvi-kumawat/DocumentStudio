@@ -1,8 +1,8 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/core/errors/document_studio_error.dart';
 import 'package:document_studio/core/errors/document_studio_error_ui.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
-import 'package:document_studio/design_system/shell/ds_toolbar.dart';
 import 'package:document_studio/design_system/widgets/ds_buttons.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/pdf_viewer/panels/viewer_fill_form_panel.dart';
@@ -12,7 +12,6 @@ import 'package:document_studio/features/pdf_viewer/shell_pdf_open.dart';
 import 'package:document_studio/features/pdf_viewer/viewer_tool_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Fill AcroForm / detected spots — same panel as the open-PDF rail.
 class FillFormScreen extends ConsumerStatefulWidget {
@@ -90,14 +89,10 @@ class _FillFormScreenState extends ConsumerState<FillFormScreen> {
     final file = _file;
     if (file == null) {
       return Scaffold(
-        appBar: DsToolbar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
+        appBar: const DsToolAppBar(
           title: 'Fill PDF form',
           subtitle: 'Tap detected fields on the page',
-          dense: true,
+          icon: Icons.assignment_outlined,
         ),
         body: Center(
           child: ConstrainedBox(
@@ -117,9 +112,8 @@ class _FillFormScreenState extends ConsumerState<FillFormScreen> {
                     Text(
                       _pickError!,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFFE4002B),
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: const Color(0xFFE4002B)),
                     ),
                   ],
                   const SizedBox(height: DsSpacing.lg),
@@ -139,27 +133,19 @@ class _FillFormScreenState extends ConsumerState<FillFormScreen> {
 
     if (widget.openInViewer) {
       return Scaffold(
-        appBar: DsToolbar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
+        appBar: const DsToolAppBar(
           title: 'Fill PDF form',
-          dense: true,
+          icon: Icons.assignment_outlined,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: DsToolbar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+      appBar: DsToolAppBar(
         title: 'Fill PDF form',
         subtitle: file.displayName,
-        dense: true,
+        icon: Icons.assignment_outlined,
       ),
       body: ViewerFillFormPanel(
         handoff: PdfViewerDocumentHandoff(file: file, password: _password),

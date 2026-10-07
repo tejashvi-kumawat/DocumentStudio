@@ -50,7 +50,8 @@ class SettingsRepository {
       _prefs.setString(_zoomKey, value);
 
   /// `continuous`, `singlePage` or `twoPage`.
-  String get defaultPageDisplay => _prefs.getString(_displayKey) ?? 'continuous';
+  String get defaultPageDisplay =>
+      _prefs.getString(_displayKey) ?? 'continuous';
 
   Future<void> setDefaultPageDisplay(String value) =>
       _prefs.setString(_displayKey, value);
@@ -65,12 +66,14 @@ class SettingsRepository {
 
   /// `sans`, `serif` or `mono` — font of newly added text.
   String get newTextFamily => _prefs.getString(_textFamilyKey) ?? 'sans';
-  Future<void> setNewTextFamily(String v) => _prefs.setString(_textFamilyKey, v);
+  Future<void> setNewTextFamily(String v) =>
+      _prefs.setString(_textFamilyKey, v);
 
   double get newTextSize => _prefs.getDouble(_textSizeKey) ?? 14;
   Future<void> setNewTextSize(double v) => _prefs.setDouble(_textSizeKey, v);
 
   /// Cache disk budget in GB; 0 = automatic (20% of free space, 1–7 GB).
   int get cacheBudgetGb => _prefs.getInt('cache_budget_gb_v1') ?? 0;
-  Future<void> setCacheBudgetGb(int v) => _prefs.setInt('cache_budget_gb_v1', v);
+  Future<void> setCacheBudgetGb(int v) =>
+      _prefs.setInt('cache_budget_gb_v1', v);
 }

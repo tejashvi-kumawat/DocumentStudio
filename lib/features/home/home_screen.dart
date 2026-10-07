@@ -26,6 +26,8 @@ import 'package:document_studio/features/home/home_recents_filter.dart';
 import 'package:document_studio/features/home/home_suggested_tools.dart';
 import 'package:document_studio/features/home/home_tool.dart';
 import 'package:document_studio/features/home/home_tool_route.dart';
+import 'package:document_studio/features/compose/template_gallery_screen.dart';
+import 'package:document_studio/features/office/office_route.dart';
 import 'package:document_studio/features/page_management/shared/organize_accessible_files.dart';
 import 'package:document_studio/features/pdf_viewer/shell_pdf_open.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +42,10 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 
   /// Opens the system file picker and navigates to the viewer when successful.
-  static Future<void> openPdfFromPicker(BuildContext context, WidgetRef ref) async {
+  static Future<void> openPdfFromPicker(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     await _openPdf(context, ref);
   }
 
@@ -50,20 +55,25 @@ class HomeScreen extends ConsumerStatefulWidget {
     LocalFileRef file,
   ) async {
     if (!context.mounted) return;
+    if (isOfficePath(file.path)) {
+      context.push(officeLocation(path: file.path));
+      return;
+    }
     await homeShowPdfOpenChooserAndNavigate(context, ref, file);
   }
 
   static Future<void> _openPdf(BuildContext context, WidgetRef ref) async {
     final storage = ref.read(fileStorageProvider);
     try {
-      final picked = await storage.pickOpenFile(allowedExtensions: ['pdf']);
-      if (picked == null || !context.mounted) return;
-      await homeOpenPdfWithMode(
-        context,
-        ref,
-        picked,
-        HomePdfOpenMode.read,
+      final picked = await storage.pickOpenFile(
+        allowedExtensions: const ['pdf', ...officeExtensions],
       );
+      if (picked == null || !context.mounted) return;
+      if (isOfficePath(picked.path)) {
+        context.push(officeLocation(path: picked.path));
+        return;
+      }
+      await homeOpenPdfWithMode(context, ref, picked, HomePdfOpenMode.read);
     } on DocumentStudioError catch (e) {
       if (!context.mounted) return;
       _showError(context, e);
@@ -89,6 +99,10 @@ class HomeScreen extends ConsumerStatefulWidget {
       return;
     }
     if (!context.mounted) return;
+    if (isOfficePath(file.path)) {
+      context.push(officeLocation(path: file.path));
+      return;
+    }
     if (file.isPdf) {
       final mode = await homeLastOpenModeFor(ref, file.path);
       if (!context.mounted) return;
@@ -134,8 +148,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       final stored = prefs.getString(_viewPrefKey);
       if (!mounted || stored == null) return;
-      final view = HomeDocumentsView.values
-          .firstWhere((v) => v.name == stored, orElse: () => _view);
+      final view = HomeDocumentsView.values.firstWhere(
+        (v) => v.name == stored,
+        orElse: () => _view,
+      );
       if (view != _view) setState(() => _view = view);
     } catch (_) {}
   }
@@ -167,8 +183,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final compact = width < DsSpacing.breakpointCompact;
     final contentInset = dsShellContentHorizontalPadding(width);
     final recents = recentsAsync.asData?.value ?? const <LocalFileRef>[];
-    final favorites =
-        favoritesAsync.asData?.value ?? const <LocalFileRef>[];
+    final favorites = favoritesAsync.asData?.value ?? const <LocalFileRef>[];
 
     void openFile(LocalFileRef file) =>
         HomeScreen._openRecent(context, ref, file);
@@ -233,6 +248,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           documentEntry: HomeToolDocumentEntry.standalone,
         ),
         onAllTools: () => context.go('/tools'),
+        onNewWord: () => context.push(officeLocation(kind: 'docx')),
+        onNewSlides: () => context.push(officeLocation(kind: 'pptx')),
+        onTemplates: () => context.push(templateGalleryRoutePath),
+        onOpenOffice: () async {
+          final f = await ref
+              .read(fileStorageProvider)
+              .pickOpenFile(allowedExtensions: officeExtensions);
+          if (f != null && context.mounted) {
+            context.push(officeLocation(path: f.path));
+          }
+        },
         dropZoneBuilder: buildDropZone,
       ),
       if (favorites.isNotEmpty)
@@ -281,10 +307,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
           const SizedBox(height: DsSpacing.sm),
-          OrganizeAccessibleFilesList(
-            onOpen: openFile,
-            maxRecents: 0,
-          ),
+          OrganizeAccessibleFilesList(onOpen: openFile, maxRecents: 0),
           AnimatedSize(
             duration: DsMotion.switchDuration,
             curve: DsMotion.switchCurve,
@@ -387,8 +410,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 DsPageBusyBar(
                   visible: recentsAsync.isLoading,
-                  message:
-                      recentsAsync.isLoading ? 'Loading documents…' : null,
+                  message: recentsAsync.isLoading ? 'Loading documents…' : null,
                 ),
               ],
             ),
@@ -474,6 +496,10 @@ class _HomeHero extends StatelessWidget {
     required this.onCreatePdf,
     required this.onImagesToPdf,
     required this.onAllTools,
+    required this.onNewWord,
+    required this.onNewSlides,
+    required this.onTemplates,
+    required this.onOpenOffice,
     required this.dropZoneBuilder,
   });
 
@@ -481,6 +507,7 @@ class _HomeHero extends StatelessWidget {
   final VoidCallback onCreatePdf;
   final VoidCallback onImagesToPdf;
   final VoidCallback onAllTools;
+  final VoidCallback onNewWord, onNewSlides, onTemplates, onOpenOffice;
   final Widget? Function({required bool tall}) dropZoneBuilder;
 
   @override
@@ -511,7 +538,7 @@ class _HomeHero extends StatelessWidget {
               if (!compact) ...[
                 const SizedBox(height: 2),
                 Text(
-                  'Open, create, and edit PDFs — everything stays on this device.',
+                  'Open and edit PDFs, Word documents and presentations — everything stays on this device.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontSize: 13,
                     color: secondary,
@@ -529,6 +556,10 @@ class _HomeHero extends StatelessWidget {
       onCreatePdf: onCreatePdf,
       onImagesToPdf: onImagesToPdf,
       onAllTools: onAllTools,
+      onNewWord: onNewWord,
+      onNewSlides: onNewSlides,
+      onTemplates: onTemplates,
+      onOpenOffice: onOpenOffice,
     );
 
     // Phone: no giant gradient hero card — flat dense section like Acrobat home.
@@ -608,10 +639,7 @@ class _HomeHero extends StatelessWidget {
               heading,
               const SizedBox(height: DsSpacing.lg),
               actions,
-              if (drop != null) ...[
-                const SizedBox(height: DsSpacing.md),
-                drop,
-              ],
+              if (drop != null) ...[const SizedBox(height: DsSpacing.md), drop],
             ],
           );
         },
@@ -626,12 +654,17 @@ class _HomeQuickActions extends StatelessWidget {
     required this.onCreatePdf,
     required this.onImagesToPdf,
     required this.onAllTools,
+    required this.onNewWord,
+    required this.onNewSlides,
+    required this.onTemplates,
+    required this.onOpenOffice,
   });
 
   final VoidCallback onOpenPdf;
   final VoidCallback onCreatePdf;
   final VoidCallback onImagesToPdf;
   final VoidCallback onAllTools;
+  final VoidCallback onNewWord, onNewSlides, onTemplates, onOpenOffice;
 
   static const _openPdfKey = Key('home_hero_open_pdf');
 
@@ -642,9 +675,33 @@ class _HomeQuickActions extends StatelessWidget {
         key: _openPdfKey as Key?,
         primary: true,
         icon: Icons.folder_open_rounded,
-        title: 'Open PDF',
-        subtitle: 'View, annotate, sign',
+        title: 'Open file',
+        subtitle: 'PDF, Word or PowerPoint',
         onTap: onOpenPdf,
+      ),
+      (
+        key: const Key('home_new_word') as Key?,
+        primary: false,
+        icon: Icons.description_outlined,
+        title: 'New document',
+        subtitle: 'Word (.docx)',
+        onTap: onNewWord,
+      ),
+      (
+        key: const Key('home_new_slides') as Key?,
+        primary: false,
+        icon: Icons.slideshow_outlined,
+        title: 'New presentation',
+        subtitle: 'PowerPoint (.pptx)',
+        onTap: onNewSlides,
+      ),
+      (
+        key: null as Key?,
+        primary: false,
+        icon: Icons.file_open_outlined,
+        title: 'Open Word / PowerPoint',
+        subtitle: 'Edit .docx and .pptx',
+        onTap: onOpenOffice,
       ),
       (
         key: null as Key?,
@@ -665,6 +722,14 @@ class _HomeQuickActions extends StatelessWidget {
       (
         key: null as Key?,
         primary: false,
+        icon: Icons.auto_awesome_mosaic_outlined,
+        title: 'Templates',
+        subtitle: 'Résumés, letters, invoices…',
+        onTap: onTemplates,
+      ),
+      (
+        key: null as Key?,
+        primary: false,
         icon: Icons.apps_rounded,
         title: 'All tools',
         subtitle: 'Merge, split, compress…',
@@ -678,9 +743,7 @@ class _HomeQuickActions extends StatelessWidget {
         // Prefer 2+ columns on phone; only collapse to 1 under ~280px.
         final columns = w >= DsSpacing.breakpointExpanded
             ? 4
-            : (w >= DsSpacing.breakpointCompact
-                ? 4
-                : (w >= 280 ? 2 : 1));
+            : (w >= DsSpacing.breakpointCompact ? 4 : (w >= 280 ? 2 : 1));
         const gap = DsSpacing.sm;
         final tileW = (w - gap * (columns - 1)) / columns;
         final compact = w < DsSpacing.breakpointCompact;
@@ -781,8 +844,9 @@ class _QuickActionTileState extends State<_QuickActionTile> {
               boxShadow: primary
                   ? [
                       BoxShadow(
-                        color: DsColors.primary
-                            .withValues(alpha: _hovered ? 0.35 : 0.22),
+                        color: DsColors.primary.withValues(
+                          alpha: _hovered ? 0.35 : 0.22,
+                        ),
                         blurRadius: _hovered ? 16 : 10,
                         offset: const Offset(0, 4),
                       ),

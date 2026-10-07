@@ -65,8 +65,8 @@ class PdfFormSpotDetector {
       final urx = double.tryParse(m.group(3) ?? m.group(7) ?? '') ?? 0;
       final ury = double.tryParse(m.group(4) ?? m.group(8) ?? '') ?? 0;
       final chunk = m.group(0) ?? '';
-      final nameMatch =
-          RegExp(r'/T\s*\(([^)\\]*(?:\\.[^)\\]*)*)\)').firstMatch(chunk);
+      final nameMatch = RegExp(r'/T\s*\(([^)\\]*(?:\\.[^)\\]*)*)\)')
+          .firstMatch(chunk);
       final rawName = nameMatch?.group(1);
       final name = rawName == null
           ? 'Field ${i + 1}'

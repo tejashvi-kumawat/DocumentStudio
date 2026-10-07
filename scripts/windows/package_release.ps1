@@ -50,6 +50,11 @@ if ($LASTEXITCODE -ne 0) {
   throw "bundle_windows_engines.ps1 failed with exit code $LASTEXITCODE"
 }
 
+# Code signing (only when a certificate is configured; see sign_windows.ps1).
+. (Join-Path $Root "scripts\windows\sign_windows.ps1")
+$toSign = @(Get-ChildItem $ReleaseDir -Recurse -Include *.exe, *.dll -File | ForEach-Object { $_.FullName })
+Invoke-DsSign -Files $toSign
+
 Write-Host "==> portable zip"
 & powershell -NoProfile -ExecutionPolicy Bypass `
   -File (Join-Path $Root "scripts\windows\package_portable.ps1")
@@ -67,7 +72,12 @@ $iscc = @(
 
 if ($iscc) {
   Write-Host "==> Inno Setup installer ($iscc)"
-  & $iscc "/DMyAppVersion=$Version" (Join-Path $Root "scripts\windows\document_studio.iss")
+  $signCmd = Get-DsInnoSignCommand
+  if ($signCmd) {
+    & $iscc "/DMyAppVersion=$Version" "/DSignToolEnabled" "/S$signCmd" (Join-Path $Root "scripts\windows\document_studio.iss")
+  } else {
+    & $iscc "/DMyAppVersion=$Version" (Join-Path $Root "scripts\windows\document_studio.iss")
+  }
   if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 } else {
   Write-Warning "Inno Setup 6 (ISCC.exe) not found - portable zip only."

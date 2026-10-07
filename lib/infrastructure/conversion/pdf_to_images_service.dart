@@ -11,34 +11,29 @@ import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 /// Raster export format for [PdfToImagesService] ([DS-CNV-002] minimal path).
-enum PdfToImageFormat {
-  png,
-  jpeg,
-  webp,
-  tiff,
-}
+enum PdfToImageFormat { png, jpeg, webp, tiff }
 
 extension PdfToImageFormatX on PdfToImageFormat {
   String get fileExtension => switch (this) {
-        PdfToImageFormat.jpeg => 'jpg',
-        PdfToImageFormat.png => 'png',
-        PdfToImageFormat.webp => 'webp',
-        PdfToImageFormat.tiff => 'tiff',
-      };
+    PdfToImageFormat.jpeg => 'jpg',
+    PdfToImageFormat.png => 'png',
+    PdfToImageFormat.webp => 'webp',
+    PdfToImageFormat.tiff => 'tiff',
+  };
 
   String get mimeType => switch (this) {
-        PdfToImageFormat.jpeg => 'image/jpeg',
-        PdfToImageFormat.png => 'image/png',
-        PdfToImageFormat.webp => 'image/webp',
-        PdfToImageFormat.tiff => 'image/tiff',
-      };
+    PdfToImageFormat.jpeg => 'image/jpeg',
+    PdfToImageFormat.png => 'image/png',
+    PdfToImageFormat.webp => 'image/webp',
+    PdfToImageFormat.tiff => 'image/tiff',
+  };
 
   String get label => switch (this) {
-        PdfToImageFormat.jpeg => 'JPEG',
-        PdfToImageFormat.png => 'PNG',
-        PdfToImageFormat.webp => 'WEBP',
-        PdfToImageFormat.tiff => 'TIFF',
-      };
+    PdfToImageFormat.jpeg => 'JPEG',
+    PdfToImageFormat.png => 'PNG',
+    PdfToImageFormat.webp => 'WEBP',
+    PdfToImageFormat.tiff => 'TIFF',
+  };
 }
 
 /// Builds PNG/JPEG files from PDF pages via pdfrx render ([DS-CNV-002]).
@@ -81,10 +76,7 @@ class PdfToImagesService {
     }
   }
 
-  Future<int> pageCount({
-    required LocalFileRef pdf,
-    String? password,
-  }) async {
+  Future<int> pageCount({required LocalFileRef pdf, String? password}) async {
     final lease = await _open(pdf, password);
     try {
       return lease.document.pages.length;
@@ -119,7 +111,10 @@ class PdfToImagesService {
         );
       }
       final start = (firstPage1 ?? 1).clamp(1, doc.pages.length);
-      final end = (lastPage1 ?? doc.pages.length).clamp(start, doc.pages.length);
+      final end = (lastPage1 ?? doc.pages.length).clamp(
+        start,
+        doc.pages.length,
+      );
       final ext = format.fileExtension;
       final stem = p.basenameWithoutExtension(pdf.displayName);
       final outputs = <LocalFileRef>[];
@@ -156,9 +151,7 @@ class PdfToImagesService {
           final h = pdfImage.height;
           final name = '${stem}_p$pageNum.$ext';
           final outPath = p.join(outputDirectory, name);
-          await Isolate.run(
-            () => _encodeToFile(pixels, w, h, format, outPath),
-          );
+          await Isolate.run(() => _encodeToFile(pixels, w, h, format, outPath));
           final stat = await File(outPath).stat();
           outputs.add(
             LocalFileRef(

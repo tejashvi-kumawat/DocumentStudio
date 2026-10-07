@@ -54,7 +54,8 @@ class _CertificateSignDialog extends ConsumerStatefulWidget {
       _CertificateSignDialogState();
 }
 
-class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> {
+class _CertificateSignDialogState
+    extends ConsumerState<_CertificateSignDialog> {
   final _passwordCtrl = TextEditingController();
   final _reasonCtrl = TextEditingController();
   final _scanner = MachineCertificateScanner();
@@ -144,8 +145,7 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
       await _refreshSources();
     } catch (_) {
       setState(() {
-        _error =
-            'Folder picker is not available; choose a .p12 file instead, or place certificates in Documents/Downloads.';
+        _error = 'Folder picker is not available; choose a .p12 file instead, or place certificates in Documents/Downloads.';
       });
     }
   }
@@ -222,8 +222,9 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
         }
       }
       if (!mounted) return;
-      final session =
-          widget.parentRef.read(documentTabsControllerProvider).activeSession;
+      final session = widget.parentRef
+          .read(documentTabsControllerProvider)
+          .activeSession;
       if (session == null) {
         setState(() => _error = 'No open document session.');
         return;
@@ -339,7 +340,8 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
                 if (_scannedP12.isNotEmpty) ...[
                   Text('Certificate files', style: theme.textTheme.labelLarge),
                   ..._scannedP12.map((c) {
-                    final selected = _selected is P12CertificateSource &&
+                    final selected =
+                        _selected is P12CertificateSource &&
                         (_selected as P12CertificateSource).path == c.path;
                     return ListTile(
                       dense: true,
@@ -350,7 +352,10 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
                             : Icons.radio_button_off,
                         size: 20,
                       ),
-                      title: Text(c.displayName, overflow: TextOverflow.ellipsis),
+                      title: Text(
+                        c.displayName,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       subtitle: Text(
                         c.path,
                         maxLines: 1,
@@ -360,9 +365,9 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
                       onTap: _busy
                           ? null
                           : () => setState(() {
-                                _selected = c;
-                                _error = null;
-                              }),
+                              _selected = c;
+                              _error = null;
+                            }),
                     );
                   }),
                 ],
@@ -370,7 +375,8 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
                   const SizedBox(height: DsSpacing.sm),
                   Text('NSS certificates', style: theme.textTheme.labelLarge),
                   ..._nssNicks.map((c) {
-                    final selected = _selected is NssNicknameCertificateSource &&
+                    final selected =
+                        _selected is NssNicknameCertificateSource &&
                         (_selected as NssNicknameCertificateSource).nickname ==
                             c.nickname &&
                         (_selected as NssNicknameCertificateSource).nssDir ==
@@ -392,9 +398,9 @@ class _CertificateSignDialogState extends ConsumerState<_CertificateSignDialog> 
                       onTap: _busy
                           ? null
                           : () => setState(() {
-                                _selected = c;
-                                _error = null;
-                              }),
+                              _selected = c;
+                              _error = null;
+                            }),
                     );
                   }),
                 ],

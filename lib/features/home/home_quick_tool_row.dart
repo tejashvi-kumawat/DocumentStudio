@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 
 /// Dense home tool row (Acrobat-style list density, not marketing cards).
 class HomeQuickToolRow extends StatelessWidget {
-  const HomeQuickToolRow({
-    super.key,
-    required this.tool,
-  });
+  const HomeQuickToolRow({super.key, required this.tool});
 
   final HomeTool tool;
 
@@ -76,14 +73,16 @@ class HomeQuickToolRow extends StatelessWidget {
                 if (tool.availability == HomeToolAvailability.comingSoon)
                   Text(
                     'Soon',
-                    style:
-                        theme.textTheme.labelSmall?.copyWith(color: secondary),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: secondary,
+                    ),
                   )
                 else if (tool.availability == HomeToolAvailability.blocked)
                   Text(
                     'N/A',
-                    style:
-                        theme.textTheme.labelSmall?.copyWith(color: secondary),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: secondary,
+                    ),
                   )
                 else
                   Icon(Icons.chevron_right, size: 20, color: secondary),

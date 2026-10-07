@@ -20,9 +20,7 @@ Future<Uint8List> buildCompareReport({
   required String newName,
   void Function(double progress)? onProgress,
 }) async {
-  final rowsWithChanges = <int>{
-    for (final c in result.changes) c.row,
-  }.toList()
+  final rowsWithChanges = <int>{for (final c in result.changes) c.row}.toList()
     ..sort();
   final rows = rowsWithChanges.take(_maxThumbRows).toList();
 
@@ -35,7 +33,8 @@ Future<Uint8List> buildCompareReport({
       if (page == null) return const [];
       return [
         for (final c in result.changes)
-          for (final r in (oldSide ? c.aRects : c.bRects)[page] ?? const <NormRect>[])
+          for (final r
+              in (oldSide ? c.aRects : c.bRects)[page] ?? const <NormRect>[])
             (r, compareChangeRgb(c)),
       ];
     }
@@ -66,14 +65,15 @@ Future<Uint8List> _assemble(
   String newName,
   DateTime now,
   List<CompareReportRow> thumbs,
-) =>
-    Isolate.run(() => buildCompareReportPdf(
-          result: result,
-          oldName: oldName,
-          newName: newName,
-          generatedAt: now,
-          thumbs: thumbs,
-        ));
+) => Isolate.run(
+  () => buildCompareReportPdf(
+    result: result,
+    oldName: oldName,
+    newName: newName,
+    generatedAt: now,
+    thumbs: thumbs,
+  ),
+);
 
 Future<CompareReportThumb?> _thumb(
   PdfPage page,
@@ -99,15 +99,14 @@ Future<CompareReportThumb?> _thumb(
   return CompareReportThumb(jpeg: jpeg, width: w, height: h, marks: marks);
 }
 
-Future<Uint8List> _encodeJpeg(Uint8List bgra, int w, int h) =>
-    Isolate.run(() {
-      final im = img.Image.fromBytes(
-        width: w,
-        height: h,
-        bytes: bgra.buffer,
-        numChannels: 4,
-        order: img.ChannelOrder.bgra,
-      );
-      final rgb = im.convert(numChannels: 3);
-      return Uint8List.fromList(img.encodeJpg(rgb, quality: 80));
-    });
+Future<Uint8List> _encodeJpeg(Uint8List bgra, int w, int h) => Isolate.run(() {
+  final im = img.Image.fromBytes(
+    width: w,
+    height: h,
+    bytes: bgra.buffer,
+    numChannels: 4,
+    order: img.ChannelOrder.bgra,
+  );
+  final rgb = im.convert(numChannels: 3);
+  return Uint8List.fromList(img.encodeJpg(rgb, quality: 80));
+});

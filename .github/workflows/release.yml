@@ -30,6 +30,20 @@ jobs:
 
       - run: flutter pub get
 
+      # Optional Authenticode signing (removes SmartScreen's "unrecognized
+      # app"). Skipped when the WINDOWS_CERT_PFX_BASE64 secret is not set.
+      - name: Load code-signing certificate
+        shell: pwsh
+        env:
+          CERT_B64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          if (-not $env:CERT_B64) { Write-Host "No Windows signing certificate configured."; exit 0 }
+          $pfx = Join-Path $env:RUNNER_TEMP "ds-sign.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CERT_B64))
+          "DS_WIN_CERT_PFX=$pfx" >> $env:GITHUB_ENV
+          "DS_WIN_CERT_PASSWORD=$env:CERT_PASSWORD" >> $env:GITHUB_ENV
+
       - name: Package Windows release
         shell: pwsh
         env:
@@ -37,12 +51,34 @@ jobs:
           DS_LIBREOFFICE_MSI_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.0/win/x86_64/LibreOffice_26.8.0_Win_x86-64.msi'
         run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_release.ps1
 
+      # Optional Microsoft Store package (Store-signed; no SmartScreen).
+      # Skipped unless the three MSSTORE_* secrets are set.
+      - name: Package Microsoft Store MSIX
+        shell: pwsh
+        env:
+          DS_MSSTORE_IDENTITY_NAME: ${{ secrets.MSSTORE_IDENTITY_NAME }}
+          DS_MSSTORE_PUBLISHER: ${{ secrets.MSSTORE_PUBLISHER }}
+          DS_MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ secrets.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+          DS_LIBREOFFICE_VERSION: '26.8.0'
+          DS_LIBREOFFICE_MSI_URL: 'https://ftp.osuosl.org/pub/tdf/libreoffice/stable/26.8.0/win/x86_64/LibreOffice_26.8.0_Win_x86-64.msi'
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\package_store_msix.ps1
+
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: dist/windows/*
+          path: |
+            dist/windows/*
+            !dist/windows/*-store.msix
           if-no-files-found: error
+
+      # For Partner Center upload only (not attached to the GitHub release).
+      - name: Upload Microsoft Store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-store
+          path: dist/windows/*-store.msix
+          if-no-files-found: ignore
 
   linux:
     runs-on: ubuntu-latest
@@ -106,8 +142,32 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Package macOS DMG (engines + ad-hoc sign)
+      # Optional Developer ID signing + notarization (removes Gatekeeper's
+      # "can't verify … free of malware"). Skipped without the secrets.
+      - name: Import Developer ID certificate
         env:
+          CERT_B64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+        run: |
+          if [[ -z "$CERT_B64" || -z "$SIGN_IDENTITY" ]]; then echo "No Developer ID certificate configured."; exit 0; fi
+          KEYCHAIN="$RUNNER_TEMP/ds-sign.keychain-db"
+          KC_PASS="$(uuidgen)"
+          echo "$CERT_B64" | base64 --decode > "$RUNNER_TEMP/ds-sign.p12"
+          security create-keychain -p "$KC_PASS" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KC_PASS" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/ds-sign.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KC_PASS" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/ds-sign.p12"
+          echo "DS_MACOS_SIGN_IDENTITY=$SIGN_IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Package macOS DMG (engines + signing)
+        env:
+          DS_APPLE_ID: ${{ secrets.APPLE_ID }}
+          DS_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          DS_APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           NONINTERACTIVE: '1'
           HOMEBREW_NO_AUTO_UPDATE: '1'
           HOMEBREW_NO_INSTALL_CLEANUP: '1'

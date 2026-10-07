@@ -1,3 +1,4 @@
+import 'package:document_studio/core/session/page_sessions.dart';
 import 'package:document_studio/core/storage/linux_document_portal.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_session.dart';
@@ -12,11 +13,7 @@ class PdfViewerTab {
     required LocalFileRef file,
     String? password,
     DocumentSession? session,
-  }) : session = session ??
-            DocumentSession(
-              file: file,
-              password: password,
-            );
+  }) : session = session ?? DocumentSession(file: file, password: password);
 
   final String id;
   final DocumentSession session;
@@ -25,8 +22,132 @@ class PdfViewerTab {
   String? get password => session.password;
 }
 
+/// A page opened in its own tab (Settings, Create PDF, Tools, a new Home…).
+class PageTab {
+  PageTab({required this.id, required this.location});
+  final String id;
+
+  /// Current route of this tab; navigation inside the tab updates it.
+  String location;
+
+  String get key => pageTabKey(location);
+}
+
+/// Which page a location belongs to (query and sub-paths ignored).
+String pageTabKey(String location) {
+  final uri = Uri.tryParse(location);
+  final path = uri?.path ?? location;
+  // Each document / editor language is its own tab.
+  if (path == '/office' || path == '/compose') return location;
+  if (path.startsWith('/workspace')) return '/workspace';
+  if (path.startsWith('/viewer')) return '/';
+  return path.isEmpty ? '/' : path;
+}
+
 /// Tracks multiple open PDFs within the viewer feature.
 class DocumentTabsController extends ChangeNotifier {
+  final List<PageTab> _pages = [];
+  String? _activePageId;
+  int _pageSeq = 0;
+
+  /// Extra page tabs after the pinned Home tab.
+  List<PageTab> get pageTabs => List.unmodifiable(_pages);
+
+  /// The active page tab, or null when the pinned Home tab (or a document)
+  /// is in front.
+  String? get activePageId => _activePageId;
+
+  PageTab? get activePage {
+    for (final p in _pages) {
+      if (p.id == _activePageId) return p;
+    }
+    return null;
+  }
+
+  /// The router moved to [location] while no document is in front: pages
+  /// open in their own tab (or switch to the tab already showing them),
+  /// like a browser. A fresh Home tab (from +) is replaced, as a new-tab
+  /// page is.
+  void notePageLocation(String location) {
+    final key = pageTabKey(location);
+    final active = activePage;
+    if (active != null) {
+      if (active.key == key || active.key == '/') {
+        active.location = location;
+        notifyListeners();
+        return;
+      }
+    } else if (key == '/') {
+      return; // the pinned Home tab
+    }
+    if (key == '/') {
+      // "Home" from a page tab goes back to the pinned Home tab.
+      _activePageId = null;
+      notifyListeners();
+      return;
+    }
+    for (final p in _pages) {
+      if (p.key == key) {
+        p.location = location;
+        _activePageId = p.id;
+        notifyListeners();
+        return;
+      }
+    }
+    final tab = PageTab(id: 'page-${_pageSeq++}', location: location);
+    _pages.add(tab);
+    _activePageId = tab.id;
+    notifyListeners();
+  }
+
+  /// "+": a new Home tab. Returns its location to navigate to.
+  String openNewHomeTab() {
+    final tab = PageTab(id: 'page-${_pageSeq++}', location: '/');
+    _pages.add(tab);
+    _activePageId = tab.id;
+    _homeActive = true;
+    notifyListeners();
+    return '/';
+  }
+
+  /// Brings a page tab forward; returns where to navigate.
+  String? activatePage(String id) {
+    for (final p in _pages) {
+      if (p.id == id) {
+        _activePageId = id;
+        _homeActive = true;
+        notifyListeners();
+        return p.location;
+      }
+    }
+    return null;
+  }
+
+  /// The pinned Home tab.
+  void activateStartTab() {
+    _activePageId = null;
+    _homeActive = true;
+    notifyListeners();
+  }
+
+  /// Closes a page tab; returns the location of the tab now in front.
+  String closePage(String id) {
+    final i = _pages.indexWhere((p) => p.id == id);
+    if (i < 0) return activePage?.location ?? '/';
+    final wasActive = _pages[i].id == _activePageId;
+    PageSessions.drop(_pages[i].location);
+    _pages.removeAt(i);
+    if (wasActive) {
+      if (_pages.isEmpty) {
+        _activePageId = null;
+      } else {
+        _activePageId = _pages[(i - 1).clamp(0, _pages.length - 1)].id;
+      }
+    }
+    notifyListeners();
+    return activePage?.location ?? '/';
+  }
+
   final List<PdfViewerTab> _tabs = [];
   int _activeIndex = 0;
   bool _homeActive = true;
@@ -39,8 +160,8 @@ class DocumentTabsController extends ChangeNotifier {
 
   PdfViewerTab? get activeTab =>
       _tabs.isEmpty || _activeIndex < 0 || _activeIndex >= _tabs.length
-          ? null
-          : _tabs[_activeIndex];
+      ? null
+      : _tabs[_activeIndex];
 
   DocumentSession? get activeSession => activeTab?.session;
 
@@ -55,6 +176,7 @@ class DocumentTabsController extends ChangeNotifier {
   void showDocument() {
     if (!_homeActive || _tabs.isEmpty) return;
     _homeActive = false;
+    _activePageId = null;
     notifyListeners();
   }
 
@@ -90,7 +212,10 @@ class DocumentTabsController extends ChangeNotifier {
   }
 
   /// Replaces the active tab’s file (e.g. **Try another file** on the error panel).
-  Future<void> replaceActiveDocument(LocalFileRef file, {String? password}) async {
+  Future<void> replaceActiveDocument(
+    LocalFileRef file, {
+    String? password,
+  }) async {
     if (_tabs.isEmpty) {
       await openDocument(file, password: password);
       return;
@@ -101,8 +226,9 @@ class DocumentTabsController extends ChangeNotifier {
     if (LinuxDocumentPortal.isPortalPath(resolvedPath)) {
       resolvedPath = await LinuxDocumentPortal.resolve(file.path);
     }
-    final resolved =
-        resolvedPath == file.path ? file : file.copyWithPath(resolvedPath);
+    final resolved = resolvedPath == file.path
+        ? file
+        : file.copyWithPath(resolvedPath);
     _tabs[index] = PdfViewerTab(
       id: '${resolved.path}#${DateTime.now().millisecondsSinceEpoch}',
       file: resolved,
@@ -145,6 +271,7 @@ class DocumentTabsController extends ChangeNotifier {
       }
       _activeIndex = existing;
       _homeActive = false;
+      _activePageId = null; // the document is in front now
       if (openToolPanel != null) {
         _pendingViewerToolPanel = openToolPanel;
       }
@@ -160,6 +287,7 @@ class DocumentTabsController extends ChangeNotifier {
     );
     _activeIndex = _tabs.length - 1;
     _homeActive = false;
+    _activePageId = null; // the document is in front now
     if (openToolPanel != null) {
       _pendingViewerToolPanel = openToolPanel;
     }
@@ -171,6 +299,7 @@ class DocumentTabsController extends ChangeNotifier {
     if (index == _activeIndex && !_homeActive) return;
     _activeIndex = index;
     _homeActive = false;
+    _activePageId = null;
     notifyListeners();
   }
 
@@ -200,6 +329,8 @@ class DocumentTabsController extends ChangeNotifier {
   bool get canReopenClosedTab => _recentlyClosed.isNotEmpty;
 
   /// Reopens the most recently closed document.
+  bool get canReopen => _recentlyClosed.isNotEmpty;
+
   Future<void> reopenLastClosed() async {
     if (_recentlyClosed.isEmpty) return;
     final file = _recentlyClosed.removeLast();

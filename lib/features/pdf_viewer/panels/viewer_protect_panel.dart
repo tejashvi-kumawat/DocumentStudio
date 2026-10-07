@@ -52,8 +52,9 @@ class _ViewerProtectPanelState extends ConsumerState<ViewerProtectPanel> {
       return e.message;
     }
     if (e is QpdfCliException) {
-      final detail =
-          e.stderr.trim().isEmpty ? e.stdout.trim() : e.stderr.trim();
+      final detail = e.stderr.trim().isEmpty
+          ? e.stdout.trim()
+          : e.stderr.trim();
       return detail.isEmpty ? e.toString() : detail;
     }
     return '$e';
@@ -144,7 +145,8 @@ class _ViewerProtectPanelState extends ConsumerState<ViewerProtectPanel> {
         ViewerToolFormSection(
           first: true,
           title: 'Passwords',
-          subtitle: 'Encrypts this open PDF. Save when you want to replace '
+          subtitle:
+              'Encrypts this open PDF. Save when you want to replace '
               'the original file. Readers need the open password. The owner '
               'password is only for changing permissions later.',
           child: Column(
@@ -167,7 +169,8 @@ class _ViewerProtectPanelState extends ConsumerState<ViewerProtectPanel> {
                 enabled: !_busy,
                 decoration: const InputDecoration(
                   labelText: 'Owner password (optional)',
-                  helperText: 'Controls permission changes. It may differ from '
+                  helperText:
+                      'Controls permission changes. It may differ from '
                       'the open password.',
                   border: OutlineInputBorder(),
                 ),

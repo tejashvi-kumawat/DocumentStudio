@@ -131,7 +131,8 @@ class SigningCredential {
     final label =
         '$displayName ${tokenLabel ?? ''} $subjectDn ${pkcs11CertLabel ?? ''}'
             .toLowerCase();
-    final trustModule = module.contains('p11-kit-trust') ||
+    final trustModule =
+        module.contains('p11-kit-trust') ||
         module.contains('nssckbi') ||
         module.contains('libnssckbi') ||
         label.contains('p11-kit-trust') ||

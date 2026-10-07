@@ -7,12 +7,7 @@ import 'package:go_router/go_router.dart';
 
 /// Legacy `/viewer` route: register tab and land on shell Home branch.
 class ViewerShellEntry extends ConsumerStatefulWidget {
-  const ViewerShellEntry({
-    super.key,
-    this.args,
-    this.file,
-    this.password,
-  });
+  const ViewerShellEntry({super.key, this.args, this.file, this.password});
 
   final ViewerRouteArgs? args;
   final LocalFileRef? file;
@@ -42,8 +37,6 @@ class _ViewerShellEntryState extends ConsumerState<ViewerShellEntry> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

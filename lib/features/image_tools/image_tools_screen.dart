@@ -6,6 +6,7 @@ import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/widgets/ds_buttons.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_save_result_actions.dart';
@@ -73,13 +74,13 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
       (_rotH * width / _rotW).round().clamp(1, 1 << 20);
 
   ImageEditSpec get _spec => ImageEditSpec(
-        width: _targetWidth >= _rotW ? null : _targetWidth,
-        quarterTurns: _quarterTurns,
-        flipHorizontal: _flipH,
-        flipVertical: _flipV,
-        format: _outputFormat,
-        jpegQuality: _jpegQuality,
-      );
+    width: _targetWidth >= _rotW ? null : _targetWidth,
+    quarterTurns: _quarterTurns,
+    flipHorizontal: _flipH,
+    flipVertical: _flipV,
+    format: _outputFormat,
+    jpegQuality: _jpegQuality,
+  );
 
   String get _specKey =>
       '$_targetWidth|$_quarterTurns|$_flipH|$_flipV|${_outputFormat.name}|'
@@ -134,7 +135,8 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
         _flipH = false;
         _flipV = false;
         _targetWidth = decoded.width;
-        _outputFormat = ext.endsWith('.png') ||
+        _outputFormat =
+            ext.endsWith('.png') ||
                 ext.endsWith('.gif') ||
                 ext.endsWith('.bmp') ||
                 ext.endsWith('.webp')
@@ -215,8 +217,7 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
       _error = null;
     });
     try {
-      final rendered =
-          await widget.deps.imageProcessing.render(decoded, _spec);
+      final rendered = await widget.deps.imageProcessing.render(decoded, _spec);
       if (!mounted || gen != _renderGen) return;
       setState(() {
         _result = rendered;
@@ -281,11 +282,29 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
     final hasImage = _decoded != null;
     return DsToolPage(
       title: 'Image tools',
-      subtitle: 'Resize, rotate, and convert images to JPEG or PNG. '
+      subtitle:
+          'Resize, rotate, and convert images to JPEG or PNG. '
           'Everything runs on this device.',
       icon: Icons.photo_size_select_large_outlined,
-      iconColor: const Color(0xFFEC4899),
       onCancel: () => context.canPop() ? context.pop() : context.go('/'),
+      preview: hasImage
+          ? Padding(
+              padding: const EdgeInsets.all(DsSpacing.lg),
+              child: _buildPreview(context, wide: true),
+            )
+          : DsDropPane(
+              allowedExtensions: kImageInputExtensions,
+              enabled: !_busy,
+              loading: _loading,
+              onPick: _openImage,
+              onFilesDropped: (files) {
+                if (files.isNotEmpty) unawaited(_load(files.first));
+              },
+              emptyTitle: 'Drop an image here',
+              emptySubtitle: 'PNG, JPEG, WebP, BMP, or GIF',
+              pickLabel: 'Open image',
+              icon: Icons.image_outlined,
+            ),
       primaryLabel: _saving ? 'Saving…' : 'Save as…',
       primaryIcon: Icons.save_alt,
       primaryEnabled: hasImage && !_busy,
@@ -309,29 +328,15 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
                     ),
                   ),
           ),
-          AnimatedSwitcher(
-            duration: DsMotion.switchDuration,
-            switchInCurve: DsMotion.switchCurve,
-            transitionBuilder: (child, animation) =>
-                DsMotion.fadeRiseTransition(animation, child),
-            child: hasImage
-                ? _buildEditor(context)
-                : DsToolFileSource(
-                    key: const ValueKey('empty'),
-                    files: const [],
-                    allowedExtensions: kImageInputExtensions,
-                    enabled: !_busy,
-                    loading: _loading,
-                    onPick: _openImage,
-                    onFilesDropped: (files) {
-                      if (files.isNotEmpty) unawaited(_load(files.first));
-                    },
-                    emptyTitle: 'Drop an image here',
-                    emptySubtitle: 'PNG, JPEG, WebP, BMP, or GIF',
-                    pickLabel: 'Open image',
-                    icon: Icons.image_outlined,
-                  ),
-          ),
+          if (hasImage)
+            _buildControls(context)
+          else
+            Text(
+              'Open an image to resize, rotate or convert it.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: DsColors.textSecondary(Theme.of(context).brightness),
+              ),
+            ),
           if (_savedPath case final saved?)
             Padding(
               padding: const EdgeInsets.only(top: DsSpacing.md),
@@ -341,49 +346,27 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
                 stats: [
                   if (_result case final r?) ...[
                     DsResultStat('Size', '${r.width} × ${r.height}'),
-                    DsResultStat('File', dsFormatBytes(r.bytes.length),
-                        highlight: true),
+                    DsResultStat(
+                      'File',
+                      dsFormatBytes(r.bytes.length),
+                      highlight: true,
+                    ),
                   ],
                 ],
                 onShowInFolder: documentSaveResultCanRevealInFolder
                     ? () => revealToolResult(
-                          context,
-                          LocalFileRef(
-                            path: saved,
-                            displayName: p.basename(saved),
-                          ),
-                        )
+                        context,
+                        LocalFileRef(
+                          path: saved,
+                          displayName: p.basename(saved),
+                        ),
+                      )
                     : null,
                 onDismiss: () => setState(() => _savedPath = null),
               ),
             ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEditor(BuildContext context) {
-    return LayoutBuilder(
-      key: const ValueKey('editor'),
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 720;
-        final preview = _buildPreview(context, wide: wide);
-        final controls = _buildControls(context);
-        if (!wide) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [preview, controls],
-          );
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(flex: 5, child: preview),
-            const SizedBox(width: DsSpacing.xl),
-            Expanded(flex: 4, child: controls),
-          ],
-        );
-      },
     );
   }
 
@@ -425,39 +408,41 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
           ],
         ),
         const SizedBox(height: DsSpacing.md),
-        Container(
-          height: wide ? 380 : 280,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(DsSpacing.radiusCard),
-          ),
-          padding: const EdgeInsets.all(DsSpacing.md),
-          child: AnimatedSwitcher(
-            duration: DsMotion.switchDuration,
-            switchInCurve: DsMotion.switchCurve,
-            transitionBuilder: (child, animation) =>
-                DsMotion.fadeScaleTransition(animation, child),
-            child: Transform.flip(
-              key: ValueKey('$_quarterTurns|$_flipH|$_flipV'),
-              flipX: _flipH,
-              flipY: _flipV,
-              child: RotatedBox(
-                quarterTurns: _quarterTurns,
-                child: Image(
-                  image: ResizeImage(
-                    MemoryImage(_sourceBytes!),
-                    width: 1600,
-                    height: 1600,
-                    policy: ResizeImagePolicy.fit,
-                  ),
-                  fit: BoxFit.contain,
-                  gaplessPlayback: true,
-                  filterQuality: FilterQuality.medium,
-                  errorBuilder: (context, error, stack) => Center(
-                    child: Text(
-                      'Preview not available for this format.',
-                      style: theme.textTheme.bodySmall,
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
+              borderRadius: BorderRadius.circular(DsSpacing.radiusCard),
+            ),
+            padding: const EdgeInsets.all(DsSpacing.md),
+            child: AnimatedSwitcher(
+              duration: DsMotion.switchDuration,
+              switchInCurve: DsMotion.switchCurve,
+              transitionBuilder: (child, animation) =>
+                  DsMotion.fadeScaleTransition(animation, child),
+              child: Transform.flip(
+                key: ValueKey('$_quarterTurns|$_flipH|$_flipV'),
+                flipX: _flipH,
+                flipY: _flipV,
+                child: RotatedBox(
+                  quarterTurns: _quarterTurns,
+                  child: Image(
+                    image: ResizeImage(
+                      MemoryImage(_sourceBytes!),
+                      width: 1600,
+                      height: 1600,
+                      policy: ResizeImagePolicy.fit,
+                    ),
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (context, error, stack) => Center(
+                      child: Text(
+                        'Preview not available for this format.',
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ),
                   ),
                 ),
@@ -503,8 +488,10 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
                           _quarterTurns = 0;
                           _flipH = false;
                           _flipV = false;
-                          _targetWidth =
-                              (fraction * _rotW).round().clamp(1, _rotW);
+                          _targetWidth = (fraction * _rotW).round().clamp(
+                            1,
+                            _rotW,
+                          );
                         });
                         _syncDimensionFields(force: true);
                         _scheduleRender();
@@ -613,19 +600,18 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
                 ],
               ),
               const SizedBox(height: DsSpacing.xs),
-              Text(
-                switch (_outputFormat) {
-                  ImageOutputFormat.jpeg =>
-                    'Smaller files, best for photos. Transparency becomes white.',
-                  ImageOutputFormat.png =>
-                    'Lossless and keeps transparency; larger for photos.',
-                  ImageOutputFormat.gif => 'Up to 256 colors; wide support.',
-                  ImageOutputFormat.bmp => 'Uncompressed bitmap; large files.',
-                  ImageOutputFormat.tiff => 'Lossless; common for scans and print.',
-                  ImageOutputFormat.ico => 'Windows icon, scaled to 256 px or less.',
-                },
-                style: theme.textTheme.bodySmall?.copyWith(color: secondary),
-              ),
+              Text(switch (_outputFormat) {
+                ImageOutputFormat.jpeg =>
+                  'Smaller files, best for photos. Transparency becomes white.',
+                ImageOutputFormat.png =>
+                  'Lossless and keeps transparency; larger for photos.',
+                ImageOutputFormat.gif => 'Up to 256 colors; wide support.',
+                ImageOutputFormat.bmp => 'Uncompressed bitmap; large files.',
+                ImageOutputFormat.tiff =>
+                  'Lossless; common for scans and print.',
+                ImageOutputFormat.ico =>
+                  'Windows icon, scaled to 256 px or less.',
+              }, style: theme.textTheme.bodySmall?.copyWith(color: secondary)),
               AnimatedSize(
                 duration: DsMotion.switchDuration,
                 curve: DsMotion.switchCurve,
@@ -663,8 +649,8 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
                               onChanged: _busy
                                   ? null
                                   : (v) => _changed(
-                                        () => _jpegQuality = v.round(),
-                                      ),
+                                      () => _jpegQuality = v.round(),
+                                    ),
                             ),
                           ],
                         ),
@@ -690,10 +676,10 @@ class _ImageToolsScreenState extends State<ImageToolsScreen> {
   static String _qualityLabel(int q) => q >= 90
       ? 'Maximum'
       : q >= 75
-          ? 'High'
-          : q >= 55
-              ? 'Medium'
-              : 'Low';
+      ? 'High'
+      : q >= 55
+      ? 'Medium'
+      : 'Low';
 }
 
 String _formatBytes(int bytes) {
@@ -776,7 +762,8 @@ class _ResultSummary extends StatelessWidget {
     } else {
       final delta = (r.bytes.length - originalBytes) * 100 / originalBytes;
       final sign = delta <= 0 ? '−' : '+';
-      sizeText = '${_formatBytes(r.bytes.length)}  '
+      sizeText =
+          '${_formatBytes(r.bytes.length)}  '
           '($sign${delta.abs().toStringAsFixed(0)}% vs original)';
       deltaColor = delta <= 0 ? DsColors.primary : theme.colorScheme.error;
     }

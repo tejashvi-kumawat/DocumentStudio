@@ -50,10 +50,8 @@ class CompareVisualDiffer {
       _cache[row] = hit;
       return hit;
     }
-    final f = _build(pair).then<CompareVisualFrame?>(
-      (v) => v,
-      onError: (Object _) => null,
-    );
+    final f = _build(pair)
+        .then<CompareVisualFrame?>((v) => v, onError: (Object _) => null);
     _cache[row] = f;
     while (_cache.length > 10) {
       final oldest = _cache.keys.first;
@@ -90,12 +88,20 @@ class CompareVisualDiffer {
     final a = await render(pa);
     final b = await render(pb);
     if (_disposed) return null;
-    final diff = (a != null && b != null) ? await _diffOffThread(a, b, w, h) : null;
+    final diff = (a != null && b != null)
+        ? await _diffOffThread(a, b, w, h)
+        : null;
     if (_disposed) return null;
 
     final images = await Future.wait([
-      if (a != null) _decode(a, w, h, ui.PixelFormat.bgra8888) else Future.value(null),
-      if (b != null) _decode(b, w, h, ui.PixelFormat.bgra8888) else Future.value(null),
+      if (a != null)
+        _decode(a, w, h, ui.PixelFormat.bgra8888)
+      else
+        Future.value(null),
+      if (b != null)
+        _decode(b, w, h, ui.PixelFormat.bgra8888)
+      else
+        Future.value(null),
       if (diff != null)
         _decode(diff.heat, w, h, ui.PixelFormat.rgba8888)
       else
@@ -193,12 +199,14 @@ _Diff _pixelDiff(Uint8List a, Uint8List b, int w, int h) {
         }
       }
     }
-    boxes.add(NormRect(
-      x0 * cell / w,
-      y0 * cell / h,
-      math.min(1, (x1 + 1) * cell / w),
-      math.min(1, (y1 + 1) * cell / h),
-    ));
+    boxes.add(
+      NormRect(
+        x0 * cell / w,
+        y0 * cell / h,
+        math.min(1, (x1 + 1) * cell / w),
+        math.min(1, (y1 + 1) * cell / h),
+      ),
+    );
     if (boxes.length > 300) break;
   }
   return (heat: heat, boxes: boxes, ratio: changed / (w * h));

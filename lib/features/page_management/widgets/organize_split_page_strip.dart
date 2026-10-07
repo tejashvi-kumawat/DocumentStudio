@@ -73,7 +73,7 @@ class OrganizeSplitPageStrip extends ConsumerWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: pageCount,
-            separatorBuilder: (_, __) => const SizedBox(width: 6),
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
             itemBuilder: (context, index) {
               final page1 = index + 1;
               final selected = selectedPages1Based.contains(page1);
@@ -83,25 +83,23 @@ class OrganizeSplitPageStrip extends ConsumerWidget {
               final fill = selected
                   ? theme.colorScheme.primary.withValues(alpha: 0.12)
                   : (isDark
-                      ? DsColors.surfaceContainerDark
-                      : DsColors.surfaceContainerLight);
+                        ? DsColors.surfaceContainerDark
+                        : DsColors.surfaceContainerLight);
 
               return GestureDetector(
                 onTap: enabled
                     ? () {
-                        final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                        final meta = keys.contains(LogicalKeyboardKey.metaLeft) ||
+                        final keys =
+                            HardwareKeyboard.instance.logicalKeysPressed;
+                        final meta =
+                            keys.contains(LogicalKeyboardKey.metaLeft) ||
                             keys.contains(LogicalKeyboardKey.metaRight) ||
                             keys.contains(LogicalKeyboardKey.controlLeft) ||
                             keys.contains(LogicalKeyboardKey.controlRight);
-                        final shift = keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                        final shift =
+                            keys.contains(LogicalKeyboardKey.shiftLeft) ||
                             keys.contains(LogicalKeyboardKey.shiftRight);
-                        onPageTap(
-                          page1,
-                          index,
-                          shift: shift,
-                          ctrlOrMeta: meta,
-                        );
+                        onPageTap(page1, index, shift: shift, ctrlOrMeta: meta);
                       }
                     : null,
                 child: SizedBox(
@@ -145,7 +143,9 @@ class OrganizeSplitPageStrip extends ConsumerWidget {
                                 child: SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               );
                             },
@@ -156,8 +156,9 @@ class OrganizeSplitPageStrip extends ConsumerWidget {
                       Text(
                         '$page1',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight:
-                              selected ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                           color: selected ? theme.colorScheme.primary : null,
                         ),
                       ),

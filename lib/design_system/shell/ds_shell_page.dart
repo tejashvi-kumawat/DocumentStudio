@@ -54,10 +54,7 @@ class DsShellPageFrame extends StatelessWidget {
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: DsSpacing.contentMaxWidth),
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
+        child: Padding(padding: padding, child: child),
       ),
     );
   }
@@ -105,16 +102,15 @@ class DsShellPageHeader extends StatelessWidget {
                   const SizedBox(height: DsSpacing.xs),
                   Text(
                     subtitle!,
-                    style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: secondary,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
-          if (action != null) ...[
-            const SizedBox(width: DsSpacing.sm),
-            action!,
-          ],
+          if (action != null) ...[const SizedBox(width: DsSpacing.sm), action!],
         ],
       ),
     );

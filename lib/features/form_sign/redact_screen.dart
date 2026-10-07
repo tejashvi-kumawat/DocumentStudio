@@ -1,7 +1,6 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
-import 'package:document_studio/design_system/shell/ds_shell_page.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
-import 'package:document_studio/design_system/shell/ds_toolbar.dart';
 import 'package:document_studio/features/form_sign/form_sign_route.dart';
 import 'package:document_studio/features/security/security_route.dart';
 import 'package:flutter/material.dart';
@@ -16,14 +15,10 @@ class RedactScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: DsToolbar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+      appBar: const DsToolAppBar(
         title: 'Redact PDF',
         subtitle: 'Open a PDF to mark and flatten',
-        dense: dsUseCompactToolLayout(context),
+        icon: Icons.hide_source,
       ),
       body: SafeArea(
         top: false,

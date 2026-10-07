@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -141,7 +142,6 @@ Future<LivePageText?> loadLivePageText({
   }
 }
 
-
 /// Editable paragraph blocks of [page], with sampled background / ink colour.
 Future<List<LiveTextEditTarget>> _blocksFor(
   PdfPage page,
@@ -168,22 +168,23 @@ Future<List<LiveTextEditTarget>> _blocksFor(
     final first = b.lines.first;
     final base = _runTarget(first.text.trimRight(), first.rect, size);
     final union = b.rect;
-    final covers = [
-      for (final l in b.lines) l.rect.inflate(0.6 / size.height),
-    ];
+    final covers = [for (final l in b.lines) l.rect.inflate(0.6 / size.height)];
     final fs = base.fontSizePt;
     // Original line spacing (centre to centre of the first two lines).
     var leading = kTextLineHeightEm;
     if (b.lines.length >= 2) {
-      final pitch = (b.lines[1].rect.center.dy - b.lines[0].rect.center.dy) *
-          size.height;
+      final pitch =
+          (b.lines[1].rect.center.dy - b.lines[0].rect.center.dy) * size.height;
       leading = (pitch / fs).clamp(1.0, 2.6);
     }
     final leftPt = union.left * size.width;
     final textW = [
       for (final l in b.lines) helveticaTextWidthPt(l.text.trim(), fs),
     ].reduce(math.max);
-    final widthPt = math.max(union.width * size.width + fs * 0.6, textW + fs * 0.6);
+    final widthPt = math.max(
+      union.width * size.width + fs * 0.6,
+      textW + fs * 0.6,
+    );
     final box = Rect.fromLTWH(
       leftPt / size.width,
       base.normRect.top - (leading - kTextLineHeightEm) / 2 * fs / size.height,
@@ -246,7 +247,10 @@ Future<Image?> renderPageRegion({
       if (page == null) return null;
       final n = norm.intersect(const Rect.fromLTWH(0, 0, 1, 1));
       if (n.width <= 0 || n.height <= 0) return null;
-      final scale = (widthPx / math.max(1, n.width * page.width)).clamp(0.2, 4.0);
+      final scale = (widthPx / math.max(1, n.width * page.width)).clamp(
+        0.2,
+        4.0,
+      );
       final fullW = page.width * scale, fullH = page.height * scale;
       final w = math.max(1, (n.width * fullW).round());
       final h = math.max(1, (n.height * fullH).round());

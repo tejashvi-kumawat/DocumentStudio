@@ -49,9 +49,7 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
     final filtered = _filterTools(tools, _query);
     final entries = _query.isEmpty
         ? buildPdfViewerAcrobatRail(tools)
-        : [
-            for (final t in filtered) PdfViewerAcrobatRailEntry.tool(t),
-          ];
+        : [for (final t in filtered) PdfViewerAcrobatRailEntry.tool(t)];
     PdfViewerAcrobatToolDefinition? blockedSelection;
     final blockedId = widget.selectedBlockedToolId;
     if (blockedId != null) {
@@ -69,7 +67,8 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
           : DsColors.surfaceContainerLight,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final railW = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+          final railW =
+              constraints.maxWidth.isFinite && constraints.maxWidth > 0
               ? constraints.maxWidth
               : PdfViewerAllToolsRail.railWidth;
           return SizedBox(
@@ -128,50 +127,52 @@ class _PdfViewerAllToolsRailState extends ConsumerState<PdfViewerAllToolsRail> {
                     ],
                   ),
                 ),
-            if (blockedSelection != null &&
-                blockedSelection.availability ==
-                    PdfViewerAcrobatToolAvailability.blocked)
-              _BlockedToolCard(
-                tool: blockedSelection,
-                handoff: widget.handoff,
-                onDismiss: () =>
-                    widget.onSelectedBlockedToolIdChanged?.call(null),
-              ),
-            Expanded(
-              child: ListView(
-                key: const Key('acrobat_tools_list'),
-                scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
-                padding: const EdgeInsets.only(bottom: DsSpacing.lg),
-                children: [
-                  for (final entry in entries)
-                    if (entry.isGroup)
-                      _SectionAccordion(
-                        entry: entry,
-                        expanded: _open == entry.title,
-                        onToggle: () => setState(
-                          () => _open = _open == entry.title ? null : entry.title,
+                if (blockedSelection != null &&
+                    blockedSelection.availability ==
+                        PdfViewerAcrobatToolAvailability.blocked)
+                  _BlockedToolCard(
+                    tool: blockedSelection,
+                    handoff: widget.handoff,
+                    onDismiss: () =>
+                        widget.onSelectedBlockedToolIdChanged?.call(null),
+                  ),
+                Expanded(
+                  child: ListView(
+                    key: const Key('acrobat_tools_list'),
+                    scrollCacheExtent: const ScrollCacheExtent.pixels(2400),
+                    padding: const EdgeInsets.only(bottom: DsSpacing.lg),
+                    children: [
+                      for (final entry in entries)
+                        if (entry.isGroup)
+                          _SectionAccordion(
+                            entry: entry,
+                            expanded: _open == entry.title,
+                            onToggle: () => setState(
+                              () => _open = _open == entry.title
+                                  ? null
+                                  : entry.title,
+                            ),
+                            borderColor: borderColor,
+                            onToolTap: _onToolTap,
+                          )
+                        else
+                          _ToolTile(
+                            tool: entry.tool!,
+                            onTap: () => _onToolTap(entry.tool!),
+                            indent: 14,
+                            bold: true,
+                          ),
+                      if (filtered.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(DsSpacing.lg),
+                          child: Text(
+                            'No tools match "$_query"',
+                            style: theme.textTheme.bodySmall,
+                          ),
                         ),
-                        borderColor: borderColor,
-                        onToolTap: _onToolTap,
-                      )
-                    else
-                      _ToolTile(
-                        tool: entry.tool!,
-                        onTap: () => _onToolTap(entry.tool!),
-                        indent: 14,
-                        bold: true,
-                      ),
-                  if (filtered.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(DsSpacing.lg),
-                      child: Text(
-                        'No tools match "$_query"',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ),
-                ],
-              ),
-            ),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
@@ -385,10 +386,7 @@ class _BlockedToolCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      tool.label,
-                      style: theme.textTheme.titleSmall,
-                    ),
+                    child: Text(tool.label, style: theme.textTheme.titleSmall),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),

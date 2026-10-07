@@ -8,11 +8,7 @@ import 'package:path/path.dart' as p;
 
 /// Reverse all pages and save from the viewer panel.
 class ViewerReversePanel extends ConsumerStatefulWidget {
-  const ViewerReversePanel({
-    super.key,
-    required this.handoff,
-    this.pageCount,
-  });
+  const ViewerReversePanel({super.key, required this.handoff, this.pageCount});
 
   final PdfViewerDocumentHandoff handoff;
   final int? pageCount;
@@ -50,7 +46,8 @@ class _ViewerReversePanelState extends ConsumerState<ViewerReversePanel> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

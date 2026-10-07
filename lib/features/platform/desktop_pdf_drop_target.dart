@@ -40,12 +40,7 @@ class DesktopPdfDropTarget extends StatelessWidget {
           if (path.isEmpty) continue;
           if (p.extension(path).toLowerCase() != '.pdf') continue;
           if (!File(path).existsSync()) continue;
-          pdfs.add(
-            LocalFileRef(
-              path: path,
-              displayName: p.basename(path),
-            ),
-          );
+          pdfs.add(LocalFileRef(path: path, displayName: p.basename(path)));
           if (!allowMultiple && pdfs.isNotEmpty) break;
         }
         if (pdfs.isNotEmpty) await onPdfsDropped(pdfs);

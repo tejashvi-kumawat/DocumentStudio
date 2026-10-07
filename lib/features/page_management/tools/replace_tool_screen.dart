@@ -10,9 +10,6 @@ class ReplaceToolScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageWorkspaceToolScreen(
-      toolId: 'replace',
-      initialFile: initialFile,
-    );
+    return PageWorkspaceToolScreen(toolId: 'replace', initialFile: initialFile);
   }
 }

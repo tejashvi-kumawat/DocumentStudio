@@ -50,8 +50,14 @@ Widget? buildPdfViewerContextMenu(
   if (entries.isEmpty) return null;
   final size = MediaQuery.sizeOf(context);
   final h = DsContextMenuPanel.estimateHeight(entries);
-  final left = params.anchorA.dx.clamp(8.0, (size.width - 260).clamp(8.0, 4000));
-  final top = params.anchorA.dy.clamp(8.0, (size.height - h - 24).clamp(8.0, 4000));
+  final left = params.anchorA.dx.clamp(
+    8.0,
+    (size.width - 260).clamp(8.0, 4000),
+  );
+  final top = params.anchorA.dy.clamp(
+    8.0,
+    (size.height - h - 24).clamp(8.0, 4000),
+  );
   return Positioned(
     left: left.toDouble(),
     top: top.toDouble(),
@@ -364,10 +370,9 @@ Future<void> _markSelection(
   final m = host.markup;
   for (final range in ranges) {
     final page = c.document.pages[range.pageNumber - 1];
-    final text = MarkupPageText(
-      range.pageText.fullText,
-      [for (final r in range.pageText.charRects) r.toRect(page: page)],
-    );
+    final text = MarkupPageText(range.pageText.fullText, [
+      for (final r in range.pageText.charRects) r.toRect(page: page),
+    ]);
     final lines = text.linesForRange(range.start, range.end);
     if (lines.isEmpty) continue;
     m.addObject(

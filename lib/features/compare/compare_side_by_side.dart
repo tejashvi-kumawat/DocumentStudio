@@ -21,13 +21,10 @@ const _listBottom = 96.0;
 /// placeholder gap of the other page's height so matching pages line up.
 class CompareSbsGeometry {
   CompareSbsGeometry(CompareResult r, double viewportWidth, double zoom)
-      : compact = viewportWidth < 600,
-        pad = viewportWidth < 600 ? 8.0 : 20.0,
-        gutter = viewportWidth < 600 ? 10.0 : 28.0 {
-    colWidth = math.max(
-      120,
-      (viewportWidth - 2 * pad - gutter) / 2 * zoom,
-    );
+    : compact = viewportWidth < 600,
+      pad = viewportWidth < 600 ? 8.0 : 20.0,
+      gutter = viewportWidth < 600 ? 10.0 : 28.0 {
+    colWidth = math.max(120, (viewportWidth - 2 * pad - gutter) / 2 * zoom);
     var y = _listTop;
     for (final row in r.rows) {
       final pa = row.a == null ? null : r.oldDoc.pages[row.a!];
@@ -204,10 +201,12 @@ class _Row extends StatelessWidget {
               children: [
                 SizedBox(
                   width: w,
-                  child: Text(label(pair.a, true),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: labelStyle),
+                  child: Text(
+                    label(pair.a, true),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: labelStyle,
+                  ),
                 ),
                 SizedBox(
                   width: geometry.gutter,
@@ -224,19 +223,22 @@ class _Row extends StatelessWidget {
                             child: Text(
                               '$count',
                               style: TextStyle(
-                                  color: DsColors.groupedCell(theme.brightness),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700),
+                                color: DsColors.groupedCell(theme.brightness),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
                 ),
                 SizedBox(
                   width: w,
-                  child: Text(label(pair.b, false),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: labelStyle),
+                  child: Text(
+                    label(pair.b, false),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: labelStyle,
+                  ),
                 ),
               ],
             ),
@@ -342,8 +344,8 @@ class _PageCell extends StatelessWidget {
     final moveNote = movedTo != null
         ? 'Moved to revised page ${movedTo! + 1}'
         : movedFrom != null
-            ? 'Moved from original page ${movedFrom! + 1}'
-            : null;
+        ? 'Moved from original page ${movedFrom! + 1}'
+        : null;
     return SizedBox(
       width: width,
       height: height,
@@ -415,28 +417,30 @@ class _Gap extends StatelessWidget {
     final color = moved != null
         ? compareChangedColor
         : oldSide
-            ? compareInsertColor
-            : compareDeleteColor;
+        ? compareInsertColor
+        : compareDeleteColor;
     final title = moved != null
         ? 'Moved page'
         : oldSide
-            ? 'Inserted page'
-            : 'Deleted page';
+        ? 'Inserted page'
+        : 'Deleted page';
     final other = otherPage;
     final subtitle = moved != null
         ? (oldSide
-            ? 'Was original page ${moved + 1}'
-            : 'Now revised page ${moved + 1}')
+              ? 'Was original page ${moved + 1}'
+              : 'Now revised page ${moved + 1}')
         : other == null
-            ? null
-            : oldSide
-                ? 'Revised page ${other + 1} has no match in the original'
-                : 'Original page ${other + 1} was removed';
+        ? null
+        : oldSide
+        ? 'Revised page ${other + 1} has no match in the original'
+        : 'Original page ${other + 1} was removed';
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: brightness == Brightness.dark ? 0.08 : 0.05),
+        color: color.withValues(
+          alpha: brightness == Brightness.dark ? 0.08 : 0.05,
+        ),
         borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
         border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
       ),
@@ -454,8 +458,8 @@ class _Gap extends StatelessWidget {
                     moved != null
                         ? Icons.swap_vert_rounded
                         : oldSide
-                            ? Icons.note_add_outlined
-                            : Icons.delete_outline,
+                        ? Icons.note_add_outlined
+                        : Icons.delete_outline,
                     color: color,
                     size: 28,
                   ),

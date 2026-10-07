@@ -14,10 +14,10 @@ class PdfStampResources {
   final Map<String, PdfObj> extGStates = {};
 
   PdfDict toDict() => PdfDict({
-        if (fonts.isNotEmpty) 'Font': PdfDict(Map.of(fonts)),
-        if (xObjects.isNotEmpty) 'XObject': PdfDict(Map.of(xObjects)),
-        if (extGStates.isNotEmpty) 'ExtGState': PdfDict(Map.of(extGStates)),
-      });
+    if (fonts.isNotEmpty) 'Font': PdfDict(Map.of(fonts)),
+    if (xObjects.isNotEmpty) 'XObject': PdfDict(Map.of(xObjects)),
+    if (extGStates.isNotEmpty) 'ExtGState': PdfDict(Map.of(extGStates)),
+  });
 }
 
 /// Burns vector/text/image stamps into page content (watermarks, headers &
@@ -127,7 +127,10 @@ class PdfPageStamper {
             Uint8List.fromList(latin1.encode('\nQ\n')),
           ),
         );
-        items.insert(firstForeground < 0 ? items.length : firstForeground, qRef);
+        items.insert(
+          firstForeground < 0 ? items.length : firstForeground,
+          qRef,
+        );
         items.add(endRef);
       }
       items.add(callRef);

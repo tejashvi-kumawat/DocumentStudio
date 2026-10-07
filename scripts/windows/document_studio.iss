@@ -53,6 +53,11 @@ DisableWelcomePage=no
 ChangesAssociations=yes
 CloseApplications=yes
 AppMutex={#MyAppId}
+#ifdef SignToolEnabled
+; Signs Setup.exe and the uninstaller (ISCC /Sds=... from sign_windows.ps1).
+SignTool=ds
+SignedUninstaller=yes
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

@@ -23,9 +23,9 @@ class LivePageGeom {
   double get pxPerPt => livePxPerPt(pagePx, pageWidthPt);
 
   Offset toNorm(Offset local) => Offset(
-        (local.dx / pagePx.width).clamp(0.0, 1.0),
-        (local.dy / pagePx.height).clamp(0.0, 1.0),
-      );
+    (local.dx / pagePx.width).clamp(0.0, 1.0),
+    (local.dy / pagePx.height).clamp(0.0, 1.0),
+  );
 
   /// Unclamped variant for deltas.
   Offset deltaToNorm(Offset delta) =>
@@ -35,11 +35,11 @@ class LivePageGeom {
       Offset(norm.dx * pagePx.width, norm.dy * pagePx.height);
 
   Rect rectToPx(Rect norm) => Rect.fromLTRB(
-        norm.left * pagePx.width,
-        norm.top * pagePx.height,
-        norm.right * pagePx.width,
-        norm.bottom * pagePx.height,
-      );
+    norm.left * pagePx.width,
+    norm.top * pagePx.height,
+    norm.right * pagePx.width,
+    norm.bottom * pagePx.height,
+  );
 
   /// Normalized x-extent of [pt] points.
   double ptToNormX(double pt) => pt / pageWidthPt;
@@ -54,5 +54,6 @@ class LivePageGeom {
       other.pageHeightPt == pageHeightPt;
 
   @override
-  int get hashCode => Object.hash(pageNumber, pagePx, pageWidthPt, pageHeightPt);
+  int get hashCode =>
+      Object.hash(pageNumber, pagePx, pageWidthPt, pageHeightPt);
 }

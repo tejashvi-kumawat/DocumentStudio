@@ -2,6 +2,7 @@ import 'package:document_studio/core/pdf/large_doc_policy.dart';
 import 'package:document_studio/domain/pdf_markup/pdf_markup_models.dart';
 import 'package:document_studio/infrastructure/pdf/pdf_overlay_service.dart';
 import 'package:document_studio_ocr/document_studio_ocr.dart';
+
 import 'dart:io';
 
 import 'package:document_studio/core/batch/batch_runner.dart';
@@ -32,46 +33,44 @@ extension BatchToolKindX on BatchToolKind {
   String get label => batchToolLabel(this);
 
   String get description => switch (this) {
-        BatchToolKind.compressBalanced =>
-          'Much smaller files with sharp text and good image quality.',
-        BatchToolKind.compressSmallest =>
-          'Smallest files; photos and scans lose some quality.',
-        BatchToolKind.compressLossless =>
-          'Rewrites each PDF more compactly without touching images.',
-        BatchToolKind.removeMetadata =>
-          'Strips title, author, dates and XMP metadata from every file.',
-        BatchToolKind.protect =>
-          'Encrypts every file with the same open password.',
-        BatchToolKind.ocr =>
-          'Recognizes text in scanned pages so every file becomes searchable.',
-        BatchToolKind.watermark =>
-          'Stamps the same text across every page of every file.',
-        BatchToolKind.verify =>
-          'Checks that every file exists and can be read — writes nothing.',
-      };
+    BatchToolKind.compressBalanced =>
+      'Much smaller files with sharp text and good image quality.',
+    BatchToolKind.compressSmallest =>
+      'Smallest files; photos and scans lose some quality.',
+    BatchToolKind.compressLossless =>
+      'Rewrites each PDF more compactly without touching images.',
+    BatchToolKind.removeMetadata =>
+      'Strips title, author, dates and XMP metadata from every file.',
+    BatchToolKind.protect => 'Encrypts every file with the same open password.',
+    BatchToolKind.ocr =>
+      'Recognizes text in scanned pages so every file becomes searchable.',
+    BatchToolKind.watermark =>
+      'Stamps the same text across every page of every file.',
+    BatchToolKind.verify =>
+      'Checks that every file exists and can be read — writes nothing.',
+  };
 
   IconData get icon => switch (this) {
-        BatchToolKind.compressBalanced => Icons.tune_rounded,
-        BatchToolKind.compressSmallest => Icons.compress_rounded,
-        BatchToolKind.compressLossless => Icons.high_quality_outlined,
-        BatchToolKind.removeMetadata => Icons.cleaning_services_outlined,
-        BatchToolKind.protect => Icons.lock_outline_rounded,
-        BatchToolKind.ocr => Icons.document_scanner_outlined,
-        BatchToolKind.watermark => Icons.branding_watermark_outlined,
-        BatchToolKind.verify => Icons.fact_check_outlined,
-      };
+    BatchToolKind.compressBalanced => Icons.tune_rounded,
+    BatchToolKind.compressSmallest => Icons.compress_rounded,
+    BatchToolKind.compressLossless => Icons.high_quality_outlined,
+    BatchToolKind.removeMetadata => Icons.cleaning_services_outlined,
+    BatchToolKind.protect => Icons.lock_outline_rounded,
+    BatchToolKind.ocr => Icons.document_scanner_outlined,
+    BatchToolKind.watermark => Icons.branding_watermark_outlined,
+    BatchToolKind.verify => Icons.fact_check_outlined,
+  };
 
   String get defaultSuffix => switch (this) {
-        BatchToolKind.compressBalanced ||
-        BatchToolKind.compressSmallest ||
-        BatchToolKind.compressLossless =>
-          '_compressed',
-        BatchToolKind.removeMetadata => '_clean',
-        BatchToolKind.protect => '_protected',
-        BatchToolKind.ocr => '_searchable',
-        BatchToolKind.watermark => '_marked',
-        BatchToolKind.verify => '',
-      };
+    BatchToolKind.compressBalanced ||
+    BatchToolKind.compressSmallest ||
+    BatchToolKind.compressLossless => '_compressed',
+    BatchToolKind.removeMetadata => '_clean',
+    BatchToolKind.protect => '_protected',
+    BatchToolKind.ocr => '_searchable',
+    BatchToolKind.watermark => '_marked',
+    BatchToolKind.verify => '',
+  };
 
   bool get writesFiles => this != BatchToolKind.verify;
 
@@ -80,10 +79,7 @@ extension BatchToolKindX on BatchToolKind {
 }
 
 class BatchOutputNaming {
-  BatchOutputNaming({
-    this.outputDirectory,
-    this.suffix = '_compressed',
-  });
+  BatchOutputNaming({this.outputDirectory, this.suffix = '_compressed'});
 
   /// When null, outputs sit beside each input file.
   final String? outputDirectory;
@@ -121,9 +117,9 @@ class BatchOutputNaming {
 typedef BatchProcessor = BatchFileProcessor;
 
 Never _cancelled() => throw const DocumentStudioError(
-      code: DocumentStudioErrorCode.processCancelled,
-      message: 'Cancelled',
-    );
+  code: DocumentStudioErrorCode.processCancelled,
+  message: 'Cancelled',
+);
 
 BatchProcessor batchProcessorFor({
   required BatchToolKind tool,
@@ -195,7 +191,8 @@ BatchProcessor batchProcessorFor({
       return (input, report, cancelToken) async {
         if (cancelToken.isCancelled) _cancelled();
         report(const JobProgress(fraction: 0.1, message: 'Recognizing text'));
-        if (await File(input.path).length() > LargeDocPolicy.analysisByteLimit) {
+        if (await File(input.path).length() >
+            LargeDocPolicy.analysisByteLimit) {
           throw StateError('This file is too large to OCR in one go.');
         }
         final bytes = await File(input.path).readAsBytes();
@@ -244,15 +241,15 @@ BatchProcessor batchProcessorFor({
 }
 
 String batchToolLabel(BatchToolKind kind) => switch (kind) {
-      BatchToolKind.compressBalanced => 'Compress — recommended',
-      BatchToolKind.compressSmallest => 'Compress — smallest',
-      BatchToolKind.compressLossless => 'Compress — lossless',
-      BatchToolKind.removeMetadata => 'Remove metadata',
-      BatchToolKind.protect => 'Password-protect',
-      BatchToolKind.ocr => 'Make searchable (OCR)',
-      BatchToolKind.watermark => 'Add watermark',
-      BatchToolKind.verify => 'Check files only',
-    };
+  BatchToolKind.compressBalanced => 'Compress — recommended',
+  BatchToolKind.compressSmallest => 'Compress — smallest',
+  BatchToolKind.compressLossless => 'Compress — lossless',
+  BatchToolKind.removeMetadata => 'Remove metadata',
+  BatchToolKind.protect => 'Password-protect',
+  BatchToolKind.ocr => 'Make searchable (OCR)',
+  BatchToolKind.watermark => 'Add watermark',
+  BatchToolKind.verify => 'Check files only',
+};
 
 /// Runs several tools on each file in order (Acrobat "Action Wizard"):
 /// each step reads the previous step's output; only the last one is written
@@ -291,7 +288,9 @@ BatchProcessor batchPipelineProcessor({
       // Pictures are turned into a one-page PDF first, then run through the
       // same steps.
       if (batchIsImage(input.path)) {
-        report(const JobProgress(fraction: 0.02, message: 'Converting image to PDF'));
+        report(
+          const JobProgress(fraction: 0.02, message: 'Converting image to PDF'),
+        );
         final pdfPath = p.join(
           scratch.path,
           '${p.basenameWithoutExtension(input.path)}.pdf',
@@ -345,8 +344,16 @@ BatchProcessor batchPipelineProcessor({
   };
 }
 
+const kBatchImageExtensions = [
+  'jpg',
+  'jpeg',
+  'png',
+  'tif',
+  'tiff',
+  'bmp',
+  'webp',
+];
 
-const kBatchImageExtensions = ['jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp'];
-
-bool batchIsImage(String path) => kBatchImageExtensions
-    .contains(p.extension(path).toLowerCase().replaceFirst('.', ''));
+bool batchIsImage(String path) => kBatchImageExtensions.contains(
+  p.extension(path).toLowerCase().replaceFirst('.', ''),
+);

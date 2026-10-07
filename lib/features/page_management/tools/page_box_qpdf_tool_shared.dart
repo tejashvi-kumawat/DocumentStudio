@@ -26,7 +26,10 @@ import 'package:path/path.dart' as p;
 import 'package:document_studio/features/page_management/tools/page_box_qpdf_tool_logic.dart';
 
 export 'page_box_qpdf_tool_logic.dart'
-    show PageBoxQpdfToolMode, pageBoxQpdfCanApply, pageBoxSelectedSourcePages1Based;
+    show
+        PageBoxQpdfToolMode,
+        pageBoxQpdfCanApply,
+        pageBoxSelectedSourcePages1Based;
 
 /// Route `extra` for crop/resize when opened from document workspace or viewer.
 class PageBoxQpdfToolLaunch {
@@ -53,8 +56,9 @@ class PageBoxQpdfToolLaunch {
     required Set<String> selectedIds,
   }) {
     if (pages.isEmpty && importedFiles.isEmpty) return null;
-    final file =
-        importedFiles.isNotEmpty ? importedFiles.first : pages.first.file;
+    final file = importedFiles.isNotEmpty
+        ? importedFiles.first
+        : pages.first.file;
     final initialSelectedPages1Based = selectedIds.isEmpty
         ? const <int>{}
         : {
@@ -70,11 +74,7 @@ class PageBoxQpdfToolLaunch {
 }
 
 class PageBoxQpdfToolScreen extends ConsumerStatefulWidget {
-  const PageBoxQpdfToolScreen({
-    super.key,
-    required this.mode,
-    this.launch,
-  });
+  const PageBoxQpdfToolScreen({super.key, required this.mode, this.launch});
 
   final PageBoxQpdfToolMode mode;
   final PageBoxQpdfToolLaunch? launch;
@@ -91,9 +91,8 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
   JobHandle<LocalFileRef>? _activeJob;
   PdfCropMarginPreset _margin = PdfCropMarginPreset.small;
   PdfPaperSize _paperSize = PdfPaperSize.letter;
-  String get _title => widget.mode == PageBoxQpdfToolMode.crop
-      ? 'Crop pages'
-      : 'Resize pages';
+  String get _title =>
+      widget.mode == PageBoxQpdfToolMode.crop ? 'Crop pages' : 'Resize pages';
 
   String get _subtitle => widget.mode == PageBoxQpdfToolMode.crop
       ? 'Select pages, trim margins (CropBox), then save'
@@ -150,9 +149,9 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
   }
 
   Future<void> _pickPdf() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFile(
-          allowedExtensions: ['pdf'],
-        );
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(allowedExtensions: ['pdf']);
     if (picked != null) await _importFile(picked);
   }
 
@@ -215,8 +214,9 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
         );
       }
       final bytes = await storage.readBytes(out);
-      final suffix =
-          widget.mode == PageBoxQpdfToolMode.crop ? 'cropped' : 'resized';
+      final suffix = widget.mode == PageBoxQpdfToolMode.crop
+          ? 'cropped'
+          : 'resized';
       final save = await storage.pickSavePath(
         suggestedName: '$suffix-${file.displayName}',
         bytes: bytes,
@@ -231,19 +231,13 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
         },
       );
       if (!mounted) return;
-      await ref.read(recentsProvider.notifier).addRecent(
-            LocalFileRef(
-              path: save,
-              displayName: p.basename(save),
-            ),
-          );
+      await ref
+          .read(recentsProvider.notifier)
+          .addRecent(LocalFileRef(path: save, displayName: p.basename(save)));
       if (!mounted) return;
-      await ref.read(recentsProvider.notifier).addRecent(
-            LocalFileRef(
-              path: save,
-              displayName: p.basename(save),
-            ),
-          );
+      await ref
+          .read(recentsProvider.notifier)
+          .addRecent(LocalFileRef(path: save, displayName: p.basename(save)));
       if (!mounted) return;
       _snack('Saved PDF.');
     } on DocumentStudioError catch (e) {
@@ -264,9 +258,9 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
         child: Text(
           widget.mode == PageBoxQpdfToolMode.crop
               ? 'Trims the CropBox by the margin preset. Original content outside '
-                  'the crop region is hidden, not deleted.'
+                    'the crop region is hidden, not deleted.'
               : 'Sets MediaBox and CropBox to the chosen size. Content is not scaled '
-                  'to fit — layout may clip or show extra whitespace.',
+                    'to fit — layout may clip or show extra whitespace.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
@@ -287,8 +281,9 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
 
     final selectedCount = _selectedSourcePages(ws.pages, ws.selectedIds).length;
     final isCrop = widget.mode == PageBoxQpdfToolMode.crop;
-    final exportLabel =
-        isCrop ? 'Apply crop & save as' : 'Apply size & save as';
+    final exportLabel = isCrop
+        ? 'Apply crop & save as'
+        : 'Apply size & save as';
 
     return OrganizeToolScaffold(
       title: _title,
@@ -310,8 +305,9 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
           Expanded(
             child: OrganizeDropTarget(
               onFilesDropped: (files) async {
-                final pdfs =
-                    files.where((f) => f.path.toLowerCase().endsWith('.pdf'));
+                final pdfs = files.where(
+                  (f) => f.path.toLowerCase().endsWith('.pdf'),
+                );
                 if (pdfs.isEmpty) return;
                 await _importFile(pdfs.first);
               },
@@ -362,8 +358,7 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
                           fileName: ws.pages.first.file.displayName,
                           pageCount: ws.pageCount,
                           busy: _busy || _loadingDoc,
-                          onChangeFile:
-                              widget.launch == null ? _pickPdf : null,
+                          onChangeFile: widget.launch == null ? _pickPdf : null,
                         ),
                         OrganizeToolSourceBar(
                           busy: _busy || _loadingDoc,
@@ -390,7 +385,8 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
                                   selected: {_margin},
                                   onSelectionChanged: _busy
                                       ? null
-                                      : (s) => setState(() => _margin = s.first),
+                                      : (s) =>
+                                            setState(() => _margin = s.first),
                                 )
                               else
                                 SegmentedButton<PdfPaperSize>(
@@ -405,8 +401,9 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
                                   selected: {_paperSize},
                                   onSelectionChanged: _busy
                                       ? null
-                                      : (s) =>
-                                          setState(() => _paperSize = s.first),
+                                      : (s) => setState(
+                                          () => _paperSize = s.first,
+                                        ),
                                 ),
                               const SizedBox(height: 8),
                               OrganizeWorkflowStrip(
@@ -422,21 +419,27 @@ class _PageBoxQpdfToolScreenState extends ConsumerState<PageBoxQpdfToolScreen> {
                                   selectedIds: ws.selectedIds,
                                   passwordsByPath: _passwordsByPath,
                                   enableDragReorder: false,
-                                  onTap: (page, index,
-                                      {required shift, required ctrlOrMeta}) {
-                                    final notifier = ref
-                                        .read(organizeWorkspaceProvider.notifier);
-                                    if (shift) {
-                                      notifier.selectRangeTo(page.id);
-                                    } else {
-                                      notifier.selectOnly(
-                                        page.id,
-                                        additive: ctrlOrMeta,
-                                      );
-                                    }
-                                  },
-                                  onReorder: (_, __) {},
-                                  onMoveDelta: (_, __) {},
+                                  onTap:
+                                      (
+                                        page,
+                                        index, {
+                                        required shift,
+                                        required ctrlOrMeta,
+                                      }) {
+                                        final notifier = ref.read(
+                                          organizeWorkspaceProvider.notifier,
+                                        );
+                                        if (shift) {
+                                          notifier.selectRangeTo(page.id);
+                                        } else {
+                                          notifier.selectOnly(
+                                            page.id,
+                                            additive: ctrlOrMeta,
+                                          );
+                                        }
+                                      },
+                                  onReorder: (_, _) {},
+                                  onMoveDelta: (_, _) {},
                                 ),
                               ),
                             ],

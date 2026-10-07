@@ -1,8 +1,8 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
 import 'package:document_studio/core/pdf/large_doc_policy.dart';
+
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:document_studio/app/providers.dart';
@@ -44,49 +44,25 @@ class ViewerRedactPanel extends ConsumerStatefulWidget {
 class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
   final _searchCtrl = TextEditingController();
   bool _busy = false;
-  double _pageWidthPt = 612;
-  double _pageHeightPt = 792;
-  int? _openedPageCount;
   String? _searchStatus;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(viewerLiveToolSessionProvider).activate(
+      ref
+          .read(viewerLiveToolSessionProvider)
+          .activate(
             ViewerToolId.redact,
             pageIndex1Based: widget.handoff.currentPage1,
           );
     });
-    unawaited(_primePageSize());
   }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _primePageSize() async {
-    try {
-      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
-      try {
-        final idx = math.max(0, widget.handoff.currentPage1 - 1);
-        final page = await loadPageOnDemand(
-              doc,
-              (idx + 1).clamp(1, doc.pages.length),
-            ) ??
-            doc.pages.first;
-        if (!mounted) return;
-        setState(() {
-          _openedPageCount = doc.pages.length;
-          _pageWidthPt = page.width;
-          _pageHeightPt = page.height;
-        });
-      } finally {
-        await doc.dispose();
-      }
-    } catch (_) {}
   }
 
   /// Boxes marked on pages other than the one on screen (page → boxes).
@@ -135,13 +111,16 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
       );
       try {
         // Measure all pages in small slices (renders keep interleaving).
-        unawaited(doc.loadPagesProgressively(
-          loadUnitDuration: const Duration(milliseconds: 40),
-        ));
+        unawaited(
+          doc.loadPagesProgressively(
+            loadUnitDuration: const Duration(milliseconds: 40),
+          ),
+        );
         var total = 0;
         for (var i = 0; i < doc.pages.length; i++) {
-          final page = await doc.pages[i]
-              .waitForLoaded(timeout: const Duration(seconds: 30));
+          final page = await doc.pages[i].waitForLoaded(
+            timeout: const Duration(seconds: 30),
+          );
           if (page == null) continue;
           final pageText = await page.loadStructuredText();
           final matches = findPageTextMatches(
@@ -162,7 +141,7 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
           _searchStatus = total == 0
               ? 'No matches in the document'
               : '$total match${total == 1 ? '' : 'es'} on '
-                  '${_hits.length} page${_hits.length == 1 ? '' : 's'}';
+                    '${_hits.length} page${_hits.length == 1 ? '' : 's'}';
         });
       } finally {
         await doc.dispose();
@@ -220,7 +199,9 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
     }
     if (marks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Draw or mark at least one redaction box')),
+        const SnackBar(
+          content: Text('Draw or mark at least one redaction box'),
+        ),
       );
       return;
     }
@@ -233,9 +214,9 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
       final read = await LargeDocPolicy.readBounded(session);
       if (read == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(LargeDocPolicy.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text(LargeDocPolicy.message)));
         }
         return;
       }
@@ -250,7 +231,10 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
         }
         // A picture is under a box: flatten just this page.
         final geo = PdfEditDocument.open(bytes).pageGeometry(page);
-        final tmp = await storage.createTempFile(prefix: 'redact', suffix: '.pdf');
+        final tmp = await storage.createTempFile(
+          prefix: 'redact',
+          suffix: '.pdf',
+        );
         await File(tmp).writeAsBytes(bytes, flush: true);
         final total = PdfEditDocument.open(bytes).pageCount;
         bytes = await svc.redactPageToBytes(
@@ -277,7 +261,7 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
         successMessage: marks.length == 1
             ? 'Redacted page ${marks.keys.first} (content removed).'
             : 'Redacted ${marks.length} pages (content removed'
-                '${flattened > 0 ? ', $flattened flattened' : ''}).',
+                  '${flattened > 0 ? ', $flattened flattened' : ''}).',
       );
       _docMarks.clear();
       _hits.clear();
@@ -286,14 +270,11 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
       live.deactivate();
     } on DocumentStudioError catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.recoveryHint ?? e.message)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.recoveryHint ?? e.message)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -303,10 +284,7 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
     return Wrap(
       spacing: DsSpacing.sm,
       runSpacing: DsSpacing.xs,
-      children: [
-        for (final action in actions)
-          action,
-      ],
+      children: [for (final action in actions) action],
     );
   }
 
@@ -360,10 +338,7 @@ class _ViewerRedactPanelState extends ConsumerState<ViewerRedactPanel> {
                     ]),
                     if (_searchStatus != null) ...[
                       const SizedBox(height: DsSpacing.md),
-                      Text(
-                        _searchStatus!,
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                      Text(_searchStatus!, style: theme.textTheme.bodyMedium),
                     ],
                   ],
                 ),

@@ -27,7 +27,8 @@ class ViewerRotatePagesPanel extends ConsumerStatefulWidget {
       _ViewerRotatePagesPanelState();
 }
 
-class _ViewerRotatePagesPanelState extends ConsumerState<ViewerRotatePagesPanel> {
+class _ViewerRotatePagesPanelState
+    extends ConsumerState<ViewerRotatePagesPanel> {
   List<OrganizePageRef> _pages = const [];
   final Set<String> _selected = {};
   bool _busy = false;
@@ -91,9 +92,7 @@ class _ViewerRotatePagesPanelState extends ConsumerState<ViewerRotatePagesPanel>
       _pages = [
         for (final p in _pages)
           _selected.contains(p.id)
-              ? p.copyWith(
-                  rotationDegrees: _normRot(p.rotationDegrees + delta),
-                )
+              ? p.copyWith(rotationDegrees: _normRot(p.rotationDegrees + delta))
               : p,
       ];
     });
@@ -144,7 +143,9 @@ class _ViewerRotatePagesPanelState extends ConsumerState<ViewerRotatePagesPanel>
         child: Padding(
           padding: const EdgeInsets.all(DsSpacing.md),
           child: Text(
-            total < 1 ? 'This PDF has no pages to rotate.' : 'Waiting for page list…',
+            total < 1
+                ? 'This PDF has no pages to rotate.'
+                : 'Waiting for page list…',
             textAlign: TextAlign.center,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
@@ -199,10 +200,10 @@ class _ViewerRotatePagesPanelState extends ConsumerState<ViewerRotatePagesPanel>
           onPressed: _busy
               ? null
               : () => setState(() {
-                    _selected
-                      ..clear()
-                      ..addAll(_pages.map((p) => p.id));
-                  }),
+                  _selected
+                    ..clear()
+                    ..addAll(_pages.map((p) => p.id));
+                }),
         ),
         viewerPageToolButton(
           icon: Icons.deselect_rounded,

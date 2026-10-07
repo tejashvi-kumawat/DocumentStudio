@@ -183,13 +183,15 @@ class _ViewerSearchablePdfPanelState
         }
         bytes = result.bytes;
       } else {
-        final input =
-            await ref.read(fileStorageProvider).readBytes(widget.handoff.file);
+        final input = await ref
+            .read(fileStorageProvider)
+            .readBytes(widget.handoff.file);
         bytes = await port.createSearchablePdf(input, options: _options);
       }
       if (!mounted) return;
       final session = ref.read(documentTabsControllerProvider).activeSession;
-      if (session != null && session.sameDocumentPath(widget.handoff.file.path)) {
+      if (session != null &&
+          session.sameDocumentPath(widget.handoff.file.path)) {
         await commitBytesToSession(
           context: context,
           storage: ref.read(fileStorageProvider),
@@ -231,7 +233,8 @@ class _ViewerSearchablePdfPanelState
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _engineHelper(String? raw) {

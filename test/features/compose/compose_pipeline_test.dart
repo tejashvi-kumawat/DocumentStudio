@@ -90,6 +90,64 @@ void main() {
     expect(html.blocks.whereType<CTable>().single.header, isTrue);
   });
 
+  test('TikZ subset, boxes, vfill, and newenvironment do not warn', () {
+    const src = r'''
+\documentclass{article}
+\newcommand{\x}{x}
+\newenvironment{tipbox}{\textbf{Tip:}\par}{\par}
+\begin{document}
+\begin{tikzpicture}
+  \draw[thick, blue] (0,0) -- (2,1) -- (2,0);
+  \fill[red] (0.5,0.5) circle (0.3);
+  \node at (1,1.2) {A};
+\end{tikzpicture}
+\begin{questionbox}
+What is $2+2$?
+\end{questionbox}
+\begin{answerbox}
+Four.
+\end{answerbox}
+\vfill
+\begin{tipbox}
+Remember \x.
+\end{tipbox}
+\end{document}
+''';
+    final doc = latexToCompose(src);
+    final drawing = doc.blocks.whereType<CDrawing>().single;
+    expect(drawing.ops, isNotEmpty);
+    expect(
+      drawing.ops.any((o) => o.kind == CDrawKind.line || o.kind == CDrawKind.polyline),
+      isTrue,
+    );
+    expect(drawing.ops.any((o) => o.kind == CDrawKind.ellipse), isTrue);
+    expect(drawing.ops.any((o) => o.kind == CDrawKind.text && o.text == 'A'), isTrue);
+
+    final boxes = doc.blocks.whereType<CBox>().toList();
+    expect(boxes, hasLength(2));
+    expect(boxes[0].title, 'Question');
+    expect(boxes[1].title, 'Answer');
+    expect(doc.blocks.whereType<CSpace>(), isNotEmpty);
+
+    final tip = doc.blocks
+        .whereType<CPara>()
+        .map((p) => p.inlines.map((i) => i.text).join())
+        .join(' ');
+    expect(tip, contains('Tip:'));
+    expect(tip, contains('Remember x'));
+
+    for (final w in doc.warnings) {
+      expect(w, isNot(contains('tikzpicture')));
+      expect(w, isNot(contains(r'\draw')));
+      expect(w, isNot(contains(r'\fill')));
+      expect(w, isNot(contains(r'\node')));
+      expect(w, isNot(contains(r'\x')));
+      expect(w, isNot(contains(r'\vfill')));
+      expect(w, isNot(contains('questionbox')));
+      expect(w, isNot(contains('answerbox')));
+    }
+  });
+
   testWidgets('renders a PDF with typeset maths', (tester) async {
     await tester.runAsync(() async {
       // Tests run with the Ahem font; load KaTeX's so the output is real.

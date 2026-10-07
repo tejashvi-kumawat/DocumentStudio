@@ -705,7 +705,10 @@ class _ViewerWatermarkPanelState extends ConsumerState<ViewerWatermarkPanel> {
       ),
       Padding(
         padding: const EdgeInsets.only(top: DsSpacing.sm, bottom: DsSpacing.xs),
-        child: Text('Layer', style: theme.textTheme.labelLarge?.copyWith(fontSize: 13)),
+        child: Text(
+          'Layer',
+          style: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+        ),
       ),
       _choice<_Layer>(
         options: const [
@@ -1110,7 +1113,8 @@ class _ThumbStripState extends State<_ThumbStrip> {
   @override
   void didUpdateWidget(covariant _ThumbStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.path != widget.path || oldWidget.password != widget.password) {
+    if (oldWidget.path != widget.path ||
+        oldWidget.password != widget.password) {
       unawaited(_open());
     }
   }

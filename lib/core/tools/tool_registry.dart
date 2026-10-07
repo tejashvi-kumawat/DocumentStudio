@@ -49,15 +49,15 @@ class ToolRegistry {
 
   ToolAvailability availabilityFor(String id) {
     return tools
-            .firstWhere(
-              (t) => t.id == id,
-              orElse: () => const ToolDefinition(
-                id: 'unknown',
-                label: 'Unknown',
-                availability: ToolAvailability.comingSoon,
-              ),
-            )
-            .availability;
+        .firstWhere(
+          (t) => t.id == id,
+          orElse: () => const ToolDefinition(
+            id: 'unknown',
+            label: 'Unknown',
+            availability: ToolAvailability.comingSoon,
+          ),
+        )
+        .availability;
   }
 
   void showUnavailableSnackBar(BuildContext context, String toolId) {
@@ -65,8 +65,7 @@ class ToolRegistry {
     final msg = switch (a) {
       ToolAvailability.blocked =>
         '$toolId is blocked until the qpdf engine plugin is integrated.',
-      ToolAvailability.desktopOnly =>
-        '$toolId is available on desktop only.',
+      ToolAvailability.desktopOnly => '$toolId is available on desktop only.',
       _ => '$toolId is not available yet.',
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));

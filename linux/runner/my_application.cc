@@ -12,6 +12,8 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  FlMethodChannel* open_channel;
+  GtkWindow* window;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
@@ -94,6 +96,7 @@ static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+  self->window = window;
 
   gtk_window_set_title(window, "Document Studio");
 
@@ -169,7 +172,53 @@ static void my_application_activate(GApplication* application) {
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
+  // Files forwarded by a second launch arrive on this channel (see
+  // open_files_cb), so they open as tabs in this window.
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  self->open_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "document_studio/open", FL_METHOD_CODEC(codec));
+
   gtk_widget_grab_focus(GTK_WIDGET(view));
+}
+
+// Runs in the first (primary) instance when another launch forwards its
+// arguments: opens them in a new tab and brings the window forward.
+static void open_files_cb(GSimpleAction* action, GVariant* parameter,
+                          gpointer user_data) {
+  MyApplication* self = MY_APPLICATION(user_data);
+  if (self->window == nullptr) return;
+  if (self->open_channel != nullptr && parameter != nullptr) {
+    g_autoptr(FlValue) list = fl_value_new_list();
+    gsize n = 0;
+    const gchar** items = g_variant_get_strv(parameter, &n);
+    for (gsize i = 0; i < n; i++) {
+      fl_value_append_take(list, fl_value_new_string(items[i]));
+    }
+    g_free(items);
+    fl_method_channel_invoke_method(self->open_channel, "open", list, nullptr,
+                                    nullptr, nullptr);
+  }
+  gtk_window_present(self->window);
+}
+
+// Relative paths mean nothing to the first instance (different working
+// directory), so forward absolute ones.
+static gchar** absolute_arguments(gchar** args) {
+  g_autoptr(GPtrArray) out = g_ptr_array_new();
+  for (gchar** it = args; it != nullptr && *it != nullptr; it++) {
+    const gchar* a = *it;
+    if (a[0] != '-' && !g_path_is_absolute(a) && !g_str_has_prefix(a, "file:")) {
+      g_autofree gchar* abs = g_canonicalize_filename(a, nullptr);
+      if (g_file_test(abs, G_FILE_TEST_EXISTS)) {
+        g_ptr_array_add(out, g_strdup(abs));
+        continue;
+      }
+    }
+    g_ptr_array_add(out, g_strdup(a));
+  }
+  g_ptr_array_add(out, nullptr);
+  return reinterpret_cast<gchar**>(g_ptr_array_free(g_steal_pointer(&out), FALSE));
 }
 
 // Implements GApplication::local_command_line.
@@ -178,12 +227,21 @@ static gboolean my_application_local_command_line(GApplication* application,
                                                   int* exit_status) {
   MyApplication* self = MY_APPLICATION(application);
   // Strip out the first argument as the binary name.
-  self->dart_entrypoint_arguments = g_strdupv(*arguments + 1);
+  self->dart_entrypoint_arguments = absolute_arguments(*arguments + 1);
 
   g_autoptr(GError) error = nullptr;
   if (!g_application_register(application, nullptr, &error)) {
     g_warning("Failed to register: %s", error->message);
     *exit_status = 1;
+    return TRUE;
+  }
+
+  if (g_application_get_is_remote(application)) {
+    // Document Studio is already running: hand the files over and exit.
+    g_action_group_activate_action(
+        G_ACTION_GROUP(application), "open-files",
+        g_variant_new_strv(self->dart_entrypoint_arguments, -1));
+    *exit_status = 0;
     return TRUE;
   }
 
@@ -198,6 +256,12 @@ static void my_application_startup(GApplication* application) {
   // Set the default icon before any window is created/realized.
   apply_default_icon();
   G_APPLICATION_CLASS(my_application_parent_class)->startup(application);
+
+  g_autoptr(GSimpleAction) open_files =
+      g_simple_action_new("open-files", G_VARIANT_TYPE_STRING_ARRAY);
+  g_signal_connect(open_files, "activate", G_CALLBACK(open_files_cb),
+                   application);
+  g_action_map_add_action(G_ACTION_MAP(application), G_ACTION(open_files));
 }
 
 // Implements GApplication::shutdown.
@@ -209,6 +273,7 @@ static void my_application_shutdown(GApplication* application) {
 static void my_application_dispose(GObject* object) {
   MyApplication* self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
+  g_clear_object(&self->open_channel);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 
@@ -232,5 +297,5 @@ MyApplication* my_application_new() {
 
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID, "flags",
-                                     G_APPLICATION_NON_UNIQUE, nullptr));
+                                     G_APPLICATION_DEFAULT_FLAGS, nullptr));
 }

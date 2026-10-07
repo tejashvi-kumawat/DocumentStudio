@@ -1,0 +1,48 @@
+Font notices for assets/fonts/signature/
+
+Each font below is distributed under the license named with it; the
+full text is in OFL.txt (SIL Open Font License 1.1) in this folder. The
+fonts are bundled unmodified.
+
+Alex Brush
+  License: OFL-1.1
+  Copyright: Copyright 2011 The Alex Brush Project Authors (https://github.com/googlefonts/alex-brush)
+  Files: AlexBrush-Regular.ttf
+
+Allura
+  License: OFL-1.1
+  Copyright: Copyright 2010 The Allura Project Authors (https://github.com/googlefonts/allura)
+  Files: Allura-Regular.ttf
+
+Caveat
+  License: OFL-1.1
+  Copyright: Copyright 2014 The Caveat Project Authors (https://github.com/googlefonts/caveat)
+  Files: Caveat-Variable.ttf
+
+Dancing Script
+  License: OFL-1.1
+  Copyright: Copyright 2016 The Dancing Script Project Authors (https://github.com/googlefonts/DancingScript), with Reserved Font Name "Dancing Script".
+  Files: DancingScript-Variable.ttf
+
+Great Vibes
+  License: OFL-1.1
+  Copyright: Copyright 2010 The Great Vibes Pro Project Authors (https://github.com/googlefonts/great-vibes)
+  Files: GreatVibes-Regular.ttf
+
+Herr Von Muellerhoff
+  License: OFL-1.1
+  Copyright: Copyright (c) 2004 Alejandro Paul (sudtipos@sudtipos.com),
+with Reserved Font Name "Herr Von Mullerhoff"
+  Files: HerrVonMuellerhoff-Regular.ttf
+
+Mr Dafoe
+  License: OFL-1.1
+  Copyright: Copyright (c) 2004 Alejandro Paul (sudtipos@sudtipos.com),
+with Reserved Font Name "Mr Dafoe"
+  Files: MrDafoe-Regular.ttf
+
+Sacramento
+  License: OFL-1.1
+  Copyright: Copyright (c) 2012 by Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com), with Reserved
+Font Name "Sacramento"
+  Files: Sacramento-Regular.ttf

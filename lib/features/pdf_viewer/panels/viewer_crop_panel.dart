@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -45,8 +46,9 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
   PdfDocument? _document;
   double _pageWidthPt = 612;
   double _pageHeightPt = 792;
-  late final ViewerLiveToolSession _live =
-      ref.read(viewerLiveToolSessionProvider);
+  late final ViewerLiveToolSession _live = ref.read(
+    viewerLiveToolSessionProvider,
+  );
 
   static const _defaultCrop = Rect.fromLTRB(0.08, 0.08, 0.92, 0.92);
 
@@ -109,9 +111,13 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
     _document = null;
     await prev?.dispose();
     try {
-      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
+      final doc = await openPdfLazily(
+        widget.handoff.file.path,
+        password: widget.handoff.password,
+      );
       _loadedPage = _page;
-      final page = await loadPageOnDemand(doc, _page.clamp(1, doc.pages.length)) ??
+      final page =
+          await loadPageOnDemand(doc, _page.clamp(1, doc.pages.length)) ??
           doc.pages.first;
       if (!mounted) {
         await doc.dispose();
@@ -159,11 +165,11 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
   void _setCrop(Rect r) => _live.setDragRectNorm(r);
 
   PdfVisibleFraction get _fraction => PdfVisibleFraction(
-        left: _normCrop.left,
-        top: _normCrop.top,
-        right: _normCrop.right,
-        bottom: _normCrop.bottom,
-      );
+    left: _normCrop.left,
+    top: _normCrop.top,
+    right: _normCrop.right,
+    bottom: _normCrop.bottom,
+  );
 
   /// Crops the open session working copy (undoable). Does not write the
   /// original file. Matching pages use one qpdf CropBox; pages whose own
@@ -225,7 +231,8 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Set<int> _previewPages(int total) {
@@ -314,7 +321,9 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
                       ? null
                       : () {
                           _live.setPage(page);
-                          setState(() => _scopeKind = PdfPageScopeKind.thisPage);
+                          setState(
+                            () => _scopeKind = PdfPageScopeKind.thisPage,
+                          );
                         },
                   child: Stack(
                     fit: StackFit.expand,
@@ -327,8 +336,7 @@ class _ViewerCropPanelState extends ConsumerState<ViewerCropPanel> {
                         pageNumber1Based: page,
                         password: widget.handoff.password,
                       ),
-                      if (marked)
-                        _CropFrame(crop: crop),
+                      if (marked) _CropFrame(crop: crop),
                     ],
                   ),
                 );

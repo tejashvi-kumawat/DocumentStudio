@@ -1,3 +1,4 @@
+import 'package:document_studio/core/update/app_updater.dart';
 import 'package:document_studio/features/settings/update_dialog.dart';
 import 'package:document_studio/core/fonts/font_library.dart';
 import 'package:document_studio/features/settings/storage_settings_panel.dart';
@@ -62,282 +63,316 @@ class SettingsScreen extends ConsumerWidget {
                               title: 'Settings',
                               compactTitle: compact,
                             ),
-                            _Masonry(children: [
-                            _Group(
-                              title: 'Appearance',
+                            _Masonry(
                               children: [
-                                _Row(
-                                  label: 'Theme',
-                                  trailing: SegmentedButton<ThemeMode>(
-                                    showSelectedIcon: false,
-                                    segments: const [
-                                      ButtonSegment(
-                                        value: ThemeMode.light,
-                                        label: Text('Light'),
-                                        icon: Icon(Icons.light_mode, size: 16),
-                                      ),
-                                      ButtonSegment(
-                                        value: ThemeMode.dark,
-                                        label: Text('Dark'),
-                                        icon: Icon(Icons.dark_mode, size: 16),
-                                      ),
-                                      ButtonSegment(
-                                        value: ThemeMode.system,
-                                        label: Text('Auto'),
-                                        icon: Icon(
-                                          Icons.brightness_auto,
-                                          size: 16,
+                                _Group(
+                                  title: 'Appearance',
+                                  children: [
+                                    _Row(
+                                      label: 'Theme',
+                                      trailing: SegmentedButton<ThemeMode>(
+                                        showSelectedIcon: false,
+                                        segments: const [
+                                          ButtonSegment(
+                                            value: ThemeMode.light,
+                                            label: Text('Light'),
+                                            icon: Icon(
+                                              Icons.light_mode,
+                                              size: 16,
+                                            ),
+                                          ),
+                                          ButtonSegment(
+                                            value: ThemeMode.dark,
+                                            label: Text('Dark'),
+                                            icon: Icon(
+                                              Icons.dark_mode,
+                                              size: 16,
+                                            ),
+                                          ),
+                                          ButtonSegment(
+                                            value: ThemeMode.system,
+                                            label: Text('Auto'),
+                                            icon: Icon(
+                                              Icons.brightness_auto,
+                                              size: 16,
+                                            ),
+                                          ),
+                                        ],
+                                        selected: {themeMode},
+                                        onSelectionChanged: (s) => ref
+                                            .read(themeModeProvider.notifier)
+                                            .setMode(s.first),
+                                        style: const ButtonStyle(
+                                          visualDensity: VisualDensity.compact,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
                                         ),
                                       ),
-                                    ],
-                                    selected: {themeMode},
-                                    onSelectionChanged: (s) => ref
-                                        .read(themeModeProvider.notifier)
-                                        .setMode(s.first),
-                                    style: const ButtonStyle(
-                                      visualDensity: VisualDensity.compact,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            _Group(
-                              title: 'Opening documents',
-                              children: [
-                                _Row(
-                                  label: 'Zoom',
-                                  hint: 'How a PDF fits when it opens',
-                                  trailing: _Dropdown<String>(
-                                    value: viewer.zoom,
-                                    items: const {
-                                      'fitWidth': 'Fit width',
-                                      'fitPage': 'Fit page',
-                                      'actual': 'Actual size (100%)',
-                                    },
-                                    onChanged: (v) => ref
-                                        .read(viewerPrefsProvider.notifier)
-                                        .setZoom(v),
-                                  ),
-                                ),
-                                _Row(
-                                  label: 'Page display',
-                                  hint: 'Applies to newly opened documents',
-                                  trailing: _Dropdown<String>(
-                                    value: viewer.display,
-                                    items: const {
-                                      'continuous': 'Continuous scrolling',
-                                      'singlePage': 'Single page',
-                                      'twoPage': 'Two pages',
-                                    },
-                                    onChanged: (v) => ref
-                                        .read(viewerPrefsProvider.notifier)
-                                        .setDisplay(v),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _Group(
-                              title: 'Performance',
-                              children: [
-                                _Row(
-                                  label: 'Page render quality',
-                                  hint: 'Auto picks by your device. High is sharper, Fast is lighter.',
-                                  trailing: _Dropdown<String>(
-                                    value: viewer.quality,
-                                    items: const {
-                                      'auto': 'Auto',
-                                      'high': 'High (sharper)',
-                                      'fast': 'Fast (lighter)',
-                                    },
-                                    onChanged: (v) => ref
-                                        .read(viewerPrefsProvider.notifier)
-                                        .setQuality(v),
-                                  ),
-                                ),
-                                _Row(
-                                  label: 'Make scanned pages searchable',
-                                  hint: 'Runs OCR quietly in the background '
-                                      'when a scanned PDF opens, so text in '
-                                      'images can be found and copied. Off by '
-                                      'default; you can still scan on demand '
-                                      'from Find.',
-                                  trailing: _AppPrefSwitch(
-                                    read: () => AppPrefs.autoOcr,
-                                    write: AppPrefs.setAutoOcr,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _Group(
-                              title: 'Editing',
-                              children: [
-                                _Row(
-                                  label: 'Font for new text',
-                                  trailing: _Dropdown<String>(
-                                    value: viewer.textFamily,
-                                    items: const {
-                                      'sans': 'Sans (Helvetica)',
-                                      'serif': 'Serif (Times)',
-                                      'mono': 'Mono (Courier)',
-                                    },
-                                    onChanged: (v) => ref
-                                        .read(viewerPrefsProvider.notifier)
-                                        .setTextFamily(v),
-                                  ),
-                                ),
-                                _Row(
-                                  label: 'Size for new text',
-                                  trailing: _Dropdown<int>(
-                                    value: const [10, 12, 14, 16, 18, 24]
-                                        .reduce((a, b) =>
-                                            (a - viewer.textSize).abs() <=
-                                                    (b - viewer.textSize).abs()
-                                                ? a
-                                                : b),
-                                    items: const {
-                                      10: '10 pt',
-                                      12: '12 pt',
-                                      14: '14 pt',
-                                      16: '16 pt',
-                                      18: '18 pt',
-                                      24: '24 pt',
-                                    },
-                                    onChanged: (v) => ref
-                                        .read(viewerPrefsProvider.notifier)
-                                        .setTextSize(v.toDouble()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const _FontsCard(),
-                            _Group(
-                              title: 'Documents & comments',
-                              children: [
-                                _Row(
-                                  label: 'Embed fonts in edited text',
-                                  hint: 'New and edited text looks identical '
-                                      'everywhere (only the letters used '
-                                      'are stored, a few KB).',
-                                  trailing: _AppPrefSwitch(
-                                    read: () => AppPrefs.embedFontsByDefault,
-                                    write: AppPrefs.setEmbedFontsByDefault,
-                                  ),
-                                ),
-                                _Row(
-                                  label: 'Undo steps per document',
-                                  hint: 'Large steps are kept on disk, '
-                                      'not in memory',
-                                  trailing: _AppPrefChoice(
-                                    read: () => AppPrefs.undoLevels,
-                                    write: AppPrefs.setUndoLevels,
-                                    values: const [5, 10, 20, 50, 100],
-                                  ),
-                                ),
-                                _Row(
-                                  label: 'Recent files on Home',
-                                  trailing: _AppPrefChoice(
-                                    read: () => AppPrefs.recentCount,
-                                    write: AppPrefs.setRecentCount,
-                                    values: const [6, 12, 24, 50],
-                                  ),
-                                ),
-                                const _Row(
-                                  label: 'Comment author',
-                                  hint: 'Name saved on your comments '
-                                      '(empty = computer user name)',
-                                  trailing: _AuthorField(),
-                                ),
-                                _Row(
-                                  label: 'Start-up animation',
-                                  hint: 'Skipped automatically when a file '
-                                      'is opened from the desktop',
-                                  trailing: _AppPrefSwitch(
-                                    read: () => AppPrefs.showSplash,
-                                    write: AppPrefs.setShowSplash,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _Group(
-                              title: 'Keyboard',
-                              children: [
-                                _Row(
-                                  label: 'Keyboard shortcuts',
-                                  hint: 'Every shortcut, Acrobat-style',
-                                  trailing: OutlinedButton(
-                                    onPressed: () =>
-                                        showShortcutsDialog(context),
-                                    child: const Text('View'),
-                                  ),
-                                ),
-                                _Row(
-                                  label: 'Command palette',
-                                  hint: 'Ctrl/⌘ K from anywhere',
-                                  trailing: OutlinedButton(
-                                    onPressed: () =>
-                                        showDocumentStudioCommandPalette(
-                                          context,
-                                        ),
-                                    child: const Text('Open'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _Group(
-                              title: 'Privacy',
-                              children: [
-                                SwitchListTile.adaptive(
-                                  contentPadding: EdgeInsets.zero,
-                                  dense: true,
-                                  title: const Text('Work fully offline'),
-                                  subtitle: Text(
-                                    'Your files never leave this device. This blocks '
-                                    'the app from using the network.',
-                                    style: TextStyle(color: muted, fontSize: 12),
-                                  ),
-                                  value: settings.strictOffline,
-                                  onChanged: settings.setStrictOffline,
-                                ),
-                              ],
-                            ),
-                            const DesktopDocumentToolsPanel(),
-                            const LocalQpdfEnginePanel(),
-                            const StorageSettingsPanel(),
-                            _Group(
-                              title: 'Updates',
-                              children: [
-                                _Row(
-                                  label: 'Document Studio',
-                                  hint: ref
-                                      .watch(appVersionLabelProvider)
-                                      .maybeWhen(
-                                        data: (v) => 'Installed: $v',
-                                        orElse: () => 'Installed: $kAppVersion',
+                                _Group(
+                                  title: 'Opening documents',
+                                  children: [
+                                    _Row(
+                                      label: 'Zoom',
+                                      hint: 'How a PDF fits when it opens',
+                                      trailing: _Dropdown<String>(
+                                        value: viewer.zoom,
+                                        items: const {
+                                          'fitWidth': 'Fit width',
+                                          'fitPage': 'Fit page',
+                                          'actual': 'Actual size (100%)',
+                                        },
+                                        onChanged: (v) => ref
+                                            .read(viewerPrefsProvider.notifier)
+                                            .setZoom(v),
                                       ),
-                                  trailing: OutlinedButton.icon(
-                                    onPressed: () =>
-                                        checkForUpdatesInteractive(context),
-                                    icon: const Icon(Icons.system_update_alt, size: 16),
-                                    label: const Text('Check for updates'),
-                                  ),
+                                    ),
+                                    _Row(
+                                      label: 'Page display',
+                                      hint: 'Applies to newly opened documents',
+                                      trailing: _Dropdown<String>(
+                                        value: viewer.display,
+                                        items: const {
+                                          'continuous': 'Continuous scrolling',
+                                          'singlePage': 'Single page',
+                                          'twoPage': 'Two pages',
+                                        },
+                                        onChanged: (v) => ref
+                                            .read(viewerPrefsProvider.notifier)
+                                            .setDisplay(v),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                _Row(
-                                  label: 'Check automatically',
-                                  hint: 'Looks for a new release at start-up '
-                                      'and offers a one-click update. On '
-                                      'Windows you can also run "winget '
-                                      'upgrade DocumentStudio.DocumentStudio".',
-                                  trailing: _AppPrefSwitch(
-                                    read: () => AppPrefs.autoUpdateCheck,
-                                    write: AppPrefs.setAutoUpdateCheck,
-                                  ),
+                                _Group(
+                                  title: 'Performance',
+                                  children: [
+                                    _Row(
+                                      label: 'Page render quality',
+                                      hint: 'Auto picks by your device. High is sharper, Fast is lighter.',
+                                      trailing: _Dropdown<String>(
+                                        value: viewer.quality,
+                                        items: const {
+                                          'auto': 'Auto',
+                                          'high': 'High (sharper)',
+                                          'fast': 'Fast (lighter)',
+                                        },
+                                        onChanged: (v) => ref
+                                            .read(viewerPrefsProvider.notifier)
+                                            .setQuality(v),
+                                      ),
+                                    ),
+                                    _Row(
+                                      label: 'Make scanned pages searchable',
+                                      hint:
+                                          'Runs OCR quietly in the background '
+                                          'when a scanned PDF opens, so text in '
+                                          'images can be found and copied. Off by '
+                                          'default; you can still scan on demand '
+                                          'from Find.',
+                                      trailing: _AppPrefSwitch(
+                                        read: () => AppPrefs.autoOcr,
+                                        write: AppPrefs.setAutoOcr,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                                _Group(
+                                  title: 'Editing',
+                                  children: [
+                                    _Row(
+                                      label: 'Font for new text',
+                                      trailing: _Dropdown<String>(
+                                        value: viewer.textFamily,
+                                        items: const {
+                                          'sans': 'Sans (Helvetica)',
+                                          'serif': 'Serif (Times)',
+                                          'mono': 'Mono (Courier)',
+                                        },
+                                        onChanged: (v) => ref
+                                            .read(viewerPrefsProvider.notifier)
+                                            .setTextFamily(v),
+                                      ),
+                                    ),
+                                    _Row(
+                                      label: 'Size for new text',
+                                      trailing: _Dropdown<int>(
+                                        value: const [10, 12, 14, 16, 18, 24]
+                                            .reduce(
+                                              (a, b) =>
+                                                  (a - viewer.textSize).abs() <=
+                                                      (b - viewer.textSize)
+                                                          .abs()
+                                                  ? a
+                                                  : b,
+                                            ),
+                                        items: const {
+                                          10: '10 pt',
+                                          12: '12 pt',
+                                          14: '14 pt',
+                                          16: '16 pt',
+                                          18: '18 pt',
+                                          24: '24 pt',
+                                        },
+                                        onChanged: (v) => ref
+                                            .read(viewerPrefsProvider.notifier)
+                                            .setTextSize(v.toDouble()),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const _FontsCard(),
+                                _Group(
+                                  title: 'Documents & comments',
+                                  children: [
+                                    _Row(
+                                      label: 'Embed fonts in edited text',
+                                      hint:
+                                          'New and edited text looks identical '
+                                          'everywhere (only the letters used '
+                                          'are stored, a few KB).',
+                                      trailing: _AppPrefSwitch(
+                                        read: () =>
+                                            AppPrefs.embedFontsByDefault,
+                                        write: AppPrefs.setEmbedFontsByDefault,
+                                      ),
+                                    ),
+                                    _Row(
+                                      label: 'Undo steps per document',
+                                      hint:
+                                          'Large steps are kept on disk, '
+                                          'not in memory',
+                                      trailing: _AppPrefChoice(
+                                        read: () => AppPrefs.undoLevels,
+                                        write: AppPrefs.setUndoLevels,
+                                        values: const [5, 10, 20, 50, 100],
+                                      ),
+                                    ),
+                                    _Row(
+                                      label: 'Recent files on Home',
+                                      trailing: _AppPrefChoice(
+                                        read: () => AppPrefs.recentCount,
+                                        write: AppPrefs.setRecentCount,
+                                        values: const [6, 12, 24, 50],
+                                      ),
+                                    ),
+                                    const _Row(
+                                      label: 'Comment author',
+                                      hint:
+                                          'Name saved on your comments '
+                                          '(empty = computer user name)',
+                                      trailing: _AuthorField(),
+                                    ),
+                                    _Row(
+                                      label: 'Start-up animation',
+                                      hint:
+                                          'Skipped automatically when a file '
+                                          'is opened from the desktop',
+                                      trailing: _AppPrefSwitch(
+                                        read: () => AppPrefs.showSplash,
+                                        write: AppPrefs.setShowSplash,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                _Group(
+                                  title: 'Keyboard',
+                                  children: [
+                                    _Row(
+                                      label: 'Keyboard shortcuts',
+                                      hint: 'Every shortcut, Acrobat-style',
+                                      trailing: OutlinedButton(
+                                        onPressed: () =>
+                                            showShortcutsDialog(context),
+                                        child: const Text('View'),
+                                      ),
+                                    ),
+                                    _Row(
+                                      label: 'Command palette',
+                                      hint: 'Ctrl/⌘ K from anywhere',
+                                      trailing: OutlinedButton(
+                                        onPressed: () =>
+                                            showDocumentStudioCommandPalette(
+                                              context,
+                                            ),
+                                        child: const Text('Open'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                _Group(
+                                  title: 'Privacy',
+                                  children: [
+                                    SwitchListTile.adaptive(
+                                      contentPadding: EdgeInsets.zero,
+                                      dense: true,
+                                      title: const Text('Work fully offline'),
+                                      subtitle: Text(
+                                        'Your files never leave this device. This blocks '
+                                        'the app from using the network.',
+                                        style: TextStyle(
+                                          color: muted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      value: settings.strictOffline,
+                                      onChanged: settings.setStrictOffline,
+                                    ),
+                                  ],
+                                ),
+                                const DesktopDocumentToolsPanel(),
+                                const LocalQpdfEnginePanel(),
+                                const StorageSettingsPanel(),
+                                _Group(
+                                  title: 'Updates',
+                                  children: [
+                                    _Row(
+                                      label: 'Document Studio',
+                                      hint: ref
+                                          .watch(appVersionLabelProvider)
+                                          .maybeWhen(
+                                            data: (v) => 'Installed: $v',
+                                            orElse: () =>
+                                                'Installed: $kAppVersion',
+                                          ),
+                                      trailing: kStoreBuild
+                                          ? const Text(
+                                              'Updated by the Microsoft Store',
+                                            )
+                                          : OutlinedButton.icon(
+                                              onPressed: () =>
+                                                  checkForUpdatesInteractive(
+                                                    context,
+                                                  ),
+                                              icon: const Icon(
+                                                Icons.system_update_alt,
+                                                size: 16,
+                                              ),
+                                              label: const Text(
+                                                'Check for updates',
+                                              ),
+                                            ),
+                                    ),
+                                    if (!kStoreBuild)
+                                      _Row(
+                                        label: 'Check automatically',
+                                        hint:
+                                            'Looks for a new release at start-up '
+                                            'and offers a one-click update. On '
+                                            'Windows you can also run "winget '
+                                            'upgrade DocumentStudio.DocumentStudio".',
+                                        trailing: _AppPrefSwitch(
+                                          read: () => AppPrefs.autoUpdateCheck,
+                                          write: AppPrefs.setAutoUpdateCheck,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const _AboutCard(),
                               ],
                             ),
-                            const _AboutCard(),
-                            ]),
                           ],
                         ),
                       ),
@@ -379,11 +414,13 @@ class _Group extends StatelessWidget {
               ),
             ),
           ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: dark ? DsColors.groupedCellDark : DsColors.groupedCellLight,
+          // A Material, not a coloured box: the switch rows paint their ink on it.
+          Material(
+            color: dark ? DsColors.groupedCellDark : DsColors.groupedCellLight,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: DsColors.border(theme.brightness)),
+              side: BorderSide(color: DsColors.border(theme.brightness)),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -484,18 +521,15 @@ class _AboutCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final version = ref.watch(appVersionLabelProvider).maybeWhen(
-          data: (v) => v,
-          orElse: () => kAppVersion,
-        );
+    final version = ref
+        .watch(appVersionLabelProvider)
+        .maybeWhen(data: (v) => v, orElse: () => kAppVersion);
     Widget link(IconData icon, String label, String url) => TextButton.icon(
-          onPressed: () => launchUrl(
-            Uri.parse(url),
-            mode: LaunchMode.externalApplication,
-          ),
-          icon: Icon(icon, size: 16),
-          label: Text(label),
-        );
+      onPressed: () =>
+          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+    );
     return _Group(
       title: 'About',
       children: [
@@ -522,8 +556,16 @@ class _AboutCard extends ConsumerWidget {
                 spacing: 4,
                 children: [
                   link(Icons.code, 'GitHub', kRepoUrl),
-                  link(Icons.volunteer_activism_outlined, 'Contribute', kContributeUrl),
-                  link(Icons.bug_report_outlined, 'Report an issue', kIssuesUrl),
+                  link(
+                    Icons.volunteer_activism_outlined,
+                    'Contribute',
+                    kContributeUrl,
+                  ),
+                  link(
+                    Icons.bug_report_outlined,
+                    'Report an issue',
+                    kIssuesUrl,
+                  ),
                   link(Icons.person_outline, kAuthorName, kAuthorGithubUrl),
                 ],
               ),
@@ -535,7 +577,6 @@ class _AboutCard extends ConsumerWidget {
   }
 }
 
-
 /// Page frame wide enough for a multi-column settings grid.
 class _WideFrame extends StatelessWidget {
   const _WideFrame({required this.child});
@@ -544,12 +585,12 @@ class _WideFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1320),
-          child: child,
-        ),
-      );
+    alignment: Alignment.topCenter,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 1320),
+      child: child,
+    ),
+  );
 }
 
 /// Lays cards out in 1–3 columns (by width), filling the shortest column
@@ -593,7 +634,6 @@ class _Masonry extends StatelessWidget {
     );
   }
 }
-
 
 /// Settings → Fonts: add / remove fonts used when editing text.
 class _FontsCard extends ConsumerStatefulWidget {
@@ -702,12 +742,12 @@ class _AppPrefSwitch extends StatefulWidget {
 class _AppPrefSwitchState extends State<_AppPrefSwitch> {
   @override
   Widget build(BuildContext context) => Switch.adaptive(
-        value: widget.read(),
-        onChanged: (v) async {
-          await widget.write(v);
-          if (mounted) setState(() {});
-        },
-      );
+    value: widget.read(),
+    onChanged: (v) async {
+      await widget.write(v);
+      if (mounted) setState(() {});
+    },
+  );
 }
 
 /// A number picker bound to one [AppPrefs] value.
@@ -764,15 +804,15 @@ class _AuthorFieldState extends State<_AuthorField> {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 200,
-        child: TextField(
-          controller: _ctrl,
-          decoration: InputDecoration(
-            isDense: true,
-            hintText: AppPrefs.effectiveAuthor,
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: AppPrefs.setCommentAuthor,
-        ),
-      );
+    width: 200,
+    child: TextField(
+      controller: _ctrl,
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: AppPrefs.effectiveAuthor,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: AppPrefs.setCommentAuthor,
+    ),
+  );
 }

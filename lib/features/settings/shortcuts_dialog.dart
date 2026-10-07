@@ -35,7 +35,8 @@ Future<void> showShortcutsDialog(BuildContext context) {
                             width: 190,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest,
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(5),
                               ),
                               child: Padding(
@@ -64,7 +65,10 @@ Future<void> showShortcutsDialog(BuildContext context) {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
         ],
       );
     },

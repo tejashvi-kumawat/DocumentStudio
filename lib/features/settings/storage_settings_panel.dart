@@ -81,9 +81,8 @@ class _StorageSettingsPanelState extends State<StorageSettingsPanel> {
     await StorageCacheManager.instance.clearCaches();
     if (!mounted) return;
     setState(() => _clearing = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cache cleared')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Cache cleared')));
     await _refresh();
   }
 
@@ -119,7 +118,9 @@ class _StorageSettingsPanelState extends State<StorageSettingsPanel> {
                 ),
                 Text(
                   'Cache ${formatStorageBytes(usage.cacheTotal)}',
-                  style: theme.textTheme.labelMedium?.copyWith(color: secondary),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: secondary,
+                  ),
                 ),
               ],
             ),
@@ -187,8 +188,8 @@ class _UsageRow extends StatelessWidget {
     final fraction = cap != null
         ? (bytes / cap).clamp(0.0, 1.0)
         : total == 0
-            ? 0.0
-            : (bytes / total).clamp(0.0, 1.0);
+        ? 0.0
+        : (bytes / total).clamp(0.0, 1.0);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: DsSpacing.xs),
       child: Column(

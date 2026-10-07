@@ -25,8 +25,25 @@ DocumentStudioErrorCode documentStudioErrorCodeFromFileSystemException(
 }
 
 class LocalFileStorage implements FileStoragePort {
+  /// Document Studio's own file browser (set by the app on desktop). When
+  /// present it replaces the system "Open" dialog.
+  static Future<List<String>?> Function({
+    List<String>? extensions,
+    bool multiple,
+  })?
+  inAppPicker;
+
   @override
   Future<LocalFileRef?> pickOpenFile({List<String>? allowedExtensions}) async {
+    final inApp = inAppPicker;
+    if (inApp != null) {
+      final paths = await inApp(extensions: allowedExtensions, multiple: false);
+      if (paths == null || paths.isEmpty) return null;
+      return _refFromPath(
+        paths.first,
+        name: paths.first.split(RegExp(r'[\\/]')).last,
+      );
+    }
     final file = await FilePicker.pickFile(
       type: allowedExtensions == null ? FileType.any : FileType.custom,
       allowedExtensions: allowedExtensions,
@@ -52,6 +69,15 @@ class LocalFileStorage implements FileStoragePort {
     if (!allowMultiple) {
       final single = await pickOpenFile(allowedExtensions: allowedExtensions);
       return single == null ? const [] : [single];
+    }
+    final inApp = inAppPicker;
+    if (inApp != null) {
+      final paths = await inApp(extensions: allowedExtensions, multiple: true);
+      if (paths == null) return const [];
+      return [
+        for (final path in paths)
+          await _refFromPath(path, name: path.split(RegExp(r'[\\/]')).last),
+      ];
     }
     final files = await FilePicker.pickFiles(
       type: allowedExtensions == null ? FileType.any : FileType.custom,
@@ -197,8 +223,10 @@ class LocalFileStorage implements FileStoragePort {
   }
 
   @override
-  Future<LocalFileRef> copyToTemp(LocalFileRef source,
-      {required String prefix}) async {
+  Future<LocalFileRef> copyToTemp(
+    LocalFileRef source, {
+    required String prefix,
+  }) async {
     final bytes = await readBytes(source);
     final tempPath = await createTempFile(
       prefix: prefix,

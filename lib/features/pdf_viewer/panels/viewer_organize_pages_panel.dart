@@ -342,10 +342,8 @@ class _ViewerOrganizePagesPanelState
           label: 'Insert file',
           onPressed: _busy || _changed
               ? null
-              : () => openViewerToolPanel(
-                    context,
-                    ViewerToolId.workspaceInsert,
-                  ),
+              : () =>
+                    openViewerToolPanel(context, ViewerToolId.workspaceInsert),
         ),
         viewerPageToolButton(
           icon: Icons.content_cut,

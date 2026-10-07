@@ -78,8 +78,10 @@ class _CompareResultsSidebarState extends State<CompareResultsSidebar> {
       if (top < pos.pixels ||
           top + _itemExtent > pos.pixels + pos.viewportDimension) {
         _list.animateTo(
-          (top - pos.viewportDimension / 2 + _itemExtent / 2)
-              .clamp(0, pos.maxScrollExtent),
+          (top - pos.viewportDimension / 2 + _itemExtent / 2).clamp(
+            0,
+            pos.maxScrollExtent,
+          ),
           duration: DsMotion.contentReveal,
           curve: DsMotion.switchCurve,
         );
@@ -112,7 +114,11 @@ class _CompareResultsSidebarState extends State<CompareResultsSidebar> {
         ),
       Padding(
         padding: const EdgeInsets.fromLTRB(
-            DsSpacing.lg, DsSpacing.md, DsSpacing.lg, DsSpacing.sm),
+          DsSpacing.lg,
+          DsSpacing.md,
+          DsSpacing.lg,
+          DsSpacing.sm,
+        ),
         child: _SummaryCard(result: r),
       ),
       Padding(
@@ -135,12 +141,20 @@ class _CompareResultsSidebarState extends State<CompareResultsSidebar> {
       ),
       const Padding(
         padding: EdgeInsets.fromLTRB(
-            DsSpacing.lg, DsSpacing.md, DsSpacing.lg, DsSpacing.xs),
+          DsSpacing.lg,
+          DsSpacing.md,
+          DsSpacing.lg,
+          DsSpacing.xs,
+        ),
         child: _Legend(),
       ),
       Padding(
         padding: const EdgeInsets.fromLTRB(
-            DsSpacing.lg, DsSpacing.xs, DsSpacing.sm, DsSpacing.xs),
+          DsSpacing.lg,
+          DsSpacing.xs,
+          DsSpacing.sm,
+          DsSpacing.xs,
+        ),
         child: SizedBox(
           height: 32,
           child: Row(
@@ -240,7 +254,8 @@ class _CompareResultsSidebarState extends State<CompareResultsSidebar> {
                         key: ValueKey(c.filters.length * 131 + visible.length),
                         controller: _list,
                         padding: const EdgeInsets.symmetric(
-                            vertical: DsSpacing.sm),
+                          vertical: DsSpacing.sm,
+                        ),
                         itemExtent: _itemExtent,
                         itemCount: visible.length,
                         itemBuilder: (context, i) => tile(i),
@@ -269,9 +284,13 @@ class _SummaryCard extends StatelessWidget {
     final affected = result.pagesAffected;
     final kinds = [
       for (final (k, _) in compareLegend)
-        (k, k == CompareChangeKind.changed
-            ? result.countOfKind(k) + result.countOfKind(CompareChangeKind.moved)
-            : result.countOfKind(k)),
+        (
+          k,
+          k == CompareChangeKind.changed
+              ? result.countOfKind(k) +
+                    result.countOfKind(CompareChangeKind.moved)
+              : result.countOfKind(k),
+        ),
     ];
     return Container(
       padding: const EdgeInsets.all(DsSpacing.md),
@@ -311,14 +330,17 @@ class _SummaryCard extends StatelessWidget {
                         ok
                             ? 'Documents match'
                             : '${v.round()} change${total == 1 ? '' : 's'}',
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     Text(
                       '${result.oldDoc.pageCount} → ${result.newDoc.pageCount} pages · '
                       '${result.elapsed.inMilliseconds} ms',
-                      style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: secondary,
+                      ),
                     ),
                   ],
                 ),
@@ -344,8 +366,10 @@ class _SummaryCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Text('$n ${k.label.toLowerCase()}',
-                          style: theme.textTheme.labelSmall),
+                      Text(
+                        '$n ${k.label.toLowerCase()}',
+                        style: theme.textTheme.labelSmall,
+                      ),
                     ],
                   ),
               ],
@@ -389,7 +413,7 @@ class _FilterChip extends StatelessWidget {
     final tooltip = available
         ? '${category.description}\nClick to toggle · long-press to show only this'
         : '${category.label} changes can’t be detected: this PDF backend '
-            'exposes no ${category == CompareCategory.formatting ? 'font data' : 'image objects'}.';
+              'exposes no ${category == CompareCategory.formatting ? 'font data' : 'image objects'}.';
     return Tooltip(
       message: tooltip,
       waitDuration: const Duration(milliseconds: 500),
@@ -419,8 +443,11 @@ class _FilterChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(compareCategoryIcon(category),
-                      size: 14, color: on ? primary : secondary),
+                  Icon(
+                    compareCategoryIcon(category),
+                    size: 14,
+                    color: on ? primary : secondary,
+                  ),
                   const SizedBox(width: 5),
                   Text(
                     category.label,
@@ -436,8 +463,10 @@ class _FilterChip extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
                       color: on && count > 0
                           ? primary
@@ -513,13 +542,17 @@ class _EmptyList extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              identical ? Icons.verified_outlined : Icons.filter_alt_off_outlined,
+              identical
+                  ? Icons.verified_outlined
+                  : Icons.filter_alt_off_outlined,
               size: 40,
               color: identical ? compareInsertColor : theme.disabledColor,
             ),
             const SizedBox(height: DsSpacing.sm),
             Text(
-              identical ? 'No differences found' : 'No changes match the filters',
+              identical
+                  ? 'No differences found'
+                  : 'No changes match the filters',
               style: theme.textTheme.titleSmall,
             ),
           ],
@@ -554,21 +587,25 @@ class _ChangeTile extends StatelessWidget {
     final preview = <InlineSpan>[];
     final same = change.oldText == change.newText;
     if (change.oldText.isNotEmpty && !same) {
-      preview.add(TextSpan(
-        text: change.oldText,
-        style: const TextStyle(
-          color: compareDeleteColor,
-          decoration: TextDecoration.lineThrough,
-          decorationColor: compareDeleteColor,
+      preview.add(
+        TextSpan(
+          text: change.oldText,
+          style: const TextStyle(
+            color: compareDeleteColor,
+            decoration: TextDecoration.lineThrough,
+            decorationColor: compareDeleteColor,
+          ),
         ),
-      ));
+      );
     }
     if (change.newText.isNotEmpty && !same) {
       if (preview.isNotEmpty) preview.add(const TextSpan(text: '  '));
-      preview.add(TextSpan(
-        text: change.newText,
-        style: const TextStyle(color: compareInsertColor),
-      ));
+      preview.add(
+        TextSpan(
+          text: change.newText,
+          style: const TextStyle(color: compareInsertColor),
+        ),
+      );
     }
     if (same && change.oldText.isNotEmpty) {
       preview.add(TextSpan(text: change.oldText));
@@ -576,7 +613,10 @@ class _ChangeTile extends StatelessWidget {
     final detail = change.detail;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DsSpacing.sm, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: DsSpacing.sm,
+        vertical: 3,
+      ),
       child: DsHoverLift(
         onTap: onTap,
         borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
@@ -614,8 +654,11 @@ class _ChangeTile extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(compareCategoryIcon(change.category),
-                              size: 14, color: color),
+                          Icon(
+                            compareCategoryIcon(change.category),
+                            size: 14,
+                            color: color,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -630,8 +673,9 @@ class _ChangeTile extends StatelessWidget {
                           ),
                           Text(
                             pages,
-                            style: theme.textTheme.labelSmall
-                                ?.copyWith(color: secondary),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: secondary,
+                            ),
                           ),
                         ],
                       ),

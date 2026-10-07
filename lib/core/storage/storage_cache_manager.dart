@@ -75,13 +75,13 @@ class StorageCacheManager {
   /// Disk caps for cache areas (LRU-trimmed to 80% when exceeded), carved out
   /// of [budgetBytes].
   static Map<StorageArea, int> get limits => {
-        StorageArea.thumbnails: budgetBytes ~/ 10,
-        StorageArea.pages: budgetBytes * 4 ~/ 10,
-        // Searchable-PDF results of scans are large.
-        StorageArea.ocr: budgetBytes * 4 ~/ 10,
-        StorageArea.textIndex: budgetBytes ~/ 10,
-        StorageArea.logs: 32 * _mb,
-      };
+    StorageArea.thumbnails: budgetBytes ~/ 10,
+    StorageArea.pages: budgetBytes * 4 ~/ 10,
+    // Searchable-PDF results of scans are large.
+    StorageArea.ocr: budgetBytes * 4 ~/ 10,
+    StorageArea.textIndex: budgetBytes ~/ 10,
+    StorageArea.logs: 32 * _mb,
+  };
 
   static int _userGb = 0;
 
@@ -98,10 +98,7 @@ class StorageCacheManager {
     final paths = StoragePaths.maybeInstance;
     if (paths == null) return;
     final sw = Stopwatch()..start();
-    configure(
-      gb: _userGb,
-      freeBytes: await freeDiskBytes(paths.root.path),
-    );
+    configure(gb: _userGb, freeBytes: await freeDiskBytes(paths.root.path));
     final removed = await paths.cleanTemp();
     var freed = 0;
     for (final e in limits.entries) {

@@ -1,12 +1,15 @@
 import 'package:document_studio/features/conversion/pdf_to_docx_layout.dart';
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/core/desktop/desktop_engine_resolver.dart';
+import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/widgets/ds_buttons.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/conversion/conversion_route.dart';
@@ -26,10 +29,7 @@ import 'package:path/path.dart' as p;
 ///
 /// Shows a real engine error when `soffice` is missing — never a dead tile.
 class OfficeConvertScreen extends ConsumerStatefulWidget {
-  const OfficeConvertScreen({
-    super.key,
-    this.initialFile,
-  });
+  const OfficeConvertScreen({super.key, this.initialFile});
 
   final LocalFileRef? initialFile;
 
@@ -51,11 +51,9 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
   bool _installingEngine = false;
 
   /// Mobile always uses Dart. Desktop uses LibreOffice when [ _enginePath ] is set.
-  bool get _useDartPath =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  bool get _useDartPath => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-  bool get _ready =>
-      _engineChecked && (_useDartPath || _enginePath != null);
+  bool get _ready => _engineChecked && (_useDartPath || _enginePath != null);
 
   @override
   void initState() {
@@ -175,7 +173,9 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
   }
 
   Future<void> _pickSource() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFile(
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(
           allowedExtensions: _useDartPath
               ? [...DartOfficeConvertService.officeToPdfExtensions, 'pdf']
               : [..._officeExts, 'pdf'],
@@ -245,13 +245,7 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
       final result = await LibreOfficeHeadless.run(
         exe: exe,
         workDir: outDir,
-        args: [
-          '--convert-to',
-          'pdf',
-          '--outdir',
-          outDir,
-          picked.path,
-        ],
+        args: ['--convert-to', 'pdf', '--outdir', outDir, picked.path],
       );
       if (result.exitCode != 0) {
         throw StateError(
@@ -263,8 +257,11 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
         );
       }
       final stem = p.basenameWithoutExtension(picked.path);
-      final produced =
-          await LibreOfficeHeadless.findProduced(outDir, stem, 'pdf');
+      final produced = await LibreOfficeHeadless.findProduced(
+        outDir,
+        stem,
+        'pdf',
+      );
       if (produced == null) {
         throw StateError(
           LibreOfficeHeadless.formatConvertError(
@@ -329,7 +326,8 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
     });
     try {
       final storage = ref.read(fileStorageProvider);
-      var picked = (!forcePick &&
+      var picked =
+          (!forcePick &&
               _file != null &&
               DartOfficeConvertService.canConvertOfficeToPdf(_file!.path))
           ? _file
@@ -473,26 +471,27 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ready = _ready;
-    final engineMissing = _engineChecked && !_useDartPath && _enginePath == null;
+    final engineMissing =
+        _engineChecked && !_useDartPath && _enginePath == null;
     final hasOffice = _useDartPath
         ? (_file != null &&
-            DartOfficeConvertService.canConvertOfficeToPdf(_file!.path))
+              DartOfficeConvertService.canConvertOfficeToPdf(_file!.path))
         : _isOffice(_file);
     final hasPdf = _isPdf(_file);
     final primaryLabel = _busy
         ? 'Converting…'
         : hasOffice
-            ? 'Convert to PDF'
-            : hasPdf
-                ? 'Convert PDF → Word…'
-                : (ready ? 'Choose office file → PDF…' : 'Convert');
+        ? 'Convert to PDF'
+        : hasPdf
+        ? 'Convert PDF → Word…'
+        : (ready ? 'Choose office file → PDF…' : 'Convert');
     final VoidCallback? onPrimary = !ready || _busy
         ? null
         : hasOffice
-            ? () => unawaited(_officeToPdf())
-            : hasPdf
-                ? () => unawaited(_pdfToOffice())
-                : () => unawaited(_officeToPdf(forcePick: true));
+        ? () => unawaited(_officeToPdf())
+        : hasPdf
+        ? () => unawaited(_pdfToOffice())
+        : () => unawaited(_officeToPdf(forcePick: true));
 
     void close() => context.canPop() ? context.pop() : context.go('/');
 
@@ -500,15 +499,28 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
       title: 'Office convert',
       subtitle: _useDartPath
           ? 'Plain text: PDF to Word, or Word, text, and Markdown to PDF. '
-              'Excel, PowerPoint, .doc, and OpenDocument need the desktop app.'
+                'Excel, PowerPoint, .doc, and OpenDocument need the desktop app.'
           : 'Word, Excel and PowerPoint to PDF — or PDF to Word.',
       icon: Icons.description_outlined,
-      iconColor: const Color(0xFF2563EB),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: close,
-      ),
+      leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: close),
       onCancel: close,
+      preview: ready
+          ? (_file != null && !hasPdf
+                ? _OfficeFilePane(file: _file!)
+                : DsPdfPreviewPane(
+                    file: hasPdf ? _file : null,
+                    enabled: !_busy,
+                    onPick: _pickSource,
+                    onFilesDropped: (files) => _setFile(files.first),
+                    emptyTitle: _useDartPath
+                        ? 'Drop a Word (.docx) or text file'
+                        : 'Drop a Word, Excel or PowerPoint file',
+                    emptySubtitle: _useDartPath
+                        ? 'DOCX, TXT, MD — or a PDF to turn into Word'
+                        : 'DOC, DOCX, XLS, XLSX, PPT, PPTX, ODT, ODS, ODP — '
+                              'or a PDF to turn into Word',
+                  ))
+          : null,
       primaryLabel: primaryLabel,
       primaryIcon: Icons.picture_as_pdf_outlined,
       primaryBusy: _busy,
@@ -546,22 +558,20 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
                   child: Text(
                     ready
                         ? (_useDartPath
-                            ? '${DartOfficeConvertService.fidelityNote} '
-                                'Excel, PowerPoint, .doc, and OpenDocument '
-                                'need the desktop app.'
-                            : 'Ready to convert on this computer.')
+                              ? '${DartOfficeConvertService.fidelityNote} '
+                                    'Excel, PowerPoint, .doc, and OpenDocument '
+                                    'need the desktop app.'
+                              : 'Ready to convert on this computer.')
                         : _missingEngineMessage,
                     maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: 13,
-                      color: engineMissing
-                          ? const Color(0xFFE4002B)
-                          : null,
+                      color: engineMissing ? const Color(0xFFE4002B) : null,
                     ),
                   ),
                 ),
-                if (ready)
+                if (ready && _file != null)
                   DsToolSection(
                     title: 'Source file',
                     child: DsToolFileSource(
@@ -586,7 +596,7 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
                       emptySubtitle: _useDartPath
                           ? 'DOCX, TXT, MD — or a PDF to turn into Word'
                           : 'DOC, DOCX, XLS, XLSX, PPT, PPTX, ODT, ODS, ODP — '
-                              'or a PDF to turn into Word',
+                                'or a PDF to turn into Word',
                       icon: Icons.upload_file_rounded,
                     ),
                   ),
@@ -631,7 +641,7 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
                       detail: _useDartPath
                           ? DartOfficeConvertService.fidelityNote
                           : 'LibreOffice runs locally; large files can take '
-                              'up to ${LibreOfficeHeadless.timeout.inSeconds} s.',
+                                'up to ${LibreOfficeHeadless.timeout.inSeconds} s.',
                     ),
                   ),
                 if (_error != null && !_busy)
@@ -648,7 +658,9 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: DsSpacing.lg),
                     child: DsToolResultCard(
-                      title: saved.isPdf ? 'PDF created' : 'Word document created',
+                      title: saved.isPdf
+                          ? 'PDF created'
+                          : 'Word document created',
                       file: saved,
                       stats: [
                         if (saved.sizeBytes != null)
@@ -666,6 +678,47 @@ class _OfficeConvertScreenState extends ConsumerState<OfficeConvertScreen> {
                   ),
               ],
             ),
+    );
+  }
+}
+
+/// Stand-in for the preview when the source is an Office file (no page render).
+class _OfficeFilePane extends StatelessWidget {
+  const _OfficeFilePane({required this.file});
+
+  final LocalFileRef file;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final b = theme.brightness;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(DsSpacing.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.description_outlined,
+              size: 72,
+              color: DsColors.textSecondary(b),
+            ),
+            const SizedBox(height: DsSpacing.lg),
+            Text(
+              file.displayName,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: DsSpacing.xs),
+            Text(
+              'Will be converted to PDF',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: DsColors.textSecondary(b),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

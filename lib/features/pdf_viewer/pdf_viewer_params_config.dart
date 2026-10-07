@@ -18,8 +18,10 @@ import 'package:pdfrx/pdfrx.dart';
 const double kPdfSettledRenderLongEdgePx = 4096;
 
 /// Long-edge cap for the current device tier (see [RenderBudget]).
-double get _renderCapPx =>
-    math.max(kPdfSettledRenderLongEdgePx, RenderBudget.current.maxRenderLongEdgePx);
+double get _renderCapPx => math.max(
+  kPdfSettledRenderLongEdgePx,
+  RenderBudget.current.maxRenderLongEdgePx,
+);
 
 /// A zoom-in must grow the needed scale by this much before an already
 /// screen-quality page is decoded again. Zooming out keeps the sharper bitmap.
@@ -128,8 +130,10 @@ double pdfViewerSettledRenderScale({
   if (longPt <= 1 || !zoom.isFinite || zoom <= 0) return 1;
   // Never decode below the tier's oversample: a 1:1 bitmap is resampled at
   // fractional zooms and the text softens.
-  final dpr = math.max(devicePixelRatio > 0 ? devicePixelRatio : 1,
-      RenderBudget.current.effectiveOversample);
+  final dpr = math.max(
+    devicePixelRatio > 0 ? devicePixelRatio : 1,
+    RenderBudget.current.effectiveOversample,
+  );
   final screen = zoom * dpr;
   return math.min(screen, _renderCapPx / longPt);
 }
@@ -260,7 +264,8 @@ PdfViewerParams buildPdfViewerParams({
     textSelectionParams: PdfTextSelectionParams(
       enabled: !presentationAdvanceOnTap,
       // Desktop: the menu opens on right-click only, not after every drag.
-      showContextMenuAutomatically: !presentationAdvanceOnTap &&
+      showContextMenuAutomatically:
+          !presentationAdvanceOnTap &&
           !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
     ),
     panEnabled: !presentationAdvanceOnTap,

@@ -59,6 +59,7 @@ class PdfViewerAcrobatShell extends StatefulWidget {
     this.editContext,
     this.editHasSelection,
     this.railControls,
+    this.layersPanel,
     this.onCloseToolPanel,
     this.pageCount,
     this.selectedPages1Based = const {},
@@ -101,6 +102,9 @@ class PdfViewerAcrobatShell extends StatefulWidget {
   /// when selection changes and [editHasSelection] says whether one exists.
   final Listenable? editContext;
 
+  /// Edit's object list (left rail → Layers).
+  final Widget? layersPanel;
+
   /// Page / zoom / view controls for the left icon rail.
   final Widget? railControls;
   final bool Function()? editHasSelection;
@@ -135,8 +139,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
 
   double get _leftWidth =>
       widget.sidebarContent == PdfViewerSidebarContent.thumbnails
-          ? PdfThumbnailSidebar.sidebarWidth
-          : _sidePaneWidth;
+      ? PdfThumbnailSidebar.sidebarWidth
+      : _sidePaneWidth;
 
   void _handleControllerReady(PdfViewerController controller) {
     setState(() => _controller = controller);
@@ -175,6 +179,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
         );
       case PdfViewerSidebarContent.search:
         return widget.searchPanel ?? const SizedBox.shrink();
+      case PdfViewerSidebarContent.layers:
+        return widget.layersPanel ?? const SizedBox.shrink();
       case PdfViewerSidebarContent.thumbnails:
         return PdfThumbnailSidebar(
           controller: controller,
@@ -399,9 +405,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
     );
 
     final overlay = widget.canvasOverlay;
-    final zoomBar = controller != null &&
-            !widget.presentationMode &&
-            !widget.readMode
+    final zoomBar =
+        controller != null && !widget.presentationMode && !widget.readMode
         ? PdfViewerVerticalZoomBar(controller: controller)
         : null;
     // Always a Stack: switching between canvas-only and Stack when the
@@ -458,7 +463,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                   content: widget.sidebarContent,
                   onContentChanged: (next) {
                     // Click the active icon again to close the panel.
-                    if (next == widget.sidebarContent && widget.leftRailEnabled) {
+                    if (next == widget.sidebarContent &&
+                        widget.leftRailEnabled) {
                       widget.onLeftRailEnabledChanged?.call(false);
                       return;
                     }
@@ -482,8 +488,10 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                   _ResizeHandle(
                     color: dividerColor,
                     onDrag: (dx) => setState(
-                      () => _sidePaneWidth =
-                          (_sidePaneWidth + dx).clamp(220.0, 520.0),
+                      () => _sidePaneWidth = (_sidePaneWidth + dx).clamp(
+                        220.0,
+                        520.0,
+                      ),
                     ),
                   ),
               ],
@@ -523,16 +531,18 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                   builder: (context, _) {
                     final editing =
                         widget.activeToolPanel == ViewerToolId.editText;
-                    final show = !editing ||
-                        (widget.editHasSelection?.call() ?? true);
+                    final show =
+                        !editing || (widget.editHasSelection?.call() ?? true);
                     final paneW =
                         widget.activeToolPanel == ViewerToolId.workspaceReorder
-                            ? math.max(
-                                _toolsPaneWidth,
-                                (MediaQuery.sizeOf(context).width * 0.58)
-                                    .clamp(420.0, 980.0),
-                              )
-                            : _toolsPaneWidth;
+                        ? math.max(
+                            _toolsPaneWidth,
+                            (MediaQuery.sizeOf(context).width * 0.58).clamp(
+                              420.0,
+                              980.0,
+                            ),
+                          )
+                        : _toolsPaneWidth;
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -541,8 +551,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                             key: const ValueKey('tools-handle'),
                             color: dividerColor,
                             onDrag: (dx) => setState(
-                              () => _toolsPaneWidth =
-                                  (_toolsPaneWidth - dx).clamp(300.0, 640.0),
+                              () => _toolsPaneWidth = (_toolsPaneWidth - dx)
+                                  .clamp(300.0, 640.0),
                             ),
                           ),
                         // Stays mounted (Offstage) so Edit keeps loading and
@@ -553,7 +563,8 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
                           child: Offstage(
                             offstage: !show,
                             child: ViewerOptionsWidthScope(
-                              width: widget.activeToolPanel ==
+                              width:
+                                  widget.activeToolPanel ==
                                       ViewerToolId.workspaceReorder
                                   ? double.infinity
                                   : _toolsPaneWidth,
@@ -584,7 +595,6 @@ class PdfViewerAcrobatShellState extends State<PdfViewerAcrobatShell> {
     if (_wideLeftRail(MediaQuery.sizeOf(context).width)) return;
   }
 }
-
 
 /// Thin draggable divider between panes.
 class _ResizeHandle extends StatefulWidget {

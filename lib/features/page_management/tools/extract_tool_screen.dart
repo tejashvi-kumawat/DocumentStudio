@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 
 /// DS-ORG-003 — extract selected pages to a new PDF.
 class ExtractToolScreen extends StatelessWidget {
-  const ExtractToolScreen({
-    super.key,
-    this.initialFile,
-    this.initialPassword,
-  });
+  const ExtractToolScreen({super.key, this.initialFile, this.initialPassword});
 
   final LocalFileRef? initialFile;
   final String? initialPassword;

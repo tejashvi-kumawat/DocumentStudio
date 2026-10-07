@@ -23,11 +23,7 @@ class DsDocumentAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       leading: leading,
-      title: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       bottom: bottom,
       actions: actions,
       scrolledUnderElevation: 2,

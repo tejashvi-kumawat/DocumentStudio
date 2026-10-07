@@ -24,8 +24,7 @@ class HomeRecentActivity extends ConsumerStatefulWidget {
   final int maxItems;
 
   @override
-  ConsumerState<HomeRecentActivity> createState() =>
-      _HomeRecentActivityState();
+  ConsumerState<HomeRecentActivity> createState() => _HomeRecentActivityState();
 }
 
 typedef _Entry = ({LocalFileRef file, HomeThumbnail meta});

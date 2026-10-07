@@ -83,9 +83,7 @@ class _ExportPreviewBody extends ConsumerWidget {
     final cache = ref.read(organizeThumbCacheProvider);
     final first = pages.first;
     final last = pages.length > 1 ? pages.last : null;
-    final pageLabels = [
-      for (var i = 0; i < pages.length; i++) '${i + 1}',
-    ];
+    final pageLabels = [for (var i = 0; i < pages.length; i++) '${i + 1}'];
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,7 +99,9 @@ class _ExportPreviewBody extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 12, 0),
             child: Row(
               children: [
-                Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+                Expanded(
+                  child: Text(title, style: theme.textTheme.titleMedium),
+                ),
                 IconButton(
                   tooltip: 'Close',
                   onPressed: () => Navigator.pop(context, false),
@@ -119,10 +119,15 @@ class _ExportPreviewBody extends ConsumerWidget {
               children: [
                 if (subtitle != null && subtitle!.isNotEmpty)
                   Text(subtitle!, style: theme.textTheme.bodySmall),
-                if (subtitle != null && subtitle!.isNotEmpty) const SizedBox(height: 8),
+                if (subtitle != null && subtitle!.isNotEmpty)
+                  const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.picture_as_pdf_outlined, size: 18, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       '${pages.length} page${pages.length == 1 ? '' : 's'} to export',
@@ -157,7 +162,10 @@ class _ExportPreviewBody extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text('Page order in output', style: theme.textTheme.labelMedium),
+                Text(
+                  'Page order in output',
+                  style: theme.textTheme.labelMedium,
+                ),
                 const SizedBox(height: 6),
                 _PageOrderList(labels: pageLabels),
                 if (footnote != null && footnote!.isNotEmpty) ...[
@@ -211,7 +219,9 @@ class _PageOrderList extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final border = isDark ? DsColors.borderDark : DsColors.borderLight;
-    final fill = isDark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight;
+    final fill = isDark
+        ? DsColors.surfaceContainerDark
+        : DsColors.surfaceContainerLight;
 
     if (labels.length <= 24) {
       return Wrap(

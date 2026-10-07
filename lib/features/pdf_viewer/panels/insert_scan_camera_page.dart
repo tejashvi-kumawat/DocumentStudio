@@ -26,7 +26,8 @@ class InsertScanMobileCameraPage extends StatefulWidget {
       _InsertScanMobileCameraPageState();
 }
 
-class _InsertScanMobileCameraPageState extends State<InsertScanMobileCameraPage> {
+class _InsertScanMobileCameraPageState
+    extends State<InsertScanMobileCameraPage> {
   CameraController? _controller;
   var _ready = false;
   var _taking = false;
@@ -122,7 +123,8 @@ class _InsertScanMobileCameraPageState extends State<InsertScanMobileCameraPage>
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
-    final showPreview = _ready && controller != null && controller.value.isInitialized;
+    final showPreview =
+        _ready && controller != null && controller.value.isInitialized;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -163,7 +165,9 @@ class _InsertScanMobileCameraPageState extends State<InsertScanMobileCameraPage>
               child: Row(
                 children: [
                   TextButton(
-                    onPressed: _taking ? null : () => Navigator.of(context).pop(),
+                    onPressed: _taking
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     child: const Text('Cancel'),
                   ),
                   const Spacer(),
@@ -202,7 +206,8 @@ class InsertScanDesktopCameraPage extends StatefulWidget {
       _InsertScanDesktopCameraPageState();
 }
 
-class _InsertScanDesktopCameraPageState extends State<InsertScanDesktopCameraPage> {
+class _InsertScanDesktopCameraPageState
+    extends State<InsertScanDesktopCameraPage> {
   final MjpegAssembler _assembler = MjpegAssembler();
   Process? _process;
   StreamSubscription<List<int>>? _stdoutSub;
@@ -328,9 +333,7 @@ class _InsertScanDesktopCameraPageState extends State<InsertScanDesktopCameraPag
         children: [
           Expanded(
             child: frame != null
-                ? Center(
-                    child: Image.memory(frame, fit: BoxFit.contain),
-                  )
+                ? Center(child: Image.memory(frame, fit: BoxFit.contain))
                 : Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),

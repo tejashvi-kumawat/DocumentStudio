@@ -74,10 +74,12 @@ class OrganizeRecentPdfsSection extends ConsumerWidget {
 
     return recentsAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (recents) {
-        final pdfs =
-            recents.where((r) => r.isPdf).take(_maxItems).toList(growable: false);
+        final pdfs = recents
+            .where((r) => r.isPdf)
+            .take(_maxItems)
+            .toList(growable: false);
         if (pdfs.isEmpty) return const SizedBox.shrink();
 
         final theme = Theme.of(context);
@@ -110,7 +112,8 @@ class OrganizeRecentPdfsSection extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             OrganizeAccessibleFilesList(
-              onOpen: (file) => context.push(OrganizeRecentPdfRow.reorderPath, extra: file),
+              onOpen: (file) =>
+                  context.push(OrganizeRecentPdfRow.reorderPath, extra: file),
               maxRecents: 0,
             ),
             const SizedBox(height: 16),

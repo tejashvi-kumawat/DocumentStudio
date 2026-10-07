@@ -56,8 +56,9 @@ class _SecurityQpdfUnavailablePanelState
       final text = e.toString();
       const prefix = 'Bad state: ';
       setState(() {
-        _downloadError =
-            text.startsWith(prefix) ? text.substring(prefix.length) : text;
+        _downloadError = text.startsWith(prefix)
+            ? text.substring(prefix.length)
+            : text;
       });
     } finally {
       if (mounted) setState(() => _downloading = false);
@@ -94,10 +95,7 @@ class _SecurityQpdfUnavailablePanelState
             child: Text(_downloading ? 'Downloading qpdf…' : 'Download qpdf'),
           ),
         if (_downloadError != null)
-          Text(
-            _downloadError!,
-            style: theme.textTheme.bodySmall,
-          ),
+          Text(_downloadError!, style: theme.textTheme.bodySmall),
       ],
     );
   }

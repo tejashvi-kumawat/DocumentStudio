@@ -29,4 +29,5 @@ final searchablePdfPortProvider = Provider<SearchablePdfPort>((ref) {
 
 /// True when [port] exposes makeSearchable / probeEngine (desktop or mobile).
 bool searchablePdfPortSupportsJobs(SearchablePdfPort port) =>
-    port is TesseractSearchablePdfService || port is AndroidSearchablePdfService;
+    port is TesseractSearchablePdfService ||
+    port is AndroidSearchablePdfService;

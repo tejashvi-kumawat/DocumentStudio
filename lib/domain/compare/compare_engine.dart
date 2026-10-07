@@ -24,8 +24,8 @@ CompareResult computeCompare(
   final intern = <String, int>{};
   int tok(String s) => intern.putIfAbsent(s, () => intern.length);
   List<int> tokensOf(ComparePageData p) => [
-        for (final w in p.words) tok(normalizeCompareWord(w.text)),
-      ];
+    for (final w in p.words) tok(normalizeCompareWord(w.text)),
+  ];
   Uint32List? signatureOf(ComparePageData p, List<int> tokens) {
     if (tokens.isNotEmpty) return pageSignature(tokens);
     final imgs = [
@@ -86,8 +86,9 @@ CompareResult computeCompare(
     }
     final firstOfPair = hunks.length;
     for (final h in diffTokens(aTok[pa], bTok[pb])) {
-      hunks.add(DiffHunk(
-          h.op, a0 + h.aStart, a0 + h.aEnd, b0 + h.bStart, b0 + h.bEnd));
+      hunks.add(
+        DiffHunk(h.op, a0 + h.aStart, a0 + h.aEnd, b0 + h.bStart, b0 + h.bEnd),
+      );
     }
     if (prevPairEnd >= 0) {
       _cancelReflow(hunks, prevPairEnd, firstOfPair, aStream, bStream);
@@ -98,7 +99,16 @@ CompareResult computeCompare(
 
   final formatting = oldDoc.hasFontInfo && newDoc.hasFontInfo;
   final drafts = <_Draft>[];
-  _collectTextChanges(hunks, oldDoc, newDoc, aRef, bRef, rowOfA, rowOfB, drafts);
+  _collectTextChanges(
+    hunks,
+    oldDoc,
+    newDoc,
+    aRef,
+    bRef,
+    rowOfA,
+    rowOfB,
+    drafts,
+  );
   if (formatting) {
     _collectFormatting(hunks, oldDoc, newDoc, aRef, bRef, rowOfA, drafts);
   }
@@ -123,58 +133,67 @@ CompareResult computeCompare(
     if (row.a == null) {
       if (moved.containsValue(row.b)) continue;
       final p = newDoc.pages[row.b!];
-      drafts.add(_Draft(
-        CompareCategory.pages,
-        CompareChangeKind.inserted,
-        r,
-        0,
-        newText: 'New page ${row.b! + 1} (${_summary(p)})',
-        bRects: {row.b!: full},
-        bPage: row.b,
-      ));
+      drafts.add(
+        _Draft(
+          CompareCategory.pages,
+          CompareChangeKind.inserted,
+          r,
+          0,
+          newText: 'New page ${row.b! + 1} (${_summary(p)})',
+          bRects: {row.b!: full},
+          bPage: row.b,
+        ),
+      );
     } else if (row.b == null) {
       final to = moved[row.a];
       final p = oldDoc.pages[row.a!];
       if (to != null) {
-        drafts.add(_Draft(
-          CompareCategory.pages,
-          CompareChangeKind.moved,
-          r,
-          0,
-          detail: 'Old page ${row.a! + 1} is now page ${to + 1}',
-          aRects: {row.a!: full},
-          bRects: {to: full},
-          aPage: row.a,
-          bPage: to,
-        ));
+        drafts.add(
+          _Draft(
+            CompareCategory.pages,
+            CompareChangeKind.moved,
+            r,
+            0,
+            detail: 'Old page ${row.a! + 1} is now page ${to + 1}',
+            aRects: {row.a!: full},
+            bRects: {to: full},
+            aPage: row.a,
+            bPage: to,
+          ),
+        );
         continue;
       }
-      drafts.add(_Draft(
-        CompareCategory.pages,
-        CompareChangeKind.deleted,
-        r,
-        0,
-        oldText: 'Old page ${row.a! + 1} (${_summary(p)})',
-        aRects: {row.a!: full},
-        aPage: row.a,
-      ));
+      drafts.add(
+        _Draft(
+          CompareCategory.pages,
+          CompareChangeKind.deleted,
+          r,
+          0,
+          oldText: 'Old page ${row.a! + 1} (${_summary(p)})',
+          aRects: {row.a!: full},
+          aPage: row.a,
+        ),
+      );
     } else {
       final pa = oldDoc.pages[row.a!];
       final pb = newDoc.pages[row.b!];
       if ((pa.widthPt - pb.widthPt).abs() > 1.5 ||
           (pa.heightPt - pb.heightPt).abs() > 1.5) {
-        drafts.add(_Draft(
-          CompareCategory.formatting,
-          CompareChangeKind.changed,
-          r,
-          0,
-          detail: 'Page size ${_pt(pa.widthPt)}×${_pt(pa.heightPt)} → '
-              '${_pt(pb.widthPt)}×${_pt(pb.heightPt)} pt',
-          aRects: {row.a!: full},
-          bRects: {row.b!: full},
-          aPage: row.a,
-          bPage: row.b,
-        ));
+        drafts.add(
+          _Draft(
+            CompareCategory.formatting,
+            CompareChangeKind.changed,
+            r,
+            0,
+            detail:
+                'Page size ${_pt(pa.widthPt)}×${_pt(pa.heightPt)} → '
+                '${_pt(pb.widthPt)}×${_pt(pb.heightPt)} pt',
+            aRects: {row.a!: full},
+            bRects: {row.b!: full},
+            aPage: row.a,
+            bPage: row.b,
+          ),
+        );
       }
       _collectImages(r, pa, pb, drafts);
       _collectAnnots(r, pa, pb, drafts);
@@ -185,9 +204,7 @@ CompareResult computeCompare(
     final c = x.row.compareTo(y.row);
     return c != 0 ? c : x.y.compareTo(y.y);
   });
-  final changes = [
-    for (var i = 0; i < drafts.length; i++) drafts[i].build(i),
-  ];
+  final changes = [for (var i = 0; i < drafts.length; i++) drafts[i].build(i)];
   sw.stop();
   onProgress?.call(1);
   return CompareResult(
@@ -261,14 +278,24 @@ void _cancelReflow(
   if (tail.op == DiffOp.delete &&
       head.op == DiffOp.insert &&
       same(tail.aStart, tail.aEnd, head.bStart, head.bEnd)) {
-    hunks[tailIndex] =
-        DiffHunk(DiffOp.equal, tail.aStart, tail.aEnd, head.bStart, head.bEnd);
+    hunks[tailIndex] = DiffHunk(
+      DiffOp.equal,
+      tail.aStart,
+      tail.aEnd,
+      head.bStart,
+      head.bEnd,
+    );
     hunks[headIndex] = empty;
   } else if (tail.op == DiffOp.insert &&
       head.op == DiffOp.delete &&
       same(head.aStart, head.aEnd, tail.bStart, tail.bEnd)) {
-    hunks[tailIndex] =
-        DiffHunk(DiffOp.equal, head.aStart, head.aEnd, tail.bStart, tail.bEnd);
+    hunks[tailIndex] = DiffHunk(
+      DiffOp.equal,
+      head.aStart,
+      head.aEnd,
+      tail.bStart,
+      tail.bEnd,
+    );
     hunks[headIndex] = empty;
   }
 }
@@ -307,18 +334,18 @@ class _Draft {
   final int? bPage;
 
   CompareChange build(int id) => CompareChange(
-        id: id,
-        category: category,
-        kind: kind,
-        row: row,
-        oldText: oldText,
-        newText: newText,
-        detail: detail,
-        aRects: aRects,
-        bRects: bRects,
-        aPage: aPage,
-        bPage: bPage,
-      );
+    id: id,
+    category: category,
+    kind: kind,
+    row: row,
+    oldText: oldText,
+    newText: newText,
+    detail: detail,
+    aRects: aRects,
+    bRects: bRects,
+    aPage: aPage,
+    bPage: bPage,
+  );
 }
 
 String _pt(double v) => v.toStringAsFixed(v == v.roundToDouble() ? 0 : 1);
@@ -402,7 +429,8 @@ void _collectTextChanges(
   for (var h = 0; h < hunks.length; h++) {
     final hk = hunks[h];
     if (hk.op == DiffOp.equal) {
-      final bridge = a0 != null &&
+      final bridge =
+          a0 != null &&
           hk.aLen == 1 &&
           h + 1 < hunks.length &&
           hunks[h + 1].op != DiffOp.equal;
@@ -424,13 +452,14 @@ void _collectTextChanges(
     final kind = aLen == 0
         ? CompareChangeKind.inserted
         : bLen == 0
-            ? CompareChangeKind.deleted
-            : CompareChangeKind.replaced;
-    String join(List<_WordRef> refs, CompareDocData d, int s, int e) =>
-        _clip(refs
-            .sublist(s, e)
-            .map((r) => d.pages[r.page].words[r.word].text)
-            .join(' '));
+        ? CompareChangeKind.deleted
+        : CompareChangeKind.replaced;
+    String join(List<_WordRef> refs, CompareDocData d, int s, int e) => _clip(
+      refs
+          .sublist(s, e)
+          .map((r) => d.pages[r.page].words[r.word].text)
+          .join(' '),
+    );
     final aRects = aLen > 0
         ? _lineRects(aRef.sublist(ga0, ga1), a)
         : _caret(aRef, ga0, a);
@@ -446,21 +475,23 @@ void _collectTextChanges(
     final row = aPage != null
         ? rowOfA[aPage]!
         : bPage != null
-            ? rowOfB[bPage]!
-            : 0;
+        ? rowOfB[bPage]!
+        : 0;
     final firstRect = (aRects[aPage] ?? bRects[bPage])?.first;
-    out.add(_Draft(
-      CompareCategory.text,
-      kind,
-      row,
-      firstRect?.t ?? 0,
-      oldText: aLen > 0 ? join(aRef, a, ga0, ga1) : '',
-      newText: bLen > 0 ? join(bRef, b, gb0, gb1) : '',
-      aRects: aRects,
-      bRects: bRects,
-      aPage: aPage,
-      bPage: bPage,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.text,
+        kind,
+        row,
+        firstRect?.t ?? 0,
+        oldText: aLen > 0 ? join(aRef, a, ga0, ga1) : '',
+        newText: bLen > 0 ? join(bRef, b, gb0, gb1) : '',
+        aRects: aRects,
+        bRects: bRects,
+        aPage: aPage,
+        bPage: bPage,
+      ),
+    );
   }
 }
 
@@ -482,8 +513,7 @@ bool _colorDiffers(int x, int y) {
   return dr.abs() + dg.abs() + db.abs() > 60;
 }
 
-String _hex(int c) =>
-    '#${c.toRadixString(16).padLeft(6, '0').toUpperCase()}';
+String _hex(int c) => '#${c.toRadixString(16).padLeft(6, '0').toUpperCase()}';
 
 String _formatDetail(CompareWord x, CompareWord y) {
   final parts = <String>[];
@@ -520,23 +550,27 @@ void _collectFormatting(
     final aRects = _lineRects(aRef.sublist(start, end), a);
     final bRects = _lineRects(bRef.sublist(startB, bEnd), b);
     final aPage = aRef[start].page;
-    final text = _clip(aRef
-        .sublist(start, end)
-        .map((r) => a.pages[r.page].words[r.word].text)
-        .join(' '));
-    out.add(_Draft(
-      CompareCategory.formatting,
-      CompareChangeKind.changed,
-      rowOfA[aPage]!,
-      aRects[aPage]?.first.t ?? 0,
-      oldText: text,
-      newText: text,
-      detail: detail,
-      aRects: aRects,
-      bRects: bRects,
-      aPage: aPage,
-      bPage: bRef[startB].page,
-    ));
+    final text = _clip(
+      aRef
+          .sublist(start, end)
+          .map((r) => a.pages[r.page].words[r.word].text)
+          .join(' '),
+    );
+    out.add(
+      _Draft(
+        CompareCategory.formatting,
+        CompareChangeKind.changed,
+        rowOfA[aPage]!,
+        aRects[aPage]?.first.t ?? 0,
+        oldText: text,
+        newText: text,
+        detail: detail,
+        aRects: aRects,
+        bRects: bRects,
+        aPage: aPage,
+        bPage: bRef[startB].page,
+      ),
+    );
     start = -1;
   }
 
@@ -589,56 +623,70 @@ void _collectImages(
     final x = pa.images[i];
     final y = pb.images[j];
     final moved = x.rect.iou(y.rect) < 0.9;
-    final resampled = (x.pixelWidth != y.pixelWidth ||
-            x.pixelHeight != y.pixelHeight) &&
+    final resampled =
+        (x.pixelWidth != y.pixelWidth || x.pixelHeight != y.pixelHeight) &&
         x.pixelWidth > 0 &&
         y.pixelWidth > 0;
     final content = x.hash != 0 && y.hash != 0 && x.hash != y.hash;
     if (!moved && !resampled && !content) continue;
-    out.add(_Draft(
-      CompareCategory.images,
-      content ? CompareChangeKind.replaced : CompareChangeKind.changed,
-      row,
-      x.rect.t,
-      detail: [
-        if (content) 'Image content differs',
-        if (moved) 'Moved or resized',
-        if (resampled)
-          'Pixels ${x.pixelWidth}×${x.pixelHeight} → ${y.pixelWidth}×${y.pixelHeight}',
-      ].join(' · '),
-      aRects: {pa.index: [x.rect]},
-      bRects: {pb.index: [y.rect]},
-      aPage: pa.index,
-      bPage: pb.index,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.images,
+        content ? CompareChangeKind.replaced : CompareChangeKind.changed,
+        row,
+        x.rect.t,
+        detail: [
+          if (content) 'Image content differs',
+          if (moved) 'Moved or resized',
+          if (resampled)
+            'Pixels ${x.pixelWidth}×${x.pixelHeight} → ${y.pixelWidth}×${y.pixelHeight}',
+        ].join(' · '),
+        aRects: {
+          pa.index: [x.rect],
+        },
+        bRects: {
+          pb.index: [y.rect],
+        },
+        aPage: pa.index,
+        bPage: pb.index,
+      ),
+    );
   }
   for (var i = 0; i < pa.images.length; i++) {
     if (usedA.contains(i)) continue;
     final x = pa.images[i];
-    out.add(_Draft(
-      CompareCategory.images,
-      CompareChangeKind.deleted,
-      row,
-      x.rect.t,
-      detail: x.pixelWidth > 0 ? '${x.pixelWidth}×${x.pixelHeight} px' : null,
-      aRects: {pa.index: [x.rect]},
-      aPage: pa.index,
-      bPage: pb.index,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.images,
+        CompareChangeKind.deleted,
+        row,
+        x.rect.t,
+        detail: x.pixelWidth > 0 ? '${x.pixelWidth}×${x.pixelHeight} px' : null,
+        aRects: {
+          pa.index: [x.rect],
+        },
+        aPage: pa.index,
+        bPage: pb.index,
+      ),
+    );
   }
   for (var j = 0; j < pb.images.length; j++) {
     if (usedB.contains(j)) continue;
     final y = pb.images[j];
-    out.add(_Draft(
-      CompareCategory.images,
-      CompareChangeKind.inserted,
-      row,
-      y.rect.t,
-      detail: y.pixelWidth > 0 ? '${y.pixelWidth}×${y.pixelHeight} px' : null,
-      bRects: {pb.index: [y.rect]},
-      aPage: pa.index,
-      bPage: pb.index,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.images,
+        CompareChangeKind.inserted,
+        row,
+        y.rect.t,
+        detail: y.pixelWidth > 0 ? '${y.pixelWidth}×${y.pixelHeight} px' : null,
+        bRects: {
+          pb.index: [y.rect],
+        },
+        aPage: pa.index,
+        bPage: pb.index,
+      ),
+    );
   }
 }
 
@@ -664,54 +712,68 @@ void _collectAnnots(
     final edited = x.contents.trim() != y.contents.trim();
     final retarget = x.target != y.target;
     if (!moved && !edited && !retarget) continue;
-    out.add(_Draft(
-      CompareCategory.annotations,
-      CompareChangeKind.changed,
-      row,
-      x.rect.t,
-      oldText: _clip(edited ? x.contents : x.target, 200),
-      newText: _clip(edited ? y.contents : y.target, 200),
-      detail: [
-        x.subtypeLabel,
-        if (moved) 'moved',
-        if (edited) 'contents edited',
-        if (retarget) 'target ${_orNone(x.target)} → ${_orNone(y.target)}',
-      ].join(' · '),
-      aRects: {pa.index: [x.rect]},
-      bRects: {pb.index: [y.rect]},
-      aPage: pa.index,
-      bPage: pb.index,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.annotations,
+        CompareChangeKind.changed,
+        row,
+        x.rect.t,
+        oldText: _clip(edited ? x.contents : x.target, 200),
+        newText: _clip(edited ? y.contents : y.target, 200),
+        detail: [
+          x.subtypeLabel,
+          if (moved) 'moved',
+          if (edited) 'contents edited',
+          if (retarget) 'target ${_orNone(x.target)} → ${_orNone(y.target)}',
+        ].join(' · '),
+        aRects: {
+          pa.index: [x.rect],
+        },
+        bRects: {
+          pb.index: [y.rect],
+        },
+        aPage: pa.index,
+        bPage: pb.index,
+      ),
+    );
   }
   for (var i = 0; i < pa.annots.length; i++) {
     if (usedA.contains(i)) continue;
     final x = pa.annots[i];
-    out.add(_Draft(
-      CompareCategory.annotations,
-      CompareChangeKind.deleted,
-      row,
-      x.rect.t,
-      oldText: _clip(x.contents.isNotEmpty ? x.contents : x.target, 200),
-      detail: x.subtypeLabel,
-      aRects: {pa.index: [x.rect]},
-      aPage: pa.index,
-      bPage: pb.index,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.annotations,
+        CompareChangeKind.deleted,
+        row,
+        x.rect.t,
+        oldText: _clip(x.contents.isNotEmpty ? x.contents : x.target, 200),
+        detail: x.subtypeLabel,
+        aRects: {
+          pa.index: [x.rect],
+        },
+        aPage: pa.index,
+        bPage: pb.index,
+      ),
+    );
   }
   for (var j = 0; j < pb.annots.length; j++) {
     if (usedB.contains(j)) continue;
     final y = pb.annots[j];
-    out.add(_Draft(
-      CompareCategory.annotations,
-      CompareChangeKind.inserted,
-      row,
-      y.rect.t,
-      newText: _clip(y.contents.isNotEmpty ? y.contents : y.target, 200),
-      detail: y.subtypeLabel,
-      bRects: {pb.index: [y.rect]},
-      aPage: pa.index,
-      bPage: pb.index,
-    ));
+    out.add(
+      _Draft(
+        CompareCategory.annotations,
+        CompareChangeKind.inserted,
+        row,
+        y.rect.t,
+        newText: _clip(y.contents.isNotEmpty ? y.contents : y.target, 200),
+        detail: y.subtypeLabel,
+        bRects: {
+          pb.index: [y.rect],
+        },
+        aPage: pa.index,
+        bPage: pb.index,
+      ),
+    );
   }
 }
 
@@ -728,8 +790,9 @@ List<(int, int)> _greedyMatch(
     for (var j = 0; j < b.length; j++) {
       if (!compatible(i, j)) continue;
       final iou = a[i].iou(b[j]);
-      final dist = math.sqrt(math.pow(a[i].cx - b[j].cx, 2) +
-          math.pow(a[i].cy - b[j].cy, 2));
+      final dist = math.sqrt(
+        math.pow(a[i].cx - b[j].cx, 2) + math.pow(a[i].cy - b[j].cy, 2),
+      );
       final sizeRatio = a[i].area <= 0 || b[j].area <= 0
           ? 0.0
           : math.min(a[i].area, b[j].area) / math.max(a[i].area, b[j].area);

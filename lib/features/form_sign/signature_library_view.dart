@@ -95,7 +95,8 @@ class _SignatureLibraryViewState extends State<SignatureLibraryView> {
     final ok = await showDsAdaptiveConfirm(
       context,
       title: s.isInitials ? 'Delete these initials?' : 'Delete this signature?',
-      message: 'It is removed from this device. Documents you already signed '
+      message:
+          'It is removed from this device. Documents you already signed '
           'are not affected.',
       confirmLabel: 'Delete',
       destructive: true,
@@ -227,7 +228,8 @@ class _Grid extends StatelessWidget {
                 width: w,
                 height: h,
                 child: DsMotion.fadeRiseIn(
-                  duration: DsMotion.contentReveal +
+                  duration:
+                      DsMotion.contentReveal +
                       DsMotion.staggerStep * math.min(i, 6),
                   child: _SignatureCard(
                     signature: items[i],
@@ -298,8 +300,8 @@ class _SignatureCardState extends State<_SignatureCard> {
             color: armed
                 ? accent
                 : _hover
-                    ? accent.withValues(alpha: 0.45)
-                    : DsColors.border(theme.brightness),
+                ? accent.withValues(alpha: 0.45)
+                : DsColors.border(theme.brightness),
             width: armed ? 1.8 : 1,
           ),
           boxShadow: _hover || armed

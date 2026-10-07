@@ -5,13 +5,7 @@ import 'package:equatable/equatable.dart';
 enum PageNumberStyle { arabic, romanLower, romanUpper }
 
 /// Known `{variable}` tokens for header/footer templates (DS-HDR-001).
-const pdfMarkupTemplateVariables = {
-  'title',
-  'file',
-  'date',
-  'page',
-  'pages',
-};
+const pdfMarkupTemplateVariables = {'title', 'file', 'date', 'page', 'pages'};
 
 class PdfMarkupTemplateContext extends Equatable {
   const PdfMarkupTemplateContext({
@@ -53,7 +47,8 @@ class PdfMarkupTemplateContext extends Equatable {
   /// Sample context for live template preview in markup tools.
   static PdfMarkupTemplateContext previewSample({LocalFileRef? file}) {
     return PdfMarkupTemplateContext(
-      file: file ??
+      file:
+          file ??
           const LocalFileRef(
             path: '/sample/report.pdf',
             displayName: 'report.pdf',
@@ -66,8 +61,13 @@ class PdfMarkupTemplateContext extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [file.path, pageIndex1Based, pageCount, documentTitle, date];
+  List<Object?> get props => [
+    file.path,
+    pageIndex1Based,
+    pageCount,
+    documentTitle,
+    date,
+  ];
 }
 
 /// Returns user-facing issues for a header/footer template string.
@@ -151,11 +151,7 @@ class PdfMarkupPreviewLine {
 }
 
 /// DS-PGN-002 stub — fixed-width Bates-style label (full feature not wired).
-String formatBatesNumber(
-  int sequence, {
-  String prefix = '',
-  int minWidth = 6,
-}) {
+String formatBatesNumber(int sequence, {String prefix = '', int minWidth = 6}) {
   if (sequence < 1) return '$prefix$sequence';
   return '$prefix${sequence.toString().padLeft(minWidth, '0')}';
 }
@@ -220,8 +216,13 @@ class HeaderFooterOptions extends Equatable {
       headerTemplate.trim().isNotEmpty || footerTemplate.trim().isNotEmpty;
 
   @override
-  List<Object?> get props =>
-      [headerTemplate, footerTemplate, fontSizePt, alignment, pages1Based];
+  List<Object?> get props => [
+    headerTemplate,
+    footerTemplate,
+    fontSizePt,
+    alignment,
+    pages1Based,
+  ];
 }
 
 enum HeaderFooterAlignment { left, center, right }
@@ -265,16 +266,16 @@ class PageNumberOptions extends Equatable {
 
   @override
   List<Object?> get props => [
-        startAt,
-        style,
-        prefix,
-        suffix,
-        fontSizePt,
-        vertical,
-        alignment,
-        format,
-        pages1Based,
-      ];
+    startAt,
+    style,
+    prefix,
+    suffix,
+    fontSizePt,
+    vertical,
+    alignment,
+    format,
+    pages1Based,
+  ];
 }
 
 enum PageNumberVertical { top, bottom }
@@ -282,12 +283,7 @@ enum PageNumberVertical { top, bottom }
 enum PageNumberFormat { pageN, nOfM }
 
 /// Placement presets for text watermarks (DS-WTM-001).
-enum WatermarkPlacement {
-  diagonalCenter,
-  center,
-  bottomRight,
-  topLeft,
-}
+enum WatermarkPlacement { diagonalCenter, center, bottomRight, topLeft }
 
 class WatermarkOptions extends Equatable {
   const WatermarkOptions({
@@ -336,8 +332,7 @@ class WatermarkOptions extends Equatable {
 
   bool get hasContent => textTemplate.trim().isNotEmpty;
 
-  bool get hasCustomAnchor =>
-      anchorLeftNorm != null && anchorTopNorm != null;
+  bool get hasCustomAnchor => anchorLeftNorm != null && anchorTopNorm != null;
 
   double get effectiveRotationDegrees {
     final explicit = rotationDegrees;
@@ -355,19 +350,19 @@ class WatermarkOptions extends Equatable {
 
   @override
   List<Object?> get props => [
-        textTemplate,
-        fontSizePt,
-        opacity,
-        placement,
-        rotationDegrees,
-        anchorLeftNorm,
-        anchorTopNorm,
-        pages1Based,
-        fillRgb,
-        tiled,
-        behindContent,
-        position,
-      ];
+    textTemplate,
+    fontSizePt,
+    opacity,
+    placement,
+    rotationDegrees,
+    anchorLeftNorm,
+    anchorTopNorm,
+    pages1Based,
+    fillRgb,
+    tiled,
+    behindContent,
+    position,
+  ];
 }
 
 List<String> validateWatermarkOptions(WatermarkOptions options) {
@@ -394,7 +389,8 @@ List<PdfMarkupPreviewLine> previewWatermark(
   return [
     PdfMarkupPreviewLine(
       label: 'Sample page 1',
-      text: '$text · ${options.placement.name} · '
+      text:
+          '$text · ${options.placement.name} · '
           '${(options.opacity * 100).round()}% opacity',
     ),
   ];
@@ -416,8 +412,7 @@ List<PdfMarkupPreviewLine> previewPageNumbers(
   PageNumberOptions options, {
   int samplePageCount = 12,
 }) {
-  final indices =
-      samplePageCount > 1 ? [1, samplePageCount] : [1];
+  final indices = samplePageCount > 1 ? [1, samplePageCount] : [1];
   return [
     for (final page in indices)
       PdfMarkupPreviewLine(

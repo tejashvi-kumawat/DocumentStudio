@@ -23,7 +23,42 @@ class ComposeDoc {
     this.pageSize = 'A4',
     this.footnotes = const [],
     this.warnings = const [],
+    this.marginPt,
+    this.pageHeader,
+    this.pageFooter,
+    this.headerAlign = CAlign.center,
+    this.footerAlign = CAlign.center,
   });
+
+  /// Running header / footer text; `{PAGE}` and `{PAGES}` are page fields.
+  /// A null footer prints the page number; an empty one prints nothing.
+  final String? pageHeader, pageFooter;
+  final CAlign headerAlign, footerAlign;
+
+  /// Page margin in points (null = 1 inch for serif, 0.8 inch otherwise).
+  final double? marginPt;
+
+  ComposeDoc copyWith({
+    bool? serif,
+    double? baseFontSize,
+    String? pageSize,
+    double? marginPt,
+  }) => ComposeDoc(
+    blocks: blocks,
+    title: title,
+    author: author,
+    date: date,
+    serif: serif ?? this.serif,
+    baseFontSize: baseFontSize ?? this.baseFontSize,
+    pageSize: pageSize ?? this.pageSize,
+    footnotes: footnotes,
+    warnings: warnings,
+    marginPt: marginPt ?? this.marginPt,
+    pageHeader: pageHeader,
+    pageFooter: pageFooter,
+    headerAlign: headerAlign,
+    footerAlign: footerAlign,
+  );
 
   final List<CBlock> blocks;
   final String? title;
@@ -134,6 +169,57 @@ class CToc extends CBlock {
 class CAbstract extends CBlock {
   const CAbstract(this.blocks);
   final List<CBlock> blocks;
+}
+
+/// Framed callout (question / answer / tcolorbox-style).
+class CBox extends CBlock {
+  const CBox(this.blocks, {this.title, this.borderColor, this.fillColor});
+
+  final List<CBlock> blocks;
+  final String? title;
+
+  /// ARGB colours; null = renderer defaults.
+  final int? borderColor;
+  final int? fillColor;
+}
+
+/// Vector drawing from a TikZ subset (coordinates in PDF points).
+class CDrawing extends CBlock {
+  const CDrawing(this.ops, {required this.width, required this.height});
+
+  final List<CDrawOp> ops;
+  final double width;
+  final double height;
+}
+
+enum CDrawKind { line, polyline, rect, ellipse, text }
+
+/// One path / node in a [CDrawing].
+///
+/// Geometry conventions (points in pt, Y up):
+/// - [line]: two points
+/// - [polyline]: two or more points
+/// - [rect]: opposite corners (two points)
+/// - [ellipse]: center + (rx, ry) as the second "point" offsets
+/// - [text]: one anchor point + [text]
+class CDrawOp {
+  const CDrawOp({
+    required this.kind,
+    this.points = const [],
+    this.text,
+    this.strokeColor,
+    this.fillColor,
+    this.strokeWidth = 1,
+    this.dashed = false,
+  });
+
+  final CDrawKind kind;
+  final List<(double x, double y)> points;
+  final String? text;
+  final int? strokeColor;
+  final int? fillColor;
+  final double strokeWidth;
+  final bool dashed;
 }
 
 /// A run of inline text with its styling.

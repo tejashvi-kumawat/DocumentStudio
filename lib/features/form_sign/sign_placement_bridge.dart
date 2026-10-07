@@ -32,8 +32,7 @@ class SignPlaceable {
   /// Re-renders dynamic content (e.g. a stamp's date/time) at drop time.
   final Future<SignPlaceable> Function()? refresh;
 
-  double get aspect =>
-      sizePt.height > 0 ? sizePt.width / sizePt.height : 1.0;
+  double get aspect => sizePt.height > 0 ? sizePt.width / sizePt.height : 1.0;
 }
 
 /// An item placed on a page. [committed] items are already in the working
@@ -124,8 +123,10 @@ class SignPlacementController extends ChangeNotifier {
 
   /// Bumped on pointer-move edits so only page layers repaint while dragging.
   final ValueNotifier<int> draftRevision = ValueNotifier<int>(0);
-  late final Listenable pageListenable =
-      Listenable.merge([this, draftRevision]);
+  late final Listenable pageListenable = Listenable.merge([
+    this,
+    draftRevision,
+  ]);
 
   /// Set by the panel: write placed items into the PDF.
   VoidCallback? onApply;
@@ -140,8 +141,10 @@ class SignPlacementController extends ChangeNotifier {
   void Function(int page1Based, Rect rectNorm)? onFieldDrawn;
 
   /// Images not yet written into the working copy.
-  List<SignPlacedItem> get pendingItems =>
-      [for (final i in _items) if (!i.committed) i];
+  List<SignPlacedItem> get pendingItems => [
+    for (final i in _items)
+      if (!i.committed) i,
+  ];
 
   bool get hasItems => pendingItems.isNotEmpty;
   int get pendingCount => pendingItems.length;
@@ -175,6 +178,7 @@ class SignPlacementController extends ChangeNotifier {
     _libraryDrag = false;
     notifyListeners();
   }
+
   int? get selectedId => _selectedId;
   SignPlacedItem? get selected {
     for (final i in _items) {
@@ -284,11 +288,13 @@ class SignPlacementController extends ChangeNotifier {
     Rect? fitInto,
   }) {
     final size = _normSizeFor(item, pageSizePt, fitInto: fitInto);
-    return _clampRect(Rect.fromCenter(
-      center: fitInto?.center ?? centerNorm,
-      width: size.width,
-      height: size.height,
-    ));
+    return _clampRect(
+      Rect.fromCenter(
+        center: fitInto?.center ?? centerNorm,
+        width: size.width,
+        height: size.height,
+      ),
+    );
   }
 
   /// Places [item] centred at [centerNorm] (or inside [fitInto]) on [page].
@@ -326,17 +332,17 @@ class SignPlacementController extends ChangeNotifier {
         if (i >= 0) {
           final cur = _items[i];
           // Keep the box width, follow the refreshed content's aspect.
-          final hNorm = cur.rectNorm.width *
-              pagePt.width /
-              fresh.aspect /
-              pagePt.height;
+          final hNorm =
+              cur.rectNorm.width * pagePt.width / fresh.aspect / pagePt.height;
           _items[i] = cur.copyWith(
             png: fresh.png,
-            rectNorm: _clampRect(Rect.fromCenter(
-              center: cur.rectNorm.center,
-              width: cur.rectNorm.width,
-              height: hNorm,
-            )),
+            rectNorm: _clampRect(
+              Rect.fromCenter(
+                center: cur.rectNorm.center,
+                width: cur.rectNorm.width,
+                height: hNorm,
+              ),
+            ),
           );
           notifyListeners();
         }
@@ -358,7 +364,12 @@ class SignPlacementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void update(int id, {Rect? rectNorm, double? rotationDegrees, bool draft = false}) {
+  void update(
+    int id, {
+    Rect? rectNorm,
+    double? rotationDegrees,
+    bool draft = false,
+  }) {
     final i = _items.indexWhere((e) => e.id == id);
     if (i < 0) return;
     _items[i] = _items[i].copyWith(
@@ -486,7 +497,11 @@ class SignPlacementController extends ChangeNotifier {
 
   /// Scrolls the viewer to [rectNorm] on [page1Based] and flashes it.
   Future<void> showField(int page1Based, Rect rectNorm) async {
-    _flash = SignFieldFlash(page1Based, rectNorm, (_flash?.generation ?? 0) + 1);
+    _flash = SignFieldFlash(
+      page1Based,
+      rectNorm,
+      (_flash?.generation ?? 0) + 1,
+    );
     notifyListeners();
     final v = _viewer;
     if (v == null || !v.isReady) return;
@@ -538,7 +553,9 @@ class SignPlacementController extends ChangeNotifier {
   }
 }
 
-final signPlacementControllerProvider = Provider<SignPlacementController>((ref) {
+final signPlacementControllerProvider = Provider<SignPlacementController>((
+  ref,
+) {
   final c = SignPlacementController();
   ref.onDispose(c.dispose);
   return c;
@@ -602,6 +619,7 @@ class SignLibraryDraggable extends StatelessWidget {
       controller.setLibraryDrag(false);
       controller.setDragHover(false);
     }
+
     final dimmed = Opacity(opacity: 0.45, child: child);
     if (_touchFirst) {
       // Short delay so a deliberate drag starts quickly; long enough that

@@ -57,20 +57,8 @@ Future<Uint8List> perspectiveCropPageToBytes({
       final br = px(quad.bottomRight);
       final bl = px(quad.bottomLeft);
 
-      final outW = math
-          .max(
-            dist(tr, tl),
-            dist(br, bl),
-          )
-          .round()
-          .clamp(32, 4096);
-      final outH = math
-          .max(
-            dist(bl, tl),
-            dist(br, tr),
-          )
-          .round()
-          .clamp(32, 4096);
+      final outW = math.max(dist(tr, tl), dist(br, bl)).round().clamp(32, 4096);
+      final outH = math.max(dist(bl, tl), dist(br, tr)).round().clamp(32, 4096);
 
       final warped = img.copyRectify(
         raster,

@@ -15,7 +15,8 @@ String shortToolHelper(String? raw, {required String fallback}) {
     '',
   );
   final lower = text.toLowerCase();
-  final dump = text.contains('#') ||
+  final dump =
+      text.contains('#') ||
       lower.contains('stacktrace') ||
       lower.contains('qpdf') ||
       lower.contains('[b]') ||
@@ -44,11 +45,13 @@ class ViewerToolFormBody extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final window = MediaQuery.sizeOf(context).width;
-        final compact = window < DsSpacing.breakpointCompact ||
+        final compact =
+            window < DsSpacing.breakpointCompact ||
             (constraints.maxWidth.isFinite &&
                 constraints.maxWidth < DsSpacing.breakpointCompact);
         final height = constraints.maxHeight;
-        final pageLike = !height.isFinite ||
+        final pageLike =
+            !height.isFinite ||
             height >= MediaQuery.sizeOf(context).height * 0.72;
         final pad = DsSpacing.pagePaddingCompact;
         final maxW = compact ? double.infinity : viewerAcrobatOptionsWidth;
@@ -57,10 +60,7 @@ class ViewerToolFormBody extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxW),
-            child: Padding(
-              padding: EdgeInsets.all(pad),
-              child: child,
-            ),
+            child: Padding(padding: EdgeInsets.all(pad), child: child),
           ),
         );
         if (scroll) {
@@ -106,11 +106,7 @@ class ViewerToolPrimaryButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
       ),
       icon: Icon(icon, size: 18),
-      label: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
     if (!compact) {
       return Align(alignment: Alignment.centerRight, child: button);
@@ -150,11 +146,7 @@ class ViewerToolSecondaryButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
       ),
       icon: Icon(icon, size: 18),
-      label: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
     if (!compact) return button;
     return SizedBox(

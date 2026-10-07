@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/large_doc_policy.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -21,10 +22,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// Does not claim PDF/UA. Image `/Alt` is not offered without a real structure tree.
 class ViewerAccessibilityTagsPanel extends ConsumerStatefulWidget {
-  const ViewerAccessibilityTagsPanel({
-    super.key,
-    required this.handoff,
-  });
+  const ViewerAccessibilityTagsPanel({super.key, required this.handoff});
 
   final PdfViewerDocumentHandoff handoff;
 
@@ -214,10 +212,9 @@ class _ViewerAccessibilityTagsPanelState
         setState(() => _error = 'No open document session.');
         return;
       }
-      final temp = await ref.read(fileStorageProvider).createTempFile(
-            prefix: 'a11y_lang_',
-            suffix: '.pdf',
-          );
+      final temp = await ref
+          .read(fileStorageProvider)
+          .createTempFile(prefix: 'a11y_lang_', suffix: '.pdf');
       await _service.setLanguageAndMarked(
         inputPath: widget.handoff.file.path,
         outputPath: temp,
@@ -349,15 +346,19 @@ class _ViewerAccessibilityTagsPanelState
             child: Center(child: CircularProgressIndicator()),
           )
         else if (info != null) ...[
-          _row(theme, 'Document language', info.documentLanguage ?? '(not set)'),
+          _row(
+            theme,
+            'Document language',
+            info.documentLanguage ?? '(not set)',
+          ),
           _row(
             theme,
             'Tagged claim',
             info.hasStructTreeRoot
                 ? 'Has /StructTreeRoot'
                 : info.markInfoMarked == true
-                    ? '/MarkInfo /Marked true (no StructTreeRoot)'
-                    : 'Not tagged',
+                ? '/MarkInfo /Marked true (no StructTreeRoot)'
+                : 'Not tagged',
           ),
           if (!info.hasStructTreeRoot) ...[
             const SizedBox(height: DsSpacing.sm),
@@ -402,9 +403,11 @@ class _ViewerAccessibilityTagsPanelState
               style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
             )
           else
-            for (var i = 0;
-                i < info.readingOrderLines.length.clamp(0, 200);
-                i++)
+            for (
+              var i = 0;
+              i < info.readingOrderLines.length.clamp(0, 200);
+              i++
+            )
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,

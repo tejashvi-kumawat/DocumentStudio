@@ -172,10 +172,7 @@ class DsStatusMetric extends StatelessWidget {
     );
 
     if (semanticsLabel != null) {
-      return Semantics(
-        label: semanticsLabel,
-        child: content,
-      );
+      return Semantics(label: semanticsLabel, child: content);
     }
     return content;
   }
@@ -201,9 +198,10 @@ class DsStatusIndicator extends StatelessWidget {
       DsStatusIndicatorTone.success => DsColors.success,
       DsStatusIndicatorTone.warning => DsColors.warning,
       DsStatusIndicatorTone.error => theme.colorScheme.error,
-      DsStatusIndicatorTone.neutral => theme.brightness == Brightness.dark
-          ? DsColors.textSecondaryDark
-          : DsColors.textSecondaryLight,
+      DsStatusIndicatorTone.neutral =>
+        theme.brightness == Brightness.dark
+            ? DsColors.textSecondaryDark
+            : DsColors.textSecondaryLight,
     };
 
     return Semantics(
@@ -215,10 +213,7 @@ class DsStatusIndicator extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 6),
           ],

@@ -103,8 +103,10 @@ bool hfAppliesToPage(HeaderFooterSpec spec, int page1Based, int pageCount) {
     case HfPageRange.even:
       return page1Based.isEven;
     case HfPageRange.custom:
-      return parseHfPageRange(spec.customRange, pageCount)
-              ?.contains(page1Based) ??
+      return parseHfPageRange(
+            spec.customRange,
+            pageCount,
+          )?.contains(page1Based) ??
           false;
   }
 }
@@ -119,7 +121,8 @@ List<int> hfBatesValues(HeaderFooterSpec spec, int pageCount) {
     custom = parseHfPageRange(spec.customRange, pageCount) ?? const {};
   }
   for (var p = 1; p <= pageCount; p++) {
-    final applies = !(spec.skipFirstPage && p == 1) &&
+    final applies =
+        !(spec.skipFirstPage && p == 1) &&
         switch (spec.range) {
           HfPageRange.all => true,
           HfPageRange.odd => p.isOdd,
@@ -238,47 +241,55 @@ HfPageLayout layoutHeaderFooterPage({
   final band = hd.bandRgb;
   if (band != null) {
     final bottom = hasHeader ? headerBottom + pad : m.top * 1.5;
-    rects.add(HfRectMark(
-      leftPt: 0,
-      topPt: 0,
-      widthPt: w,
-      heightPt: bottom.clamp(0.0, h / 2),
-      colorRgb: band,
-      opacity: hd.bandOpacity,
-    ));
+    rects.add(
+      HfRectMark(
+        leftPt: 0,
+        topPt: 0,
+        widthPt: w,
+        heightPt: bottom.clamp(0.0, h / 2),
+        colorRgb: band,
+        opacity: hd.bandOpacity,
+      ),
+    );
   }
   final fBand = fd.bandRgb;
   if (fBand != null) {
     final top = hasFooter ? footerTop - pad : h - m.bottom * 1.5;
     final t = top.clamp(h / 2, h);
-    rects.add(HfRectMark(
-      leftPt: 0,
-      topPt: t,
-      widthPt: w,
-      heightPt: h - t,
-      colorRgb: fBand,
-      opacity: fd.bandOpacity,
-    ));
+    rects.add(
+      HfRectMark(
+        leftPt: 0,
+        topPt: t,
+        widthPt: w,
+        heightPt: h - t,
+        colorRgb: fBand,
+        opacity: fd.bandOpacity,
+      ),
+    );
   }
   final ruleSpan = math.max(0.0, w - m.left - m.right);
   if (hd.ruleEnabled && hasHeader) {
-    rects.add(HfRectMark(
-      leftPt: m.left,
-      topPt: headerBottom + pad * 0.5,
-      widthPt: ruleSpan,
-      heightPt: hd.ruleWidthPt.clamp(0.25, 6.0),
-      colorRgb: hd.ruleRgb,
-    ));
+    rects.add(
+      HfRectMark(
+        leftPt: m.left,
+        topPt: headerBottom + pad * 0.5,
+        widthPt: ruleSpan,
+        heightPt: hd.ruleWidthPt.clamp(0.25, 6.0),
+        colorRgb: hd.ruleRgb,
+      ),
+    );
   }
   if (fd.ruleEnabled && hasFooter) {
     final t = fd.ruleWidthPt.clamp(0.25, 6.0);
-    rects.add(HfRectMark(
-      leftPt: m.left,
-      topPt: footerTop - pad * 0.5 - t,
-      widthPt: ruleSpan,
-      heightPt: t,
-      colorRgb: fd.ruleRgb,
-    ));
+    rects.add(
+      HfRectMark(
+        leftPt: m.left,
+        topPt: footerTop - pad * 0.5 - t,
+        widthPt: ruleSpan,
+        heightPt: t,
+        colorRgb: fd.ruleRgb,
+      ),
+    );
   }
   return HfPageLayout(texts: texts, rects: rects);
 }

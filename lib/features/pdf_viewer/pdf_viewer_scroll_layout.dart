@@ -17,10 +17,10 @@ enum PdfViewerScrollLayoutMode {
 
 extension PdfViewerScrollLayoutModeLabel on PdfViewerScrollLayoutMode {
   String get statusLabel => switch (this) {
-        PdfViewerScrollLayoutMode.continuous => 'Continuous',
-        PdfViewerScrollLayoutMode.singlePage => 'Single page',
-        PdfViewerScrollLayoutMode.twoPage => 'Two page',
-      };
+    PdfViewerScrollLayoutMode.continuous => 'Continuous',
+    PdfViewerScrollLayoutMode.singlePage => 'Single page',
+    PdfViewerScrollLayoutMode.twoPage => 'Two page',
+  };
 }
 
 double _twoPageMaxRowWidth(List<Size> pageSizes) {
@@ -29,8 +29,7 @@ double _twoPageMaxRowWidth(List<Size> pageSizes) {
   for (var i = 0; i < pageSizes.length; i += 2) {
     final left = pageSizes[i];
     final right = i + 1 < pageSizes.length ? pageSizes[i + 1] : null;
-    final rowWidth =
-        left.width + (right != null ? pairGap + right.width : 0);
+    final rowWidth = left.width + (right != null ? pairGap + right.width : 0);
     maxRowWidth = math.max(maxRowWidth, rowWidth);
   }
   return maxRowWidth;
@@ -51,13 +50,12 @@ double _twoPageMaxRowWidth(List<Size> pageSizes) {
       ? _twoPageMaxRowWidth(pageSizes)
       : pageSizes.fold(0.0, (w, s) => math.max(w, s.width));
   final documentWidth = contentMaxWidth + margin * 2;
-  final maxPageHeight =
-      pageSizes.fold(0.0, (h, s) => math.max(h, s.height));
+  final maxPageHeight = pageSizes.fold(0.0, (h, s) => math.max(h, s.height));
 
   final slotHeight = mode == PdfViewerScrollLayoutMode.singlePage
       ? (viewportHeight > margin * 2
-          ? viewportHeight
-          : maxPageHeight + margin * 2)
+            ? viewportHeight
+            : maxPageHeight + margin * 2)
       : 0.0;
 
   final pageLayouts = <Rect>[];
@@ -78,10 +76,7 @@ double _twoPageMaxRowWidth(List<Size> pageSizes) {
       }
       y += rowHeight + margin;
     }
-    return (
-      pageLayouts: pageLayouts,
-      documentSize: Size(documentWidth, y),
-    );
+    return (pageLayouts: pageLayouts, documentSize: Size(documentWidth, y));
   }
 
   for (final size in pageSizes) {
@@ -100,10 +95,7 @@ double _twoPageMaxRowWidth(List<Size> pageSizes) {
     }
   }
 
-  return (
-    pageLayouts: pageLayouts,
-    documentSize: Size(documentWidth, y),
-  );
+  return (pageLayouts: pageLayouts, documentSize: Size(documentWidth, y));
 }
 
 /// Returns a pdfrx [layoutPages] override, or `null` to use the library default (continuous).

@@ -13,8 +13,8 @@ class RoutingPdfMetadataAdapter implements PdfMetadataPort {
   RoutingPdfMetadataAdapter({
     QpdfMetadataAdapter? qpdf,
     DartPdfSecurityService? dart,
-  })  : _qpdf = qpdf ?? QpdfMetadataAdapter(),
-        _dart = dart ?? const DartPdfSecurityService();
+  }) : _qpdf = qpdf ?? QpdfMetadataAdapter(),
+       _dart = dart ?? const DartPdfSecurityService();
 
   final QpdfMetadataAdapter _qpdf;
   final DartPdfSecurityService _dart;
@@ -43,8 +43,8 @@ class RoutingPdfMetadataAdapter implements PdfMetadataPort {
         inputPassword: inputPassword,
         reencryptUserPassword:
             wasEncrypted && inputPassword != null && inputPassword.isNotEmpty
-                ? inputPassword
-                : null,
+            ? inputPassword
+            : null,
       );
     } on DocumentStudioError {
       rethrow;
@@ -103,8 +103,8 @@ class RoutingPdfMetadataAdapter implements PdfMetadataPort {
         },
         reencryptUserPassword:
             wasEncrypted && inputPassword != null && inputPassword.isNotEmpty
-                ? inputPassword
-                : null,
+            ? inputPassword
+            : null,
       );
     } on DocumentStudioError {
       rethrow;

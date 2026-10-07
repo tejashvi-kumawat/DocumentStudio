@@ -11,53 +11,52 @@ enum ProtectPermissionPreset {
 
 extension ProtectPermissionPresetLabels on ProtectPermissionPreset {
   String get label => switch (this) {
-        ProtectPermissionPreset.viewOnly => 'View only',
-        ProtectPermissionPreset.printOnly => 'Print only',
-        ProtectPermissionPreset.printAndCopy => 'Print & copy',
-        ProtectPermissionPreset.fullAccess => 'Full access',
-        ProtectPermissionPreset.custom => 'Custom',
-      };
+    ProtectPermissionPreset.viewOnly => 'View only',
+    ProtectPermissionPreset.printOnly => 'Print only',
+    ProtectPermissionPreset.printAndCopy => 'Print & copy',
+    ProtectPermissionPreset.fullAccess => 'Full access',
+    ProtectPermissionPreset.custom => 'Custom',
+  };
 
   String get subtitle => switch (this) {
-        ProtectPermissionPreset.viewOnly =>
-          'No printing, copying, editing, or comments.',
-        ProtectPermissionPreset.printOnly =>
-          'Printing allowed; copying and editing blocked.',
-        ProtectPermissionPreset.printAndCopy =>
-          'Print and copy text; no editing or comments.',
-        ProtectPermissionPreset.fullAccess =>
-          'All permissions enabled on the encrypted copy.',
-        ProtectPermissionPreset.custom =>
-          'Individual toggles below apply.',
-      };
+    ProtectPermissionPreset.viewOnly =>
+      'No printing, copying, editing, or comments.',
+    ProtectPermissionPreset.printOnly =>
+      'Printing allowed; copying and editing blocked.',
+    ProtectPermissionPreset.printAndCopy =>
+      'Print and copy text; no editing or comments.',
+    ProtectPermissionPreset.fullAccess =>
+      'All permissions enabled on the encrypted copy.',
+    ProtectPermissionPreset.custom => 'Individual toggles below apply.',
+  };
 }
 
 PdfEncryptPermissions permissionsForPreset(ProtectPermissionPreset preset) {
   return switch (preset) {
     ProtectPermissionPreset.viewOnly => const PdfEncryptPermissions(
-        allowPrinting: false,
-        allowModify: false,
-        allowExtract: false,
-        allowAnnotate: false,
-      ),
+      allowPrinting: false,
+      allowModify: false,
+      allowExtract: false,
+      allowAnnotate: false,
+    ),
     ProtectPermissionPreset.printOnly => const PdfEncryptPermissions(
-        allowPrinting: true,
-        allowModify: false,
-        allowExtract: false,
-        allowAnnotate: false,
-      ),
+      allowPrinting: true,
+      allowModify: false,
+      allowExtract: false,
+      allowAnnotate: false,
+    ),
     ProtectPermissionPreset.printAndCopy => const PdfEncryptPermissions(
-        allowPrinting: true,
-        allowModify: false,
-        allowExtract: true,
-        allowAnnotate: false,
-      ),
+      allowPrinting: true,
+      allowModify: false,
+      allowExtract: true,
+      allowAnnotate: false,
+    ),
     ProtectPermissionPreset.fullAccess => const PdfEncryptPermissions(
-        allowPrinting: true,
-        allowModify: true,
-        allowExtract: true,
-        allowAnnotate: true,
-      ),
+      allowPrinting: true,
+      allowModify: true,
+      allowExtract: true,
+      allowAnnotate: true,
+    ),
     ProtectPermissionPreset.custom => const PdfEncryptPermissions(),
   };
 }

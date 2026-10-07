@@ -54,7 +54,8 @@ class ImagePackageAdapter implements ImageProcessingPort {
         message: 'Resize dimensions must be positive',
       );
     }
-    final targetHeight = height ??
+    final targetHeight =
+        height ??
         (source.height * width / source.width).round().clamp(1, maxDimension);
     _guardDimensions(width, targetHeight);
     try {
@@ -142,7 +143,8 @@ class ImagePackageAdapter implements ImageProcessingPort {
     if (width > maxDimension || height > maxDimension) {
       throw DocumentStudioError(
         code: DocumentStudioErrorCode.outOfMemory,
-        message: 'Image is too large to edit ($width×$height px). '
+        message:
+            'Image is too large to edit ($width×$height px). '
             'The maximum is $maxDimension px per side.',
       );
     }

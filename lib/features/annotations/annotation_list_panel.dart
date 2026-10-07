@@ -122,7 +122,10 @@ class _AnnotationListPanelState extends State<AnnotationListPanel> {
             ),
             if (!caps.canAuthor)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 child: Text(
                   'Read-only — authoring blocked until PDFium annot FFI.',
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -264,31 +267,31 @@ class _AnnotationListPanelState extends State<AnnotationListPanel> {
   }
 
   static IconData _iconForKind(PdfAnnotationKind kind) => switch (kind) {
-        PdfAnnotationKind.highlight => Icons.highlight,
-        PdfAnnotationKind.underline => Icons.format_underlined,
-        PdfAnnotationKind.strikeOut => Icons.format_strikethrough,
-        PdfAnnotationKind.squiggly => Icons.flutter_dash,
-        PdfAnnotationKind.text || PdfAnnotationKind.freeText => Icons.text_fields,
-        PdfAnnotationKind.ink => Icons.draw,
-        PdfAnnotationKind.stamp => Icons.approval,
-        PdfAnnotationKind.comment => Icons.comment,
-        PdfAnnotationKind.uriLink => Icons.link,
-        PdfAnnotationKind.destinationLink => Icons.subdirectory_arrow_right,
-        PdfAnnotationKind.unknown => Icons.note_alt_outlined,
-      };
+    PdfAnnotationKind.highlight => Icons.highlight,
+    PdfAnnotationKind.underline => Icons.format_underlined,
+    PdfAnnotationKind.strikeOut => Icons.format_strikethrough,
+    PdfAnnotationKind.squiggly => Icons.flutter_dash,
+    PdfAnnotationKind.text || PdfAnnotationKind.freeText => Icons.text_fields,
+    PdfAnnotationKind.ink => Icons.draw,
+    PdfAnnotationKind.stamp => Icons.approval,
+    PdfAnnotationKind.comment => Icons.comment,
+    PdfAnnotationKind.uriLink => Icons.link,
+    PdfAnnotationKind.destinationLink => Icons.subdirectory_arrow_right,
+    PdfAnnotationKind.unknown => Icons.note_alt_outlined,
+  };
 
   static String _kindLabel(PdfAnnotationKind kind) => switch (kind) {
-        PdfAnnotationKind.highlight => 'Highlight',
-        PdfAnnotationKind.underline => 'Underline',
-        PdfAnnotationKind.strikeOut => 'Strike out',
-        PdfAnnotationKind.squiggly => 'Squiggly',
-        PdfAnnotationKind.text => 'Text',
-        PdfAnnotationKind.freeText => 'Text box',
-        PdfAnnotationKind.ink => 'Ink',
-        PdfAnnotationKind.stamp => 'Stamp',
-        PdfAnnotationKind.comment => 'Comment',
-        PdfAnnotationKind.uriLink => 'Web link',
-        PdfAnnotationKind.destinationLink => 'Internal link',
-        PdfAnnotationKind.unknown => 'Annotation',
-      };
+    PdfAnnotationKind.highlight => 'Highlight',
+    PdfAnnotationKind.underline => 'Underline',
+    PdfAnnotationKind.strikeOut => 'Strike out',
+    PdfAnnotationKind.squiggly => 'Squiggly',
+    PdfAnnotationKind.text => 'Text',
+    PdfAnnotationKind.freeText => 'Text box',
+    PdfAnnotationKind.ink => 'Ink',
+    PdfAnnotationKind.stamp => 'Stamp',
+    PdfAnnotationKind.comment => 'Comment',
+    PdfAnnotationKind.uriLink => 'Web link',
+    PdfAnnotationKind.destinationLink => 'Internal link',
+    PdfAnnotationKind.unknown => 'Annotation',
+  };
 }

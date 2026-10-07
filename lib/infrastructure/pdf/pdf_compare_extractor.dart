@@ -38,7 +38,8 @@ class PdfCompareExtractor {
     CompareCancelToken? token,
   }) async {
     final stat = await File(path).stat();
-    final key = '$path|${stat.modified.microsecondsSinceEpoch}|${stat.size}|'
+    final key =
+        '$path|${stat.modified.microsecondsSinceEpoch}|${stat.size}|'
         '${password ?? ''}';
     final cached = _cache.remove(key);
     if (cached != null) {
@@ -94,9 +95,11 @@ class PdfCompareExtractor {
         onProgress?.call(math.min(start, total), total);
       }
     } finally {
-      unawaited(PdfrxEntryFunctions.instance
-          .compute(_closeSession, session)
-          .then((_) {}, onError: (Object _) {}));
+      unawaited(
+        PdfrxEntryFunctions.instance
+            .compute(_closeSession, session)
+            .then((_) {}, onError: (Object _) {}),
+      );
     }
     return CompareDocData(path: path, pages: pages);
   }
@@ -140,9 +143,12 @@ class PdfCompareExtractor {
     final h = page.height <= 0 ? 1.0 : page.height;
     NormRect norm(PdfRect r) {
       final rect = r.toRect(page: page);
-      return NormRect(rect.left / w, rect.top / h, rect.right / w,
-              rect.bottom / h)
-          .clamp01();
+      return NormRect(
+        rect.left / w,
+        rect.top / h,
+        rect.right / w,
+        rect.bottom / h,
+      ).clamp01();
     }
 
     final words = <CompareWord>[];
@@ -154,10 +160,12 @@ class PdfCompareExtractor {
       NormRect? box;
       void flush() {
         if (sb.isNotEmpty) {
-          words.add(CompareWord(
-            text: sb.toString(),
-            rect: box ?? const NormRect(0, 0, 0, 0),
-          ));
+          words.add(
+            CompareWord(
+              text: sb.toString(),
+              rect: box ?? const NormRect(0, 0, 0, 0),
+            ),
+          );
         }
         sb.clear();
         box = null;
@@ -186,13 +194,16 @@ class PdfCompareExtractor {
         r = r.union(norm(x));
       }
       final dest = link.dest;
-      annots.add(CompareAnnot(
-        subtype: 2,
-        rect: r,
-        contents: '',
-        target: link.url?.toString() ??
-            (dest == null ? '' : 'page ${dest.pageNumber}'),
-      ));
+      annots.add(
+        CompareAnnot(
+          subtype: 2,
+          rect: r,
+          contents: '',
+          target:
+              link.url?.toString() ??
+              (dest == null ? '' : 'page ${dest.pageNumber}'),
+        ),
+      );
     }
     return ComparePageData(
       index: index,
@@ -206,14 +217,14 @@ class PdfCompareExtractor {
 }
 
 DocumentStudioError _openError(String path, int code) => DocumentStudioError(
-      code: code == 4
-          ? DocumentStudioErrorCode.passwordRequired
-          : DocumentStudioErrorCode.invalidFile,
-      message: code == 4
-          ? '${path.split(Platform.pathSeparator).last} is password protected.'
-          : 'Could not read ${path.split(Platform.pathSeparator).last} '
-              '(PDFium error $code).',
-    );
+  code: code == 4
+      ? DocumentStudioErrorCode.passwordRequired
+      : DocumentStudioErrorCode.invalidFile,
+  message: code == 4
+      ? '${path.split(Platform.pathSeparator).last} is password protected.'
+      : 'Could not read ${path.split(Platform.pathSeparator).last} '
+            '(PDFium error $code).',
+);
 
 // ---------------------------------------------------------------------------
 // PDFium worker side. Everything below runs inside pdfrx's worker isolate;
@@ -234,8 +245,8 @@ typedef _ChunkResult = ({
 });
 
 pdfium_bindings.PDFium? _pdfiumCache;
-pdfium_bindings.PDFium get _pdfium =>
-    _pdfiumCache ??= pdfium_bindings.getPdfium(modulePath: Pdfrx.pdfiumModulePath);
+pdfium_bindings.PDFium get _pdfium => _pdfiumCache ??= pdfium_bindings
+    .getPdfium(modulePath: Pdfrx.pdfiumModulePath);
 
 /// Documents kept open between chunks of one extraction run.
 final _sessionDocs = <String, int>{};
@@ -303,13 +314,13 @@ const _Mat _identity = (1, 0, 0, 1, 0, 0);
 
 /// `outer ∘ inner`: applies [inner] first.
 _Mat _concat(_Mat inner, _Mat outer) => (
-      inner.$1 * outer.$1 + inner.$2 * outer.$3,
-      inner.$1 * outer.$2 + inner.$2 * outer.$4,
-      inner.$3 * outer.$1 + inner.$4 * outer.$3,
-      inner.$3 * outer.$2 + inner.$4 * outer.$4,
-      inner.$5 * outer.$1 + inner.$6 * outer.$3 + outer.$5,
-      inner.$5 * outer.$2 + inner.$6 * outer.$4 + outer.$6,
-    );
+  inner.$1 * outer.$1 + inner.$2 * outer.$3,
+  inner.$1 * outer.$2 + inner.$2 * outer.$4,
+  inner.$3 * outer.$1 + inner.$4 * outer.$3,
+  inner.$3 * outer.$2 + inner.$4 * outer.$4,
+  inner.$5 * outer.$1 + inner.$6 * outer.$3 + outer.$5,
+  inner.$5 * outer.$2 + inner.$6 * outer.$4 + outer.$6,
+);
 
 int _hashBytes(Uint8List data) {
   // FNV-1a over at most ~256K evenly spaced bytes plus the length.
@@ -418,13 +429,15 @@ List<CompareWord> _words(
 
     void flush() {
       if (text.isNotEmpty) {
-        words.add(CompareWord(
-          text: text.toString(),
-          rect: hasBox ? norm(wl, wb, wr, wt) : const NormRect(0, 0, 0, 0),
-          font: font,
-          size: size,
-          color: color,
-        ));
+        words.add(
+          CompareWord(
+            text: text.toString(),
+            rect: hasBox ? norm(wl, wb, wr, wt) : const NormRect(0, 0, 0, 0),
+            font: font,
+            size: size,
+            color: color,
+          ),
+        );
       }
       text.clear();
       hasBox = false;
@@ -462,11 +475,19 @@ List<CompareWord> _words(
         if (gapX > em * 0.3 || gapY > em * 0.6) flush();
       }
       if (text.isEmpty) {
-        final len =
-            pdfium.FPDFText_GetFontInfo(tp, i, fontBuf.cast(), 256, flags);
+        final len = pdfium.FPDFText_GetFontInfo(
+          tp,
+          i,
+          fontBuf.cast(),
+          256,
+          flags,
+        );
         font = len > 1
-            ? _stripSubset(String.fromCharCodes(
-                fontBuf.asTypedList(math.min(len - 1, 255))))
+            ? _stripSubset(
+                String.fromCharCodes(
+                  fontBuf.asTypedList(math.min(len - 1, 255)),
+                ),
+              )
             : '';
         size = pdfium.FPDFText_GetFontSize(tp, i);
         color = pdfium.FPDFText_GetFillColor(tp, i, cr, cg, cb, ca) != 0
@@ -547,12 +568,14 @@ List<CompareImageObj> _images(
     final rect = norm(x0, y0, x1, y1).clamp01();
     if (rect.area < 0.00005) return;
     final ok = pdfium.FPDFImageObj_GetImagePixelSize(obj, pw, ph) != 0;
-    images.add(CompareImageObj(
-      rect: rect,
-      pixelWidth: ok ? pw.value : 0,
-      pixelHeight: ok ? ph.value : 0,
-      hash: _imageHash(pdfium, obj),
-    ));
+    images.add(
+      CompareImageObj(
+        rect: rect,
+        pixelWidth: ok ? pw.value : 0,
+        pixelHeight: ok ? ph.value : 0,
+        hash: _imageHash(pdfium, obj),
+      ),
+    );
   }
 
   final objCount = pdfium.FPDFPage_CountObjects(page);
@@ -606,20 +629,26 @@ List<CompareAnnot> _annots(
         math.max(rf.bottom, rf.top),
       ).clamp01();
       var contents = '';
-      final need =
-          pdfium.FPDFAnnot_GetStringValue(annot, contentsKey, nullptr, 0);
+      final need = pdfium.FPDFAnnot_GetStringValue(
+        annot,
+        contentsKey,
+        nullptr,
+        0,
+      );
       if (need > 2) {
         final buf = arena<Uint16>(need ~/ 2 + 1);
         pdfium.FPDFAnnot_GetStringValue(annot, contentsKey, buf.cast(), need);
         contents = String.fromCharCodes(buf.asTypedList(need ~/ 2 - 1));
       }
       final target = subtype == 2 ? _linkTarget(pdfium, doc, annot, arena) : '';
-      annots.add(CompareAnnot(
-        subtype: subtype,
-        rect: rect,
-        contents: contents,
-        target: target,
-      ));
+      annots.add(
+        CompareAnnot(
+          subtype: subtype,
+          rect: rect,
+          contents: contents,
+          target: target,
+        ),
+      );
     } finally {
       pdfium.FPDFPage_CloseAnnot(annot);
     }

@@ -42,10 +42,7 @@ abstract final class DsMotion {
     Widget child, {
     double risePx = revealRisePx,
   }) {
-    final curved = CurvedAnimation(
-      parent: animation,
-      curve: switchCurve,
-    );
+    final curved = CurvedAnimation(parent: animation, curve: switchCurve);
     return FadeTransition(
       opacity: curved,
       child: AnimatedBuilder(

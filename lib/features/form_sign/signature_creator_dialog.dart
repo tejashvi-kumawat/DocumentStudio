@@ -110,10 +110,10 @@ class _SignatureCreatorState extends State<_SignatureCreator> {
   }
 
   bool get _canSave => switch (_mode) {
-        _CreateMode.draw => !_pad.isEmpty,
-        _CreateMode.type => _text.text.trim().isNotEmpty,
-        _CreateMode.image => _image != null,
-      };
+    _CreateMode.draw => !_pad.isEmpty,
+    _CreateMode.type => _text.text.trim().isNotEmpty,
+    _CreateMode.image => _image != null,
+  };
 
   Future<void> _pickImage() async {
     final ref = await widget.storage.pickOpenFile(
@@ -156,10 +156,10 @@ class _SignatureCreatorState extends State<_SignatureCreator> {
       final png = switch (_mode) {
         _CreateMode.draw => await rasterizeDrawnSignature(ink: _pad.toInk()),
         _CreateMode.type => await rasterizeTypedSignature(
-            text: _text.text,
-            color: _typeColor,
-            typeface: _typeface,
-          ),
+          text: _text.text,
+          color: _typeColor,
+          typeface: _typeface,
+        ),
         _CreateMode.image => _image!.png,
       };
       final saved = await widget.store.add(png, kind: _kind);
@@ -191,8 +191,16 @@ class _SignatureCreatorState extends State<_SignatureCreator> {
             value: _kind,
             onChanged: _setKind,
             segments: const [
-              (SavedSignatureKind.signature, 'Signature', Icons.gesture_rounded),
-              (SavedSignatureKind.initials, 'Initials', Icons.text_fields_rounded),
+              (
+                SavedSignatureKind.signature,
+                'Signature',
+                Icons.gesture_rounded,
+              ),
+              (
+                SavedSignatureKind.initials,
+                'Initials',
+                Icons.text_fields_rounded,
+              ),
             ],
           ),
           const SizedBox(height: DsSpacing.sm),
@@ -492,7 +500,11 @@ class _FontTile extends StatelessWidget {
                 Positioned(
                   right: 6,
                   top: 6,
-                  child: Icon(Icons.check_circle_rounded, size: 16, color: accent),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 16,
+                    color: accent,
+                  ),
                 ),
             ],
           ),

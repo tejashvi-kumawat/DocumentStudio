@@ -3,12 +3,12 @@ import 'package:document_studio/infrastructure/pdf/edit/pdf_page_stamp.dart';
 import 'package:document_studio/features/document_lifecycle/document_session.dart';
 import 'package:document_studio/features/pdf_viewer/document_tabs_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:document_studio/core/fonts/font_identifier.dart';
 import 'package:document_studio/core/fonts/font_library.dart';
 import 'package:document_studio/core/pdf/large_doc_policy.dart';
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:document_studio/app/providers.dart';
@@ -82,8 +82,33 @@ class _TextEditArgs {
 
 /// Background half of a text edit (see `_runJobFast`).
 bool _applyTextEdit(_TextEditArgs a) {
+  final out = _editTextBytes(File(a.path).readAsBytesSync(), a);
+  if (out == null) return false;
+  File(a.outPath).writeAsBytesSync(out, flush: true);
+  return true;
+}
+
+/// Several text edits in one pass over the file (one read, one write, one
+/// reload in the viewer). Returns how many could not be written.
+int _applyTextEdits((String, String, List<_TextEditArgs>) args) {
+  final (path, outPath, edits) = args;
+  var bytes = File(path).readAsBytesSync();
+  var failed = 0;
+  for (final a in edits) {
+    final next = _editTextBytes(bytes, a);
+    if (next == null) {
+      failed++;
+    } else {
+      bytes = next;
+    }
+  }
+  File(outPath).writeAsBytesSync(bytes, flush: true);
+  return failed;
+}
+
+Uint8List? _editTextBytes(Uint8List input, _TextEditArgs a) {
   ui.Rect r(List<double> v) => ui.Rect.fromLTRB(v[0], v[1], v[2], v[3]);
-  var bytes = File(a.path).readAsBytesSync();
+  var bytes = input;
   var covers = [for (final c in a.covers) r(c)];
   if (covers.isNotEmpty) {
     final stripped = removeTextInRects(bytes, a.page, covers);
@@ -108,7 +133,7 @@ bool _applyTextEdit(_TextEditArgs a) {
       covers: covers,
       coverRgb: (a.coverRgb[0], a.coverRgb[1], a.coverRgb[2]),
     );
-    if (stamped == null) return false;
+    if (stamped == null) return null;
     bytes = stamped;
   }
   final from = a.linkFrom;
@@ -116,8 +141,7 @@ bool _applyTextEdit(_TextEditArgs a) {
       (r(from).topLeft - r(a.linkTo).topLeft).distance > 0.002) {
     bytes = moveLinksWithBlock(bytes, a.page, r(from), r(a.linkTo)) ?? bytes;
   }
-  File(a.outPath).writeAsBytesSync(bytes, flush: true);
-  return true;
+  return bytes;
 }
 
 /// One queued object edit, in a form that can cross isolates.
@@ -349,6 +373,7 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
       _tabs = ref.read(documentTabsControllerProvider);
       _flushSession = _tabs!.activeSession;
       _flushSession?.pendingFlushers.add(_flushObjectEdits);
+      _flushSession?.pendingFlushers.add(_flushText);
       live.imageEditHandler = (r) => unawaited(_onImageEdit(r));
       live.objectSnapshot = (page, norm, widthPx) async {
         final session = _flushSession;
@@ -373,7 +398,10 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
     // Leaving Edit writes what is still queued (the session outlives us).
     _objTimer?.cancel();
     if (_pendingObj.isNotEmpty) unawaited(_applyBatch(List.of(_pendingObj)));
+    _textTimer?.cancel();
+    if (_pendingText.isNotEmpty) unawaited(_flushText());
     _flushSession?.pendingFlushers.remove(_flushObjectEdits);
+    _flushSession?.pendingFlushers.remove(_flushText);
     _live?.imageEditHandler = null;
     _live?.objectSnapshot = null;
     _live?.removeListener(_onLive);
@@ -382,8 +410,9 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
 
   void _onLive() {
     final live = _live;
-    if (!mounted || live == null || live.toolId != ViewerToolId.editText)
+    if (!mounted || live == null || live.toolId != ViewerToolId.editText) {
       return;
+    }
     if (live.textCommitRequestId != _handledCommitId) {
       _handledCommitId = live.textCommitRequestId;
       _commitCurrent();
@@ -464,62 +493,91 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
       final found = await compute(_scanPageObjects, (path, pages));
       if (!mounted || live.toolId != ViewerToolId.editText) return;
       found.$1.forEach(live.setImagesForPage);
-      _applyFonts(blocks, found.$2, live);
-      // Identify each font and load its bundled twin now, so opening a block
-      // already shows (and saves with) the matching typeface.
-      final names = {
-        for (final hs in found.$2.values)
-          for (final h in hs) h.baseFont,
-      };
-      for (final n in names) {
-        await FontLibrary.instance.resolveOriginal(n);
+      // Recognise each font once (name, embedded family, glyph widths) and
+      // load its bundled twin before the blocks get it, so opening a block
+      // shows — and saves with — the matching typeface at once.
+      final identifier = await FontLibrary.instance.identifier();
+      final ids = <String, FontIdentity>{};
+      for (final hs in found.$2.values) {
+        for (final h in hs) {
+          final ev = h.evidence;
+          if (ev != null)
+            ids.putIfAbsent(ev.name, () => identifier.identify(ev));
+        }
       }
+      await Future.wait([
+        for (final id in ids.values)
+          FontLibrary.instance.loadLibraryFont(
+            id.family,
+            bold: id.bold,
+            italic: id.italic,
+          ),
+      ]);
+      if (!mounted || live.toolId != ViewerToolId.editText) return;
+      _applyFonts(blocks, found.$2, ids, live);
     } catch (e, st) {
       debugPrint('Edit: object scan failed: $e\n$st');
     }
   }
 
-  /// Font recognition: attaches the closest installed match of each run's
-  /// font (read from the page content) to the editable blocks.
+  /// Font recognition: each editable block takes the font that shows most
+  /// of its text (a bold first word or a bullet glyph does not decide).
   void _applyFonts(
     Map<int, List<LiveTextEditTarget>> blocks,
     Map<int, List<TextFontHint>> hints,
+    Map<String, FontIdentity> ids,
     ViewerLiveToolSession live,
   ) {
-    final pages = blocks.keys.toList();
-    {
-      for (final p in pages) {
-        final ph = hints[p] ?? const <TextFontHint>[];
-        if (ph.isEmpty) continue;
-        final enriched = <LiveTextEditTarget>[];
-        for (final b in blocks[p]!) {
-          final box = (b.coverNorm ?? b.normRect).inflate(0.004);
-          TextFontHint? hit;
-          for (final h in ph) {
-            if (box.contains(h.origin)) {
-              hit = h;
-              break;
-            }
-          }
-          enriched.add(
-            hit == null
-                ? b
-                : LiveTextEditTarget(
-                    normRect: b.normRect,
-                    originalText: b.originalText,
-                    fontSizePt: b.fontSizePt,
-                    coverNorm: b.coverNorm,
-                    coverRects: b.coverRects,
-                    coverColor: b.coverColor,
-                    textColor: b.textColor,
-                    lineCount: b.lineCount,
-                    fontMatch: classifyBaseFont(hit.baseFont),
-                    leadingEm: b.leadingEm,
-                  ),
-          );
+    for (final p in blocks.keys) {
+      final ph = hints[p] ?? const <TextFontHint>[];
+      if (ph.isEmpty) continue;
+      final enriched = <LiveTextEditTarget>[];
+      for (final b in blocks[p]!) {
+        final box = (b.coverNorm ?? b.normRect).inflate(0.004);
+        final votes = <String, int>{};
+        TextFontHint? sample;
+        for (final h in ph) {
+          if (!box.contains(h.origin)) continue;
+          final n = votes[h.baseFont] = (votes[h.baseFont] ?? 0) + h.weight;
+          if (sample == null || n > (votes[sample.baseFont] ?? 0)) sample = h;
         }
-        live.setTextRunsForPage(p, enriched);
+        if (sample == null) {
+          enriched.add(b);
+          continue;
+        }
+        final id = ids[sample.baseFont];
+        final cls = classifyBaseFont(sample.baseFont);
+        final cat = id == null
+            ? null
+            : FontLibrary.instance.categoryOf(id.family);
+        enriched.add(
+          LiveTextEditTarget(
+            normRect: b.normRect,
+            originalText: b.originalText,
+            fontSizePt: b.fontSizePt,
+            coverNorm: b.coverNorm,
+            coverRects: b.coverRects,
+            coverColor: b.coverColor,
+            textColor: b.textColor,
+            lineCount: b.lineCount,
+            fontMatch: FontMatch(
+              family: switch (cat) {
+                'serif' => 'serif',
+                'monospace' => 'mono',
+                null => cls.family,
+                _ => 'sans',
+              },
+              bold: id?.bold ?? cls.bold,
+              italic: id?.italic ?? cls.italic,
+              original: sample.baseFont,
+              libraryFamily: id?.family,
+              how: id?.how,
+            ),
+            leadingEm: b.leadingEm,
+          ),
+        );
       }
+      live.setTextRunsForPage(p, enriched);
     }
   }
 
@@ -533,7 +591,7 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
   Future<void>? _objFlush;
   DocumentSession? _flushSession;
 
-  static const _objIdle = Duration(milliseconds: 1200);
+  static const _objIdle = Duration(milliseconds: 450);
 
   Future<void> _onImageEdit(ImageEditRequest r) async {
     final live = _live;
@@ -591,7 +649,9 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
     }
     _objTimer?.cancel();
     _objTimer = Timer(
-      r.kind == ImageEditKind.replace ? Duration.zero : _objIdle,
+      // Deletes and replacements are written at once; moves wait briefly so
+      // arrow-key nudges and quick drags go out as one change.
+      r.kind == ImageEditKind.move ? _objIdle : Duration.zero,
       () => unawaited(_flushObjectEdits()),
     );
     _safeSetState();
@@ -784,12 +844,173 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
       userFont: live.textUserFont,
       embed: live.embedFonts,
     );
+    _queueText(job);
+    _safeSetState();
+  }
+
+  /// Text edits wait a moment and go out together: the new text shows at
+  /// once, and a burst of edits costs one write and one page reload. Save,
+  /// Undo, Redo, leaving Edit, or editing over a waiting block write first.
+  final List<_TextJob> _pendingText = [];
+  Timer? _textTimer;
+  static const _textIdle = Duration(milliseconds: 1200);
+
+  void _queueText(_TextJob job) {
+    bool hits(_TextJob a, _TextJob b) {
+      if (a.page != b.page) return false;
+      final ra = [a.box, ...a.coverRects], rb = [b.box, ...b.coverRects];
+      return ra.any((x) => rb.any((y) => x.overlaps(y)));
+    }
+
+    if (_pendingText.any((p) => hits(p, job))) unawaited(_flushText());
+    _pendingText.add(job);
+    _textTimer?.cancel();
+    _textTimer = Timer(_textIdle, () => unawaited(_flushText()));
+  }
+
+  Future<void> _flushText() {
+    _textTimer?.cancel();
+    if (_pendingText.isEmpty) return _queue;
+    final batch = List.of(_pendingText);
+    _pendingText.clear();
     _jobsRunning++;
-    _queue = _queue.then((_) => _runJob(job)).whenComplete(() {
+    _safeSetStateIfMounted();
+    return _queue = _queue.then((_) => _runTextBatch(batch)).whenComplete(() {
       _jobsRunning--;
       _safeSetStateIfMounted();
     });
-    _safeSetState();
+  }
+
+  Future<void> _runTextBatch(List<_TextJob> batch) async {
+    final live = _live;
+    // Captured at start: this may run after leaving Edit (no `ref` then).
+    final tabs = _tabs;
+    final session = _flushSession;
+    if (live == null || tabs == null || session == null) {
+      for (final j in batch) {
+        live?.removePendingText(j.pendingId);
+      }
+      return;
+    }
+    if (!await LargeDocPolicy.allowsAnalysis(session)) {
+      // Very large files: the qpdf path, one edit at a time.
+      for (final j in batch) {
+        if (mounted) {
+          await _runJob(j);
+        } else {
+          live.removePendingText(j.pendingId);
+        }
+      }
+      return;
+    }
+    if (batch.length == 1) {
+      await _runJobFast(batch.single, session, tabs, live);
+      return;
+    }
+    try {
+      final args = <_TextEditArgs>[];
+      for (final job in batch) {
+        args.add(await _argsFor(job, session, ''));
+      }
+      final dir = await Directory.systemTemp.createTemp('ds_text_');
+      final DocumentSaveOutcome outcome;
+      try {
+        final out = '${dir.path}/out.pdf';
+        final failed = await compute(_applyTextEdits, (
+          session.file.path,
+          out,
+          args,
+        ));
+        if (failed > 0)
+          _toast('$failed text change(s) could not be written into the page.');
+        outcome = await session.commitTempFile(out);
+      } finally {
+        try {
+          await dir.delete(recursive: true);
+        } catch (_) {}
+      }
+      if (outcome == DocumentSaveOutcome.needsSaveAs) {
+        final bytes = session.pendingReplaceBytes;
+        if (bytes != null && mounted) {
+          await commitBytesToSession(
+            context: context,
+            storage: ref.read(fileStorageProvider),
+            tabs: tabs,
+            session: session,
+            bytes: bytes,
+            successMessage: 'Text saved.',
+          );
+        }
+      } else {
+        tabs.syncActiveTabFromSession();
+      }
+      final pages = {for (final j in batch) j.page};
+      if (mounted && live.toolId == ViewerToolId.editText) {
+        await Future.wait([for (final p in pages) _loadRuns(p, force: true)]);
+      }
+      await Future<void>.delayed(kLiveBurnHandoverDelay);
+    } catch (e) {
+      _toast('Could not save text: $e');
+    } finally {
+      for (final j in batch) {
+        live.removePendingText(j.pendingId);
+      }
+    }
+  }
+
+  /// The isolate's half of [job] (lines laid out, font chosen).
+  Future<_TextEditArgs> _argsFor(
+    _TextJob job,
+    DocumentSession session,
+    String outPath,
+  ) async {
+    final ttf = job.lines.isEmpty
+        ? null
+        : (job.userFont?.ttf ??
+              (job.embed
+                  ? await FontLibrary.instance.bundledFor(
+                      family: job.family,
+                      bold: job.bold,
+                      italic: job.italic,
+                    )
+                  : null));
+    final lines = job.lines.isEmpty
+        ? const <PdfOverlayTextLine>[]
+        : overlayTextLinesForBox(
+            lines: job.lines,
+            boxNorm: job.box,
+            pageWidthPt: job.pageWidthPt,
+            pageHeightPt: job.pageHeightPt,
+            fontSizePt: job.fontSizePt,
+            bold: job.bold,
+            fillRgb: _rgb(job.color),
+            align: job.align,
+            fontBase: job.fontBase,
+            lineHeightEm: job.lineHeightEm,
+            ttf: ttf,
+          );
+    final bg = job.coverColor ?? Colors.white;
+    return _TextEditArgs(
+      path: session.file.path,
+      outPath: outPath,
+      page: job.page,
+      pageWidthPt: job.pageWidthPt,
+      pageHeightPt: job.pageHeightPt,
+      covers: [
+        for (final c in job.coverRects) [c.left, c.top, c.right, c.bottom],
+      ],
+      coverRgb: [bg.r, bg.g, bg.b],
+      lines: lines,
+      linkFrom: job.cover == null
+          ? null
+          : [
+              job.cover!.left,
+              job.cover!.top,
+              job.cover!.right,
+              job.cover!.bottom,
+            ],
+      linkTo: [job.box.left, job.box.top, job.box.right, job.box.bottom],
+    );
   }
 
   void _safeSetStateIfMounted() {
@@ -806,57 +1027,11 @@ class _ViewerEditTextPanelState extends ConsumerState<ViewerEditTextPanel> {
     ViewerLiveToolSession live,
   ) async {
     try {
-      final ttf = job.lines.isEmpty
-          ? null
-          : (job.userFont?.ttf ??
-                (job.embed
-                    ? await FontLibrary.instance.bundledFor(
-                        family: job.family,
-                        bold: job.bold,
-                        italic: job.italic,
-                      )
-                    : null));
-      final lines = job.lines.isEmpty
-          ? const <PdfOverlayTextLine>[]
-          : overlayTextLinesForBox(
-              lines: job.lines,
-              boxNorm: job.box,
-              pageWidthPt: job.pageWidthPt,
-              pageHeightPt: job.pageHeightPt,
-              fontSizePt: job.fontSizePt,
-              bold: job.bold,
-              fillRgb: _rgb(job.color),
-              align: job.align,
-              fontBase: job.fontBase,
-              lineHeightEm: job.lineHeightEm,
-              ttf: ttf,
-            );
-      final bg = job.coverColor ?? Colors.white;
       final dir = await Directory.systemTemp.createTemp('ds_text_');
       final out = '${dir.path}/out.pdf';
       final ok = await compute(
         _applyTextEdit,
-        _TextEditArgs(
-          path: session.file.path,
-          outPath: out,
-          page: job.page,
-          pageWidthPt: job.pageWidthPt,
-          pageHeightPt: job.pageHeightPt,
-          covers: [
-            for (final c in job.coverRects) [c.left, c.top, c.right, c.bottom],
-          ],
-          coverRgb: [bg.r, bg.g, bg.b],
-          lines: lines,
-          linkFrom: job.cover == null
-              ? null
-              : [
-                  job.cover!.left,
-                  job.cover!.top,
-                  job.cover!.right,
-                  job.cover!.bottom,
-                ],
-          linkTo: [job.box.left, job.box.top, job.box.right, job.box.bottom],
-        ),
+        await _argsFor(job, session, out),
       );
       if (!ok) {
         live.removePendingText(job.pendingId);

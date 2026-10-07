@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 
 /// DS-ORG-007 — rotate selected pages, then export.
 class RotateToolScreen extends StatelessWidget {
-  const RotateToolScreen({
-    super.key,
-    this.initialFile,
-    this.initialPassword,
-  });
+  const RotateToolScreen({super.key, this.initialFile, this.initialPassword});
 
   final LocalFileRef? initialFile;
   final String? initialPassword;

@@ -32,11 +32,7 @@ enum _SplitMode {
 /// The open document and its source file are not replaced. Save / Ctrl+S
 /// still writes the source.
 class ViewerSplitPanel extends ConsumerStatefulWidget {
-  const ViewerSplitPanel({
-    super.key,
-    required this.handoff,
-    this.pageCount,
-  });
+  const ViewerSplitPanel({super.key, required this.handoff, this.pageCount});
 
   final PdfViewerDocumentHandoff handoff;
   final int? pageCount;
@@ -77,7 +73,12 @@ class _ViewerSplitPanelState extends ConsumerState<ViewerSplitPanel> {
           null,
         );
       case _SplitMode.eachPage:
-        return ([for (var i = 1; i <= total; i++) [i]], null);
+        return (
+          [
+            for (var i = 1; i <= total; i++) [i],
+          ],
+          null,
+        );
       case _SplitMode.oddEven:
         if (total < 2) return (const [], 'Needs at least two pages.');
         return (
@@ -93,11 +94,15 @@ class _ViewerSplitPanelState extends ConsumerState<ViewerSplitPanel> {
           if (raw.isEmpty) continue;
           final v = int.tryParse(raw);
           if (v == null || v < 1 || v >= total) {
-            return (const [], 'Split points must be between 1 and ${total - 1}.');
+            return (
+              const [],
+              'Split points must be between 1 and ${total - 1}.',
+            );
           }
           cuts.add(v);
         }
-        if (cuts.isEmpty) return (const [], 'Enter pages to split after, e.g. 3, 7.');
+        if (cuts.isEmpty)
+          return (const [], 'Enter pages to split after, e.g. 3, 7.');
         final sorted = cuts.toList()..sort();
         final parts = <List<int>>[];
         var start = 1;
@@ -171,7 +176,8 @@ class _ViewerSplitPanelState extends ConsumerState<ViewerSplitPanel> {
       } finally {
         if (parts.isNotEmpty) {
           try {
-            await Directory(p.dirname(parts.first.path)).delete(recursive: true);
+            await Directory(p.dirname(parts.first.path))
+                .delete(recursive: true);
           } catch (_) {}
         }
       }
@@ -185,18 +191,28 @@ class _ViewerSplitPanelState extends ConsumerState<ViewerSplitPanel> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _input(TextEditingController c, String label, String hint,
-      {bool digitsOnly = false}) {
+  Widget _input(
+    TextEditingController c,
+    String label,
+    String hint, {
+    bool digitsOnly = false,
+  }) {
     return TextField(
       controller: c,
       enabled: !_busy,
       keyboardType: digitsOnly ? TextInputType.number : TextInputType.text,
-      inputFormatters:
-          digitsOnly ? [FilteringTextInputFormatter.digitsOnly] : null,
-      decoration: InputDecoration(labelText: label, hintText: hint, isDense: true),
+      inputFormatters: digitsOnly
+          ? [FilteringTextInputFormatter.digitsOnly]
+          : null,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        isDense: true,
+      ),
       onChanged: (_) => setState(() {}),
     );
   }
@@ -222,43 +238,49 @@ class _ViewerSplitPanelState extends ConsumerState<ViewerSplitPanel> {
             )
           : null,
       children: [
-          Text('Split method', style: theme.textTheme.labelLarge),
-          const SizedBox(height: DsSpacing.xs),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final m in _SplitMode.values)
-                ChoiceChip(
-                  label: Text(m.label, style: const TextStyle(fontSize: 12.5)),
-                  selected: _mode == m,
-                  showCheckmark: false,
-                  visualDensity: VisualDensity.compact,
-                  selectedColor: DsColors.primary.withValues(alpha: 0.14),
-                  onSelected: _busy ? null : (_) => setState(() => _mode = m),
-                ),
-            ],
+        Text('Split method', style: theme.textTheme.labelLarge),
+        const SizedBox(height: DsSpacing.xs),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final m in _SplitMode.values)
+              ChoiceChip(
+                label: Text(m.label, style: const TextStyle(fontSize: 12.5)),
+                selected: _mode == m,
+                showCheckmark: false,
+                visualDensity: VisualDensity.compact,
+                selectedColor: DsColors.primary.withValues(alpha: 0.14),
+                onSelected: _busy ? null : (_) => setState(() => _mode = m),
+              ),
+          ],
+        ),
+        const SizedBox(height: DsSpacing.md),
+        switch (_mode) {
+          _SplitMode.everyN => _input(
+            _everyN,
+            'Pages per file',
+            '1',
+            digitsOnly: true,
           ),
-          const SizedBox(height: DsSpacing.md),
-          switch (_mode) {
-            _SplitMode.everyN =>
-              _input(_everyN, 'Pages per file', '1', digitsOnly: true),
-            _SplitMode.afterPages =>
-              _input(_after, 'Split after pages', '3, 7'),
-            _SplitMode.ranges => _input(
-                _ranges, 'One file per range', '1-3, 4-8, 9-  (or odd; even)'),
-            _SplitMode.oddEven => Text(
-                'Two files: odd pages (1, 3, 5…) and even pages (2, 4, 6…).',
-                style: theme.textTheme.bodySmall,
-              ),
-            _SplitMode.eachPage => Text(
-                'One file for every page${total == null ? '' : ' ($total files)'}.',
-                style: theme.textTheme.bodySmall,
-              ),
-          },
-          const SizedBox(height: DsSpacing.md),
-          _SplitPreview(plan: plan, error: error),
-        ],
+          _SplitMode.afterPages => _input(_after, 'Split after pages', '3, 7'),
+          _SplitMode.ranges => _input(
+            _ranges,
+            'One file per range',
+            '1-3, 4-8, 9-  (or odd; even)',
+          ),
+          _SplitMode.oddEven => Text(
+            'Two files: odd pages (1, 3, 5…) and even pages (2, 4, 6…).',
+            style: theme.textTheme.bodySmall,
+          ),
+          _SplitMode.eachPage => Text(
+            'One file for every page${total == null ? '' : ' ($total files)'}.',
+            style: theme.textTheme.bodySmall,
+          ),
+        },
+        const SizedBox(height: DsSpacing.md),
+        _SplitPreview(plan: plan, error: error),
+      ],
     );
   }
 }
@@ -275,7 +297,9 @@ class _SplitPreview extends StatelessWidget {
     if (error != null) {
       return Text(
         error!,
-        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.error,
+        ),
       );
     }
     const maxShown = 12;
@@ -289,8 +313,11 @@ class _SplitPreview extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
-                Icon(Icons.picture_as_pdf_rounded,
-                    size: 16, color: DsColors.primary),
+                Icon(
+                  Icons.picture_as_pdf_rounded,
+                  size: 16,
+                  color: DsColors.primary,
+                ),
                 const SizedBox(width: 6),
                 Text('File ${i + 1}', style: theme.textTheme.bodySmall),
                 const Spacer(),
@@ -309,8 +336,10 @@ class _SplitPreview extends StatelessWidget {
             ),
           ),
         if (plan.length > maxShown)
-          Text('…and ${plan.length - maxShown} more',
-              style: theme.textTheme.bodySmall),
+          Text(
+            '…and ${plan.length - maxShown} more',
+            style: theme.textTheme.bodySmall,
+          ),
       ],
     );
   }

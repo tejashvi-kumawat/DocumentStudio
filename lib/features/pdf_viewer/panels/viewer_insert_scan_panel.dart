@@ -75,7 +75,9 @@ class _ViewerInsertScanPanelState extends ConsumerState<ViewerInsertScanPanel> {
       _snack('Page count is not ready yet.');
       return;
     }
-    final captureDirectory = await ref.read(fileStorageProvider).getTempDirectory();
+    final captureDirectory = await ref
+        .read(fileStorageProvider)
+        .getTempDirectory();
     if (!mounted) return;
     final shot = await Navigator.of(context, rootNavigator: true).push<String>(
       MaterialPageRoute(
@@ -107,7 +109,9 @@ class _ViewerInsertScanPanelState extends ConsumerState<ViewerInsertScanPanel> {
       _snack('Page count is not ready yet.');
       return;
     }
-    final picked = await ref.read(fileStorageProvider).pickOpenFiles(
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFiles(
           allowedExtensions: ImagesToPdfService.supportedExtensions,
         );
     if (picked.isEmpty || !mounted) return;
@@ -243,7 +247,8 @@ class _ViewerInsertScanPanelState extends ConsumerState<ViewerInsertScanPanel> {
 
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -262,11 +267,11 @@ class _ViewerInsertScanPanelState extends ConsumerState<ViewerInsertScanPanel> {
         Text(
           camReady
               ? 'Frame the page and tap Capture, or choose images. '
-                  'Then pick where the pages go. The open copy updates '
-                  'only after you insert. Cancel leaves the PDF unchanged.'
+                    'Then pick where the pages go. The open copy updates '
+                    'only after you insert. Cancel leaves the PDF unchanged.'
               : 'Choose an image, then pick where it goes. '
-                  'The open copy updates only after you insert. '
-                  'Cancel leaves the PDF unchanged.',
+                    'The open copy updates only after you insert. '
+                    'Cancel leaves the PDF unchanged.',
           style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
         ),
         const SizedBox(height: DsSpacing.md),

@@ -59,8 +59,9 @@ List<String> wrapPlainTextToWidth({
 }) {
   final cleaned = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
   if (cleaned.isEmpty) return const [''];
-  double w(String s) =>
-      measure != null ? measure(s) : helveticaTextWidthPt(s, fontSizePt, bold: bold);
+  double w(String s) => measure != null
+      ? measure(s)
+      : helveticaTextWidthPt(s, fontSizePt, bold: bold);
   final maxW = math.max(1.0, maxWidthPt);
   final out = <String>[];
   for (final paragraph in cleaned.split('\n')) {
@@ -185,7 +186,8 @@ List<PdfOverlayTextLine> overlayTextLinesForBox({
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i];
     if (line.trim().isEmpty) continue;
-    final x = leftPt +
+    final x =
+        leftPt +
         alignedLineOffsetPt(
           line: line,
           boxWidthPt: boxW,
@@ -195,7 +197,10 @@ List<PdfOverlayTextLine> overlayTextLinesForBox({
           measure: ttf == null ? null : (t) => ttf.textWidthPt(t, fontSizePt),
         );
     final baselineFromTop =
-        topPt + i * leading + halfExtra + fontSizePt * kHelveticaBaselineFromLineTopEm;
+        topPt +
+        i * leading +
+        halfExtra +
+        fontSizePt * kHelveticaBaselineFromLineTopEm;
     result.add(
       PdfOverlayTextLine(
         text: line,

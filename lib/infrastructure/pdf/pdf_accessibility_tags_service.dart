@@ -29,15 +29,15 @@ class PdfAccessibilityStructureInfo {
   /// Plain-text lines in page order (from extractPlainText), not a tag tree walk.
   final List<String> readingOrderLines;
 
-  bool get isTaggedClaim =>
-      hasStructTreeRoot || markInfoMarked == true;
+  bool get isTaggedClaim => hasStructTreeRoot || markInfoMarked == true;
 }
 
 /// Reads catalog structure flags and writes `/Lang` + `/MarkInfo /Marked`
 /// via qpdf `--update-from-json` only. Does **not** claim PDF/UA compliance
 /// and does not invent `/Alt` text without a structure element.
 class PdfAccessibilityTagsService {
-  PdfAccessibilityTagsService({QpdfCliRunner? cli}) : _cli = cli ?? QpdfCliRunner();
+  PdfAccessibilityTagsService({QpdfCliRunner? cli})
+    : _cli = cli ?? QpdfCliRunner();
 
   final QpdfCliRunner _cli;
 
@@ -58,8 +58,9 @@ class PdfAccessibilityTagsService {
         inputPath,
         jsonPath,
       ]);
-      final root = jsonDecode(await File(jsonPath).readAsString())
-          as Map<String, dynamic>;
+      final root = jsonDecode(
+        await File(jsonPath).readAsString(),
+      ) as Map<String, dynamic>;
       final catalog = _findCatalog(root);
       if (catalog == null) {
         return PdfAccessibilityStructureInfo(
@@ -99,7 +100,9 @@ class PdfAccessibilityTagsService {
       throw DocumentStudioError(
         code: DocumentStudioErrorCode.nativeEngineError,
         message: 'Could not inspect PDF structure.',
-        recoveryHint: e.stderr.trim().isEmpty ? e.stdout.trim() : e.stderr.trim(),
+        recoveryHint: e.stderr.trim().isEmpty
+            ? e.stdout.trim()
+            : e.stderr.trim(),
       );
     } finally {
       try {
@@ -135,8 +138,9 @@ class PdfAccessibilityTagsService {
         inputPath,
         jsonPath,
       ]);
-      final root = jsonDecode(await File(jsonPath).readAsString())
-          as Map<String, dynamic>;
+      final root = jsonDecode(
+        await File(jsonPath).readAsString(),
+      ) as Map<String, dynamic>;
       final qpdfList = root['qpdf'];
       if (qpdfList is! List || qpdfList.length < 2) {
         throw const DocumentStudioError(
@@ -187,7 +191,9 @@ class PdfAccessibilityTagsService {
       throw DocumentStudioError(
         code: DocumentStudioErrorCode.nativeEngineError,
         message: 'Could not update document language / MarkInfo.',
-        recoveryHint: e.stderr.trim().isEmpty ? e.stdout.trim() : e.stderr.trim(),
+        recoveryHint: e.stderr.trim().isEmpty
+            ? e.stdout.trim()
+            : e.stderr.trim(),
       );
     } finally {
       try {

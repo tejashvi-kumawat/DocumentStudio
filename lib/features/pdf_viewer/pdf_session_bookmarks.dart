@@ -16,10 +16,10 @@ class PdfSessionBookmark {
   final int? createdAtMs;
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'page1Based': page1Based,
-        if (createdAtMs != null) 'createdAtMs': createdAtMs,
-      };
+    'title': title,
+    'page1Based': page1Based,
+    if (createdAtMs != null) 'createdAtMs': createdAtMs,
+  };
 
   factory PdfSessionBookmark.fromJson(Map<String, dynamic> json) {
     return PdfSessionBookmark(
@@ -68,7 +68,5 @@ Future<void> savePdfSessionBookmarks({
     'pdf': p.basename(pdfPath),
     'bookmarks': bookmarks.map((b) => b.toJson()).toList(),
   };
-  await file.writeAsString(
-    const JsonEncoder.withIndent('  ').convert(payload),
-  );
+  await file.writeAsString(const JsonEncoder.withIndent('  ').convert(payload));
 }

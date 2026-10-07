@@ -1,16 +1,15 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
 import 'package:document_studio/app/providers.dart';
 import 'package:document_studio/core/errors/document_studio_error.dart';
 import 'package:document_studio/core/errors/document_studio_error_ui.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_shell_page.dart';
-import 'package:document_studio/design_system/shell/ds_toolbar.dart';
 import 'package:document_studio/design_system/widgets/ds_buttons.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/pdf_viewer/panels/viewer_visual_sign_panel.dart';
 import 'package:document_studio/features/pdf_viewer/pdf_viewer_document_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Visual (non-cryptographic) signature on one page ([DS-SIG-001]).
 class VisualSignScreen extends ConsumerStatefulWidget {
@@ -70,14 +69,10 @@ class _VisualSignScreenState extends ConsumerState<VisualSignScreen> {
     final file = _file;
     if (file == null) {
       return Scaffold(
-        appBar: DsToolbar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
+        appBar: const DsToolAppBar(
           title: 'Sign PDF',
           subtitle: 'Add a visual signature',
-          dense: true,
+          icon: Icons.draw_outlined,
         ),
         body: SafeArea(
           child: Align(
@@ -106,9 +101,8 @@ class _VisualSignScreenState extends ConsumerState<VisualSignScreen> {
                         textAlign: TextAlign.center,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFFE4002B),
-                            ),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: const Color(0xFFE4002B)),
                       ),
                     ],
                     const SizedBox(height: DsSpacing.lg),
@@ -146,14 +140,10 @@ class _VisualSignScreenState extends ConsumerState<VisualSignScreen> {
     );
 
     return Scaffold(
-      appBar: DsToolbar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+      appBar: const DsToolAppBar(
         title: 'Sign PDF',
         subtitle: 'Visual signature — not cryptographic',
-        dense: dsUseCompactToolLayout(context),
+        icon: Icons.draw_outlined,
       ),
       body: SafeArea(
         top: false,

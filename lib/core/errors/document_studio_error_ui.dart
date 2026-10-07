@@ -13,27 +13,23 @@ extension DocumentStudioErrorPresentation on DocumentStudioError {
 
   /// Short headline for full-screen open failures (viewer route).
   String get openFailureTitle => switch (code) {
-        DocumentStudioErrorCode.passwordRequired => 'Password required',
-        DocumentStudioErrorCode.wrongPassword => 'Wrong password',
-        DocumentStudioErrorCode.corruptedPdf ||
-        DocumentStudioErrorCode.invalidPdf =>
-          'Could not read PDF',
-        DocumentStudioErrorCode.fileNotFound =>
-          'File not found',
-        DocumentStudioErrorCode.permissionDenied ||
-        DocumentStudioErrorCode.fileNotAccessible =>
-          'Cannot access file',
-        _ => 'Could not open document',
-      };
+    DocumentStudioErrorCode.passwordRequired => 'Password required',
+    DocumentStudioErrorCode.wrongPassword => 'Wrong password',
+    DocumentStudioErrorCode.corruptedPdf ||
+    DocumentStudioErrorCode.invalidPdf => 'Could not read PDF',
+    DocumentStudioErrorCode.fileNotFound => 'File not found',
+    DocumentStudioErrorCode.permissionDenied ||
+    DocumentStudioErrorCode.fileNotAccessible => 'Cannot access file',
+    _ => 'Could not open document',
+  };
 }
 
 void showDocumentStudioErrorSnackBar(
   BuildContext context,
   DocumentStudioError error,
 ) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(error.userFacingMessage)),
-  );
+  ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(error.userFacingMessage)));
 }
 
 /// Full-screen open failure for viewer and similar routes ([DS-EDGE-009]).

@@ -1,3 +1,5 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -154,7 +156,9 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _dragging ? DsColors.primary : DsColors.border(theme.brightness),
+            color: _dragging
+                ? DsColors.primary
+                : DsColors.border(theme.brightness),
             width: _dragging ? 2 : 1,
           ),
         ),
@@ -163,10 +167,16 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_photo_alternate_outlined,
-                        size: 44, color: DsColors.primary.withValues(alpha: 0.8)),
+                    Icon(
+                      Icons.add_photo_alternate_outlined,
+                      size: 44,
+                      color: DsColors.primary.withValues(alpha: 0.8),
+                    ),
                     const SizedBox(height: 10),
-                    Text('Drop images here', style: theme.textTheme.titleMedium),
+                    Text(
+                      'Drop images here',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       'JPG, PNG, WebP, GIF, BMP, TIFF, ICO and more',
@@ -207,11 +217,15 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                               ),
                             ),
                           ),
-                          title: Text(it.file.displayName,
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          title: Text(
+                            it.file.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           subtitle: Text(
                             switch (it.status) {
-                              _Status.waiting => it.file.extension.toUpperCase(),
+                              _Status.waiting =>
+                                it.file.extension.toUpperCase(),
                               _Status.working => 'Converting…',
                               _Status.done =>
                                 '→ ${p.basename(it.output!)} · ${_size(it.outBytes)}',
@@ -222,21 +236,27 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                           ),
                           trailing: switch (it.status) {
                             _Status.working => const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            _Status.done => const Icon(Icons.check_circle,
-                                color: DsColors.success, size: 20),
-                            _Status.failed => const Icon(Icons.error_outline,
-                                color: DsColors.error, size: 20),
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            _Status.done => const Icon(
+                              Icons.check_circle,
+                              color: DsColors.success,
+                              size: 20,
+                            ),
+                            _Status.failed => const Icon(
+                              Icons.error_outline,
+                              color: DsColors.error,
+                              size: 20,
+                            ),
                             _Status.waiting => IconButton(
-                                tooltip: 'Remove',
-                                icon: const Icon(Icons.close, size: 18),
-                                onPressed: _running
-                                    ? null
-                                    : () => setState(() => _items.removeAt(i)),
-                              ),
+                              tooltip: 'Remove',
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: _running
+                                  ? null
+                                  : () => setState(() => _items.removeAt(i)),
+                            ),
                           },
                         );
                       },
@@ -282,7 +302,9 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                   ChoiceChip(
                     label: Text(f.label.split(' ').first),
                     selected: _format == f,
-                    onSelected: _running ? null : (_) => setState(() => _format = f),
+                    onSelected: _running
+                        ? null
+                        : (_) => setState(() => _format = f),
                   ),
               ],
             ),
@@ -300,7 +322,9 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                 max: 100,
                 divisions: 60,
                 value: _quality.toDouble(),
-                onChanged: _running ? null : (v) => setState(() => _quality = v.round()),
+                onChanged: _running
+                    ? null
+                    : (v) => setState(() => _quality = v.round()),
               ),
             ],
             const SizedBox(height: 10),
@@ -310,9 +334,18 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
               value: _maxWidth,
               isExpanded: true,
               items: const [
-                DropdownMenuItem(value: null, child: Text('Keep original size')),
-                DropdownMenuItem(value: 3840, child: Text('Max width 3840 px (4K)')),
-                DropdownMenuItem(value: 1920, child: Text('Max width 1920 px (Full HD)')),
+                DropdownMenuItem(
+                  value: null,
+                  child: Text('Keep original size'),
+                ),
+                DropdownMenuItem(
+                  value: 3840,
+                  child: Text('Max width 3840 px (4K)'),
+                ),
+                DropdownMenuItem(
+                  value: 1920,
+                  child: Text('Max width 1920 px (Full HD)'),
+                ),
                 DropdownMenuItem(value: 1280, child: Text('Max width 1280 px')),
                 DropdownMenuItem(value: 800, child: Text('Max width 800 px')),
                 DropdownMenuItem(value: 512, child: Text('Max width 512 px')),
@@ -326,7 +359,9 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
               onPressed: _running ? null : _chooseFolder,
               icon: const Icon(Icons.folder_outlined, size: 18),
               label: Text(
-                _outDir == null ? 'Next to the originals' : p.basename(_outDir!),
+                _outDir == null
+                    ? 'Next to the originals'
+                    : p.basename(_outDir!),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -344,8 +379,8 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                 _running
                     ? 'Converting…'
                     : _items.isEmpty
-                        ? 'Convert'
-                        : 'Convert ${_items.length} image${_items.length == 1 ? '' : 's'}',
+                    ? 'Convert'
+                    : 'Convert ${_items.length} image${_items.length == 1 ? '' : 's'}',
               ),
             ),
             if (done > 0 && !_running) ...[
@@ -361,12 +396,11 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-        ),
-        title: const Text('Image converter'),
+      appBar: DsToolAppBar(
+        title: 'Image converter',
+        subtitle: 'Convert images between formats on this device',
+        icon: Icons.transform,
+        onBack: () => context.canPop() ? context.pop() : context.go('/'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -376,7 +410,10 @@ class _ImageConverterScreenState extends State<ImageConverterScreen> {
                 children: [
                   Expanded(child: list),
                   const SizedBox(width: 16),
-                  SizedBox(width: 340, child: SingleChildScrollView(child: settings)),
+                  SizedBox(
+                    width: 340,
+                    child: SingleChildScrollView(child: settings),
+                  ),
                 ],
               )
             : Column(

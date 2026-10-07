@@ -47,6 +47,19 @@ brew install document-studio
 
 Tap: [tejashvi-kumawat/homebrew-tap](https://github.com/tejashvi-kumawat/homebrew-tap)
 
+### First launch: security prompts
+
+Releases are not code-signed yet, so the systems ask once before the first
+launch. This is not a malware finding:
+
+- **Windows** ("Windows protected your PC"): click **More info → Run anyway**.
+- **macOS** ("cannot verify … free of malware"): in Applications, right-click
+  **Document Studio → Open → Open**, or System Settings → Privacy & Security →
+  **Open Anyway**.
+
+Maintainers: signing is wired into the release build; see
+[packaging/CODE_SIGNING.md](packaging/CODE_SIGNING.md).
+
 ### CLI quick checks
 
 ```bash

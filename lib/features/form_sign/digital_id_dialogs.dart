@@ -6,10 +6,7 @@ import 'package:flutter/material.dart';
 String describeSignError(Object error) {
   final text = error
       .toString()
-      .replaceFirst(
-        RegExp(r'^(DocumentStudioError|Exception):\s*'),
-        '',
-      )
+      .replaceFirst(RegExp(r'^(DocumentStudioError|Exception):\s*'), '')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
   final lower = text.toLowerCase();
@@ -29,10 +26,8 @@ Future<DigitalId?> showCreateDigitalIdDialog(
 }) {
   return showDialog<DigitalId>(
     context: context,
-    builder: (ctx) => _CreateDigitalIdDialog(
-      store: store,
-      suggestedName: suggestedName,
-    ),
+    builder: (ctx) =>
+        _CreateDigitalIdDialog(store: store, suggestedName: suggestedName),
   );
 }
 
@@ -135,7 +130,10 @@ class _CreateDigitalIdDialogState extends State<_CreateDigitalIdDialog> {
             ),
             if (_error != null) ...[
               const SizedBox(height: DsSpacing.sm),
-              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ],
           ],
         ),
@@ -145,10 +143,7 @@ class _CreateDigitalIdDialogState extends State<_CreateDigitalIdDialog> {
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        DsPrimaryButton(
-          label: 'Create',
-          onPressed: _busy ? null : _create,
-        ),
+        DsPrimaryButton(label: 'Create', onPressed: _busy ? null : _create),
       ],
     );
   }
@@ -227,7 +222,10 @@ class _ImportDigitalIdDialogState extends State<_ImportDigitalIdDialog> {
             ),
             if (_error != null) ...[
               const SizedBox(height: DsSpacing.sm),
-              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ],
           ],
         ),
@@ -237,10 +235,7 @@ class _ImportDigitalIdDialogState extends State<_ImportDigitalIdDialog> {
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        DsPrimaryButton(
-          label: 'Import',
-          onPressed: _busy ? null : _import,
-        ),
+        DsPrimaryButton(label: 'Import', onPressed: _busy ? null : _import),
       ],
     );
   }

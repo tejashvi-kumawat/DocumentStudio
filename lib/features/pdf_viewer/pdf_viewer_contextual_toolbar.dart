@@ -35,10 +35,7 @@ class PdfViewerContextualToolBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(
-              activeTool.panelTitle,
-              style: theme.textTheme.titleSmall,
-            ),
+            Text(activeTool.panelTitle, style: theme.textTheme.titleSmall),
             const SizedBox(width: DsSpacing.md),
             ..._quickActions(context, activeTool),
             const Spacer(),
@@ -79,25 +76,27 @@ class PdfViewerContextualToolBar extends StatelessWidget {
   List<ViewerToolId> _relatedTools(ViewerToolId tool) {
     return switch (tool) {
       ViewerToolId.crop => const [
-          ViewerToolId.headersFooters,
-          ViewerToolId.watermark,
-        ],
+        ViewerToolId.headersFooters,
+        ViewerToolId.watermark,
+      ],
       ViewerToolId.watermark => const [
-          ViewerToolId.headersFooters,
-          ViewerToolId.pageNumbers,
-        ],
+        ViewerToolId.headersFooters,
+        ViewerToolId.pageNumbers,
+      ],
       ViewerToolId.headersFooters => const [
-          ViewerToolId.watermark,
-          ViewerToolId.pageNumbers,
-        ],
+        ViewerToolId.watermark,
+        ViewerToolId.pageNumbers,
+      ],
       ViewerToolId.pageNumbers => const [
-          ViewerToolId.headersFooters,
-          ViewerToolId.watermark,
-        ],
+        ViewerToolId.headersFooters,
+        ViewerToolId.watermark,
+      ],
       ViewerToolId.exportImages ||
       ViewerToolId.exportJpg ||
-      ViewerToolId.exportPng =>
-        const [ViewerToolId.exportJpg, ViewerToolId.exportPng],
+      ViewerToolId.exportPng => const [
+        ViewerToolId.exportJpg,
+        ViewerToolId.exportPng,
+      ],
       _ => const [],
     };
   }

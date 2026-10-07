@@ -220,9 +220,9 @@ class CompareController extends ChangeNotifier {
   }
 
   Future<PdfDocument> _open(CompareSource s) => PdfDocument.openFile(
-        s.file.path,
-        passwordProvider: s.password == null ? null : () => s.password,
-      );
+    s.file.path,
+    passwordProvider: s.password == null ? null : () => s.password,
+  );
 
   Future<void> swap() async {
     final t = oldSource;

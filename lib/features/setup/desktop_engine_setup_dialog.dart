@@ -125,7 +125,10 @@ class _DesktopEngineSetupDialogState extends State<_DesktopEngineSetupDialog> {
               _row('PDF engine (qpdf)', status.qpdfReady),
               _row('OCR (Tesseract)', status.tesseractReady),
               if (DesktopEngineStatus.needsLibreOffice)
-                _row('Office conversion (LibreOffice)', status.libreOfficeReady),
+                _row(
+                  'Office conversion (LibreOffice)',
+                  status.libreOfficeReady,
+                ),
             ],
             if (_busy) ...[
               const SizedBox(height: DsSpacing.md),

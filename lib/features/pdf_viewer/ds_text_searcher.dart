@@ -15,12 +15,11 @@ import 'package:pdfrx/pdfrx.dart';
 /// is kept (pages with matches stay alive through the matches).
 class DsTextSearcher extends PdfTextSearcher {
   DsTextSearcher(
-    PdfViewerController controller, {
+    super.controller, {
     required String path,
     String? password,
     bool Function()? isBusy,
-  })  : index = PageTextIndex(path: path, password: password, isBusy: isBusy),
-        super(controller) {
+  }) : index = PageTextIndex(path: path, password: password, isBusy: isBusy) {
     addListener(_guardRestart);
   }
 
@@ -94,11 +93,11 @@ class DsTextSearcher extends PdfTextSearcher {
   void startIndexing() => index.build();
 
   PdfPageText _empty(int n) => PdfPageText(
-        pageNumber: n,
-        fullText: '',
-        charRects: const [],
-        fragments: const [],
-      );
+    pageNumber: n,
+    fullText: '',
+    charRects: const [],
+    fragments: const [],
+  );
 
   @override
   Future<PdfPageText?> loadText({required int pageNumber}) async {

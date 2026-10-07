@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -19,7 +20,6 @@ import 'package:document_studio/infrastructure/pdf/pdf_overlay_shape_builder.dar
 import 'package:document_studio/infrastructure/pdf/pdf_overlay_text_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:pdfrx/pdfrx.dart';
 
 /// How long burned marks stay on the overlay after the write, so the page
 /// can re-render underneath before the preview disappears (no flicker).
@@ -207,7 +207,9 @@ class LiveDrawBurner {
   }) async {
     final byPage = <int, List<LiveDrawCommit>>{};
     for (final c in commits) {
-      final page = c.pageIndex1Based > 0 ? c.pageIndex1Based : live.pageIndex1Based;
+      final page = c.pageIndex1Based > 0
+          ? c.pageIndex1Based
+          : live.pageIndex1Based;
       byPage.putIfAbsent(page, () => []).add(c);
     }
     final tempDir = await storage.getTempDirectory();
@@ -225,7 +227,8 @@ class LiveDrawBurner {
     try {
       for (final entry in byPage.entries) {
         final page = entry.key;
-        final size = live.pageSizePtFor(page) ??
+        final size =
+            live.pageSizePtFor(page) ??
             await _loadPageSize(input, page, password);
         final w = size.width;
         final h = size.height;
@@ -383,10 +386,8 @@ class LiveDrawBurner {
   ) async {
     final doc = await openPdfLazily(input.path, password: password);
     try {
-      final page = await loadPageOnDemand(
-            doc,
-            page1Based.clamp(1, doc.pages.length),
-          ) ??
+      final page =
+          await loadPageOnDemand(doc, page1Based.clamp(1, doc.pages.length)) ??
           doc.pages.first;
       return Size(page.width, page.height);
     } finally {

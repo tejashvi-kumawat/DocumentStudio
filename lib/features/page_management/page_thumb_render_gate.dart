@@ -109,8 +109,8 @@ class PageThumbRenderGate {
       final candidate = _waiting[i];
       final current = _waiting[best];
       final higher = candidate.priority > current.priority;
-      final earlierTie = candidate.priority == current.priority &&
-          candidate.seq < current.seq;
+      final earlierTie =
+          candidate.priority == current.priority && candidate.seq < current.seq;
       if (higher || earlierTie) best = i;
     }
     return _waiting[best];

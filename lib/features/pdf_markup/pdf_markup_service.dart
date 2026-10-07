@@ -12,12 +12,10 @@ import 'package:path/path.dart' as p;
 
 class PdfMarkupService {
   PdfMarkupService({
-    required PdfOverlayService overlay,
-    required FileStoragePort storage,
-    required JobRunner jobs,
-  })  : _overlay = overlay,
-        _storage = storage,
-        _jobs = jobs;
+    required this._overlay,
+    required this._storage,
+    required this._jobs,
+  });
 
   final PdfOverlayService _overlay;
   final FileStoragePort _storage;
@@ -206,9 +204,13 @@ class PdfMarkupService {
           tempDir,
           'markup-${DateTime.now().microsecondsSinceEpoch}.pdf',
         );
-        reportUi(const JobProgress(fraction: 0.35, message: 'Applying overlay'));
+        reportUi(
+          const JobProgress(fraction: 0.35, message: 'Applying overlay'),
+        );
         await work(tempOut);
-        reportUi(const JobProgress(fraction: 0.7, message: 'Choose save location'));
+        reportUi(
+          const JobProgress(fraction: 0.7, message: 'Choose save location'),
+        );
         final bytes = await File(tempOut).readAsBytes();
         final savePath = await _storage.pickSavePath(
           suggestedName: suggestedName,
@@ -232,10 +234,7 @@ class PdfMarkupService {
           await File(tempOut).delete();
         } catch (_) {}
         reportUi(const JobProgress(fraction: 1, message: 'Done'));
-        return LocalFileRef(
-          path: savePath,
-          displayName: p.basename(savePath),
-        );
+        return LocalFileRef(path: savePath, displayName: p.basename(savePath));
       },
     );
   }

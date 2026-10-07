@@ -38,8 +38,10 @@ List<OrganizePageRef> pagesForScanInsert({
   final after = switch (anchor) {
     ScanInsertAnchor.end => totalPages,
     ScanInsertAnchor.afterCurrent => currentPage1.clamp(1, totalPages),
-    ScanInsertAnchor.afterNumber =>
-      (afterPageNumber ?? currentPage1).clamp(1, totalPages),
+    ScanInsertAnchor.afterNumber => (afterPageNumber ?? currentPage1).clamp(
+      1,
+      totalPages,
+    ),
     ScanInsertAnchor.start => 0,
   };
   return pagesForInsertAfterPage(
@@ -64,7 +66,9 @@ String scanInsertSuccessMessage({
     case ScanInsertAnchor.end:
       return 'Inserted $noun at the end.';
     case ScanInsertAnchor.afterCurrent:
-      final page = pageCount < 1 ? currentPage1 : currentPage1.clamp(1, pageCount);
+      final page = pageCount < 1
+          ? currentPage1
+          : currentPage1.clamp(1, pageCount);
       return 'Inserted $noun after page $page.';
     case ScanInsertAnchor.afterNumber:
       final raw = choice.afterPageNumber ?? currentPage1;

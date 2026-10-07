@@ -16,10 +16,10 @@ class OutlineEntry {
   final List<OutlineEntry> children;
 
   OutlineEntry copy() => OutlineEntry(
-        title: title,
-        page: page,
-        children: [for (final c in children) c.copy()],
-      );
+    title: title,
+    page: page,
+    children: [for (final c in children) c.copy()],
+  );
 }
 
 /// Reads the bookmark tree of [bytes] (pure Dart). Named destinations that

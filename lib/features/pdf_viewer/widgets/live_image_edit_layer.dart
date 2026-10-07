@@ -90,20 +90,41 @@ class _LiveImageEditLayerState extends State<LiveImageEditLayer> {
     return false;
   }
 
+  /// The object under [local]: comments first, then the smallest picture
+  /// or shape. A shape only wins over a picture when it is clearly a detail
+  /// on it (a quarter of its size or less) — a stray line must not steal
+  /// the click meant for the photo behind it.
   EditableImage? _imageAt(Offset local) {
     final n = Offset(local.dx / _g.pagePx.width, local.dy / _g.pagePx.height);
-    EditableImage? best;
-    for (final i in _images) {
-      if (_rectOf(i).contains(n)) {
-        // Smallest picture wins when they overlap.
-        if (best == null ||
-            _rectOf(i).width * _rectOf(i).height <
-                _rectOf(best).width * _rectOf(best).height) {
-          best = i;
-        }
+    double area(EditableImage i) => _rectOf(i).width * _rectOf(i).height;
+    EditableImage? best(EditableKind k) {
+      EditableImage? b;
+      for (final i in _images) {
+        if (i.kind != k) continue;
+        final r = _rectOf(i);
+        // Thin lines get a few pixels of grab room.
+        // (normalised x and y have different pixel sizes on most pages).
+        final dx = 4 / _g.pagePx.width, dy = 4 / _g.pagePx.height;
+        final hit = r.width < 0.01 || r.height < 0.01
+            ? Rect.fromLTRB(
+                r.left - dx,
+                r.top - dy,
+                r.right + dx,
+                r.bottom + dy,
+              ).contains(n)
+            : r.contains(n);
+        if (hit && (b == null || area(i) < area(b))) b = i;
       }
+      return b;
     }
-    return best;
+
+    final annot = best(EditableKind.annotation);
+    if (annot != null) return annot;
+    final img = best(EditableKind.image);
+    final shape = best(EditableKind.shape);
+    if (img == null) return shape;
+    if (shape == null) return img;
+    return area(shape) <= area(img) * 0.25 ? shape : img;
   }
 
   _Drag _handleAt(Offset local) {
@@ -290,8 +311,9 @@ class _LiveImageEditLayerState extends State<LiveImageEditLayer> {
     }
     final i = _imageAt(p);
     if (i == null) return MouseCursor.defer;
-    if (i.kind != EditableKind.annotation && _onText(p))
+    if (i.kind != EditableKind.annotation && _onText(p)) {
       return MouseCursor.defer;
+    }
     return _selected == i ? SystemMouseCursors.move : SystemMouseCursors.click;
   }
 
@@ -508,18 +530,36 @@ class _ImagePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cover = Paint()..color = Colors.white;
-    for (final (from, _, _) in ghosts) {
-      canvas.drawRect(from, cover);
-    }
-    for (final (_, to, img) in ghosts) {
-      if (to == null || img == null) continue;
-      canvas.drawImageRect(
-        img,
-        Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
-        to,
-        Paint()..filterQuality = FilterQuality.medium,
-      );
+    // Changes not written yet. No white cover over the old spot: text drawn
+    // on top of a picture would vanish with it. The old spot is outlined and
+    // the picture is shown at its new place until the page re-renders.
+    final pending = Paint()
+      ..color = const Color(0xFFE4002B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    // A moved object's old spot: fainter than a deletion (own paint, so the
+    // order of ghosts never changes how a deletion looks).
+    final movedFrom = Paint()
+      ..color = const Color(0x99E4002B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    for (final (from, to, img) in ghosts) {
+      if (to == null) {
+        canvas.drawRect(from, Paint()..color = const Color(0x22E4002B));
+        _dashed(canvas, from, pending);
+        continue;
+      }
+      _dashed(canvas, from, movedFrom);
+      if (img != null) {
+        canvas.drawImageRect(
+          img,
+          Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+          to,
+          Paint()
+            ..filterQuality = FilterQuality.medium
+            ..color = const Color(0xF0FFFFFF),
+        );
+      }
     }
     for (final (r, kind) in outlines) {
       final color = switch (kind) {

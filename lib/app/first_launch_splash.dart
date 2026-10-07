@@ -1,5 +1,6 @@
 import 'package:document_studio/core/settings/app_prefs.dart';
 import 'package:document_studio/app/cli_launch_args.dart';
+
 import 'dart:async';
 
 import 'package:document_studio/design_system/brand/ds_brand_assets.dart';
@@ -34,10 +35,7 @@ abstract final class FirstLaunchSplashTiming {
 /// Sequence: logo → red underline → splash fades while [child] fades in and
 /// rises 8px (250ms easeOutCubic). No spinner, no bounce loop.
 class FirstLaunchSplashHost extends StatefulWidget {
-  const FirstLaunchSplashHost({
-    required this.child,
-    super.key,
-  });
+  const FirstLaunchSplashHost({required this.child, super.key});
 
   final Widget child;
 
@@ -87,7 +85,8 @@ class _FirstLaunchSplashHostState extends State<FirstLaunchSplashHost>
   void initState() {
     super.initState();
     // Off in Settings, or a file was opened from the desktop: go straight in.
-    _playSplash = !FirstLaunchSplashHost._seenThisProcess &&
+    _playSplash =
+        !FirstLaunchSplashHost._seenThisProcess &&
         AppPrefs.showSplash &&
         !CliLaunchArgs.fromProcess().hasWork;
     if (_playSplash) {
@@ -131,10 +130,7 @@ class _FirstLaunchSplashHostState extends State<FirstLaunchSplashHost>
     );
 
     _splashOpacity = Tween<double>(begin: 1, end: 0).animate(
-      CurvedAnimation(
-        parent: _fadeOutController,
-        curve: Curves.easeOutCubic,
-      ),
+      CurvedAnimation(parent: _fadeOutController, curve: Curves.easeOutCubic),
     );
 
     final contentCurve = CurvedAnimation(
@@ -234,27 +230,26 @@ class _FirstLaunchSplashHostState extends State<FirstLaunchSplashHost>
                                 child: Opacity(
                                   opacity: _logoOpacity.value,
                                   child: Image.asset(
-                                    DsBrandAssets
-                                        .documentStudioLogoTransparent,
+                                    DsBrandAssets.documentStudioLogoTransparent,
                                     height: _logoHeight,
                                     fit: BoxFit.contain,
                                     filterQuality: FilterQuality.high,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
+                                    errorBuilder: (context, error, stackTrace) {
                                       return Image.asset(
                                         DsBrandAssets.documentStudioLogo,
                                         height: _logoHeight,
                                         fit: BoxFit.contain,
                                         filterQuality: FilterQuality.high,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return SizedBox(
-                                            height: _logoHeight,
-                                            child: const Icon(
-                                              Icons.description_outlined,
-                                              size: 48,
-                                            ),
-                                          );
-                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return SizedBox(
+                                                height: _logoHeight,
+                                                child: const Icon(
+                                                  Icons.description_outlined,
+                                                  size: 48,
+                                                ),
+                                              );
+                                            },
                                       );
                                     },
                                   ),
@@ -265,9 +260,8 @@ class _FirstLaunchSplashHostState extends State<FirstLaunchSplashHost>
                             Align(
                               alignment: Alignment.center,
                               child: SizedBox(
-                                width: _lockupWidth *
-                                    0.72 *
-                                    _underlineWidth.value,
+                                width:
+                                    _lockupWidth * 0.72 * _underlineWidth.value,
                                 height: 2.5,
                                 child: const ColoredBox(
                                   color: DsColors.primary,

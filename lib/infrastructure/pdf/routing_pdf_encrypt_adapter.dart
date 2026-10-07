@@ -12,8 +12,8 @@ class RoutingPdfEncryptAdapter implements PdfEncryptPort {
   RoutingPdfEncryptAdapter({
     QpdfEncryptAdapter? qpdf,
     DartPdfSecurityService? dart,
-  })  : _qpdf = qpdf ?? QpdfEncryptAdapter(),
-        _dart = dart ?? const DartPdfSecurityService();
+  }) : _qpdf = qpdf ?? QpdfEncryptAdapter(),
+       _dart = dart ?? const DartPdfSecurityService();
 
   final QpdfEncryptAdapter _qpdf;
   final DartPdfSecurityService _dart;
@@ -113,8 +113,9 @@ Future<PdfProtectionState> probePdfProtectionRouted(
   if (await isQpdfCliAvailable()) {
     return probePdfProtection(path, cli: cli);
   }
-  final probe =
-      await (dart ?? const DartPdfSecurityService()).probeProtection(path);
+  final probe = await (dart ?? const DartPdfSecurityService()).probeProtection(
+    path,
+  );
   return switch (probe) {
     PdfProtectionProbe.none => PdfProtectionState.none,
     PdfProtectionProbe.restrictionsOnly => PdfProtectionState.restrictionsOnly,

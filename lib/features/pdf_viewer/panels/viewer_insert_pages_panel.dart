@@ -33,7 +33,8 @@ class ViewerInsertPagesPanel extends ConsumerStatefulWidget {
       _ViewerInsertPagesPanelState();
 }
 
-class _ViewerInsertPagesPanelState extends ConsumerState<ViewerInsertPagesPanel> {
+class _ViewerInsertPagesPanelState
+    extends ConsumerState<ViewerInsertPagesPanel> {
   LocalFileRef? _source;
   int? _sourcePages;
   String? _sourcePassword;
@@ -41,15 +42,12 @@ class _ViewerInsertPagesPanelState extends ConsumerState<ViewerInsertPagesPanel>
   String? _error;
 
   Future<void> _pick() async {
-    final picked = await ref.read(fileStorageProvider).pickOpenFile(
-          allowedExtensions: const ['pdf'],
-        );
+    final picked = await ref
+        .read(fileStorageProvider)
+        .pickOpenFile(allowedExtensions: const ['pdf']);
     if (picked == null || !mounted) return;
-    final openPath = ref
-            .read(documentTabsControllerProvider)
-            .activeSession
-            ?.file
-            .path ??
+    final openPath =
+        ref.read(documentTabsControllerProvider).activeSession?.file.path ??
         widget.handoff.file.path;
     if (picked.path == openPath) {
       setState(() => _error = 'Choose a different PDF.');
@@ -71,10 +69,9 @@ class _ViewerInsertPagesPanelState extends ConsumerState<ViewerInsertPagesPanel>
 
   Future<void> _loadSource(LocalFileRef picked) async {
     try {
-      final info = await ref.read(pdfRenderPortProvider).loadInfo(
-            picked,
-            password: _sourcePassword,
-          );
+      final info = await ref
+          .read(pdfRenderPortProvider)
+          .loadInfo(picked, password: _sourcePassword);
       if (!mounted) return;
       setState(() => _sourcePages = info.pageCount);
     } on DocumentStudioError catch (e) {
@@ -161,7 +158,9 @@ class _ViewerInsertPagesPanelState extends ConsumerState<ViewerInsertPagesPanel>
   }
 
   int _insertAfter(int total) {
-    final selected = widget.selectedPages1Based.where((n) => n >= 1 && n <= total);
+    final selected = widget.selectedPages1Based.where(
+      (n) => n >= 1 && n <= total,
+    );
     if (selected.isEmpty) {
       return widget.handoff.currentPage1.clamp(1, total);
     }
@@ -184,8 +183,8 @@ class _ViewerInsertPagesPanelState extends ConsumerState<ViewerInsertPagesPanel>
     final sourceLabel = source == null
         ? 'No PDF chosen'
         : _sourcePages == null
-            ? source.displayName
-            : '${source.displayName} · $_sourcePages pages';
+        ? source.displayName
+        : '${source.displayName} · $_sourcePages pages';
     return ViewerToolFormScaffold(
       primaryKey: const Key('viewer_insert_pages_apply'),
       primaryLabel: _busy ? 'Inserting…' : 'Insert',

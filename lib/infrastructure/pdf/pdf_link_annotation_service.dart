@@ -1,3 +1,6 @@
+import 'package:document_studio/infrastructure/pdf/edit/pdf_page_editor.dart';
+import 'package:flutter/foundation.dart' show compute;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -19,9 +22,9 @@ class PdfLinkAnnotationSpec {
     required this.ury,
     required this.uri,
     this.visibleBorder = false,
-  })  : destPage1Based = null,
-        displayNormRect = null,
-        assert(uri != null);
+  }) : destPage1Based = null,
+       displayNormRect = null,
+       assert(uri != null);
 
   const PdfLinkAnnotationSpec.goTo({
     required this.pageIndex1Based,
@@ -31,9 +34,9 @@ class PdfLinkAnnotationSpec {
     required this.ury,
     required this.destPage1Based,
     this.visibleBorder = false,
-  })  : uri = null,
-        displayNormRect = null,
-        assert(destPage1Based != null);
+  }) : uri = null,
+       displayNormRect = null,
+       assert(destPage1Based != null);
 
   /// URI link placed by a display-normalized rect (see [displayNormRect]).
   const PdfLinkAnnotationSpec.uriDisplayNorm({
@@ -41,11 +44,11 @@ class PdfLinkAnnotationSpec {
     required Rect this.displayNormRect,
     required String this.uri,
     this.visibleBorder = false,
-  })  : destPage1Based = null,
-        llx = 0,
-        lly = 0,
-        urx = 0,
-        ury = 0;
+  }) : destPage1Based = null,
+       llx = 0,
+       lly = 0,
+       urx = 0,
+       ury = 0;
 
   /// GoTo link placed by a display-normalized rect (see [displayNormRect]).
   const PdfLinkAnnotationSpec.goToDisplayNorm({
@@ -53,11 +56,11 @@ class PdfLinkAnnotationSpec {
     required Rect this.displayNormRect,
     required int this.destPage1Based,
     this.visibleBorder = false,
-  })  : uri = null,
-        llx = 0,
-        lly = 0,
-        urx = 0,
-        ury = 0;
+  }) : uri = null,
+       llx = 0,
+       lly = 0,
+       urx = 0,
+       ury = 0;
 
   final int pageIndex1Based;
 
@@ -81,16 +84,33 @@ class PdfLinkAnnotationSpec {
 
 /// Injects Link annotations via qpdf `--update-from-json`.
 class PdfLinkAnnotationService {
-  PdfLinkAnnotationService({QpdfCliRunner? cli}) : _cli = cli ?? QpdfCliRunner();
+  PdfLinkAnnotationService({QpdfCliRunner? cli})
+    : _cli = cli ?? QpdfCliRunner();
 
   final QpdfCliRunner _cli;
 
+  /// Pure Dart for any file our editor opens (no qpdf needed); qpdf only
+  /// for encrypted or damaged files.
   Future<Uint8List> addLinkToBytes({
     required LocalFileRef input,
     required PdfLinkAnnotationSpec link,
     String? password,
     Rect? replaceDisplayNormRect,
-  }) {
+  }) async {
+    final norm = link.displayNormRect;
+    if (norm != null && (password == null || password.isEmpty)) {
+      final bytes = await File(input.path).readAsBytes();
+      final out = await compute(_addLinkIsolate, (
+        bytes,
+        link.pageIndex1Based,
+        norm,
+        link.uri,
+        link.destPage1Based,
+        link.visibleBorder,
+        replaceDisplayNormRect,
+      ));
+      if (out != null) return out;
+    }
     return _toBytes(
       prefix: 'ds_link_annot_',
       run: (outPath) => addLink(
@@ -110,7 +130,16 @@ class PdfLinkAnnotationService {
     required int pageIndex1Based,
     required Rect displayNormRect,
     String? password,
-  }) {
+  }) async {
+    if (password == null || password.isEmpty) {
+      final bytes = await File(input.path).readAsBytes();
+      final out = await compute(_removeLinkIsolate, (
+        bytes,
+        pageIndex1Based,
+        displayNormRect,
+      ));
+      if (out != null) return out;
+    }
     return _toBytes(
       prefix: 'ds_link_remove_',
       run: (outPath) => _edit(
@@ -247,7 +276,7 @@ class PdfLinkAnnotationService {
     required String? password,
     required String errorMessage,
     required void Function(_QpdfJsonDoc doc, Map<String, dynamic> updates)
-        mutate,
+    mutate,
   }) async {
     await Directory(p.dirname(outputPath)).create(recursive: true);
     final tempDir = await Directory.systemTemp.createTemp('ds_link_json_');
@@ -301,9 +330,9 @@ class PdfLinkAnnotationService {
 }
 
 DocumentStudioError _linkNotFound() => const DocumentStudioError(
-      code: DocumentStudioErrorCode.unknownError,
-      message: 'Link not found',
-    );
+  code: DocumentStudioErrorCode.unknownError,
+  message: 'Link not found',
+);
 
 String _refOf(String objKey) => objKey.replaceFirst('obj:', '');
 
@@ -366,7 +395,8 @@ class _QpdfJsonDoc {
 
   int allocateObjNum() => ++_maxObj;
 
-  static dynamic _valueOf(dynamic entry) => entry is Map ? entry['value'] : null;
+  static dynamic _valueOf(dynamic entry) =>
+      entry is Map ? entry['value'] : null;
 
   /// Raw `value` of an object key like `obj:3 0 R`.
   dynamic objectValue(String objKey) => _valueOf(objects[objKey]);
@@ -412,8 +442,8 @@ class _QpdfJsonDoc {
   }
 
   _PageGeometry pageGeometry(String pageKey) {
-    final media = _box(inherited(pageKey, '/MediaBox')) ??
-        const (0.0, 0.0, 612.0, 792.0);
+    final media =
+        _box(inherited(pageKey, '/MediaBox')) ?? const (0.0, 0.0, 612.0, 792.0);
     var crop = media;
     final cropRaw = _box(inherited(pageKey, '/CropBox'));
     if (cropRaw != null) {
@@ -627,12 +657,25 @@ int _removeMatchingLinks(
     kept.add(entry);
   }
   if (removed > 0) {
-    _writeAnnots(
-      doc,
-      updates,
-      pageKey,
-      (list: kept, arrayObjKey: annots.arrayObjKey),
-    );
+    _writeAnnots(doc, updates, pageKey, (
+      list: kept,
+      arrayObjKey: annots.arrayObjKey,
+    ));
   }
   return removed;
 }
+
+Uint8List? _addLinkIsolate(
+  (Uint8List, int, Rect, String?, int?, bool, Rect?) a,
+) => addPageLink(
+  a.$1,
+  a.$2,
+  rect: a.$3,
+  uri: a.$4,
+  destPage1: a.$5,
+  visibleBorder: a.$6,
+  replaceNorm: a.$7,
+);
+
+Uint8List? _removeLinkIsolate((Uint8List, int, Rect) a) =>
+    removePageLinks(a.$1, a.$2, a.$3);

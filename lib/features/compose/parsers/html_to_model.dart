@@ -240,7 +240,9 @@ class _Walker {
     final out = <CInline>[];
     for (final n in nodes) {
       if (n is dom.Text) {
-        final t = n.text.replaceAll(RegExp(r'\s+'), ' ');
+        var t = n.text.replaceAll(RegExp(r'\s+'), ' ');
+        // Whitespace collapses at the start of a line (block start or <br>).
+        if (out.isEmpty || out.last.lineBreak) t = t.trimLeft();
         if (t.isNotEmpty) out.addAll(_mathRuns(t, s));
         continue;
       }

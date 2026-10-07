@@ -105,9 +105,8 @@ class _ViewerOcrImagePanelState extends ConsumerState<ViewerOcrImagePanel> {
     if (text == null || text.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied OCR text')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Copied OCR text')));
   }
 
   @override

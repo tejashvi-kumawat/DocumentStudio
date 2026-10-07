@@ -1,4 +1,5 @@
 import 'package:document_studio/app/keyboard/text_input_guard.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -111,7 +112,8 @@ class _ViewerPlaceImagePanelState extends ConsumerState<ViewerPlaceImagePanel> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
-    final isOpen = (HardwareKeyboard.instance.isControlPressed ||
+    final isOpen =
+        (HardwareKeyboard.instance.isControlPressed ||
             HardwareKeyboard.instance.isMetaPressed) &&
         event.logicalKey == LogicalKeyboardKey.keyO;
     if (!isOpen) return KeyEventResult.ignored;
@@ -144,7 +146,9 @@ class _ViewerPlaceImagePanelState extends ConsumerState<ViewerPlaceImagePanel> {
     final rotation = live.rotationDegrees;
     setState(() => _busy = true);
     try {
-      final outBytes = await ref.read(pdfPageStampServiceProvider).applyImageStampToBytes(
+      final outBytes = await ref
+          .read(pdfPageStampServiceProvider)
+          .applyImageStampToBytes(
             input: session.file,
             pageIndex1Based: page,
             imageBytes: bytes,
@@ -221,7 +225,10 @@ class _ViewerPlaceImagePanelState extends ConsumerState<ViewerPlaceImagePanel> {
                   const SizedBox(height: DsSpacing.xs),
                   TextButton.icon(
                     onPressed: _busy ? null : _placeLast,
-                    icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                    icon: const Icon(
+                      Icons.add_photo_alternate_outlined,
+                      size: 18,
+                    ),
                     label: const Text('Place same image again'),
                   ),
                 ],
@@ -250,7 +257,9 @@ class _ViewerPlaceImagePanelState extends ConsumerState<ViewerPlaceImagePanel> {
                 DsPrimaryButton(
                   key: const Key('viewer_place_image_apply'),
                   onPressed: _busy || !hasImage ? null : _apply,
-                  label: _busy ? 'Placing…' : 'Place on page ${live.pageIndex1Based}',
+                  label: _busy
+                      ? 'Placing…'
+                      : 'Place on page ${live.pageIndex1Based}',
                 ),
               ],
             );

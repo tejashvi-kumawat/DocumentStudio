@@ -89,8 +89,7 @@ class SavedVisualSignatureStore {
   Future<void> _writeIndex(
     SharedPreferences prefs,
     List<Map<String, Object?>> index,
-  ) =>
-      prefs.setString(_indexKey, jsonEncode(index));
+  ) => prefs.setString(_indexKey, jsonEncode(index));
 
   String _newId() => DateTime.now().microsecondsSinceEpoch.toRadixString(36);
 
@@ -126,8 +125,7 @@ class SavedVisualSignatureStore {
     final bytes = await legacy.readAsBytes();
     if (bytes.isNotEmpty) {
       final entry = await _writeEntry(bytes);
-      entry['created'] =
-          (await legacy.lastModified()).millisecondsSinceEpoch;
+      entry['created'] = (await legacy.lastModified()).millisecondsSinceEpoch;
       index.add(entry);
       await _writeIndex(prefs, index);
     }
@@ -186,47 +184,46 @@ class SavedVisualSignatureStore {
   Future<SavedSignature> add(
     Uint8List png, {
     SavedSignatureKind kind = SavedSignatureKind.signature,
-  }) =>
-      _serialized(() async {
-        final prefs = await SharedPreferences.getInstance();
-        final index = _readIndex(prefs);
-        await _migrateLegacy(prefs, index);
-        final entry = await _writeEntry(png, kind);
-        index.insert(0, entry);
-        while (index.length > maxSaved) {
-          final dropped = index.removeLast();
-          final path = dropped['path'];
-          if (path is String) {
-            try {
-              await File(path).delete();
-            } catch (_) {}
-          }
-        }
-        await _writeIndex(prefs, index);
-        return SavedSignature(
-          id: entry['id']! as String,
-          path: entry['path']! as String,
-          bytes: png,
-          created: DateTime.fromMillisecondsSinceEpoch(entry['created']! as int),
-          kind: kind,
-          width: _pngSize(png).$1,
-          height: _pngSize(png).$2,
-        );
-      });
+  }) => _serialized(() async {
+    final prefs = await SharedPreferences.getInstance();
+    final index = _readIndex(prefs);
+    await _migrateLegacy(prefs, index);
+    final entry = await _writeEntry(png, kind);
+    index.insert(0, entry);
+    while (index.length > maxSaved) {
+      final dropped = index.removeLast();
+      final path = dropped['path'];
+      if (path is String) {
+        try {
+          await File(path).delete();
+        } catch (_) {}
+      }
+    }
+    await _writeIndex(prefs, index);
+    return SavedSignature(
+      id: entry['id']! as String,
+      path: entry['path']! as String,
+      bytes: png,
+      created: DateTime.fromMillisecondsSinceEpoch(entry['created']! as int),
+      kind: kind,
+      width: _pngSize(png).$1,
+      height: _pngSize(png).$2,
+    );
+  });
 
   Future<void> remove(String id) => _serialized(() async {
-        final prefs = await SharedPreferences.getInstance();
-        final index = _readIndex(prefs);
-        final i = index.indexWhere((e) => e['id'] == id);
-        if (i < 0) return;
-        final path = index.removeAt(i)['path'];
-        await _writeIndex(prefs, index);
-        if (path is String) {
-          try {
-            await File(path).delete();
-          } catch (_) {}
-        }
-      });
+    final prefs = await SharedPreferences.getInstance();
+    final index = _readIndex(prefs);
+    final i = index.indexWhere((e) => e['id'] == id);
+    if (i < 0) return;
+    final path = index.removeAt(i)['path'];
+    await _writeIndex(prefs, index);
+    if (path is String) {
+      try {
+        await File(path).delete();
+      } catch (_) {}
+    }
+  });
 
   /// Most recent saved signature PNG, or null if none.
   Future<Uint8List?> load() async {
@@ -241,23 +238,23 @@ class SavedVisualSignatureStore {
 
   /// Removes every saved signature (including the legacy single file).
   Future<void> clear() => _serialized(() async {
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          for (final e in _readIndex(prefs)) {
-            final path = e['path'];
-            if (path is String) {
-              try {
-                await File(path).delete();
-              } catch (_) {}
-            }
-          }
-          await prefs.remove(_indexKey);
-          final legacyPath = prefs.getString(_legacyKey);
-          await prefs.remove(_legacyKey);
-          final legacy = legacyPath != null && legacyPath.isNotEmpty
-              ? File(legacyPath)
-              : await _legacyDefaultFile();
-          if (await legacy.exists()) await legacy.delete();
-        } catch (_) {}
-      });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (final e in _readIndex(prefs)) {
+        final path = e['path'];
+        if (path is String) {
+          try {
+            await File(path).delete();
+          } catch (_) {}
+        }
+      }
+      await prefs.remove(_indexKey);
+      final legacyPath = prefs.getString(_legacyKey);
+      await prefs.remove(_legacyKey);
+      final legacy = legacyPath != null && legacyPath.isNotEmpty
+          ? File(legacyPath)
+          : await _legacyDefaultFile();
+      if (await legacy.exists()) await legacy.delete();
+    } catch (_) {}
+  });
 }

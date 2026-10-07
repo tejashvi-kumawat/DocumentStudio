@@ -38,12 +38,7 @@ class OrganizeDropTarget extends StatelessWidget {
           if (path.isEmpty) continue;
           if (p.extension(path).toLowerCase() != '.pdf') continue;
           if (!File(path).existsSync()) continue;
-          pdfs.add(
-            LocalFileRef(
-              path: path,
-              displayName: p.basename(path),
-            ),
-          );
+          pdfs.add(LocalFileRef(path: path, displayName: p.basename(path)));
         }
         if (pdfs.isNotEmpty) await onFilesDropped(pdfs);
       },

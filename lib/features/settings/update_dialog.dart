@@ -19,7 +19,10 @@ Future<void> showUpdateDialog(BuildContext context, AppUpdate update) {
 Future<void> checkForUpdatesInteractive(BuildContext context) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
   messenger?.showSnackBar(
-    const SnackBar(content: Text('Checking for updates…'), duration: Duration(seconds: 2)),
+    const SnackBar(
+      content: Text('Checking for updates…'),
+      duration: Duration(seconds: 2),
+    ),
   );
   final u = await AppUpdater.instance.check();
   if (!context.mounted) return;
@@ -77,7 +80,9 @@ class _UpdateDialogState extends State<_UpdateDialog> {
     final u = widget.update;
     final theme = Theme.of(context);
     final busy = _progress != null;
-    final mb = u.assetSize == null ? '' : ' (${(u.assetSize! / 1048576).round()} MB)';
+    final mb = u.assetSize == null
+        ? ''
+        : ' (${(u.assetSize! / 1048576).round()} MB)';
     return AlertDialog(
       title: Text('Document Studio ${u.version} is available'),
       content: SizedBox(
@@ -100,8 +105,8 @@ class _UpdateDialogState extends State<_UpdateDialog> {
               Text(
                 _progress! >= 1
                     ? (Platform.isWindows
-                        ? 'Installing — Document Studio will restart…'
-                        : 'Opening the installer…')
+                          ? 'Installing — Document Studio will restart…'
+                          : 'Opening the installer…')
                     : 'Downloading${(_progress! * 100).round()}%'.replaceFirst(
                         'Downloading',
                         'Downloading ',

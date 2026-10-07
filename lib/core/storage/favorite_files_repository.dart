@@ -53,9 +53,7 @@ class FavoriteFilesRepository {
     await _prefs.setStringList(
       _key,
       list
-          .map(
-            (f) => jsonEncode({'path': f.path, 'name': f.displayName}),
-          )
+          .map((f) => jsonEncode({'path': f.path, 'name': f.displayName}))
           .toList(),
     );
   }

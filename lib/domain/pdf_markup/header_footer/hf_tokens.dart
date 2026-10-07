@@ -21,7 +21,11 @@ const hfTokenCatalog = <HfTokenInfo>[
   HfTokenInfo('{title}', 'Title', 'Document title (falls back to file name)'),
   HfTokenInfo('{author}', 'Author', 'Document author'),
   HfTokenInfo('{subject}', 'Subject', 'Document subject'),
-  HfTokenInfo('{bates}', 'Bates number', 'Prefix + zero-padded counter + suffix'),
+  HfTokenInfo(
+    '{bates}',
+    'Bates number',
+    'Prefix + zero-padded counter + suffix',
+  ),
 ];
 
 const hfDateFormats = <String>[
@@ -71,13 +75,13 @@ class HfDocInfo {
   final DateTime? now;
 
   HfDocInfo withNow(DateTime value) => HfDocInfo(
-        fileName: fileName,
-        pageCount: pageCount,
-        title: title,
-        author: author,
-        subject: subject,
-        now: value,
-      );
+    fileName: fileName,
+    pageCount: pageCount,
+    title: title,
+    author: author,
+    subject: subject,
+    now: value,
+  );
 }
 
 final RegExp _tokenPattern = RegExp(r'\{([a-zA-Z]+)(?::([^}]*))?\}');
@@ -123,8 +127,19 @@ String hfFormatNumber(int n, HfNumberStyle style) {
 String _roman(int n) {
   if (n <= 0 || n > 3999) return '$n';
   const table = [
-    (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, 'XC'),
-    (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I'),
+    (1000, 'M'),
+    (900, 'CM'),
+    (500, 'D'),
+    (400, 'CD'),
+    (100, 'C'),
+    (90, 'XC'),
+    (50, 'L'),
+    (40, 'XL'),
+    (10, 'X'),
+    (9, 'IX'),
+    (5, 'V'),
+    (4, 'IV'),
+    (1, 'I'),
   ];
   var v = n;
   final b = StringBuffer();
@@ -151,11 +166,27 @@ String _alpha(int n) {
 }
 
 const _monthsLong = [
-  'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-  'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 const _daysLong = [
-  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
 ];
 
 /// Minimal ICU-style date formatter (yyyy yy MMMM MMM MM M dd d EEEE EEE
@@ -183,9 +214,11 @@ String hfFormatDate(DateTime d, String pattern) {
     final h12 = d.hour % 12 == 0 ? 12 : d.hour % 12;
     switch (c) {
       case 'y':
-        out.write(run == 2
-            ? two(d.year % 100)
-            : d.year.toString().padLeft(run.clamp(1, 4), '0'));
+        out.write(
+          run == 2
+              ? two(d.year % 100)
+              : d.year.toString().padLeft(run.clamp(1, 4), '0'),
+        );
       case 'M':
         out.write(switch (run) {
           >= 4 => _monthsLong[d.month - 1],
@@ -218,10 +251,7 @@ String hfFormatDate(DateTime d, String pattern) {
 
 /// Per-page values for [resolveHfTemplate].
 class HfPageContext {
-  const HfPageContext({
-    required this.page1Based,
-    required this.batesValue,
-  });
+  const HfPageContext({required this.page1Based, required this.batesValue});
 
   final int page1Based;
 

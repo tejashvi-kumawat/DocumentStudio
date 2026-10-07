@@ -1,6 +1,7 @@
 import 'package:document_studio/core/update/app_updater.dart';
 import 'package:document_studio/features/settings/update_dialog.dart';
 import 'package:document_studio/design_system/brand/ds_built_by.dart';
+
 import 'dart:async';
 import 'dart:io' show Platform, exit;
 
@@ -29,6 +30,35 @@ import 'package:window_manager/window_manager.dart';
     return (label: 'Workspace', icon: Icons.dashboard_customize_rounded);
   }
   if (path == '/tools') return (label: 'Tools', icon: Icons.apps_rounded);
+  if (path.startsWith('/office')) {
+    final uri = Uri.tryParse(path);
+    final file = uri?.queryParameters['path'];
+    final kind = file == null
+        ? uri?.queryParameters['kind']
+        : file.split('.').last.toLowerCase();
+    return (
+      label: file != null
+          ? file.split(RegExp(r'[\\/]')).last
+          : (kind == 'pptx' ? 'New presentation' : 'New document'),
+      icon: kind == 'pptx'
+          ? Icons.slideshow_rounded
+          : Icons.description_rounded,
+    );
+  }
+  if (path.startsWith('/create-pdf')) {
+    return (label: 'Create PDF', icon: Icons.note_add_rounded);
+  }
+  if (path.startsWith('/compose')) {
+    final lang = Uri.tryParse(path)?.queryParameters['lang'];
+    return (
+      label: switch (lang) {
+        'tex' => 'LaTeX editor',
+        'html' => 'HTML editor',
+        _ => 'Markdown editor',
+      },
+      icon: Icons.code_rounded,
+    );
+  }
   if (path == '/settings') {
     return (label: 'Settings', icon: Icons.settings_rounded);
   }
@@ -141,9 +171,28 @@ class _DsWindowFrameState extends ConsumerState<DsWindowFrame>
     if (ok) tabs.closeTab(index);
   }
 
+  String? _fullLocation;
+
   void _onRouteChanged() {
     final next = dsRouterLocation(widget.router);
-    if (next == _location || !mounted) return;
+    var full = next;
+    try {
+      full = widget.router.state.uri.toString();
+    } catch (_) {}
+    // The query matters too: /office?path=a.docx → /office?path=b.docx is
+    // another document (another tab).
+    final locationChanged = next != _location;
+    if ((!locationChanged && full == _fullLocation) || !mounted) return;
+    _fullLocation = full;
+    final tabs = ref.read(documentTabsControllerProvider);
+    final docInFront = next == '/' && tabs.hasTabs && !tabs.isHomeActive;
+    if (!docInFront) {
+      // Never notify tab listeners in the middle of a route build.
+      scheduleMicrotask(() => tabs.notePageLocation(full));
+    }
+    // Only the query changed (another document in the same editor): the
+    // tabs update via notePageLocation; the frame itself stays as it is.
+    if (!locationChanged) return;
     setState(() => _location = next);
     _barEntry.markNeedsBuild();
   }
@@ -229,7 +278,6 @@ class _DsTitleBar extends ConsumerWidget {
     final window = ref.watch(dsWindowStateProvider);
     final width = MediaQuery.sizeOf(context).width;
     final brightness = Theme.of(context).brightness;
-    final start = dsStartTabFor(location);
     final inShell = dsIsShellLocation(location);
     final showSidebarToggle = inShell && width >= 900;
     final leadingInset = DsWindow.isMacOS && !window.fullScreen
@@ -256,26 +304,28 @@ class _DsTitleBar extends ConsumerWidget {
             Expanded(
               child: DsShellDocumentTabBar(
                 controller: tabs,
-                documentsVisible: location == '/' &&
-                    tabs.hasTabs &&
-                    !tabs.isHomeActive,
-                startLabel: start.label,
-                startIcon: start.icon,
+                documentsVisible:
+                    location == '/' && tabs.hasTabs && !tabs.isHomeActive,
+                startLabel: 'Home',
+                startIcon: Icons.home_rounded,
+                pageLabel: dsStartTabFor,
+                onNavigate: (loc) {
+                  tabs.showHome();
+                  router.go(loc);
+                },
                 menuContext: navigatorContext,
                 onRequestCloseTab: onRequestCloseTab,
                 onActivateStart: () {
-                  if (location == '/') tabs.showHome();
+                  tabs.activateStartTab();
+                  if (location != '/') router.go('/');
                 },
                 onActivateDocument: (index) {
                   tabs.activateTab(index);
                   tabs.showDocument();
                   if (location != '/') router.go('/');
                 },
-                onOpenAnother: () => dsOpenPdfFromChrome(
-                  ref: ref,
-                  router: router,
-                  navigatorContext: navigatorContext,
-                ),
+                // + opens a new Home tab (open a PDF from there).
+                onOpenAnother: () => router.go(tabs.openNewHomeTab()),
                 trailingFill: const _CreditDragArea(),
               ),
             ),
@@ -325,11 +375,11 @@ class _DsTitleBar extends ConsumerWidget {
 
 extension on Widget {
   Widget withBottomHairline(Color color) => DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: color, width: 0.5)),
-        ),
-        child: this,
-      );
+    decoration: BoxDecoration(
+      border: Border(bottom: BorderSide(color: color, width: 0.5)),
+    ),
+    child: this,
+  );
 }
 
 /// Empty title-bar space: drag to move, double-click to maximize/restore,
@@ -445,18 +495,16 @@ class _CommandSearchButtonState extends State<_CommandSearchButton> {
             decoration: BoxDecoration(
               color: widget.compact
                   ? (_hovered
-                      ? DsColors.textPrimary(brightness).withValues(alpha: 0.07)
-                      : Colors.transparent)
+                        ? DsColors.textPrimary(brightness)
+                              .withValues(alpha: 0.07)
+                        : Colors.transparent)
                   : (isDark
-                      ? Colors.white.withValues(alpha: _hovered ? 0.10 : 0.06)
-                      : Colors.white.withValues(alpha: _hovered ? 1 : 0.7)),
+                        ? Colors.white.withValues(alpha: _hovered ? 0.10 : 0.06)
+                        : Colors.white.withValues(alpha: _hovered ? 1 : 0.7)),
               borderRadius: BorderRadius.circular(DsSpacing.radiusButton),
               border: widget.compact
                   ? null
-                  : Border.all(
-                      color: DsColors.border(brightness),
-                      width: 0.5,
-                    ),
+                  : Border.all(color: DsColors.border(brightness), width: 0.5),
             ),
             child: widget.compact
                 ? Icon(Icons.search_rounded, size: 18, color: muted)
@@ -470,8 +518,10 @@ class _CommandSearchButtonState extends State<_CommandSearchButton> {
                           maxLines: 1,
                           overflow: TextOverflow.clip,
                           softWrap: false,
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(fontSize: 12.5, color: muted),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 12.5,
+                            color: muted,
+                          ),
                         ),
                       ),
                       Text(
@@ -554,22 +604,24 @@ class _CaptionButtonState extends State<_CaptionButton> {
   bool _pressed = false;
 
   String get _label => switch (widget.kind) {
-        _CaptionKind.minimize => 'Minimize',
-        _CaptionKind.maximize => 'Maximize',
-        _CaptionKind.restore => 'Restore',
-        _CaptionKind.close => 'Close',
-      };
+    _CaptionKind.minimize => 'Minimize',
+    _CaptionKind.maximize => 'Maximize',
+    _CaptionKind.restore => 'Restore',
+    _CaptionKind.close => 'Close',
+  };
 
   IconData get _icon => switch (widget.kind) {
-        _CaptionKind.minimize => Icons.remove_rounded,
-        _CaptionKind.maximize => widget.windowsStyle
-            ? Icons.crop_square_rounded
-            : Icons.keyboard_arrow_up_rounded,
-        _CaptionKind.restore => widget.windowsStyle
-            ? Icons.filter_none_rounded
-            : Icons.keyboard_arrow_down_rounded,
-        _CaptionKind.close => Icons.close_rounded,
-      };
+    _CaptionKind.minimize => Icons.remove_rounded,
+    _CaptionKind.maximize =>
+      widget.windowsStyle
+          ? Icons.crop_square_rounded
+          : Icons.keyboard_arrow_up_rounded,
+    _CaptionKind.restore =>
+      widget.windowsStyle
+          ? Icons.filter_none_rounded
+          : Icons.keyboard_arrow_down_rounded,
+    _CaptionKind.close => Icons.close_rounded,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -591,7 +643,9 @@ class _CaptionButtonState extends State<_CaptionButton> {
         child: Icon(
           _icon,
           size: widget.kind == _CaptionKind.restore ? 13 : 16,
-          color: _hovered && isClose ? Colors.white : ink.withValues(alpha: 0.85),
+          color: _hovered && isClose
+              ? Colors.white
+              : ink.withValues(alpha: 0.85),
         ),
       );
     } else {

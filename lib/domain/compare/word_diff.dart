@@ -46,7 +46,13 @@ class _HunkBuilder {
     if (hunks.isNotEmpty) {
       final last = hunks.last;
       if (last.op == op && last.aEnd == a0 && last.bEnd == b0) {
-        hunks[hunks.length - 1] = DiffHunk(op, last.aStart, a1, last.bStart, b1);
+        hunks[hunks.length - 1] = DiffHunk(
+          op,
+          last.aStart,
+          a1,
+          last.bStart,
+          b1,
+        );
         return;
       }
     }
@@ -217,8 +223,9 @@ void _myers(
     final vd = trace[d];
     int at(int k) => vd[k + d + 1];
     final k = x - y;
-    final prevK =
-        (k == -d || (k != d && at(k - 1) < at(k + 1))) ? k + 1 : k - 1;
+    final prevK = (k == -d || (k != d && at(k - 1) < at(k + 1)))
+        ? k + 1
+        : k - 1;
     final prevX = at(prevK);
     final prevY = prevX - prevK;
     while (x > prevX && y > prevY) {

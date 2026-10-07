@@ -12,10 +12,7 @@ enum HomeRecentsSort {
 
 /// Filters documents by display name or path (case-insensitive substring).
 /// Partial [DS-FILE-002] — library-wide filter not implemented.
-List<LocalFileRef> filterHomeDocuments(
-  List<LocalFileRef> files,
-  String query,
-) {
+List<LocalFileRef> filterHomeDocuments(List<LocalFileRef> files, String query) {
   final trimmed = query.trim();
   if (trimmed.isEmpty) {
     return files;
@@ -34,8 +31,7 @@ List<LocalFileRef> filterHomeDocuments(
 List<LocalFileRef> filterHomeRecents(
   List<LocalFileRef> recents,
   String query,
-) =>
-    filterHomeDocuments(recents, query);
+) => filterHomeDocuments(recents, query);
 
 List<LocalFileRef> applyHomeRecentsSort(
   List<LocalFileRef> files,
@@ -47,16 +43,14 @@ List<LocalFileRef> applyHomeRecentsSort(
       return copy;
     case HomeRecentsSort.nameAsc:
       copy.sort(
-        (a, b) => a.displayName.toLowerCase().compareTo(
-              b.displayName.toLowerCase(),
-            ),
+        (a, b) =>
+            a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
       );
       return copy;
     case HomeRecentsSort.nameDesc:
       copy.sort(
-        (a, b) => b.displayName.toLowerCase().compareTo(
-              a.displayName.toLowerCase(),
-            ),
+        (a, b) =>
+            b.displayName.toLowerCase().compareTo(a.displayName.toLowerCase()),
       );
       return copy;
   }
@@ -66,5 +60,4 @@ List<LocalFileRef> filterAndSortHomeDocuments({
   required List<LocalFileRef> files,
   required String query,
   required HomeRecentsSort sort,
-}) =>
-    applyHomeRecentsSort(filterHomeDocuments(files, query), sort);
+}) => applyHomeRecentsSort(filterHomeDocuments(files, query), sort);

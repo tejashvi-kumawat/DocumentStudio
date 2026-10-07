@@ -1,4 +1,5 @@
 import 'package:document_studio/core/pdf/page_loader.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -67,12 +68,13 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
     _document = null;
     await prev?.dispose();
     try {
-      final doc = await openPdfLazily(widget.handoff.file.path, password: widget.handoff.password);
+      final doc = await openPdfLazily(
+        widget.handoff.file.path,
+        password: widget.handoff.password,
+      );
       final idx = math.max(0, widget.handoff.currentPage1 - 1);
-      final page = await loadPageOnDemand(
-            doc,
-            (idx + 1).clamp(1, doc.pages.length),
-          ) ??
+      final page =
+          await loadPageOnDemand(doc, (idx + 1).clamp(1, doc.pages.length)) ??
           doc.pages.first;
       if (!mounted) {
         await doc.dispose();
@@ -159,12 +161,13 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
     setState(() => _busy = true);
     try {
       final page = widget.handoff.currentPage1;
-      final temp = await ref.read(fileStorageProvider).createTempFile(
-            prefix: 'markup-burn',
-            suffix: '.pdf',
-          );
+      final temp = await ref
+          .read(fileStorageProvider)
+          .createTempFile(prefix: 'markup-burn', suffix: '.pdf');
       var workingPath = temp;
-      await ref.read(pdfOverlayServiceProvider).applyMarkupRectsOnPage(
+      await ref
+          .read(pdfOverlayServiceProvider)
+          .applyMarkupRectsOnPage(
             input: widget.handoff.file,
             outputPath: workingPath,
             pageIndex1Based: page,
@@ -173,10 +176,9 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
           );
 
       if (_kind == MarkupBurnKind.note && _noteCtrl.text.trim().isNotEmpty) {
-        final noteTemp = await ref.read(fileStorageProvider).createTempFile(
-              prefix: 'markup-note',
-              suffix: '.pdf',
-            );
+        final noteTemp = await ref
+            .read(fileStorageProvider)
+            .createTempFile(prefix: 'markup-note', suffix: '.pdf');
         final r = _rects.first;
         final xPt = r.left * _pageWidthPt + 6;
         final yPt = (1 - r.bottom) * _pageHeightPt + 8;
@@ -205,7 +207,9 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
         // by applying typed signature style — use applyMarkup then text via
         // applyTypedSignature is wrong. Use overlay service private path via
         // applyTextWatermark with custom anchor for first rect only.
-        await ref.read(pdfOverlayServiceProvider).applyTextWatermark(
+        await ref
+            .read(pdfOverlayServiceProvider)
+            .applyTextWatermark(
               input: LocalFileRef(path: workingPath, displayName: 'tmp.pdf'),
               outputPath: noteTemp,
               options: WatermarkOptions(
@@ -225,7 +229,8 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
       final bytes = await File(workingPath).readAsBytes();
       if (!mounted) return;
       final session = ref.read(documentTabsControllerProvider).activeSession;
-      if (session != null && session.sameDocumentPath(widget.handoff.file.path)) {
+      if (session != null &&
+          session.sameDocumentPath(widget.handoff.file.path)) {
         await commitBytesToSession(
           context: context,
           storage: ref.read(fileStorageProvider),
@@ -237,9 +242,8 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -378,10 +382,7 @@ class _ViewerMarkupBurnPanelState extends ConsumerState<ViewerMarkupBurnPanel> {
                                 ),
                                 CustomPaint(
                                   painter: _MarkupPainter(
-                                    rects: [
-                                      ..._rects,
-                                      if (_draft != null) _draft!,
-                                    ],
+                                    rects: [..._rects, ?_draft],
                                     kind: _kind,
                                   ),
                                 ),
@@ -425,10 +426,7 @@ class _MarkupPainter extends CustomPainter {
       );
       switch (kind) {
         case MarkupBurnKind.highlight:
-          canvas.drawRect(
-            rect,
-            Paint()..color = const Color(0x73FFF200),
-          );
+          canvas.drawRect(rect, Paint()..color = const Color(0x73FFF200));
         case MarkupBurnKind.underline:
           canvas.drawLine(
             Offset(rect.left, rect.bottom),

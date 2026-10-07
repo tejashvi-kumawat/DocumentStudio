@@ -52,13 +52,7 @@ Future<void> pdfViewerZoomOut(PdfViewerController controller) async {
   await controller.zoomDown();
 }
 
-enum PdfViewerZoomMenuAction {
-  zoomOut,
-  fitWidth,
-  fitHeight,
-  fitPage,
-  zoomIn,
-}
+enum PdfViewerZoomMenuAction { zoomOut, fitWidth, fitHeight, fitPage, zoomIn }
 
 /// Applies a zoom menu selection when [controller] is ready.
 Future<void> pdfViewerApplyZoomMenuAction(
@@ -108,7 +102,8 @@ class PdfViewerZoomToolbarControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final useCompact = compact ??
+    final useCompact =
+        compact ??
         MediaQuery.sizeOf(context).width < kDsStatusBarCompactBreakpoint;
     final override = availability;
     if (override != null) {
@@ -119,9 +114,7 @@ class PdfViewerZoomToolbarControls extends StatelessWidget {
     final ctrl = controller;
     if (ctrl == null) {
       final state = pdfViewerZoomAvailability(isReady: false);
-      return useCompact
-          ? _buildCompactMenu(context, state)
-          : _buildRow(state);
+      return useCompact ? _buildCompactMenu(context, state) : _buildRow(state);
     }
     return ListenableBuilder(
       listenable: ctrl,
@@ -134,7 +127,10 @@ class PdfViewerZoomToolbarControls extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactMenu(BuildContext context, PdfViewerZoomAvailability state) {
+  Widget _buildCompactMenu(
+    BuildContext context,
+    PdfViewerZoomAvailability state,
+  ) {
     final enabled = state.enabled;
     final ctrl = controller;
     return PopupMenuButton<PdfViewerZoomMenuAction>(
@@ -219,8 +215,8 @@ class PdfViewerZoomToolbarControls extends StatelessWidget {
     final segmentSelected = fitDisplay == PdfViewerFitDisplay.fitPage
         ? _FitSegment.fitPage
         : fitDisplay == PdfViewerFitDisplay.fitWidth
-            ? _FitSegment.fitWidth
-            : fitSegmentSelected;
+        ? _FitSegment.fitWidth
+        : fitSegmentSelected;
 
     void applyFit(_FitSegment segment) {
       if (ctrl == null || !enabled) return;

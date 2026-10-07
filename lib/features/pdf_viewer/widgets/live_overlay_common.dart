@@ -28,11 +28,13 @@ TextStyle liveHelveticaStyle({
   double lineHeightEm = kTextLineHeightEm,
   String? customFamily,
 }) {
-  final flutterFamily = customFamily ?? switch (family) {
-    'serif' => 'DS Serif',
-    'mono' => 'DS Mono',
-    _ => kHelveticaCompatibleFontFamily,
-  };
+  final flutterFamily =
+      customFamily ??
+      switch (family) {
+        'serif' => 'DS Serif',
+        'mono' => 'DS Mono',
+        _ => kHelveticaCompatibleFontFamily,
+      };
   return TextStyle(
     fontFamily: flutterFamily,
     fontStyle: italic ? FontStyle.italic : FontStyle.normal,
@@ -122,7 +124,10 @@ void paintLiveTextBox(
       line,
       leftBaseline: Offset(
         boxPx.left + dxPt * pxPerPt,
-        boxPx.top + i * leadingPx + halfExtraPx + fontPx * kHelveticaBaselineFromLineTopEm,
+        boxPx.top +
+            i * leadingPx +
+            halfExtraPx +
+            fontPx * kHelveticaBaselineFromLineTopEm,
       ),
       fontPx: fontPx,
       color: color,
@@ -139,13 +144,13 @@ void paintLiveTextBox(
 MouseCursor cursorForPlacementHandle(PlacementHandle h) {
   return switch (h) {
     PlacementHandle.topLeft ||
-    PlacementHandle.bottomRight =>
-      SystemMouseCursors.resizeUpLeftDownRight,
+    PlacementHandle.bottomRight => SystemMouseCursors.resizeUpLeftDownRight,
     PlacementHandle.topRight ||
-    PlacementHandle.bottomLeft =>
-      SystemMouseCursors.resizeUpRightDownLeft,
-    PlacementHandle.top || PlacementHandle.bottom => SystemMouseCursors.resizeUpDown,
-    PlacementHandle.left || PlacementHandle.right => SystemMouseCursors.resizeLeftRight,
+    PlacementHandle.bottomLeft => SystemMouseCursors.resizeUpRightDownLeft,
+    PlacementHandle.top ||
+    PlacementHandle.bottom => SystemMouseCursors.resizeUpDown,
+    PlacementHandle.left ||
+    PlacementHandle.right => SystemMouseCursors.resizeLeftRight,
   };
 }
 
@@ -273,7 +278,13 @@ class LiveSelectionPainter extends CustomPainter {
       old.fill != fill;
 }
 
-void paintDashedRect(Canvas canvas, Rect r, Paint paint, {double dash = 5, double gap = 3}) {
+void paintDashedRect(
+  Canvas canvas,
+  Rect r,
+  Paint paint, {
+  double dash = 5,
+  double gap = 3,
+}) {
   void seg(Offset a, Offset b) {
     final len = (b - a).distance;
     if (len <= 0) return;
@@ -306,7 +317,11 @@ class LiveHintChip extends StatelessWidget {
         color: const Color(0xE6202124),
         borderRadius: BorderRadius.circular(999),
         boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Padding(

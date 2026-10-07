@@ -87,9 +87,6 @@ class OrganizeInsertionIndicator extends StatelessWidget {
             ),
           );
 
-    return Semantics(
-      label: semanticsLabel,
-      child: bar,
-    );
+    return Semantics(label: semanticsLabel, child: bar);
   }
 }

@@ -24,6 +24,7 @@ DocumentStudioError? pdfOpenLimitErrorForFile(
   return DocumentStudioError(
     code: DocumentStudioErrorCode.outOfMemory,
     message: 'This PDF is too large to open safely ($mb MB; limit $capMb MB).',
-    recoveryHint: 'Try compressing or splitting the file on a desktop tool first.',
+    recoveryHint:
+        'Try compressing or splitting the file on a desktop tool first.',
   );
 }

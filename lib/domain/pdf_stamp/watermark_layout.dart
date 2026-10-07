@@ -110,17 +110,17 @@ class WatermarkSpec {
 
   @override
   int get hashCode => Object.hash(
-        text,
-        imageAspect,
-        fontSizePt,
-        font,
-        imageHeightFrac,
-        rotationDegrees,
-        opacity,
-        colorRgb,
-        tiled,
-        position,
-      );
+    text,
+    imageAspect,
+    fontSizePt,
+    font,
+    imageHeightFrac,
+    rotationDegrees,
+    opacity,
+    colorRgb,
+    tiled,
+    position,
+  );
 }
 
 /// Cap height / descender (em) used to box and vertically center text marks.
@@ -201,15 +201,15 @@ List<WatermarkMark> layoutWatermark({
   final bboxH = w * s + h * c;
 
   WatermarkMark mark(double cx, double cy) => WatermarkMark(
-        centerXNorm: cx,
-        centerYNorm: cy,
-        widthPt: w,
-        heightPt: h,
-        rotationDegrees: spec.rotationDegrees,
-        text: text,
-        fontSizePt: fontSize,
-        font: spec.font,
-      );
+    centerXNorm: cx,
+    centerYNorm: cy,
+    widthPt: w,
+    heightPt: h,
+    rotationDegrees: spec.rotationDegrees,
+    text: text,
+    fontSizePt: fontSize,
+    font: spec.font,
+  );
 
   if (spec.tiled) {
     final gap = aspect != null ? h * 0.6 : fontSize * 1.2;

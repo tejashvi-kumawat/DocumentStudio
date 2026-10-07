@@ -21,10 +21,9 @@ bool dsIsAndroidPlatform(TargetPlatform platform) =>
     platform == TargetPlatform.android;
 
 /// Scroll feel: rubber-band bounce on Apple, clamping elsewhere.
-ScrollPhysics dsAdaptiveScrollPhysics(BuildContext context) =>
-    context.dsIsApple
-        ? const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics())
-        : const ClampingScrollPhysics();
+ScrollPhysics dsAdaptiveScrollPhysics(BuildContext context) => context.dsIsApple
+    ? const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics())
+    : const ClampingScrollPhysics();
 
 /// App-wide scroll behavior: Apple bounce + overlay scrollbars on macOS/iOS,
 /// mouse-drag scrolling on desktop (trackpads and touch screens alike).
@@ -221,8 +220,9 @@ Future<T?> showDsAdaptiveDialog<T>(
           if (a.primary || a.destructive)
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor:
-                    a.destructive ? DsColors.error : DsColors.primary,
+                backgroundColor: a.destructive
+                    ? DsColors.error
+                    : DsColors.primary,
               ),
               onPressed: () => Navigator.of(ctx).pop(a.value),
               child: Text(a.label),

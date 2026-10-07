@@ -1,11 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Corner / edge presets for a stamp on one page (PDF points, origin bottom-left).
-enum PdfPageStampPlacement {
-  bottomRight,
-  bottomLeft,
-  center,
-}
+enum PdfPageStampPlacement { bottomRight, bottomLeft, center }
 
 /// Size of a stamp as a fraction of the shorter page edge.
 ///
@@ -36,14 +32,14 @@ class PdfPageStampLayout extends Equatable {
 
   @override
   List<Object?> get props => [
-        placement,
-        maxWidthFraction,
-        marginPt,
-        textFontSizePt,
-        absoluteRect,
-        absoluteXPt,
-        absoluteYPt,
-      ];
+    placement,
+    maxWidthFraction,
+    marginPt,
+    textFontSizePt,
+    absoluteRect,
+    absoluteXPt,
+    absoluteYPt,
+  ];
 }
 
 /// Axis-aligned stamp box in PDF user space (points, bottom-left origin).
@@ -95,18 +91,12 @@ PdfStampRect computeImageStampRect({
   }
   final m = layout.marginPt;
   final (x, y) = switch (layout.placement) {
-    PdfPageStampPlacement.bottomRight => (
-        pageWidthPt - m - widthPt,
-        m,
-      ),
-    PdfPageStampPlacement.bottomLeft => (
-        m,
-        m,
-      ),
+    PdfPageStampPlacement.bottomRight => (pageWidthPt - m - widthPt, m),
+    PdfPageStampPlacement.bottomLeft => (m, m),
     PdfPageStampPlacement.center => (
-        (pageWidthPt - widthPt) / 2,
-        (pageHeightPt - heightPt) / 2,
-      ),
+      (pageWidthPt - widthPt) / 2,
+      (pageHeightPt - heightPt) / 2,
+    ),
   };
   return PdfStampRect(
     xPt: x.clamp(0, pageWidthPt),
@@ -139,17 +129,14 @@ PdfStampRect computeImageStampRect({
   final m = layout.marginPt;
   final (x, y) = switch (layout.placement) {
     PdfPageStampPlacement.bottomRight => (
-        pageWidthPt - m - estWidth,
-        m + fontSize,
-      ),
-    PdfPageStampPlacement.bottomLeft => (
-        m,
-        m + fontSize,
-      ),
+      pageWidthPt - m - estWidth,
+      m + fontSize,
+    ),
+    PdfPageStampPlacement.bottomLeft => (m, m + fontSize),
     PdfPageStampPlacement.center => (
-        (pageWidthPt - estWidth) / 2,
-        pageHeightPt / 2,
-      ),
+      (pageWidthPt - estWidth) / 2,
+      pageHeightPt / 2,
+    ),
   };
   return (
     xPt: x.clamp(0, pageWidthPt),

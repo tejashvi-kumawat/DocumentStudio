@@ -19,11 +19,7 @@ class LiveWatermarkPreviewMath {
   }) {
     final w = widthFrac.clamp(0.05, 1.0);
     final h = heightFrac.clamp(0.04, 1.0);
-    return Rect.fromCenter(
-      center: const Offset(0.5, 0.5),
-      width: w,
-      height: h,
-    );
+    return Rect.fromCenter(center: const Offset(0.5, 0.5), width: w, height: h);
   }
 
   /// Tiled watermarks across the page (normalized top-left origin).
@@ -72,7 +68,7 @@ class LiveWatermarkPreviewMath {
 
   /// PDF-space stamp boxes (bottom-left origin) matching [previewRects].
   static List<({double xPt, double yPt, double widthPt, double heightPt})>
-      stampRectsPt({
+  stampRectsPt({
     required double pageWidthPt,
     required double pageHeightPt,
     required double stampWidthPt,

@@ -1,7 +1,9 @@
 import 'dart:ui' as ui;
+
 import 'package:document_studio/core/settings/app_prefs.dart';
 import 'package:document_studio/core/fonts/font_library.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_page_editor.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -133,7 +135,12 @@ enum ImageEditKind { move, delete, replace, recolor }
 /// What Edit shows for an object change that is not written yet: the old
 /// spot covered and (for a move) the object's picture at its new place.
 class LiveObjectGhost {
-  LiveObjectGhost({required this.page, required this.from, this.to, this.image});
+  LiveObjectGhost({
+    required this.page,
+    required this.from,
+    this.to,
+    this.image,
+  });
 
   final int page;
   final Rect from;
@@ -222,8 +229,7 @@ bool viewerToolUsesLivePageOverlay(ViewerToolId? id) {
     ViewerToolId.markupBurn ||
     ViewerToolId.headersFooters ||
     ViewerToolId.editText ||
-    ViewerToolId.addLink =>
-      true,
+    ViewerToolId.addLink => true,
     _ => false,
   };
 }
@@ -236,8 +242,7 @@ bool viewerToolSpansPages(ViewerToolId? id) {
     ViewerToolId.ink ||
     ViewerToolId.markupBurn ||
     ViewerToolId.editText ||
-    ViewerToolId.addLink =>
-      true,
+    ViewerToolId.addLink => true,
     _ => false,
   };
 }
@@ -317,6 +322,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
   Offset? _dragOriginNorm;
   PageCropQuadNorm? _cropQuadNorm;
   LiveCropMode _cropMode = LiveCropMode.rectangle;
+
   /// Physical width/height ratio for rectangle crop (`null` = free).
   double? _cropAspectPhysical;
   LiveDrawTool _drawTool = LiveDrawTool.pen;
@@ -342,6 +348,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
   final List<int> _formScanQueue = [];
   bool _formScanNotifyQueued = false;
   bool _closed = false;
+
   /// Bumped on every [focusFormSpot] so the overlay can requestFocus even when
   /// the same id is selected again (panel jump-to).
   int _formFocusGeneration = 0;
@@ -384,15 +391,17 @@ class ViewerLiveToolSession extends ChangeNotifier {
   int _textCancelRequestId = 0;
   double _rotationDegrees = -45;
   bool _watermarkTiled = false;
+
   /// Stamp previews painted on every in-scope page. Separate notifiers so
   /// option changes repaint the page layers without rebuilding the viewer.
   final ValueNotifier<WatermarkPreviewState?> watermarkPreviewNotifier =
       ValueNotifier<WatermarkPreviewState?>(null);
   final ValueNotifier<HeaderFooterPreviewState?> headerFooterPreviewNotifier =
       ValueNotifier<HeaderFooterPreviewState?>(null);
-  late final Listenable stampPreviewListenable = Listenable.merge(
-    [watermarkPreviewNotifier, headerFooterPreviewNotifier],
-  );
+  late final Listenable stampPreviewListenable = Listenable.merge([
+    watermarkPreviewNotifier,
+    headerFooterPreviewNotifier,
+  ]);
   String _headerText = '';
   String _footerText = '';
   LiveMarginAlign _bandAlign = LiveMarginAlign.center;
@@ -412,8 +421,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
   /// Bumped on high-frequency drag updates (pointer move) — only the page
   /// overlay listens, so side panels do not rebuild on every mouse move.
   final ValueNotifier<int> draftRevision = ValueNotifier<int>(0);
-  late final Listenable overlayListenable =
-      Listenable.merge([this, draftRevision]);
+  late final Listenable overlayListenable = Listenable.merge([
+    this,
+    draftRevision,
+  ]);
 
   ViewerToolId? get toolId => _toolId;
   int get pageIndex1Based => _pageIndex1Based;
@@ -446,9 +457,9 @@ class ViewerLiveToolSession extends ChangeNotifier {
 
   /// Commits not yet sent to the writer (excludes an in-flight burn).
   List<LiveDrawCommit> get unburnedDrawCommits => [
-        for (final c in _queuedDrawCommits)
-          if (!_burningDrawCommits.contains(c)) c,
-      ];
+    for (final c in _queuedDrawCommits)
+      if (!_burningDrawCommits.contains(c)) c,
+  ];
   bool get canUndoPendingDraw => unburnedDrawCommits.isNotEmpty;
   bool get canRedoPendingDraw => _redoDrawCommits.isNotEmpty;
   int get drawCommitEpoch => _drawCommitEpoch;
@@ -465,7 +476,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
   String? get formSpotsMessage => _formSpotsMessage;
 
   /// True once this page's text layer has been checked for underline blanks.
-  bool formPageScanned(int page1Based) => _formPagesScanned.contains(page1Based);
+  bool formPageScanned(int page1Based) =>
+      _formPagesScanned.contains(page1Based);
 
   /// Message for a scanned page that has nothing to type into. Null while
   /// the page is still unchecked, or when it has fillable spots.
@@ -551,6 +563,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _textFamily = value;
     notifyListeners();
   }
+
   LiveMarginAlign get textAlign => _textAlign;
   bool get creatingTextBox => _creatingTextBox;
   Offset? get textBoxCreateOriginNorm => _textBoxCreateOriginNorm;
@@ -576,11 +589,13 @@ class ViewerLiveToolSession extends ChangeNotifier {
 
   /// Renders a page region (normalized rect) [widthPx] wide; set by Edit.
   Future<ui.Image?> Function(int page, Rect norm, double widthPx)?
-      objectSnapshot;
+  objectSnapshot;
 
   final List<LiveObjectGhost> _ghosts = [];
-  List<LiveObjectGhost> ghostsForPage(int page) =>
-      [for (final g in _ghosts) if (g.page == page) g];
+  List<LiveObjectGhost> ghostsForPage(int page) => [
+    for (final g in _ghosts)
+      if (g.page == page) g,
+  ];
 
   void addGhost(LiveObjectGhost g) {
     // A later change of an object already moved continues its ghost, so the
@@ -645,6 +660,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
       _notifyDraft();
     }
   }
+
   List<LivePendingText> get pendingTexts => List.unmodifiable(_pendingTexts);
   List<Rect> get redactRectsNorm => List.unmodifiable(_redactRectsNorm);
   List<Rect> get searchHighlightRectsNorm =>
@@ -652,7 +668,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
   int get activeRedactIndex => _activeRedactIndex;
 
   /// Displayed (rotated, cropped) size of the active page in PDF points.
-  double get pageWidthPt => _pageSizesPt[_pageIndex1Based]?.width ?? _pageWidthPt;
+  double get pageWidthPt =>
+      _pageSizesPt[_pageIndex1Based]?.width ?? _pageWidthPt;
   double get pageHeightPt =>
       _pageSizesPt[_pageIndex1Based]?.height ?? _pageHeightPt;
   bool get pageGeometryReady =>
@@ -755,7 +772,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
         : null;
     _cropMode = LiveCropMode.rectangle;
     _cropAspectPhysical = null;
-    _awaitingClickPlacement = awaitingClickPlacement ||
+    _awaitingClickPlacement =
+        awaitingClickPlacement ||
         tool == ViewerToolId.visualSign ||
         tool == ViewerToolId.editText;
     _inlineEditing = false;
@@ -915,7 +933,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
   /// Records the displayed page size reported by the viewer (no notify —
   /// called while the overlay builds).
   void notePageGeometry(int page1Based, double widthPt, double heightPt) {
-    if (!(widthPt.isFinite && widthPt > 1 && heightPt.isFinite && heightPt > 1)) {
+    if (!(widthPt.isFinite &&
+        widthPt > 1 &&
+        heightPt.isFinite &&
+        heightPt > 1)) {
       return;
     }
     _pageSizesPt[page1Based] = Size(widthPt, heightPt);
@@ -967,12 +988,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _textBoxCreateOriginNorm = null;
     _labelText = '';
     _placement = clampPagePlacement(
-      PagePlacementNorm(
-        left: topLeft.dx,
-        top: topLeft.dy,
-        width: w,
-        height: h,
-      ),
+      PagePlacementNorm(left: topLeft.dx, top: topLeft.dy, width: w, height: h),
       minFraction: 0.005,
     );
     _awaitingClickPlacement = false;
@@ -981,7 +997,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
   }
 
   /// Starts Acrobat-style new-text drag: width comes from the drag, then type.
-  void beginCreateTextBoxAtNorm(Offset originNorm, {required double heightNorm}) {
+  void beginCreateTextBoxAtNorm(
+    Offset originNorm, {
+    required double heightNorm,
+  }) {
     _textLineHeight = 1.2;
     _textEditTarget = null;
     _labelText = '';
@@ -1004,7 +1023,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
   }
 
   /// Updates the in-progress width drag (pointer-down origin + current tip).
-  void updateCreateTextBoxAtNorm(Offset currentNorm, {required double heightNorm}) {
+  void updateCreateTextBoxAtNorm(
+    Offset currentNorm, {
+    required double heightNorm,
+  }) {
     final origin = _textBoxCreateOriginNorm;
     if (!_creatingTextBox || origin == null) return;
     if ((currentNorm.dx - origin.dx).abs() >= 0.012) {
@@ -1029,7 +1051,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
   ///
   /// A plain click (no horizontal drag) creates a default-width box at the
   /// click, like Acrobat's Add Text.
-  void finishCreateTextBox({bool commit = true, double defaultWidthNorm = 0.3}) {
+  void finishCreateTextBox({
+    bool commit = true,
+    double defaultWidthNorm = 0.3,
+  }) {
     if (!_creatingTextBox) return;
     _creatingTextBox = false;
     final moved = _textBoxDragMoved;
@@ -1220,8 +1245,23 @@ class ViewerLiveToolSession extends ChangeNotifier {
         _textFamily = m.family;
         _textBold = m.bold;
         _textItalic = m.italic;
-        _detectedFont = m.original;
-        _userFont = FontLibrary.instance.matchOriginal(m.original);
+        _detectedFont = m.how == null || m.libraryFamily == null
+            ? m.original
+            : '${m.original} (${switch (m.how) {
+                'metrics' => 'by glyph widths',
+                'embedded' => 'from the embedded font',
+                'class' => 'closest style',
+                _ => 'by name',
+              }})';
+        _userFont =
+            (m.libraryFamily == null
+                ? null
+                : FontLibrary.instance.loadedLibrary(
+                    m.libraryFamily!,
+                    bold: m.bold,
+                    italic: m.italic,
+                  )) ??
+            FontLibrary.instance.matchOriginal(m.original);
       } else {
         _detectedFont = null;
         _userFont = null;
@@ -1237,19 +1277,19 @@ class ViewerLiveToolSession extends ChangeNotifier {
 
   /// Everything a commit would write for the open block, as one string.
   String get textEditSignature => [
-        _labelText ?? '',
-        _placement.left.toStringAsFixed(4),
-        _placement.top.toStringAsFixed(4),
-        _placement.width.toStringAsFixed(4),
-        _fontSizePt.toStringAsFixed(2),
-        _markupColor.toARGB32(),
-        _textBold,
-        _textItalic,
-        _textFamily,
-        _textAlign.name,
-        _textLineHeight.toStringAsFixed(2),
-        _userFont?.id ?? '',
-      ].join('|');
+    _labelText ?? '',
+    _placement.left.toStringAsFixed(4),
+    _placement.top.toStringAsFixed(4),
+    _placement.width.toStringAsFixed(4),
+    _fontSizePt.toStringAsFixed(2),
+    _markupColor.toARGB32(),
+    _textBold,
+    _textItalic,
+    _textFamily,
+    _textAlign.name,
+    _textLineHeight.toStringAsFixed(2),
+    _userFont?.id ?? '',
+  ].join('|');
 
   /// True when the open block was moved, restyled or retyped.
   bool get textEditChanged =>
@@ -1313,8 +1353,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
       _dragRectNorm = null;
       _activeRedactIndex = 0;
     } else {
-      _activeRedactIndex =
-          _activeRedactIndex.clamp(0, _redactRectsNorm.length - 1);
+      _activeRedactIndex = _activeRedactIndex.clamp(
+        0,
+        _redactRectsNorm.length - 1,
+      );
       _dragRectNorm = _redactRectsNorm[_activeRedactIndex];
     }
     notifyListeners();
@@ -1341,8 +1383,10 @@ class ViewerLiveToolSession extends ChangeNotifier {
       _dragRectNorm = null;
       _activeRedactIndex = 0;
     } else {
-      _activeRedactIndex =
-          _activeRedactIndex.clamp(0, _redactRectsNorm.length - 1);
+      _activeRedactIndex = _activeRedactIndex.clamp(
+        0,
+        _redactRectsNorm.length - 1,
+      );
       _dragRectNorm = _redactRectsNorm[_activeRedactIndex];
     }
     notifyListeners();
@@ -1509,7 +1553,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
       );
     }
     if (mode == LiveCropMode.rectangle && _dragRectNorm == null) {
-      _dragRectNorm = _cropQuadNorm?.boundingRect ??
+      _dragRectNorm =
+          _cropQuadNorm?.boundingRect ??
           const Rect.fromLTRB(0.08, 0.08, 0.92, 0.92);
     }
     notifyListeners();
@@ -1521,8 +1566,13 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _cropAspectPhysical = widthOverHeight;
     final aspectNorm = cropAspectNorm;
     final rect = _dragRectNorm;
-    if (aspectNorm != null && rect != null && _cropMode == LiveCropMode.rectangle) {
-      final shaped = applyNormAspectRatio(rect, aspectWidthOverHeight: aspectNorm);
+    if (aspectNorm != null &&
+        rect != null &&
+        _cropMode == LiveCropMode.rectangle) {
+      final shaped = applyNormAspectRatio(
+        rect,
+        aspectWidthOverHeight: aspectNorm,
+      );
       _dragRectNorm = shaped;
       _cropQuadNorm = PageCropQuadNorm.fromRect(shaped);
     }
@@ -1632,18 +1682,21 @@ class ViewerLiveToolSession extends ChangeNotifier {
     final commit = LiveDrawCommit(
       tool: tool,
       pointsNorm: points,
-      color: tool == LiveDrawTool.highlighter ? _highlighterColor : _markupColor,
+      color: tool == LiveDrawTool.highlighter
+          ? _highlighterColor
+          : _markupColor,
       strokeWidthPt: tool == LiveDrawTool.highlighter
           ? math.max(_strokeWidthPt, 8)
           : _strokeWidthPt,
       opacity: tool == LiveDrawTool.highlighter ? kLiveHighlightOpacity : 1.0,
       labelText: tool == LiveDrawTool.stamp
           ? (_labelText?.trim().isNotEmpty == true
-              ? _labelText!.trim()
-              : 'APPROVED')
+                ? _labelText!.trim()
+                : 'APPROVED')
           : null,
       pageIndex1Based: _pageIndex1Based,
-      closed: tool == LiveDrawTool.rectangle ||
+      closed:
+          tool == LiveDrawTool.rectangle ||
           tool == LiveDrawTool.ellipse ||
           tool == LiveDrawTool.callout,
     );
@@ -1653,8 +1706,9 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _drawCommitEpoch++;
   }
 
-  Color get _highlighterColor =>
-      _markupColor.toARGB32() == 0xFFE4002B ? kLiveHighlightColor : _markupColor;
+  Color get _highlighterColor => _markupColor.toARGB32() == 0xFFE4002B
+      ? kLiveHighlightColor
+      : _markupColor;
 
   /// Queues text-markup bands (highlight / underline / strike / note).
   void queueMarkup({
@@ -1737,11 +1791,7 @@ class ViewerLiveToolSession extends ChangeNotifier {
     _burningDrawCommits.removeAll(commits);
   }
 
-  static List<Offset> expandShapePoints(
-    LiveDrawTool tool,
-    Offset a,
-    Offset b,
-  ) {
+  static List<Offset> expandShapePoints(LiveDrawTool tool, Offset a, Offset b) {
     switch (tool) {
       case LiveDrawTool.pen:
       case LiveDrawTool.highlighter:
@@ -1850,7 +1900,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
         ? null
         : clampNormRect(
             rect,
-            minFraction: _toolId == ViewerToolId.addLink ||
+            minFraction:
+                _toolId == ViewerToolId.addLink ||
                     _toolId == ViewerToolId.markupBurn
                 ? 0.0
                 : kPagePlacementMinFraction,
@@ -1906,7 +1957,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
   final Map<int, List<Rect>> _textCharRectsByPage = {};
 
   /// Normalized top-left character boxes for [page1Based] (markup snapping).
-  List<Rect>? textCharRectsFor(int page1Based) => _textCharRectsByPage[page1Based];
+  List<Rect>? textCharRectsFor(int page1Based) =>
+      _textCharRectsByPage[page1Based];
 
   void setTextCharRects(int page1Based, List<Rect> rects) {
     _textCharRectsByPage[page1Based] = List.unmodifiable(rects);
@@ -1972,7 +2024,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
     var bestD = (_formScanQueue[0] - preferNear).abs();
     for (var i = 1; i < _formScanQueue.length; i++) {
       final d = (_formScanQueue[i] - preferNear).abs();
-      if (d < bestD || (d == bestD && _formScanQueue[i] < _formScanQueue[bestI])) {
+      if (d < bestD ||
+          (d == bestD && _formScanQueue[i] < _formScanQueue[bestI])) {
         bestI = i;
         bestD = d;
       }
@@ -2003,7 +2056,8 @@ class ViewerLiveToolSession extends ChangeNotifier {
     }
     final kept = <PdfFormSpot>[];
     for (final s in _formSpots) {
-      final covered = s.id.startsWith(textBlankSpotIdPrefix) &&
+      final covered =
+          s.id.startsWith(textBlankSpotIdPrefix) &&
           incoming.any(
             (a) =>
                 a.pageIndex1Based == s.pageIndex1Based &&
@@ -2046,7 +2100,9 @@ class ViewerLiveToolSession extends ChangeNotifier {
       for (final b in blanks)
         if (!acro.any((a) => formNormOverlap(a.normRect, b.normRect))) b,
     ];
-    _formSpots = List.unmodifiable(_sortedFormSpots([...others, ...acro, ...added]));
+    _formSpots = List.unmodifiable(
+      _sortedFormSpots([...others, ...acro, ...added]),
+    );
     _formSpotsLoaded = true;
     _formSpotsMessage = null;
     if (_activeFormSpotId != null &&
@@ -2138,7 +2194,9 @@ class ViewerLiveToolSession extends ChangeNotifier {
 
   void toggleCheckbox(String id) {
     final cur = _formValues[id];
-    _formValues[id] = (cur == 'Yes' || cur == 'true' || cur == '1') ? 'Off' : 'Yes';
+    _formValues[id] = (cur == 'Yes' || cur == 'true' || cur == '1')
+        ? 'Off'
+        : 'Yes';
     notifyListeners();
   }
 

@@ -32,10 +32,20 @@ IconData _iconFor(String path) {
   final ext = p.extension(path).toLowerCase();
   return switch (ext) {
     '.pdf' => Icons.picture_as_pdf_outlined,
-    '.png' || '.jpg' || '.jpeg' || '.webp' || '.gif' || '.bmp' || '.tif' ||
-    '.tiff' || '.heic' =>
-      Icons.image_outlined,
-    '.doc' || '.docx' || '.odt' || '.rtf' || '.txt' => Icons.description_outlined,
+    '.png' ||
+    '.jpg' ||
+    '.jpeg' ||
+    '.webp' ||
+    '.gif' ||
+    '.bmp' ||
+    '.tif' ||
+    '.tiff' ||
+    '.heic' => Icons.image_outlined,
+    '.doc' ||
+    '.docx' ||
+    '.odt' ||
+    '.rtf' ||
+    '.txt' => Icons.description_outlined,
     '.xls' || '.xlsx' || '.ods' || '.csv' => Icons.table_chart_outlined,
     '.ppt' || '.pptx' || '.odp' => Icons.slideshow_outlined,
     _ => Icons.insert_drive_file_outlined,
@@ -94,7 +104,19 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
     if (exts.length == 1 && exts.first == 'pdf') {
       return widget.multiple ? 'PDFs' : 'a PDF';
     }
-    if (exts.every((e) => const {'png', 'jpg', 'jpeg', 'webp', 'heic', 'bmp', 'gif', 'tif', 'tiff'}.contains(e))) {
+    if (exts.every(
+      (e) => const {
+        'png',
+        'jpg',
+        'jpeg',
+        'webp',
+        'heic',
+        'bmp',
+        'gif',
+        'tif',
+        'tiff',
+      }.contains(e),
+    )) {
       return widget.multiple ? 'images' : 'an image';
     }
     return widget.multiple ? 'files' : 'a file';
@@ -104,7 +126,9 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
     setState(() => _dragging = false);
     final handler = widget.onFilesDropped;
     if (handler == null || !widget.enabled) return;
-    final allowed = widget.allowedExtensions.map((e) => e.toLowerCase()).toSet();
+    final allowed = widget.allowedExtensions
+        .map((e) => e.toLowerCase())
+        .toSet();
     final accepted = <LocalFileRef>[];
     for (final f in details.files) {
       final path = f.path;
@@ -133,9 +157,20 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
     Widget body = AnimatedSwitcher(
       duration: DsMotion.switchDuration,
       switchInCurve: DsMotion.switchCurve,
+      // The default layout loosens the width, which shrank the drop zone to
+      // its text; pass the page's width through instead.
+      layoutBuilder: (current, previous) => Stack(
+        fit: StackFit.passthrough,
+        alignment: Alignment.topCenter,
+        children: [...previous, ?current],
+      ),
       transitionBuilder: (child, anim) => FadeTransition(
         opacity: anim,
-        child: SizeTransition(sizeFactor: anim, child: child),
+        // SizeTransition aligns its child loosely; ask for the full width.
+        child: SizeTransition(
+          sizeFactor: anim,
+          child: SizedBox(width: double.infinity, child: child),
+        ),
       ),
       child: files.isEmpty
           ? KeyedSubtree(key: const ValueKey('empty'), child: _empty(context))
@@ -161,11 +196,13 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
     final isDark = theme.brightness == Brightness.dark;
     final secondary = DsColors.textSecondary(theme.brightness);
     final active = _dragging || _hovered;
-    final title = widget.emptyTitle ??
+    final title =
+        widget.emptyTitle ??
         (_desktopDrop && widget.onFilesDropped != null
             ? 'Drop $_kind here'
             : 'Choose $_kind');
-    final subtitle = widget.emptySubtitle ??
+    final subtitle =
+        widget.emptySubtitle ??
         (_desktopDrop && widget.onFilesDropped != null
             ? 'or browse your device'
             : 'Files stay on this device');
@@ -186,8 +223,8 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
             color: active
                 ? DsColors.primary.withValues(alpha: isDark ? 0.14 : 0.06)
                 : (isDark
-                    ? Colors.white.withValues(alpha: 0.03)
-                    : DsColors.groupedBackgroundLight),
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : DsColors.groupedBackgroundLight),
             borderRadius: BorderRadius.circular(DsSpacing.radiusCard),
             border: Border.all(
               color: active
@@ -206,8 +243,9 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: DsColors.primary
-                        .withValues(alpha: isDark ? 0.2 : 0.1),
+                    color: DsColors.primary.withValues(
+                      alpha: isDark ? 0.2 : 0.1,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: widget.loading
@@ -232,7 +270,9 @@ class _DsToolFileSourceState extends State<DsToolFileSource> {
               ),
               const SizedBox(height: DsSpacing.md),
               OutlinedButton.icon(
-                onPressed: widget.enabled && !widget.loading ? widget.onPick : null,
+                onPressed: widget.enabled && !widget.loading
+                    ? widget.onPick
+                    : null,
                 icon: const Icon(Icons.folder_open_rounded, size: 16),
                 label: Text(widget.pickLabel ?? 'Browse'),
                 style: OutlinedButton.styleFrom(
@@ -321,8 +361,10 @@ class _DsFileRow extends StatelessWidget {
     } catch (_) {}
     final line = loading
         ? 'Reading…'
-        : [if (meta != null && meta!.isNotEmpty) meta!, if (size.isNotEmpty) size]
-            .join(' · ');
+        : [
+            if (meta != null && meta!.isNotEmpty) meta!,
+            if (size.isNotEmpty) size,
+          ].join(' · ');
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: DsSpacing.md,
@@ -365,7 +407,9 @@ class _DsFileRow extends StatelessWidget {
                     line,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: secondary,
+                    ),
                   ),
               ],
             ),
@@ -482,8 +526,9 @@ class DsToolProgressCard extends StatelessWidget {
                 value: f == null ? null : v,
                 minHeight: 5,
                 color: DsColors.primary,
-                backgroundColor:
-                    DsColors.primary.withValues(alpha: isDark ? 0.18 : 0.10),
+                backgroundColor: DsColors.primary.withValues(
+                  alpha: isDark ? 0.18 : 0.10,
+                ),
               ),
             ),
           ),
@@ -800,8 +845,8 @@ class _DsChoiceCardState<T> extends State<_DsChoiceCard<T>> {
     final borderColor = selected
         ? DsColors.primary
         : _hover && enabled
-            ? DsColors.primary.withValues(alpha: 0.35)
-            : DsColors.border(b);
+        ? DsColors.primary.withValues(alpha: 0.35)
+        : DsColors.border(b);
     final fill = selected
         ? DsColors.primary.withValues(alpha: b == Brightness.dark ? 0.14 : 0.06)
         : DsColors.groupedCell(b);
@@ -871,8 +916,9 @@ class _DsChoiceCardState<T> extends State<_DsChoiceCard<T>> {
                                   vertical: 1,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: DsColors.primary
-                                      .withValues(alpha: 0.12),
+                                  color: DsColors.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(

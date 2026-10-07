@@ -32,24 +32,33 @@ class PdfCertificateSigner {
     DesktopEngineResolver? resolver,
     Future<ProcessResult> Function(String exe, List<String> args)? run,
     PdfSignatureFieldInjector? fieldInjector,
-  })  : _resolver = resolver ?? desktopEngineResolver,
-        _run = run ?? _defaultRun,
-        _fieldInjector = fieldInjector ??
-            PdfSignatureFieldInjector(resolver: resolver, run: run);
+  }) : _resolver = resolver ?? desktopEngineResolver,
+       _run = run ?? _defaultRun,
+       _fieldInjector =
+           fieldInjector ??
+           PdfSignatureFieldInjector(resolver: resolver, run: run);
 
   final DesktopEngineResolver _resolver;
   final Future<ProcessResult> Function(String exe, List<String> args) _run;
   final PdfSignatureFieldInjector _fieldInjector;
 
   static Future<ProcessResult> _defaultRun(String exe, List<String> args) =>
-      Process.run(exe, args, stdoutEncoding: systemEncoding, stderrEncoding: systemEncoding);
+      Process.run(
+        exe,
+        args,
+        stdoutEncoding: systemEncoding,
+        stderrEncoding: systemEncoding,
+      );
 
   Future<_DscToolPaths?> _resolveTools() async {
     final openssl = await _resolver.resolveOpenSsl();
     final pdfsig = await _resolver.resolvePdfsig();
     final certutil = await _resolver.resolveCertutil();
     final pk12util = await _resolver.resolvePk12util();
-    if (openssl == null || pdfsig == null || certutil == null || pk12util == null) {
+    if (openssl == null ||
+        pdfsig == null ||
+        certutil == null ||
+        pk12util == null) {
       return null;
     }
     return _DscToolPaths(
@@ -70,13 +79,13 @@ class PdfCertificateSigner {
   }
 
   DocumentStudioError _missingToolsError() => const DocumentStudioError(
-        code: DocumentStudioErrorCode.featureUnavailable,
-        message:
-            'Certificate signing tools were not found in the app engines bundle.',
-        recoveryHint:
-            'Rebuild the desktop app so engines/ includes pdfsig, certutil, '
-            'pk12util, and openssl (scripts/bundle_linux_engines.sh on Linux).',
-      );
+    code: DocumentStudioErrorCode.featureUnavailable,
+    message:
+        'Certificate signing tools were not found in the app engines bundle.',
+    recoveryHint:
+        'Rebuild the desktop app so engines/ includes pdfsig, certutil, '
+        'pk12util, and openssl (scripts/bundle_linux_engines.sh on Linux).',
+  );
 
   /// Signs [inputBytes] with [p12Path] + [password]. Returns bytes only if the
   /// output contains a `/ByteRange` signature; [verifiedByTool] is set from pdfsig.
@@ -116,7 +125,12 @@ class PdfCertificateSigner {
       await nssDir.create();
       final nssSql = 'sql:${nssDir.path}';
 
-      final init = await _run(tools.certutil, ['-N', '-d', nssSql, '--empty-password']);
+      final init = await _run(tools.certutil, [
+        '-N',
+        '-d',
+        nssSql,
+        '--empty-password',
+      ]);
       if (init.exitCode != 0) {
         throw DocumentStudioError(
           code: DocumentStudioErrorCode.nativeEngineError,
@@ -144,7 +158,8 @@ class PdfCertificateSigner {
       }
 
       // pdfsig -list-nicks accepts sql: or a directory; -nssdir wants the DB directory.
-      final nick = await _readNickname(tools.pdfsig, nssDir.path) ??
+      final nick =
+          await _readNickname(tools.pdfsig, nssDir.path) ??
           await _readNicknameFromPk12(tools.openssl, p12Copy.path, password) ??
           'Signer';
 
@@ -214,7 +229,8 @@ class PdfCertificateSigner {
   Future<({Uint8List bytes, String? fieldName})> _prepareInputForAppearance({
     required Uint8List inputBytes,
     required String? signatureFieldName,
-    required ({double llx, double lly, double urx, double ury})? appearancePdfRect,
+    required ({double llx, double lly, double urx, double ury})?
+    appearancePdfRect,
     required int pageIndex1Based,
   }) async {
     final named = signatureFieldName?.trim();
@@ -278,11 +294,14 @@ class PdfCertificateSigner {
     ];
     final signed = await _run(pdfsig, signArgs);
     if (signed.exitCode != 0 || !await outPdf.exists()) {
-      final detail = (signed.stderr.toString() + signed.stdout.toString()).trim();
+      final detail = (signed.stderr.toString() + signed.stdout.toString())
+          .trim();
       throw DocumentStudioError(
         code: DocumentStudioErrorCode.nativeEngineError,
         message: 'Certificate signing failed.',
-        recoveryHint: detail.isEmpty ? 'pdfsig exited ${signed.exitCode}.' : detail,
+        recoveryHint: detail.isEmpty
+            ? 'pdfsig exited ${signed.exitCode}.'
+            : detail,
       );
     }
 
@@ -295,7 +314,8 @@ class PdfCertificateSigner {
       throw const DocumentStudioError(
         code: DocumentStudioErrorCode.nativeEngineError,
         message: 'Signed output is missing a PDF signature dictionary.',
-        recoveryHint: 'The signing tool did not produce a verifiable /Sig entry.',
+        recoveryHint:
+            'The signing tool did not produce a verifiable /Sig entry.',
       );
     }
 
@@ -306,8 +326,10 @@ class PdfCertificateSigner {
       '-no-ocsp',
       outPdf.path,
     ]);
-    final summary = (verify.stdout.toString() + verify.stderr.toString()).trim();
-    final ok = summary.contains('Signature is Valid') ||
+    final summary = (verify.stdout.toString() + verify.stderr.toString())
+        .trim();
+    final ok =
+        summary.contains('Signature is Valid') ||
         summary.contains('Signature Validation: Signature is Valid');
 
     return PdfCertificateSignResult(
@@ -346,7 +368,8 @@ class PdfCertificateSigner {
       'pass:$password',
     ]);
     if (r.exitCode != 0) return null;
-    final subj = RegExp(r'subject=.*?CN\s*=\s*([^,\n]+)').firstMatch(r.stdout.toString());
+    final subj = RegExp(r'subject=.*?CN\s*=\s*([^,\n]+)')
+        .firstMatch(r.stdout.toString());
     return subj?.group(1)?.trim();
   }
 }

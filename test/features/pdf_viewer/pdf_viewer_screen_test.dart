@@ -62,7 +62,7 @@ Future<void> _pumpPdfViewer(
           routes: [
             GoRoute(
               path: '/',
-              builder: (_, __) => PdfViewerScreen(
+              builder: (_, _) => PdfViewerScreen(
                 file: file,
                 password: password,
               ),

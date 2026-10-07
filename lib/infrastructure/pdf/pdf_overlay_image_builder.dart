@@ -46,7 +46,8 @@ class PdfOverlayImageBuilder {
     required int pageCount,
     required double Function(int pageIndex1Based) pageWidthPt,
     required double Function(int pageIndex1Based) pageHeightPt,
-    required List<PdfOverlayImageLine> Function(int pageIndex1Based) imagesForPage,
+    required List<PdfOverlayImageLine> Function(int pageIndex1Based)
+    imagesForPage,
   }) {
     if (pageCount < 1) {
       throw ArgumentError.value(pageCount, 'pageCount', 'must be >= 1');
@@ -60,7 +61,12 @@ class PdfOverlayImageBuilder {
       buffer.add(utf8.encode(text));
     }
 
-    void writeObjWithBinary(int id, String head, Uint8List binary, String tail) {
+    void writeObjWithBinary(
+      int id,
+      String head,
+      Uint8List binary,
+      String tail,
+    ) {
       objectOffsets[id] = buffer.length;
       buffer.add(utf8.encode(head));
       buffer.add(binary);
@@ -73,24 +79,25 @@ class PdfOverlayImageBuilder {
     const pagesId = 2;
     var nextId = 3;
 
-    final pagePlan = <({
-      int pageId,
-      int contentId,
-      List<int> imageIds,
-      List<int?> smaskIds,
-      List<int?> gStateIds,
-      List<PdfOverlayImageLine> images,
-      String w,
-      String h,
-    })>[];
+    final pagePlan =
+        <
+          ({
+            int pageId,
+            int contentId,
+            List<int> imageIds,
+            List<int?> smaskIds,
+            List<int?> gStateIds,
+            List<PdfOverlayImageLine> images,
+            String w,
+            String h,
+          })
+        >[];
 
     for (var page = 1; page <= pageCount; page++) {
       final contentId = nextId++;
       final pageId = nextId++;
       final images = imagesForPage(page);
-      final imageIds = <int>[
-        for (var i = 0; i < images.length; i++) nextId++,
-      ];
+      final imageIds = <int>[for (var i = 0; i < images.length; i++) nextId++];
       final smaskIds = <int?>[
         for (final img in images) img.smaskBytes != null ? nextId++ : null,
       ];
@@ -168,10 +175,10 @@ class PdfOverlayImageBuilder {
         writeObjWithBinary(
           id,
           '$id 0 obj<< /Type /XObject /Subtype /Image '
-          '/Width ${img.imageWidthPx} /Height ${img.imageHeightPx} '
-          '/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter $filter '
-          '${smaskId != null ? '/SMask $smaskId 0 R ' : ''}'
-          '/Length ${img.jpegBytes.length} >>stream\n',
+              '/Width ${img.imageWidthPx} /Height ${img.imageHeightPx} '
+              '/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter $filter '
+              '${smaskId != null ? '/SMask $smaskId 0 R ' : ''}'
+              '/Length ${img.jpegBytes.length} >>stream\n',
           img.jpegBytes,
           '\nendstream\nendobj\n',
         );
@@ -185,9 +192,9 @@ class PdfOverlayImageBuilder {
         writeObjWithBinary(
           smaskId,
           '$smaskId 0 obj<< /Type /XObject /Subtype /Image '
-          '/Width ${img.imageWidthPx} /Height ${img.imageHeightPx} '
-          '/ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode '
-          '/Length ${smask.length} >>stream\n',
+              '/Width ${img.imageWidthPx} /Height ${img.imageHeightPx} '
+              '/ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode '
+              '/Length ${smask.length} >>stream\n',
           smask,
           '\nendstream\nendobj\n',
         );
@@ -217,11 +224,13 @@ class PdfOverlayImageBuilder {
         xref.writeln('${off.toString().padLeft(10, '0')} 00000 n ');
       }
     }
-    buffer.add(utf8.encode(
-      '$xref'
-      'trailer<< /Size $xrefCount /Root $catalogId 0 R >>\n'
-      'startxref\n$xrefStart\n%%EOF',
-    ));
+    buffer.add(
+      utf8.encode(
+        '$xref'
+        'trailer<< /Size $xrefCount /Root $catalogId 0 R >>\n'
+        'startxref\n$xrefStart\n%%EOF',
+      ),
+    );
 
     return buffer.toBytes();
   }
@@ -255,13 +264,9 @@ class PdfOverlayImageBuilder {
           '${c.toStringAsFixed(5)} ${s.toStringAsFixed(5)} '
           '${(-s).toStringAsFixed(5)} ${c.toStringAsFixed(5)} 0 0 cm ',
         );
-        buf.write(
-          '${_n(w)} 0 0 ${_n(h)} ${_n(-w / 2)} ${_n(-h / 2)} cm ',
-        );
+        buf.write('${_n(w)} 0 0 ${_n(h)} ${_n(-w / 2)} ${_n(-h / 2)} cm ');
       } else {
-        buf.write(
-          '${_n(w)} 0 0 ${_n(h)} ${_n(line.xPt)} ${_n(line.yPt)} cm ',
-        );
+        buf.write('${_n(w)} 0 0 ${_n(h)} ${_n(line.xPt)} ${_n(line.yPt)} cm ');
       }
       buf.write('$name Do Q ');
     }

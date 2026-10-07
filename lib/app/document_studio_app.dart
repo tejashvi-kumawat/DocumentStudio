@@ -1,3 +1,6 @@
+import 'package:flutter_quill/flutter_quill.dart'
+    show FlutterQuillLocalizations;
+
 import 'dart:async';
 
 import 'package:document_studio/core/fonts/font_library.dart';
@@ -65,7 +68,19 @@ class _DocumentStudioAppState extends ConsumerState<DocumentStudioApp> {
 
     final viewerShortcuts = ref.watch(viewerShortcutActionsProvider);
 
+    final tabCommands = DsTabCommands(
+      ref: ref,
+      router: router,
+      navigatorContext: () => rootNavigatorKey.currentContext,
+    );
     return AppShortcuts(
+      onCloseTab: () => unawaited(tabCommands.closeActive()),
+      onNewTab: tabCommands.newTab,
+      onReopenTab: () => unawaited(tabCommands.reopen()),
+      onCycleTab: tabCommands.cycle,
+      onJumpToTab: tabCommands.jump,
+      onSettings: () => router.go('/settings'),
+      onNewDocument: () => router.push('/create-pdf'),
       onOpen: () {
         final ctx = rootNavigatorKey.currentContext;
         if (ctx == null || !ctx.mounted) return;
@@ -99,6 +114,7 @@ class _DocumentStudioAppState extends ConsumerState<DocumentStudioApp> {
         themeMode: themeMode,
         scrollBehavior: const DsScrollBehavior(),
         routerConfig: router,
+        localizationsDelegates: const [FlutterQuillLocalizations.delegate],
         builder: (context, child) {
           // Android edge-to-edge often zeros MediaQuery.padding while
           // viewPadding still holds the status / gesture insets. Merge so

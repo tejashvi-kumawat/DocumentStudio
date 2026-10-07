@@ -35,10 +35,7 @@ Future<int?> loadOrganizeImportPageCount({
   void Function(String message)? onPasswordRejected,
 }) async {
   try {
-    final info = await loadInfo(
-      file,
-      password: passwordsByPath[file.path],
-    );
+    final info = await loadInfo(file, password: passwordsByPath[file.path]);
     return info.pageCount;
   } on DocumentStudioError catch (e) {
     if (!isOrganizeImportPasswordError(e)) rethrow;

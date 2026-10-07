@@ -130,7 +130,8 @@ Future<_QpdfJson> _readJson(
       inputPath,
       out,
     ]);
-    final root = jsonDecode(await File(out).readAsString()) as Map<String, dynamic>;
+    final root =
+        jsonDecode(await File(out).readAsString()) as Map<String, dynamic>;
     final q = root['qpdf'];
     final objects = q is List && q.length > 1
         ? Map<String, dynamic>.from(q[1] as Map)
@@ -169,12 +170,10 @@ Future<List<LiveFormField>?> loadLiveFormFields({
 }) async {
   if (!await isQpdfCliAvailable()) return null;
   try {
-    final doc = await _readJson(
-      QpdfCliRunner(),
-      file.path,
-      password,
-      const ['acroform', 'pages'],
-    );
+    final doc = await _readJson(QpdfCliRunner(), file.path, password, const [
+      'acroform',
+      'pages',
+    ]);
     final acro = doc._acroform;
     if (acro is! Map || acro['fields'] is! List) return null;
     final out = <LiveFormField>[];
@@ -248,7 +247,10 @@ Future<void> removeFormWidgets({
     final raw = pageDict['/Annots'];
     final list = doc.resolve(raw);
     if (list is! List) return;
-    final kept = [for (final e in list) if (!refs.contains(e)) e];
+    final kept = [
+      for (final e in list)
+        if (!refs.contains(e)) e,
+    ];
     if (kept.length == list.length) return;
     if (raw is String && _ref.hasMatch(raw)) {
       updates['obj:$raw'] = {'value': kept};

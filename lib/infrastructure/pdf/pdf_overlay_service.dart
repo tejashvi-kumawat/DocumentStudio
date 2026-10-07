@@ -1,3 +1,6 @@
+import 'package:document_studio/infrastructure/pdf/edit/pdf_page_stamp.dart';
+import 'package:flutter/foundation.dart' show compute;
+
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' show Rect;
@@ -23,11 +26,8 @@ import 'package:pdfrx/pdfrx.dart';
 
 /// Applies text overlays via generated PDF + qpdf `--overlay` (DS-HDR-001, DS-PGN-001).
 class PdfOverlayService {
-  PdfOverlayService({
-    required PdfRenderPort render,
-    QpdfCliRunner? cli,
-  })  : _render = render,
-        _cli = cli ?? QpdfCliRunner();
+  PdfOverlayService({required this._render, QpdfCliRunner? cli})
+    : _cli = cli ?? QpdfCliRunner();
 
   final PdfRenderPort _render;
   final QpdfCliRunner _cli;
@@ -96,7 +96,6 @@ class PdfOverlayService {
     bool behindContent = false,
     String? password,
   }) async {
-    await _ensureQpdf();
     final sizes = await _loadPageSizes(input, password: password);
     PdfMarkImageData? image;
     var effective = spec;
@@ -173,7 +172,8 @@ class PdfOverlayService {
     if (!options.hasContent) {
       throw ArgumentError('Watermark text required');
     }
-    final centered = !options.hasCustomAnchor &&
+    final centered =
+        !options.hasCustomAnchor &&
         (options.tiled ||
             options.placement == WatermarkPlacement.diagonalCenter ||
             options.placement == WatermarkPlacement.center);
@@ -429,11 +429,10 @@ class PdfOverlayService {
     required String outputPath,
     required int pageIndex1Based,
     required List<({Rect boxNorm, String label, (double, double, double) rgb})>
-        stamps,
+    stamps,
     String? password,
   }) async {
     if (stamps.isEmpty) throw ArgumentError('Place at least one stamp');
-    await _ensureQpdf();
     final sizes = await _loadPageSizes(input, password: password);
     final pageIssues = validateImageStampPageRequest(
       targetPage1Based: pageIndex1Based,
@@ -488,7 +487,6 @@ class PdfOverlayService {
     if (strokes.isEmpty) {
       throw ArgumentError('Draw at least one stroke');
     }
-    await _ensureQpdf();
     final sizes = await _loadPageSizes(input, password: password);
     final pageIssues = validateImageStampPageRequest(
       targetPage1Based: pageIndex1Based,
@@ -526,7 +524,6 @@ class PdfOverlayService {
     if (rects.isEmpty) {
       throw ArgumentError('Draw at least one markup shape');
     }
-    await _ensureQpdf();
     final sizes = await _loadPageSizes(input, password: password);
     final pageIssues = validateImageStampPageRequest(
       targetPage1Based: pageIndex1Based,
@@ -594,16 +591,14 @@ class PdfOverlayService {
     required List<PdfOverlayTextLine> Function(
       int pageIndex1Based,
       PdfMarkupTemplateContext ctx,
-    ) linesForPage,
+    )
+    linesForPage,
     String? password,
     List<(double widthPt, double heightPt)>? pageSizes,
     bool underlay = false,
   }) async {
-    await _ensureQpdf();
-
     final info = await _render.loadInfo(input, password: password);
-    final sizes =
-        pageSizes ?? await _loadPageSizes(input, password: password);
+    final sizes = pageSizes ?? await _loadPageSizes(input, password: password);
     final builder = PdfOverlayTextBuilder();
     final overlayBytes = builder.build(
       pageCount: info.pageCount,
@@ -633,13 +628,11 @@ class PdfOverlayService {
     required LocalFileRef input,
     required String outputPath,
     required List<PdfOverlayImageLine> Function(int pageIndex1Based)
-        imagesForPage,
+    imagesForPage,
     String? password,
     required List<(double widthPt, double heightPt)> pageSizes,
     bool underlay = false,
   }) async {
-    await _ensureQpdf();
-
     final builder = PdfOverlayImageBuilder();
     final overlayBytes = builder.build(
       pageCount: pageSizes.length,
@@ -657,13 +650,14 @@ class PdfOverlayService {
     );
   }
 
-  Future<void> _ensureQpdf() async {
+  /// Stamping needs no external tool: pure Dart, one incremental save.
+  /// qpdf is only the fallback for files our editor cannot open.
+  Future<void> _requireQpdf() async {
     if (!await isQpdfCliAvailable()) {
       throw const DocumentStudioError(
         code: DocumentStudioErrorCode.featureUnavailable,
-        message: 'PDF overlay requires the qpdf engine.',
-        recoveryHint:
-            'Rebuild the Linux app so engines/ is bundled, or run `make install-engines` and retry.',
+        message: 'This PDF cannot be edited without the qpdf engine (it may be encrypted or damaged).',
+        recoveryHint: 'Unlock the PDF first, or install the engines (see Settings → Document tools).',
       );
     }
   }
@@ -675,6 +669,24 @@ class PdfOverlayService {
     String? password,
     bool underlay = false,
   }) async {
+    // Pure Dart first (any size our parser takes; milliseconds, no process).
+    if (password == null || password.isEmpty) {
+      final inputBytes = await File(input.path).readAsBytes();
+      final stamped = await compute(_stampInIsolate, (
+        inputBytes,
+        Uint8List.fromList(overlayBytes),
+        underlay,
+      ));
+      if (stamped != null) {
+        await File(outputPath).parent.create(recursive: true);
+        await File(outputPath).writeAsBytes(stamped, flush: true);
+        return LocalFileRef(
+          path: outputPath,
+          displayName: p.basename(outputPath),
+        );
+      }
+    }
+    await _requireQpdf();
     final tempDir = Directory.systemTemp;
     final overlayPath = p.join(
       tempDir.path,
@@ -696,10 +708,7 @@ class PdfOverlayService {
       } catch (_) {}
     }
 
-    return LocalFileRef(
-      path: outputPath,
-      displayName: p.basename(outputPath),
-    );
+    return LocalFileRef(path: outputPath, displayName: p.basename(outputPath));
   }
 
   Future<List<(double widthPt, double heightPt)>> _loadPageSizes(
@@ -712,9 +721,7 @@ class PdfOverlayService {
         passwordProvider: password == null ? null : () async => password,
       );
       try {
-        return [
-          for (final page in doc.pages) (page.width, page.height),
-        ];
+        return [for (final page in doc.pages) (page.width, page.height)];
       } finally {
         await doc.dispose();
       }
@@ -723,3 +730,6 @@ class PdfOverlayService {
     }
   }
 }
+
+Uint8List? _stampInIsolate((Uint8List, Uint8List, bool) a) =>
+    stampOverlayPages(a.$1, a.$2, underlay: a.$3);

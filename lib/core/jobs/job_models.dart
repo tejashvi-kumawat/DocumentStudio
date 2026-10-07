@@ -1,20 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
-enum JobStatus {
-  queued,
-  running,
-  cancelling,
-  cancelled,
-  completed,
-  failed,
-}
+enum JobStatus { queued, running, cancelling, cancelled, completed, failed }
 
 class JobProgress extends Equatable {
-  const JobProgress({
-    required this.fraction,
-    this.message,
-  });
+  const JobProgress({required this.fraction, this.message});
 
   final double fraction;
   final String? message;

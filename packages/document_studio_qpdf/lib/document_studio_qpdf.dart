@@ -1,4 +1,4 @@
-library document_studio_qpdf;
+library;
 
 export 'src/qpdf_cli_runner.dart';
 export 'src/qpdf_availability.dart';

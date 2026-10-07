@@ -50,18 +50,20 @@ class OcrEngineStatusPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final raw = blockedReason ??
+    final raw =
+        blockedReason ??
         (searchablePdf
             ? BlockedSearchablePdfPort.blockedReason
             : BlockedOcrPort.blockedReason);
     final lower = raw.toLowerCase();
-    final message = raw.length > 160 ||
+    final message =
+        raw.length > 160 ||
             lower.contains('qpdf') ||
             lower.contains('[b]') ||
             lower.contains('engines/')
         ? (searchablePdf
-            ? 'Searchable PDF isn’t ready on this device yet.'
-            : 'Text recognition isn’t ready on this device yet.')
+              ? 'Searchable PDF isn’t ready on this device yet.'
+              : 'Text recognition isn’t ready on this device yet.')
         : raw;
     return Container(
       padding: const EdgeInsets.all(DsSpacing.md),
@@ -238,11 +240,7 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.info_outline,
-                size: 15,
-                color: hintStyle?.color,
-              ),
+              Icon(Icons.info_outline, size: 15, color: hintStyle?.color),
               const SizedBox(width: DsSpacing.xs),
               Expanded(
                 child: Text(
@@ -258,8 +256,8 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
                 onPressed: widget.busy
                     ? null
                     : downloading
-                        ? () => _osdDownload?.cancel()
-                        : _downloadOsd,
+                    ? () => _osdDownload?.cancel()
+                    : _downloadOsd,
                 child: Text(
                   downloading
                       ? 'Cancel'
@@ -369,7 +367,7 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
                   Text(
                     selected.length > 1
                         ? 'Recognizing ${selected.map(ocrLanguageLabel).join(' + ')}. '
-                            'Select only the languages in the document for best speed.'
+                              'Select only the languages in the document for best speed.'
                         : 'Select every language that appears in the document.',
                     style: hintStyle,
                   ),
@@ -415,7 +413,8 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
         if (widget.searchablePdf)
           _OcrSwitch(
             title: 'Skip pages that already have text',
-            subtitle: 'Only scanned pages are recognized; digital pages stay '
+            subtitle:
+                'Only scanned pages are recognized; digital pages stay '
                 'untouched and processing is faster.',
             value: o.skipPagesWithText,
             onChanged: widget.busy
@@ -437,7 +436,7 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
               : 'Detect text orientation',
           subtitle: widget.searchablePdf
               ? 'Sideways or upside-down scans are recognized and turned '
-                  'upright.'
+                    'upright.'
               : 'Reads sideways or upside-down text correctly.',
           value: o.autoRotate,
           onChanged: widget.busy
@@ -447,7 +446,8 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
         FutureBuilder<OcrEngineEnvironment>(
           future: _env,
           builder: (context, snap) {
-            final show = o.autoRotate &&
+            final show =
+                o.autoRotate &&
                 snap.hasData &&
                 snap.data!.hasTesseract &&
                 (!snap.data!.hasOsd || _osdDownload != null);
@@ -463,7 +463,8 @@ class _OcrOptionsPanelState extends State<OcrOptionsPanel> {
         ),
         _OcrSwitch(
           title: 'Enhance faded scans',
-          subtitle: 'Boosts contrast of gray or low-ink pages before '
+          subtitle:
+              'Boosts contrast of gray or low-ink pages before '
               'recognition. The saved page image is not changed.',
           value: o.denoise,
           onChanged: widget.busy
@@ -571,15 +572,16 @@ class _OcrLanguageDownloadDialogState
     final theme = Theme.of(context);
     final secondary = DsColors.textSecondary(theme.brightness);
     final q = _query.text.trim().toLowerCase();
-    final codes = kOcrLanguageLabels.keys
-        .where(
-          (c) =>
-              q.isEmpty ||
-              c.contains(q) ||
-              ocrLanguageLabel(c).toLowerCase().contains(q),
-        )
-        .toList()
-      ..sort((a, b) => ocrLanguageLabel(a).compareTo(ocrLanguageLabel(b)));
+    final codes =
+        kOcrLanguageLabels.keys
+            .where(
+              (c) =>
+                  q.isEmpty ||
+                  c.contains(q) ||
+                  ocrLanguageLabel(c).toLowerCase().contains(q),
+            )
+            .toList()
+          ..sort((a, b) => ocrLanguageLabel(a).compareTo(ocrLanguageLabel(b)));
 
     return PopScope(
       canPop: false,
@@ -616,7 +618,8 @@ class _OcrLanguageDownloadDialogState
                   itemCount: codes.length,
                   itemBuilder: (context, i) {
                     final code = codes[i];
-                    final done = widget.installed.contains(code) ||
+                    final done =
+                        widget.installed.contains(code) ||
                         _added.contains(code);
                     final token = _downloads[code];
                     final error = _errors[code];
@@ -730,7 +733,9 @@ class _OcrProgressCardState extends State<OcrProgressCard> {
     final total = widget.pagesTotal;
     if (done < 1 || total <= done) return null;
     final perPage = _clock.elapsed.inMilliseconds / done;
-    final remaining = Duration(milliseconds: (perPage * (total - done)).round());
+    final remaining = Duration(
+      milliseconds: (perPage * (total - done)).round(),
+    );
     if (remaining.inSeconds < 5) return 'A few seconds left';
     if (remaining.inMinutes < 1) return 'About ${remaining.inSeconds} s left';
     return 'About ${remaining.inMinutes + 1} min left';
@@ -931,11 +936,7 @@ class OcrResultBanner extends StatelessWidget {
 }
 
 class OcrRelatedToolsPanel extends StatelessWidget {
-  const OcrRelatedToolsPanel({
-    super.key,
-    this.busy = false,
-    this.excludePath,
-  });
+  const OcrRelatedToolsPanel({super.key, this.busy = false, this.excludePath});
 
   final bool busy;
   final String? excludePath;
@@ -981,7 +982,10 @@ class OcrRelatedToolsPanel extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: busy ? null : () => context.push(imageToolsRoutePath),
-              icon: const Icon(Icons.photo_size_select_large_outlined, size: 18),
+              icon: const Icon(
+                Icons.photo_size_select_large_outlined,
+                size: 18,
+              ),
               label: const Text('Image tools'),
             ),
           ],

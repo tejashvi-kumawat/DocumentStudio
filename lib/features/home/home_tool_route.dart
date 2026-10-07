@@ -61,19 +61,11 @@ Future<void> openHomeToolOnOpenDocument(
 
   if (!context.mounted) return;
 
-  await openPdfInShellViewer(
-    context,
-    ref,
-    file,
-    openToolPanel: panelTool,
-  );
+  await openPdfInShellViewer(context, ref, file, openToolPanel: panelTool);
 }
 
 /// Call before pushing a tool from the PDF viewer so Cancel returns to viewer.
-void rememberViewerToolReturnFromContext(
-  BuildContext context,
-  Object args,
-) {
+void rememberViewerToolReturnFromContext(BuildContext context, Object args) {
   final LocalFileRef file;
   final String? password;
   if (args is PdfDocumentRouteArgs) {

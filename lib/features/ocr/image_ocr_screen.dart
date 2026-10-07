@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/widgets/ds_buttons.dart';
-import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/ocr/ocr_errors.dart';
 import 'package:document_studio/features/ocr/ocr_route.dart';
@@ -134,9 +133,9 @@ class _ImageOcrScreenState extends State<ImageOcrScreen> {
     if (text == null || text.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Text copied to clipboard')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Text copied to clipboard')));
   }
 
   Future<void> _saveText() async {
@@ -153,9 +152,8 @@ class _ImageOcrScreenState extends State<ImageOcrScreen> {
       mimeType: 'text/plain',
     );
     if (!mounted || saved == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Saved to $saved')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Saved to $saved')));
   }
 
   @override
@@ -165,10 +163,24 @@ class _ImageOcrScreenState extends State<ImageOcrScreen> {
 
     return DsToolPage(
       title: 'Image OCR',
-      subtitle: 'Extract text from a photo, screenshot, or scanned image. '
+      subtitle:
+          'Extract text from a photo, screenshot, or scanned image. '
           'Runs fully offline.',
       icon: Icons.text_snippet_outlined,
-      iconColor: const Color(0xFF8B5CF6),
+      preview: _previewBytes != null
+          ? DsImagePreview(bytes: _previewBytes!)
+          : DsDropPane(
+              allowedExtensions: _imageExtensions,
+              enabled: !_busy,
+              onPick: _pick,
+              onFilesDropped: (files) {
+                if (files.isNotEmpty) unawaited(_setFile(files.first));
+              },
+              emptyTitle: 'Drop an image here',
+              emptySubtitle: 'Photos, screenshots, and scans',
+              pickLabel: 'Choose image',
+              icon: Icons.image_search_outlined,
+            ),
       primaryLabel: _busy ? 'Recognizing…' : 'Recognize text',
       primaryIcon: Icons.document_scanner_outlined,
       primaryEnabled: _previewBytes != null && !_engineBlocked && !_busy,
@@ -176,10 +188,7 @@ class _ImageOcrScreenState extends State<ImageOcrScreen> {
       onPrimary: _run,
       onCancel: () => context.canPop() ? context.pop() : context.go('/'),
       busy: _busy,
-      footer: OcrRelatedToolsPanel(
-        busy: _busy,
-        excludePath: imageOcrRoutePath,
-      ),
+      footer: OcrRelatedToolsPanel(busy: _busy, excludePath: imageOcrRoutePath),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -192,67 +201,27 @@ class _ImageOcrScreenState extends State<ImageOcrScreen> {
                 onRecheck: () => _probe(refresh: true),
               ),
             ),
-          DsToolSection(
-            topPadding: false,
-            title: 'Source image',
-            subtitle: 'PNG, JPEG, WebP, TIFF, or BMP',
-            child: _file == null
-                ? DsToolFileSource(
-                    files: const [],
-                    allowedExtensions: _imageExtensions,
-                    enabled: !_busy,
-                    onPick: _pick,
-                    onFilesDropped: (files) {
-                      if (files.isNotEmpty) unawaited(_setFile(files.first));
-                    },
-                    emptyTitle: 'Drop an image here',
-                    emptySubtitle: 'Photos, screenshots, and scans',
-                    pickLabel: 'Choose image',
-                    icon: Icons.image_search_outlined,
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _file!.displayName,
-                              style: theme.textTheme.titleSmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          DsSecondaryButton(
-                            label: 'Change',
-                            icon: Icons.swap_horiz,
-                            onPressed: _busy ? null : _pick,
-                          ),
-                        ],
-                      ),
-                      if (_previewBytes != null) ...[
-                        const SizedBox(height: DsSpacing.md),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 320),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.memory(
-                              _previewBytes!,
-                              fit: BoxFit.contain,
-                              gaplessPlayback: true,
-                              errorBuilder: (context, error, stack) => Padding(
-                                padding: const EdgeInsets.all(DsSpacing.md),
-                                child: Text(
-                                  'Preview not available for this format.',
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+          if (_file != null)
+            DsToolSection(
+              topPadding: false,
+              title: 'Source image',
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _file!.displayName,
+                      style: theme.textTheme.titleSmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-          ),
+                  DsSecondaryButton(
+                    label: 'Change',
+                    icon: Icons.swap_horiz,
+                    onPressed: _busy ? null : _pick,
+                  ),
+                ],
+              ),
+            ),
           DsToolSection(
             title: 'Options',
             child: OcrOptionsPanel(
@@ -324,8 +293,9 @@ class _ImageOcrScreenState extends State<ImageOcrScreen> {
                   constraints: const BoxConstraints(maxHeight: 360),
                   padding: const EdgeInsets.all(DsSpacing.md),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.4),
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.4,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: theme.dividerColor),
                   ),

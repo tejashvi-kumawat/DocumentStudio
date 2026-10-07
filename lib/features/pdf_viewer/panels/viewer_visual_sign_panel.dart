@@ -309,102 +309,103 @@ class _ViewerVisualSignPanelState extends ConsumerState<ViewerVisualSignPanel> {
     final pad = phone ? DsSpacing.pagePaddingCompact : DsSpacing.lg;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final pageLike = !constraints.maxHeight.isFinite ||
+        final pageLike =
+            !constraints.maxHeight.isFinite ||
             constraints.maxHeight >= MediaQuery.sizeOf(context).height * 0.72;
         Widget panel = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(pad, DsSpacing.sm, pad, 0),
-          child: SignSegmented<SignPanelTab>(
-            value: _tab,
-            onChanged: (t) => setState(() => _tab = t),
-            segments: [
-              (SignPanelTab.signatures, 'Sign', Icons.gesture_rounded),
-              (SignPanelTab.stamps, 'Stamps', Icons.approval_outlined),
-              (
-                SignPanelTab.digital,
-                unsignedCount > 0 ? 'Digital · $unsignedCount' : 'Digital',
-                Icons.verified_user_outlined,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(pad, DsSpacing.sm, pad, 0),
+              child: SignSegmented<SignPanelTab>(
+                value: _tab,
+                onChanged: (t) => setState(() => _tab = t),
+                segments: [
+                  (SignPanelTab.signatures, 'Sign', Icons.gesture_rounded),
+                  (SignPanelTab.stamps, 'Stamps', Icons.approval_outlined),
+                  (
+                    SignPanelTab.digital,
+                    unsignedCount > 0 ? 'Digital · $unsignedCount' : 'Digital',
+                    Icons.verified_user_outlined,
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        AnimatedSize(
-          duration: DsMotion.switchDuration,
-          curve: DsMotion.switchCurve,
-          child: _c.armed != null || _c.drawFieldMode
-              ? _ArmedBanner(controller: _c)
-              : const SizedBox(width: double.infinity),
-        ),
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: DsMotion.tabDuration,
-            switchInCurve: DsMotion.switchCurve,
-            transitionBuilder: (child, a) =>
-                DsMotion.fadeRiseTransition(a, child),
-            child: SingleChildScrollView(
-              key: ValueKey(_tab),
-              padding: EdgeInsets.fromLTRB(pad, 0, pad, DsSpacing.lg),
-              child: switch (_tab) {
-                SignPanelTab.signatures => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SignatureLibraryView(
+            ),
+            AnimatedSize(
+              duration: DsMotion.switchDuration,
+              curve: DsMotion.switchCurve,
+              child: _c.armed != null || _c.drawFieldMode
+                  ? _ArmedBanner(controller: _c)
+                  : const SizedBox(width: double.infinity),
+            ),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: DsMotion.tabDuration,
+                switchInCurve: DsMotion.switchCurve,
+                transitionBuilder: (child, a) =>
+                    DsMotion.fadeRiseTransition(a, child),
+                child: SingleChildScrollView(
+                  key: ValueKey(_tab),
+                  padding: EdgeInsets.fromLTRB(pad, 0, pad, DsSpacing.lg),
+                  child: switch (_tab) {
+                    SignPanelTab.signatures => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SignatureLibraryView(
+                          controller: _c,
+                          store: _sigStore,
+                          storage: storage,
+                          userName: _userName,
+                          onMessage: _toast,
+                        ),
+                        if (unsignedCount > 0) ...[
+                          const SizedBox(height: DsSpacing.md),
+                          _DigitalNudge(
+                            count: unsignedCount,
+                            onTap: () =>
+                                setState(() => _tab = SignPanelTab.digital),
+                          ),
+                        ],
+                        const SizedBox(height: DsSpacing.md),
+                        _HowTo(phone: phone),
+                      ],
+                    ),
+                    SignPanelTab.stamps => StampLibraryView(
                       controller: _c,
-                      store: _sigStore,
                       storage: storage,
                       userName: _userName,
+                      onUserNameChanged: (n) {
+                        _userName = n;
+                        _stampStore.saveUserName(n);
+                      },
                       onMessage: _toast,
                     ),
-                    if (unsignedCount > 0) ...[
-                      const SizedBox(height: DsSpacing.md),
-                      _DigitalNudge(
-                        count: unsignedCount,
-                        onTap: () =>
-                            setState(() => _tab = SignPanelTab.digital),
-                      ),
-                    ],
-                    const SizedBox(height: DsSpacing.md),
-                    _HowTo(phone: phone),
-                  ],
-                ),
-                SignPanelTab.stamps => StampLibraryView(
-                  controller: _c,
-                  storage: storage,
-                  userName: _userName,
-                  onUserNameChanged: (n) {
-                    _userName = n;
-                    _stampStore.saveUserName(n);
+                    SignPanelTab.digital => DigitalSignaturesView(
+                      controller: _c,
+                      report: _report,
+                      loading: _loadingFields,
+                      onSignField: _signField,
+                      onRefresh: _loadFields,
+                    ),
                   },
-                  onMessage: _toast,
                 ),
-                SignPanelTab.digital => DigitalSignaturesView(
-                  controller: _c,
-                  report: _report,
-                  loading: _loadingFields,
-                  onSignField: _signField,
-                  onRefresh: _loadFields,
-                ),
-              },
+              ),
             ),
-          ),
-        ),
-        AnimatedSize(
-          duration: DsMotion.switchDuration,
-          curve: DsMotion.switchCurve,
-          child: _c.hasItems
-              ? _ApplyBar(
-                  count: _c.pendingCount,
-                  busy: _applying,
-                  onApply: _apply,
-                  onClear: _c.clearItems,
-                )
-              : const SizedBox(width: double.infinity),
-        ),
-        Divider(height: 1, color: DsColors.border(theme.brightness)),
-      ],
-    );
+            AnimatedSize(
+              duration: DsMotion.switchDuration,
+              curve: DsMotion.switchCurve,
+              child: _c.hasItems
+                  ? _ApplyBar(
+                      count: _c.pendingCount,
+                      busy: _applying,
+                      onApply: _apply,
+                      onClear: _c.clearItems,
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+            Divider(height: 1, color: DsColors.border(theme.brightness)),
+          ],
+        );
         panel = Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(

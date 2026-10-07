@@ -44,8 +44,7 @@ class PdfDocumentTabBar extends ConsumerWidget implements PreferredSizeWidget {
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < DsAppShell.compactBreakpoint;
     final barHeight = _barHeightForWidth(width);
-    final maxLabelWidth =
-        compact ? compactMaxLabelWidth : _wideMaxLabelWidth;
+    final maxLabelWidth = compact ? compactMaxLabelWidth : _wideMaxLabelWidth;
     final stripBg = isDark
         ? DsColors.surfaceContainerDark
         : const Color(0xFFD6D6D6);
@@ -148,9 +147,7 @@ class _DocumentTab extends StatelessWidget {
             child: Container(
               height: PdfDocumentTabBar._tabHeight,
               constraints: BoxConstraints(maxWidth: maxLabelWidth + 56),
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? 8 : 10,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10),
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(color: topBorder, width: 1),
@@ -167,8 +164,9 @@ class _DocumentTab extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         fontSize: compact ? 12 : 13,
                       ),
                     ),
@@ -229,9 +227,7 @@ class _OpenAnotherTabButton extends StatelessWidget {
             child: Container(
               height: PdfDocumentTabBar._tabHeight,
               width: compact ? 28 : 32,
-              decoration: BoxDecoration(
-                border: Border.all(color: borderColor),
-              ),
+              decoration: BoxDecoration(border: Border.all(color: borderColor)),
               alignment: Alignment.center,
               child: Icon(
                 Icons.add,

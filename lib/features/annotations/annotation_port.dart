@@ -71,16 +71,16 @@ class PdfMarkupAnnotation extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        pageNumber,
-        kind,
-        author,
-        contents,
-        subject,
-        modifiedAt,
-        createdAt,
-        rects,
-      ];
+    id,
+    pageNumber,
+    kind,
+    author,
+    contents,
+    subject,
+    modifiedAt,
+    createdAt,
+    rects,
+  ];
 }
 
 /// What the active [PdfAnnotationPort] implementation can do.

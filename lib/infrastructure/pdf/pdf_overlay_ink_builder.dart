@@ -16,6 +16,7 @@ class PdfInkStroke {
   final List<(double, double)> points;
   final double widthPt;
   final (double r, double g, double b) colorRgb;
+
   /// Stroke alpha (highlighter ≈ 0.45).
   final double opacity;
 
@@ -65,7 +66,8 @@ class PdfOverlayInkBuilder {
     final objects = <String>[];
     objects.add('1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj');
     final pageObjectIds = <int>[
-      for (var page = 0; page < pageCount; page++) firstPageObjId + page * 2 + 1,
+      for (var page = 0; page < pageCount; page++)
+        firstPageObjId + page * 2 + 1,
     ];
     objects.add(
       '2 0 obj<< /Type /Pages /Kids [${pageObjectIds.map((id) => '$id 0 R').join(' ')}] '
@@ -92,7 +94,7 @@ class PdfOverlayInkBuilder {
       final resources = used.isEmpty
           ? ''
           : '/Resources << /ExtGState << '
-              '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> >> ';
+                '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> >> ';
       objects.add(
         '$pageId 0 obj<< /Type /Page /Parent 2 0 R '
         '/MediaBox [0 0 $w $h] /Contents $contentId 0 R '

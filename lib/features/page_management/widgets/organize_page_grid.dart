@@ -77,15 +77,15 @@ class _OrganizePageGridState extends ConsumerState<OrganizePageGrid> {
 
   bool get _isFilmstrip => widget.layout == OrganizePageLayout.filmstrip;
 
-  Axis get _listAxis =>
-      _isFilmstrip ? Axis.horizontal : Axis.vertical;
+  Axis get _listAxis => _isFilmstrip ? Axis.horizontal : Axis.vertical;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _edgeAutoScroller =
-        OrganizeGridEdgeAutoScroller(scrollController: _scrollController);
+    _edgeAutoScroller = OrganizeGridEdgeAutoScroller(
+      scrollController: _scrollController,
+    );
   }
 
   @override
@@ -129,7 +129,10 @@ class _OrganizePageGridState extends ConsumerState<OrganizePageGrid> {
     if (box == null || !box.hasSize) return;
     final local = box.globalToLocal(globalPosition);
     if (_isFilmstrip) {
-      _edgeAutoScroller.updateFromViewportLocalHorizontal(local, box.size.width);
+      _edgeAutoScroller.updateFromViewportLocalHorizontal(
+        local,
+        box.size.width,
+      );
     } else {
       _edgeAutoScroller.updateFromViewportLocal(local, box.size.height);
     }
@@ -147,7 +150,10 @@ class _OrganizePageGridState extends ConsumerState<OrganizePageGrid> {
     return widget.enableMarqueeSelection ?? !compact;
   }
 
-  bool _pointerOnTile(OrganizeGridLayoutMetrics metrics, Offset localInViewport) {
+  bool _pointerOnTile(
+    OrganizeGridLayoutMetrics metrics,
+    Offset localInViewport,
+  ) {
     if (!_scrollController.hasClients) return false;
     final offset = _scrollController.offset;
     for (var i = 0; i < widget.pages.length; i++) {
@@ -165,7 +171,8 @@ class _OrganizePageGridState extends ConsumerState<OrganizePageGrid> {
     required bool filmstrip,
   }) {
     final selected = widget.selectedIds.contains(page.id);
-    final dimmed = widget.highlightSourcePath != null &&
+    final dimmed =
+        widget.highlightSourcePath != null &&
         page.file.path != widget.highlightSourcePath;
     return ValueListenableBuilder<int?>(
       valueListenable: _dragIndex,
@@ -223,7 +230,7 @@ class _OrganizePageGridState extends ConsumerState<OrganizePageGrid> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               itemCount: widget.pages.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 return SizedBox(
                   width: _filmstripTileWidth,
@@ -286,10 +293,7 @@ class _OrganizePageGridState extends ConsumerState<OrganizePageGrid> {
             );
           }
 
-          return KeyedSubtree(
-            key: _gridAreaKey,
-            child: grid,
-          );
+          return KeyedSubtree(key: _gridAreaKey, child: grid);
         },
       ),
     );
@@ -321,7 +325,8 @@ class _OrganizeGridMarqueeLayer extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_OrganizeGridMarqueeLayer> createState() => _OrganizeGridMarqueeLayerState();
+  State<_OrganizeGridMarqueeLayer> createState() =>
+      _OrganizeGridMarqueeLayerState();
 }
 
 class _OrganizeGridMarqueeLayerState extends State<_OrganizeGridMarqueeLayer> {
@@ -375,7 +380,8 @@ class _OrganizeGridMarqueeLayerState extends State<_OrganizeGridMarqueeLayer> {
     final ids = {for (final i in indices) widget.pages[i].id};
 
     final keys = HardwareKeyboard.instance.logicalKeysPressed;
-    final meta = keys.contains(LogicalKeyboardKey.metaLeft) ||
+    final meta =
+        keys.contains(LogicalKeyboardKey.metaLeft) ||
         keys.contains(LogicalKeyboardKey.metaRight) ||
         keys.contains(LogicalKeyboardKey.controlLeft) ||
         keys.contains(LogicalKeyboardKey.controlRight);
@@ -476,11 +482,11 @@ class _OrganizePageTileState extends State<_OrganizePageTile> {
     final local = box.globalToLocal(global);
     final next = widget.listAxis == Axis.horizontal
         ? (local.dx >= box.size.width / 2
-            ? OrganizeInsertEdge.after
-            : OrganizeInsertEdge.before)
+              ? OrganizeInsertEdge.after
+              : OrganizeInsertEdge.before)
         : (local.dy >= box.size.height / 2
-            ? OrganizeInsertEdge.after
-            : OrganizeInsertEdge.before);
+              ? OrganizeInsertEdge.after
+              : OrganizeInsertEdge.before);
     if (next != _edge) {
       setState(() => _edge = next);
     }
@@ -595,11 +601,13 @@ class _OrganizePageTileState extends State<_OrganizePageTile> {
     final tile = GestureDetector(
       onTap: () {
         final keys = HardwareKeyboard.instance.logicalKeysPressed;
-        final meta = keys.contains(LogicalKeyboardKey.metaLeft) ||
+        final meta =
+            keys.contains(LogicalKeyboardKey.metaLeft) ||
             keys.contains(LogicalKeyboardKey.metaRight) ||
             keys.contains(LogicalKeyboardKey.controlLeft) ||
             keys.contains(LogicalKeyboardKey.controlRight);
-        final shift = keys.contains(LogicalKeyboardKey.shiftLeft) ||
+        final shift =
+            keys.contains(LogicalKeyboardKey.shiftLeft) ||
             keys.contains(LogicalKeyboardKey.shiftRight);
         widget.onTap(shift: shift, ctrlOrMeta: meta);
       },
@@ -617,7 +625,10 @@ class _OrganizePageTileState extends State<_OrganizePageTile> {
                 items: const [
                   PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
                   PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  PopupMenuItem(value: 'rotate_cw', child: Text('Rotate 90° CW')),
+                  PopupMenuItem(
+                    value: 'rotate_cw',
+                    child: Text('Rotate 90° CW'),
+                  ),
                 ],
               );
               if (action != null) {
@@ -654,8 +665,9 @@ class _OrganizePageTileState extends State<_OrganizePageTile> {
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.colorScheme.primary
-                                    .withValues(alpha: 0.2),
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.2,
+                                ),
                                 blurRadius: 8,
                               ),
                             ],
@@ -688,8 +700,9 @@ class _OrganizePageTileState extends State<_OrganizePageTile> {
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.25),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.25,
+                              ),
                               blurRadius: 8,
                             ),
                           ],

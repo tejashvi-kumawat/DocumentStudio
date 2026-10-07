@@ -50,12 +50,10 @@ class OrganizeDocumentSourceList extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: sources.length,
-        onReorder: enabled ? onReorder : (_, __) {},
+        onReorder: enabled ? onReorder : (_, _) {},
         itemBuilder: (context, index) {
           final s = sources[index];
-          final pages = s.loading
-              ? '…'
-              : (s.pageCountLabel ?? '—');
+          final pages = s.loading ? '…' : (s.pageCountLabel ?? '—');
           return ListTile(
             key: ValueKey(s.id),
             dense: true,

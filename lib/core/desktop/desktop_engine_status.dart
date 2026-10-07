@@ -23,8 +23,7 @@ class DesktopEngineStatus {
 
   /// Office conversion with layout needs LibreOffice on desktop; optional otherwise.
   static bool get needsLibreOffice =>
-      !kIsWeb &&
-      (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+      !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
   static Future<DesktopEngineStatus> probe({
     DesktopEngineResolver? resolver,

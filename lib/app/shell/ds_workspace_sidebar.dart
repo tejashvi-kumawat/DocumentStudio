@@ -10,7 +10,6 @@ import 'package:document_studio/design_system/ds_colors.dart';
 import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
-import 'package:document_studio/features/document_lifecycle/document_session.dart';
 import 'package:document_studio/features/command_palette/ds_command_palette.dart';
 import 'package:document_studio/features/conversion/conversion_route.dart';
 import 'package:document_studio/features/home/home_pdf_open_flow.dart';
@@ -187,17 +186,6 @@ Future<void> _openFile(
   await homeOpenPdfWithMode(context, ref, file, mode);
 }
 
-void _activateTab(
-  DsWorkspaceSidebar sidebar,
-  DocumentTabsController tabs,
-  int index,
-) {
-  // Navigating to the Home branch resets to the Home page, so select after.
-  if (sidebar.selectedIndex != 0) sidebar.onNavigate(0);
-  tabs.activateTab(index);
-  tabs.showDocument();
-}
-
 String _shortcut(String key) => DsWindow.isMacOS ? '⌘$key' : 'Ctrl+$key';
 
 // ---------------------------------------------------------------------------
@@ -212,10 +200,10 @@ class _FullContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recents = ref.watch(recentsProvider).asData?.value ??
-        const <LocalFileRef>[];
-    final favorites = ref.watch(favoritesProvider).asData?.value ??
-        const <LocalFileRef>[];
+    final recents =
+        ref.watch(recentsProvider).asData?.value ?? const <LocalFileRef>[];
+    final favorites =
+        ref.watch(favoritesProvider).asData?.value ?? const <LocalFileRef>[];
     final collapsed = ref.watch(dsSidebarProvider).collapsedSections;
     final tools = buildHomeToolCatalog(context, ref);
     final dests = sidebar.destinations;
@@ -271,7 +259,8 @@ class _FullContent extends ConsumerWidget {
                           ? dests[i].selectedIcon
                           : dests[i].icon,
                       label: dests[i].label,
-                      selected: sidebar.selectedIndex == i &&
+                      selected:
+                          sidebar.selectedIndex == i &&
                           !(i == 0 && sidebar.documentsVisible),
                       onTap: () => sidebar.onNavigate(i),
                     ),
@@ -290,7 +279,6 @@ class _FullContent extends ConsumerWidget {
                         for (final f in favorites.take(6))
                           _SidebarItem(
                             icon: Icons.star_rounded,
-                            iconColor: const Color(0xFFF5B400),
                             label: f.displayName,
                             tooltip: f.path,
                             onTap: () => _openFile(context, ref, f),
@@ -324,7 +312,8 @@ class _FullContent extends ConsumerWidget {
                     ? [
                         const _SidebarHint(
                           icon: Icons.apps_outlined,
-                          text: 'Tools you use appear here. Open Tools for all.',
+                          text:
+                              'Tools you use appear here. Open Tools for all.',
                         ),
                       ]
                     : [
@@ -333,7 +322,8 @@ class _FullContent extends ConsumerWidget {
                             icon: t.icon,
                             label: t.label,
                             tooltip: t.subtitle,
-                            enabled: t.availability ==
+                            enabled:
+                                t.availability ==
                                     HomeToolAvailability.available &&
                                 t.onTap != null,
                             onTap: t.onTap ?? () {},
@@ -505,11 +495,14 @@ class _QuickActionTileState extends State<_QuickActionTile> {
     final theme = Theme.of(context);
     final brightness = theme.brightness;
     final isDark = brightness == Brightness.dark;
-    final fg = widget.primary ? DsColors.primary : DsColors.textPrimary(brightness);
+    final fg = widget.primary
+        ? DsColors.primary
+        : DsColors.textPrimary(brightness);
     final bg = widget.primary
         ? DsColors.primary.withValues(alpha: _hovered ? 0.16 : 0.10)
-        : (isDark ? Colors.white : Colors.black)
-            .withValues(alpha: _hovered ? 0.08 : 0.04);
+        : (isDark ? Colors.white : Colors.black).withValues(
+            alpha: _hovered ? 0.08 : 0.04,
+          );
 
     return Tooltip(
       message: widget.tooltip,
@@ -667,7 +660,6 @@ class _SidebarSectionState extends State<_SidebarSection> {
 
 class _SidebarItem extends StatefulWidget {
   const _SidebarItem({
-    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
@@ -675,9 +667,6 @@ class _SidebarItem extends StatefulWidget {
     this.enabled = true,
     this.iconColor,
     this.tooltip,
-    this.trailingText,
-    this.onClose,
-    this.dirty,
     this.iconOnly = false,
   });
 
@@ -688,11 +677,6 @@ class _SidebarItem extends StatefulWidget {
   final bool enabled;
   final Color? iconColor;
   final String? tooltip;
-  final String? trailingText;
-  final VoidCallback? onClose;
-
-  /// Shows an unsaved-changes dot while the session is dirty.
-  final DocumentSession? dirty;
   final bool iconOnly;
 
   @override
@@ -716,44 +700,22 @@ class _SidebarItemState extends State<_SidebarItem> {
     final bg = selected
         ? DsColors.primary.withValues(alpha: isDark ? 0.22 : 0.12)
         : (_hovered && enabled
-            ? (isDark ? Colors.white : Colors.black)
-                .withValues(alpha: isDark ? 0.07 : 0.05)
-            : Colors.transparent);
+              ? (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: isDark ? 0.07 : 0.05,
+                )
+              : Colors.transparent);
     final iconColor = !enabled
         ? muted.withValues(alpha: 0.5)
         : selected
-            ? DsColors.primary
-            : (widget.iconColor ?? muted);
+        ? DsColors.primary
+        : (widget.iconColor ?? muted);
     final textColor = !enabled
         ? muted.withValues(alpha: 0.6)
         : selected
-            ? (isDark ? const Color(0xFFFFB3C0) : DsColors.primaryDark)
-            : primaryInk;
+        ? (isDark ? const Color(0xFFFFB3C0) : DsColors.primaryDark)
+        : primaryInk;
 
-    Widget icon = Icon(widget.icon, size: 17, color: iconColor);
-    final session = widget.dirty;
-    if (session != null) {
-      icon = ListenableBuilder(
-        listenable: session,
-        builder: (context, child) {
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              child!,
-              if (session.isDirty)
-                const Positioned(
-                  right: -2,
-                  top: -1,
-                  child: _Dot(color: DsColors.warning),
-                ),
-            ],
-          );
-        },
-        child: icon,
-      );
-    }
-
-    final showClose = widget.onClose != null && _hovered && !widget.iconOnly;
+    final icon = Icon(widget.icon, size: 17, color: iconColor);
 
     final content = AnimatedContainer(
       duration: DsMotion.hoverDuration,
@@ -784,35 +746,6 @@ class _SidebarItemState extends State<_SidebarItem> {
                     ),
                   ),
                 ),
-                if (widget.trailingText != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: muted.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      widget.trailingText!,
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(fontSize: 10, color: muted),
-                    ),
-                  ),
-                if (widget.onClose != null)
-                  AnimatedOpacity(
-                    duration: DsMotion.hoverDuration,
-                    opacity: showClose ? 1 : 0,
-                    child: IgnorePointer(
-                      ignoring: !showClose,
-                      child: _SmallIconButton(
-                        icon: Icons.close_rounded,
-                        tooltip: 'Close',
-                        size: 20,
-                        iconSize: 13,
-                        onPressed: widget.onClose!,
-                      ),
-                    ),
-                  ),
               ],
             ),
     );
@@ -857,21 +790,6 @@ class _SidebarItemState extends State<_SidebarItem> {
   }
 }
 
-class _Dot extends StatelessWidget {
-  const _Dot({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 7,
-      height: 7,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}
-
 class _SidebarHint extends StatelessWidget {
   const _SidebarHint({required this.icon, required this.text});
 
@@ -905,7 +823,6 @@ class _SidebarHint extends StatelessWidget {
   }
 }
 
-
 class _StorageFooter extends StatelessWidget {
   const _StorageFooter({
     required this.recentCount,
@@ -936,8 +853,9 @@ class _StorageFooter extends StatelessWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : Colors.black)
-                  .withValues(alpha: isDark ? 0.05 : 0.035),
+              color: (isDark ? Colors.white : Colors.black).withValues(
+                alpha: isDark ? 0.05 : 0.035,
+              ),
               borderRadius: BorderRadius.circular(DsSpacing.radiusGrouped),
             ),
             child: Row(
@@ -974,8 +892,10 @@ class _StorageFooter extends StatelessWidget {
                         '$pinnedCount pinned',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(fontSize: 10.5, color: muted),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 10.5,
+                          color: muted,
+                        ),
                       ),
                     ],
                   ),
@@ -1003,15 +923,13 @@ class _SmallIconButton extends StatefulWidget {
     required this.icon,
     required this.tooltip,
     required this.onPressed,
-    this.size = 26,
-    this.iconSize = 17,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
-  final double size;
-  final double iconSize;
+  final double size = 26;
+  final double iconSize = 17;
 
   @override
   State<_SmallIconButton> createState() => _SmallIconButtonState();
@@ -1071,13 +989,13 @@ class _RailContent extends ConsumerWidget {
     final brightness = Theme.of(context).brightness;
 
     Widget divider() => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-          child: Divider(
-            height: 1,
-            thickness: 0.5,
-            color: DsColors.border(brightness),
-          ),
-        );
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      child: Divider(
+        height: 1,
+        thickness: 0.5,
+        color: DsColors.border(brightness),
+      ),
+    );
 
     return Column(
       children: [
@@ -1110,7 +1028,8 @@ class _RailContent extends ConsumerWidget {
                         ? dests[i].selectedIcon
                         : dests[i].icon,
                     label: dests[i].label,
-                    selected: sidebar.selectedIndex == i &&
+                    selected:
+                        sidebar.selectedIndex == i &&
                         !(i == 0 && sidebar.documentsVisible),
                     onTap: () => sidebar.onNavigate(i),
                   ),

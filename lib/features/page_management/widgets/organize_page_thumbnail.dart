@@ -79,7 +79,8 @@ class _OrganizeCachedPageThumbnailState
   @override
   void didUpdateWidget(covariant OrganizeCachedPageThumbnail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final identityChanged = oldWidget.file.path != widget.file.path ||
+    final identityChanged =
+        oldWidget.file.path != widget.file.path ||
         oldWidget.pageNumber1Based != widget.pageNumber1Based ||
         oldWidget.password != widget.password;
     if (identityChanged) {
@@ -138,7 +139,8 @@ class _OrganizeCachedPageThumbnailState
   }
 
   double? _widthPx(BoxConstraints constraints, double dpr) {
-    final logical = widget.targetLogicalWidth ??
+    final logical =
+        widget.targetLogicalWidth ??
         (constraints.maxWidth.isFinite && constraints.maxWidth > 1
             ? constraints.maxWidth
             : null);
@@ -235,8 +237,13 @@ class _OrganizeCachedPageThumbnailState
     return LayoutBuilder(
       builder: (context, constraints) {
         final widthPx = _widthPx(constraints, dpr);
-        if (widthPx != null && widget.active && _bytes == null && _error == null) {
-          final hit = ref.read(organizeThumbCacheProvider).peek(
+        if (widthPx != null &&
+            widget.active &&
+            _bytes == null &&
+            _error == null) {
+          final hit = ref
+              .read(organizeThumbCacheProvider)
+              .peek(
                 widget.file,
                 widget.pageNumber1Based,
                 password: widget.password,
@@ -254,10 +261,8 @@ class _OrganizeCachedPageThumbnailState
             fit: widget.fit,
             gaplessPlayback: true,
             filterQuality: FilterQuality.medium,
-            errorBuilder: (_, _, _) => _RetryThumb(
-              onRetry: _retry,
-              color: theme.colorScheme.error,
-            ),
+            errorBuilder: (_, _, _) =>
+                _RetryThumb(onRetry: _retry, color: theme.colorScheme.error),
           );
         } else if (_error != null) {
           img = _RetryThumb(
@@ -304,11 +309,7 @@ class _QuietThumb extends StatelessWidget {
 }
 
 class _RetryThumb extends StatelessWidget {
-  const _RetryThumb({
-    required this.onRetry,
-    required this.color,
-    this.message,
-  });
+  const _RetryThumb({required this.onRetry, required this.color, this.message});
 
   final VoidCallback onRetry;
   final Color color;

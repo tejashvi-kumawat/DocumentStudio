@@ -75,10 +75,7 @@ class QpdfMetadataAdapter implements PdfMetadataPort {
     } on QpdfCliException catch (e) {
       throw _mapCliError(e, failureMessage: 'qpdf could not remove metadata.');
     }
-    return LocalFileRef(
-      path: outputPath,
-      displayName: p.basename(outputPath),
-    );
+    return LocalFileRef(path: outputPath, displayName: p.basename(outputPath));
   }
 
   @override
@@ -99,10 +96,7 @@ class QpdfMetadataAdapter implements PdfMetadataPort {
     } on QpdfCliException catch (e) {
       throw _mapCliError(e, failureMessage: 'qpdf could not update metadata.');
     }
-    return LocalFileRef(
-      path: outputPath,
-      displayName: p.basename(outputPath),
-    );
+    return LocalFileRef(path: outputPath, displayName: p.basename(outputPath));
   }
 
   Future<void> _ensureAvailable() async {

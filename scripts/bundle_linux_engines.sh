@@ -40,6 +40,20 @@ copy_lib_safe() {
   local base dest
   [[ -f "$src" ]] || return 0
   base="$(basename "$src")"
+  # Never bundle the C library or the dynamic loader: they must come from
+  # the user's system. A copied glibc next to the system's libm/libpthread
+  # breaks every bundled tool ("GLIBC_ABI_DT_X86_64_PLT not found").
+  case "$base" in
+    libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|libresolv.so*|libutil.so*|\
+    ld-linux*.so*|libanl.so*|libnsl.so*|libmvec.so*|libBrokenLocale.so*)
+      return 0
+      ;;
+    # System crypto stack: an old copy shadows the newer one the system's
+    # own libcurl / libgnutls need ("GNUTLS_3_6_13 not found").
+    libgnutls*.so*|libnettle*.so*|libhogweed*.so*|libgmp*.so*|libp11-kit*.so*|libtasn1*.so*|libunistring*.so*|libidn2*.so*)
+      return 0
+      ;;
+  esac
   dest="$ENGINES/lib/$base"
   if [[ "$(readlink -f "$src" 2>/dev/null || echo "$src")" == "$(readlink -f "$dest" 2>/dev/null || echo "$dest")" ]]; then
     return 0
@@ -56,7 +70,9 @@ bundle_qpdf_from_portable() {
   echo "Bundling portable qpdf from $tools"
   copy_file "$bin" "$ENGINES/bin/qpdf"
   if [[ -d "$tools/lib" ]]; then
-    cp -a "$tools/lib/." "$ENGINES/lib/"
+    for lib in "$tools/lib/"*; do
+      copy_lib_safe "$lib"
+    done
   fi
   # Wrapper at engines/qpdf so bare-name lookup also works with correct libs.
   cat > "$ENGINES/qpdf" <<'WRAP'
@@ -866,6 +882,17 @@ bundle_ffmpeg
 bundle_dsc_tools
 
 bash "$ROOT/scripts/copy_third_party_licenses_to_bundle.sh" "$ENGINES" || true
+
+# Whatever path copied them: glibc and the loader always come from the
+# user's system (see copy_lib_safe).
+if [[ -d "$ENGINES/lib" ]]; then
+  find "$ENGINES/lib" -maxdepth 1 \( -name 'libc.so*' -o -name 'libm.so*' -o -name 'libdl.so*' \
+    -o -name 'libpthread.so*' -o -name 'librt.so*' -o -name 'libresolv.so*' -o -name 'libutil.so*' \
+    -o -name 'ld-linux*.so*' -o -name 'libanl.so*' -o -name 'libnsl.so*' -o -name 'libmvec.so*' \
+    -o -name 'libgnutls*.so*' -o -name 'libnettle*.so*' -o -name 'libhogweed*.so*' -o -name 'libgmp*.so*' \
+    -o -name 'libp11-kit*.so*' -o -name 'libtasn1*.so*' -o -name 'libunistring*.so*' -o -name 'libidn2*.so*' \) \
+    -print -delete || true
+fi
 
 if [[ -x "$ENGINES/qpdf" || -x "$ENGINES/bin/qpdf" ]]; then
   echo "Engines ready under $ENGINES"

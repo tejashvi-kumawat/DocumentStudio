@@ -52,7 +52,8 @@ class PdfOverlayShapeBuilder {
       final used = <int>{};
       pageBodies.add(
         _contentBody(rectsForPage(page), (fillA, strokeA, multiply) {
-          final def = '/ca $fillA /CA $strokeA'
+          final def =
+              '/ca $fillA /CA $strokeA'
               '${multiply ? ' /BM /Multiply' : ''}';
           final idx = gStates.putIfAbsent(def, () {
             gStateDefs.add(def);
@@ -71,7 +72,8 @@ class PdfOverlayShapeBuilder {
     final objects = <String>[];
     objects.add('1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj');
     final pageObjectIds = <int>[
-      for (var page = 0; page < pageCount; page++) firstPageObjId + page * 2 + 1,
+      for (var page = 0; page < pageCount; page++)
+        firstPageObjId + page * 2 + 1,
     ];
     objects.add(
       '2 0 obj<< /Type /Pages /Kids [${pageObjectIds.map((id) => '$id 0 R').join(' ')}] '
@@ -96,7 +98,7 @@ class PdfOverlayShapeBuilder {
       final resources = used.isEmpty
           ? ''
           : '/Resources << /ExtGState << '
-              '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> >> ';
+                '${used.map((i) => '/GS$i ${firstGsId + i} 0 R').join(' ')} >> >> ';
       objects.add(
         '$pageId 0 obj<< /Type /Page /Parent 2 0 R '
         '/MediaBox [0 0 $w $h] /Contents $contentId 0 R '
@@ -131,7 +133,7 @@ class PdfOverlayShapeBuilder {
   String _contentBody(
     List<PdfOverlayRect> rects,
     int Function(String fillAlpha, String strokeAlpha, bool multiply)
-        gStateIndex,
+    gStateIndex,
   ) {
     final sb = StringBuffer();
     for (final r in rects) {

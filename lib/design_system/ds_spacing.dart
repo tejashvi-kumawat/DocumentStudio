@@ -84,12 +84,12 @@ abstract final class DsSpacing {
 
   /// Soft card shadow for light-mode tool grids (single layer, calm).
   static List<BoxShadow> cardShadowLight({double opacity = 0.06}) => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: opacity),
-          blurRadius: 12,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: opacity),
+      blurRadius: 12,
+      offset: const Offset(0, 4),
+    ),
+  ];
 
   static BoxDecoration groupedInsetDecoration({
     required bool isDark,

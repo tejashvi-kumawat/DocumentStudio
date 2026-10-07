@@ -29,7 +29,9 @@ class TextBlockGroup {
       lines.map((l) => l.rect).reduce((a, b) => a.expandToInclude(b));
 }
 
-final RegExp _bulletStart = RegExp(r'^\s*([•▪◦●○■□\-–—*]|\d{1,3}[.)]|[a-zA-Z][.)])\s');
+final RegExp _bulletStart = RegExp(
+  r'^\s*([•▪◦●○■□\-–—*]|\d{1,3}[.)]|[a-zA-Z][.)])\s',
+);
 
 /// Groups raw PDFium fragments into lines, then lines into blocks.
 ///
@@ -71,7 +73,9 @@ List<TextBlockGroup> groupTextFragments(
       final last = bucket.last;
       final gap = (f.rect.left - last.rect.right) * pagePt.width;
       final h = math.max(hPt(f.rect), hPt(last.rect));
-      if (vOverlap(f.rect, last.rect) > 0.5 && gap > -h * 0.5 && gap < h * 1.6) {
+      if (vOverlap(f.rect, last.rect) > 0.5 &&
+          gap > -h * 0.5 &&
+          gap < h * 1.6) {
         target = bucket;
         break;
       }
@@ -93,7 +97,8 @@ List<TextBlockGroup> groupTextFragments(
       if (prev != null) {
         final gap = (f.rect.left - prev.rect.right) * pagePt.width;
         final h = hPt(f.rect);
-        final needsSpace = gap > h * 0.15 &&
+        final needsSpace =
+            gap > h * 0.15 &&
             !prev.text.endsWith(' ') &&
             !f.text.startsWith(' ');
         if (needsSpace) sb.write(' ');
@@ -106,7 +111,9 @@ List<TextBlockGroup> groupTextFragments(
   }
   lines.sort((a, b) {
     final dy = a.rect.top - b.rect.top;
-    return dy.abs() < 1e-6 ? a.rect.left.compareTo(b.rect.left) : dy.sign.toInt();
+    return dy.abs() < 1e-6
+        ? a.rect.left.compareTo(b.rect.left)
+        : dy.sign.toInt();
   });
 
   // 2) blocks — same column, same type size, tight leading.
@@ -124,9 +131,8 @@ List<TextBlockGroup> groupTextFragments(
       final dCenter =
           (line.rect.center.dx - last.rect.center.dx).abs() * pagePt.width;
       final sameLeft = dLeft < h * 1.8;
-      final sameCenter = dCenter < h * 0.8 &&
-          wPt(line.rect) > h * 3 &&
-          wPt(last.rect) > h * 3;
+      final sameCenter =
+          dCenter < h * 0.8 && wPt(line.rect) > h * 3 && wPt(last.rect) > h * 3;
       if (!(sameLeft || sameCenter)) continue;
       // A short last line ends a paragraph; a bullet / number starts one.
       final blockRight = block.rect.right;

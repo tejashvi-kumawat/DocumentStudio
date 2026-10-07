@@ -26,6 +26,7 @@ class MarkupDisplayDocumentHandle {
   MarkupDisplayDocumentHandle(
     String path, {
     this.password,
+
     /// Fresh open of a user file: skip probe so open is one cache acquire.
     this.skipDsMarkupProbe = true,
     String? identityPath,
@@ -122,7 +123,8 @@ class MarkupDisplayDocumentHandle {
   void updateLoadPath(String path) {
     final resolved = LinuxDocumentPortal.resolveSync(path);
     if (resolved == _loadPath) return;
-    final sameBytes = LinuxDocumentPortal.sameFileSync(resolved, _loadPath) ||
+    final sameBytes =
+        LinuxDocumentPortal.sameFileSync(resolved, _loadPath) ||
         LinuxDocumentPortal.sameFileSync(resolved, identityPath);
     _loadPath = resolved;
     if (sameBytes) {
@@ -146,13 +148,14 @@ class MarkupDisplayDocumentHandle {
   /// hardlink is broken, [_loadPath] is the new bytes.
   String get _openPath =>
       LinuxDocumentPortal.sameFileSync(_loadPath, identityPath)
-          ? identityPath
-          : _loadPath;
+      ? identityPath
+      : _loadPath;
 
   Future<PdfDocument> _load() async {
     final resolved = _openPath;
 
-    final pending = _initial ??
+    final pending =
+        _initial ??
         PdfDocumentCache.instance.acquire(resolved, password: password);
     _initial = null;
 

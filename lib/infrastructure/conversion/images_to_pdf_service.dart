@@ -81,9 +81,7 @@ class ImagesToPdfService {
         }
         collectedPages.add(doc.pages.first);
       }
-      onProgress?.call(
-        JobProgress(fraction: 0.95, message: 'Assembling PDF…'),
-      );
+      onProgress?.call(JobProgress(fraction: 0.95, message: 'Assembling PDF…'));
 
       final outDoc = await PdfDocument.createNew(
         sourceName:
@@ -111,7 +109,6 @@ class ImagesToPdfService {
       }
     }
   }
-
 }
 
 /// Longest page side for "Fit image" pages (17 in); larger images are shown
@@ -135,7 +132,8 @@ class _PreparedPage {
 /// Preset pages are composed at the image's own resolution (capped at 300 dpi)
 /// rather than 1 px per point, so photos stay sharp.
 _PreparedPage? _preparePage(Uint8List bytes, (double, double)? preset) {
-  final isJpeg = bytes.length > 3 &&
+  final isJpeg =
+      bytes.length > 3 &&
       bytes[0] == 0xFF &&
       bytes[1] == 0xD8 &&
       bytes[2] == 0xFF;
@@ -155,7 +153,10 @@ _PreparedPage? _preparePage(Uint8List bytes, (double, double)? preset) {
   }
 
   if (preset == null) {
-    final fit = math.min(1.0, _maxFitPagePt / math.max(frame.width, frame.height));
+    final fit = math.min(
+      1.0,
+      _maxFitPagePt / math.max(frame.width, frame.height),
+    );
     final widthPt = frame.width * fit;
     final heightPt = frame.height * fit;
     final unchanged = identical(frame, decoded);

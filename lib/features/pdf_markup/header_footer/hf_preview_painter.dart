@@ -78,7 +78,12 @@ void paintHeaderFooterLayout(
     );
   }
   for (final t in layout.texts) {
-    final tp = stampTextPainter(t.text, t.font, t.sizePt * scale, hfColor(t.colorRgb));
+    final tp = stampTextPainter(
+      t.text,
+      t.font,
+      t.sizePt * scale,
+      hfColor(t.colorRgb),
+    );
     paintStampTextRun(
       canvas,
       tp,

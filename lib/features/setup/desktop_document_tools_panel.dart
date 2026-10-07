@@ -46,17 +46,13 @@ class _DesktopDocumentToolsPanelState extends State<DesktopDocumentToolsPanel> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  switch (s) {
-                    null => 'Checking installed tools…',
-                    final st when st.allRecommendedReady =>
-                      'All recommended tools are installed.',
-                    final st when st.corePdfToolsReady =>
-                      'Core PDF tools OK. Office conversion may need LibreOffice.',
-                    _ =>
-                      'Some tools are missing — open the setup wizard or run the full installer.',
-                  },
-                ),
+                Text(switch (s) {
+                  null => 'Checking installed tools…',
+                  final st when st.allRecommendedReady =>
+                    'All recommended tools are installed.',
+                  final st when st.corePdfToolsReady => 'Core PDF tools OK. Office conversion may need LibreOffice.',
+                  _ => 'Some tools are missing — open the setup wizard or run the full installer.',
+                }),
                 const SizedBox(height: DsSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,

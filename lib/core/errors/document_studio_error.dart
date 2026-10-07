@@ -74,35 +74,32 @@ DocumentStudioErrorCode documentStudioErrorCodeForOsError(int? errno) {
 
 extension DocumentStudioErrorCodeX on DocumentStudioErrorCode {
   String get userMessage => switch (this) {
-        DocumentStudioErrorCode.fileNotFound =>
-          'The file could not be found.',
-        DocumentStudioErrorCode.fileNotAccessible =>
-          'The file could not be accessed.',
-        DocumentStudioErrorCode.permissionDenied =>
-          'Permission was denied. Check file or storage access.',
-        DocumentStudioErrorCode.invalidFile => 'This file is not valid.',
-        DocumentStudioErrorCode.invalidPdf =>
-          'This file is not a valid PDF.',
-        DocumentStudioErrorCode.corruptedPdf =>
-          'This PDF appears to be corrupted.',
-        DocumentStudioErrorCode.passwordRequired =>
-          'This PDF is password protected.',
-        DocumentStudioErrorCode.wrongPassword => 'Incorrect password.',
-        DocumentStudioErrorCode.unsupportedFormat =>
-          'This format is not supported yet.',
-        DocumentStudioErrorCode.conversionFailed => 'Conversion failed.',
-        DocumentStudioErrorCode.ocrFailed => 'OCR failed.',
-        DocumentStudioErrorCode.renderFailed => 'Could not render the document.',
-        DocumentStudioErrorCode.outOfMemory =>
-          'Not enough memory for this operation.',
-        DocumentStudioErrorCode.diskFull => 'Not enough disk space.',
-        DocumentStudioErrorCode.fileLocked =>
-          'The file is in use by another application.',
-        DocumentStudioErrorCode.processCancelled => 'Operation cancelled.',
-        DocumentStudioErrorCode.nativeEngineError =>
-          'The document engine reported an error.',
-        DocumentStudioErrorCode.featureUnavailable =>
-          'This feature is not available yet.',
-        DocumentStudioErrorCode.unknownError => 'An unexpected error occurred.',
-      };
+    DocumentStudioErrorCode.fileNotFound => 'The file could not be found.',
+    DocumentStudioErrorCode.fileNotAccessible =>
+      'The file could not be accessed.',
+    DocumentStudioErrorCode.permissionDenied =>
+      'Permission was denied. Check file or storage access.',
+    DocumentStudioErrorCode.invalidFile => 'This file is not valid.',
+    DocumentStudioErrorCode.invalidPdf => 'This file is not a valid PDF.',
+    DocumentStudioErrorCode.corruptedPdf => 'This PDF appears to be corrupted.',
+    DocumentStudioErrorCode.passwordRequired =>
+      'This PDF is password protected.',
+    DocumentStudioErrorCode.wrongPassword => 'Incorrect password.',
+    DocumentStudioErrorCode.unsupportedFormat =>
+      'This format is not supported yet.',
+    DocumentStudioErrorCode.conversionFailed => 'Conversion failed.',
+    DocumentStudioErrorCode.ocrFailed => 'OCR failed.',
+    DocumentStudioErrorCode.renderFailed => 'Could not render the document.',
+    DocumentStudioErrorCode.outOfMemory =>
+      'Not enough memory for this operation.',
+    DocumentStudioErrorCode.diskFull => 'Not enough disk space.',
+    DocumentStudioErrorCode.fileLocked =>
+      'The file is in use by another application.',
+    DocumentStudioErrorCode.processCancelled => 'Operation cancelled.',
+    DocumentStudioErrorCode.nativeEngineError =>
+      'The document engine reported an error.',
+    DocumentStudioErrorCode.featureUnavailable =>
+      'This feature is not available yet.',
+    DocumentStudioErrorCode.unknownError => 'An unexpected error occurred.',
+  };
 }

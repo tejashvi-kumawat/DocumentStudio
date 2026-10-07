@@ -61,15 +61,30 @@ class AcrobatShortcutInfo {
 /// Everything in the keyboard-shortcuts dialog, grouped like Acrobat's help.
 const Map<String, List<AcrobatShortcutInfo>> kAcrobatShortcutHelp = {
   'Documents & tabs': [
-    AcrobatShortcutInfo('Ctrl+O', 'Open a PDF'),
+    AcrobatShortcutInfo('Ctrl+O', 'Open a PDF, Word or PowerPoint file'),
+    AcrobatShortcutInfo('Ctrl+N', 'Create a new PDF / document'),
     AcrobatShortcutInfo('Ctrl+S', 'Save'),
     AcrobatShortcutInfo('Ctrl+Shift+S', 'Save as…'),
-    AcrobatShortcutInfo('Ctrl+W', 'Close the document (tab)'),
-    AcrobatShortcutInfo('Ctrl+Tab', 'Next tab'),
-    AcrobatShortcutInfo('Ctrl+Shift+Tab', 'Previous tab'),
+    AcrobatShortcutInfo('Ctrl+T', 'New tab'),
+    AcrobatShortcutInfo('Ctrl+W  /  Ctrl+F4', 'Close the current tab'),
+    AcrobatShortcutInfo('Ctrl+Tab  /  Ctrl+PgDn', 'Next tab'),
+    AcrobatShortcutInfo('Ctrl+Shift+Tab  /  Ctrl+PgUp', 'Previous tab'),
+    AcrobatShortcutInfo('Ctrl+1 … Ctrl+8', 'Go to tab 1–8'),
+    AcrobatShortcutInfo('Ctrl+9', 'Go to the last tab'),
     AcrobatShortcutInfo('Ctrl+Shift+T', 'Reopen the last closed tab'),
+    AcrobatShortcutInfo('Ctrl+,', 'Settings'),
+    AcrobatShortcutInfo('Ctrl+K', 'Command palette'),
     AcrobatShortcutInfo('Ctrl+P', 'Print'),
     AcrobatShortcutInfo('Ctrl+D', 'Document properties'),
+  ],
+  'Word & PowerPoint': [
+    AcrobatShortcutInfo('Ctrl+B / I / U', 'Bold / italic / underline (Word)'),
+    AcrobatShortcutInfo('Ctrl+Shift+E', 'Export the document as PDF'),
+    AcrobatShortcutInfo('Ctrl+M', 'New slide'),
+    AcrobatShortcutInfo('Ctrl+D', 'Duplicate slide'),
+    AcrobatShortcutInfo('F5', 'Start the slideshow'),
+    AcrobatShortcutInfo('Enter / double-click', 'Edit the selected text box'),
+    AcrobatShortcutInfo('Delete, arrows', 'Delete / nudge the selected object'),
   ],
   'Navigate': [
     AcrobatShortcutInfo('Ctrl+Shift+N', 'Go to page'),
@@ -109,9 +124,7 @@ const Map<String, List<AcrobatShortcutInfo>> kAcrobatShortcutHelp = {
     AcrobatShortcutInfo('Alt+Shift+S', 'Sign'),
     AcrobatShortcutInfo('Alt+Shift+C', 'Crop'),
   ],
-  'Everywhere': [
-    AcrobatShortcutInfo('Ctrl+K', 'Command palette'),
-  ],
+  'Everywhere': [AcrobatShortcutInfo('Ctrl+K', 'Command palette')],
 };
 
 bool _mac() => defaultTargetPlatform == TargetPlatform.macOS;
@@ -150,15 +163,13 @@ class PdfViewerAcrobatKeys extends StatelessWidget {
       },
       if (h.onGoToPage != null)
         _p(LogicalKeyboardKey.keyN, shift: true): h.onGoToPage!,
-      if (h.onCloseDocument != null) _p(LogicalKeyboardKey.keyW): h.onCloseDocument!,
-      if (h.onNextTab != null)
-        const SingleActivator(LogicalKeyboardKey.tab, control: true): h.onNextTab!,
-      if (h.onPreviousTab != null)
-        const SingleActivator(LogicalKeyboardKey.tab, control: true, shift: true):
-            h.onPreviousTab!,
+      if (h.onCloseDocument != null)
+        _p(LogicalKeyboardKey.keyW): h.onCloseDocument!,
+      // Ctrl+Tab / Ctrl+Shift+Tab are app-wide (all tabs, not just PDFs).
       if (h.onReopenTab != null)
         _p(LogicalKeyboardKey.keyT, shift: true): h.onReopenTab!,
-      if (h.onSaveAs != null) _p(LogicalKeyboardKey.keyS, shift: true): h.onSaveAs!,
+      if (h.onSaveAs != null)
+        _p(LogicalKeyboardKey.keyS, shift: true): h.onSaveAs!,
       if (h.onProperties != null) _p(LogicalKeyboardKey.keyD): h.onProperties!,
       if (h.onReadMode != null) _p(LogicalKeyboardKey.keyH): h.onReadMode!,
       if (h.onFullScreen != null) _p(LogicalKeyboardKey.keyL): h.onFullScreen!,

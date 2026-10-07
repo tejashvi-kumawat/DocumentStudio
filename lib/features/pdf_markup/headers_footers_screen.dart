@@ -1,3 +1,5 @@
+import 'package:document_studio/design_system/shell/ds_tool_chrome.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -22,7 +24,6 @@ import 'package:document_studio/features/pdf_viewer/pdf_viewer_providers.dart';
 import 'package:document_studio/features/pdf_viewer/viewer_live_tool_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 /// Headers & footers: the six-zone editor. Embedded in the viewer it paints a
@@ -358,17 +359,13 @@ class _HeadersFootersScreenState extends ConsumerState<HeadersFootersScreen> {
     );
     if (widget.embedInViewerPanel) return body;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _ctrl.busy ? null : () => context.pop(),
-        ),
-        title: const Text('Headers & footers'),
+      appBar: DsToolAppBar(
+        title: 'Header & footer',
+        subtitle: 'Repeat text at the top and bottom of every page',
+        icon: Icons.view_agenda_outlined,
+        backEnabled: !_ctrl.busy,
       ),
-      body: SafeArea(
-        top: false,
-        child: DsMotion.fadeRiseIn(child: body),
-      ),
+      body: SafeArea(top: false, child: DsMotion.fadeRiseIn(child: body)),
     );
   }
 }

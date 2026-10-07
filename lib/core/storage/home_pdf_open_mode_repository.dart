@@ -22,7 +22,8 @@ class HomePdfOpenModeRepository {
       final map = jsonDecode(raw) as Map<String, dynamic>;
       return {
         for (final e in map.entries)
-          e.key: HomePdfOpenMode.fromStorage(e.value as String?) ??
+          e.key:
+              HomePdfOpenMode.fromStorage(e.value as String?) ??
               HomePdfOpenMode.read,
       };
     } catch (_) {
@@ -30,7 +31,10 @@ class HomePdfOpenModeRepository {
     }
   }
 
-  HomePdfOpenMode modeForPath(String path, {HomePdfOpenMode fallback = HomePdfOpenMode.read}) {
+  HomePdfOpenMode modeForPath(
+    String path, {
+    HomePdfOpenMode fallback = HomePdfOpenMode.read,
+  }) {
     return loadAll()[path] ?? fallback;
   }
 

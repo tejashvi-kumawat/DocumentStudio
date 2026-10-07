@@ -250,8 +250,9 @@ class _PageWorkspaceToolScreenState
     try {
       var resolved = file;
       if (file.contentUri != null || file.path.startsWith('content://')) {
-        final materialized =
-            await PersistedDocumentAccess.materializeForOpen(file);
+        final materialized = await PersistedDocumentAccess.materializeForOpen(
+          file,
+        );
         if (materialized == null) {
           if (mounted) {
             _snack('Could not open that document from storage access.');
@@ -457,7 +458,7 @@ class _PageWorkspaceToolScreenState
           );
       if (!mounted) return;
       await ref.read(recentsProvider.notifier).addRecent(out);
-      if (!context.mounted) return;
+      if (!mounted) return;
       showDocumentSaveResultActions(
         context,
         file: out,
@@ -478,8 +479,9 @@ class _PageWorkspaceToolScreenState
     final wsState = ref.watch(organizeWorkspaceProvider);
     final ws = ref.read(organizeWorkspaceProvider.notifier);
     final cfg = _config;
-    final sizeClass =
-        dsWindowSizeClassForWidth(MediaQuery.sizeOf(context).width);
+    final sizeClass = dsWindowSizeClassForWidth(
+      MediaQuery.sizeOf(context).width,
+    );
     final showInspector = sizeClass == DsWindowSizeClass.expanded;
 
     return Shortcuts(
@@ -922,8 +924,7 @@ class _EmptyPrompt extends StatelessWidget {
               OrganizeDropZone(
                 onBrowse: onPick,
                 title: 'Open a PDF',
-                subtitle:
-                    'Drop a file here, pick a recent/granted file below, or browse',
+                subtitle: 'Drop a file here, pick a recent/granted file below, or browse',
                 compact: compact,
               ),
               const SizedBox(height: DsSpacing.md),

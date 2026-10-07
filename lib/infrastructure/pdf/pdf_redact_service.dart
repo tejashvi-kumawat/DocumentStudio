@@ -29,11 +29,8 @@ class RedactRectPt {
 /// Permanently removes page content under [rects] by rasterizing the page,
 /// painting opaque black, and replacing that page with a flattened image page.
 class PdfRedactService {
-  PdfRedactService({
-    required PageOrganizeService organize,
-    ImagesToPdfService? imagesToPdf,
-  })  : _organize = organize,
-        _imagesToPdf = imagesToPdf ?? ImagesToPdfService();
+  PdfRedactService({required this._organize, ImagesToPdfService? imagesToPdf})
+    : _imagesToPdf = imagesToPdf ?? ImagesToPdfService();
 
   final PageOrganizeService _organize;
   final ImagesToPdfService _imagesToPdf;
@@ -86,11 +83,14 @@ class PdfRedactService {
           final top = ((1 - (r.yPt + r.heightPt) / page.height) * height)
               .floor()
               .clamp(0, height - 1);
-          final rw =
-              (r.widthPt / page.width * width).ceil().clamp(1, width - left);
-          final rh = (r.heightPt / page.height * height)
-              .ceil()
-              .clamp(1, height - top);
+          final rw = (r.widthPt / page.width * width).ceil().clamp(
+            1,
+            width - left,
+          );
+          final rh = (r.heightPt / page.height * height).ceil().clamp(
+            1,
+            height - top,
+          );
           img.fillRect(
             raster,
             x1: left,
@@ -111,9 +111,7 @@ class PdfRedactService {
         await File(pngPath).writeAsBytes(pngBytes, flush: true);
         final pagePdfPath = p.join(tempDir.path, 'page.pdf');
         final pagePdf = await _imagesToPdf.fromImageFiles(
-          images: [
-            LocalFileRef(path: pngPath, displayName: 'page.png'),
-          ],
+          images: [LocalFileRef(path: pngPath, displayName: 'page.png')],
           outputPath: pagePdfPath,
         );
 

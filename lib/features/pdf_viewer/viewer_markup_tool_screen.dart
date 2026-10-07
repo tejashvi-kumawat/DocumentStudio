@@ -142,14 +142,14 @@ class _ViewerMarkupToolScreenState
                     Text(
                       _pickError!,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFFE4002B),
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: const Color(0xFFE4002B)),
                     ),
                   ],
                   const SizedBox(height: DsSpacing.lg),
                   DsPrimaryButton(
-                    key: widget.chooseKey ?? const Key('markup_tool_choose_pdf'),
+                    key:
+                        widget.chooseKey ?? const Key('markup_tool_choose_pdf'),
                     label: _picking ? 'Opening…' : 'Choose PDF…',
                     icon: Icons.folder_open_outlined,
                     onPressed: _picking ? null : _pickPdf,

@@ -7,6 +7,7 @@ import 'package:document_studio/design_system/ds_motion.dart';
 import 'package:document_studio/design_system/ds_spacing.dart';
 import 'package:document_studio/design_system/shell/ds_tool_form_layout.dart';
 import 'package:document_studio/design_system/widgets/ds_buttons.dart';
+import 'package:document_studio/design_system/widgets/ds_pdf_preview.dart';
 import 'package:document_studio/design_system/widgets/ds_tool_blocks.dart';
 import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/features/document_lifecycle/document_save_result_actions.dart';
@@ -84,9 +85,10 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || _file != null) return;
-        final tab = ProviderScope.containerOf(context, listen: false)
-            .read(documentTabsControllerProvider)
-            .activeTab;
+        final tab = ProviderScope.containerOf(
+          context,
+          listen: false,
+        ).read(documentTabsControllerProvider).activeTab;
         final file = tab?.file;
         if (file != null && file.isPdf) {
           unawaited(_setFile(file, password: tab!.password));
@@ -141,8 +143,10 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
     var pw = password;
     while (true) {
       try {
-        final lease =
-            await PdfDocumentCache.instance.acquire(file.path, password: pw);
+        final lease = await PdfDocumentCache.instance.acquire(
+          file.path,
+          password: pw,
+        );
         final count = lease.document.pages.length;
         lease.release();
         if (!mounted || _file != file) return;
@@ -218,6 +222,7 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
             setState(() => _progress = prog);
           }
         }
+
         result = port is TesseractSearchablePdfService
             ? await port.makeSearchable(
                 file: file,
@@ -309,8 +314,10 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
   PdfViewerTab? _openTabForSource() {
     final file = _file;
     if (file == null) return null;
-    final tabs = ProviderScope.containerOf(context, listen: false)
-        .read(documentTabsControllerProvider);
+    final tabs = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(documentTabsControllerProvider);
     for (final tab in tabs.tabs) {
       if (tab.file.path == file.path) return tab;
     }
@@ -323,8 +330,10 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
     final result = _result;
     final tab = _openTabForSource();
     if (result == null || tab == null) return;
-    final tabs = ProviderScope.containerOf(context, listen: false)
-        .read(documentTabsControllerProvider);
+    final tabs = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(documentTabsControllerProvider);
     final outcome = await tab.session.commitBytes(
       Uint8List.fromList(result.bytes),
     );
@@ -345,8 +354,10 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
   }
 
   void _openInViewer(String path) {
-    final tabs = ProviderScope.containerOf(context, listen: false)
-        .read(documentTabsControllerProvider);
+    final tabs = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(documentTabsControllerProvider);
     tabs.openDocument(
       LocalFileRef(path: path, displayName: p.basename(path)),
       password: _password,
@@ -373,16 +384,26 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
 
     return DsToolPage(
       title: 'Searchable PDF',
-      subtitle: 'Recognize text in scanned pages so you can select, copy, and '
+      subtitle:
+          'Recognize text in scanned pages so you can select, copy, and '
           'search it. The page images stay exactly as they are.',
       icon: Icons.find_in_page_outlined,
-      iconColor: const Color(0xFF8B5CF6),
+      preview: DsPdfPreviewPane(
+        file: _file,
+        password: _password,
+        enabled: !_running,
+        onPick: _pick,
+        onFilesDropped: (files) {
+          if (files.isNotEmpty) unawaited(_setFile(files.first));
+        },
+        emptyTitle: 'Drop a scanned PDF here',
+        emptySubtitle: 'Text is recognized on your device',
+        icon: Icons.find_in_page_outlined,
+      ),
       primaryLabel: _running ? 'Recognizing…' : 'Make searchable',
       primaryIcon: Icons.find_in_page_outlined,
-      primaryEnabled: _file != null &&
-          _pageCount != null &&
-          !_engineBlocked &&
-          !_running,
+      primaryEnabled:
+          _file != null && _pageCount != null && !_engineBlocked && !_running,
       primaryBusy: _running,
       onPrimary: _run,
       onCancel: () => context.canPop() ? context.pop() : context.go('/'),
@@ -404,23 +425,22 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
                     child: OcrEngineStatusPanel(
                       portBlocked: true,
                       searchablePdf: true,
-                      blockedReason: _engine?.missingMessage ??
+                      blockedReason:
+                          _engine?.missingMessage ??
                           BlockedSearchablePdfPort.blockedReason,
                       onRecheck: () => _probe(refresh: true),
                     ),
                   )
                 : const SizedBox(width: double.infinity),
           ),
-          DsToolSection(
-            topPadding: false,
-            title: 'Source file',
-            subtitle: 'Scanned or image-only PDF',
-            child: _buildSource(theme, secondary),
-          ),
-          DsToolSection(
-            title: 'Pages',
-            child: _buildPages(theme, secondary),
-          ),
+          if (_file != null)
+            DsToolSection(
+              topPadding: false,
+              title: 'Source file',
+              subtitle: 'Scanned or image-only PDF',
+              child: _buildSource(theme, secondary),
+            ),
+          DsToolSection(title: 'Pages', child: _buildPages(theme, secondary)),
           DsToolSection(
             title: 'Options',
             child: OcrOptionsPanel(
@@ -478,11 +498,11 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
           _loadingDoc
               ? 'Reading document…'
               : _pageCount == null
-                  ? ''
-                  : [
-                      _plural(_pageCount!, 'page'),
-                      if (_password != null) 'password protected',
-                    ].join(' · '),
+              ? ''
+              : [
+                  _plural(_pageCount!, 'page'),
+                  if (_password != null) 'password protected',
+                ].join(' · '),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(color: secondary),
@@ -563,9 +583,7 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
               ButtonSegment(value: false, label: Text('Custom range')),
             ],
             selected: {_allPages},
-            onSelectionChanged: _running
-                ? null
-                : (s) => selectAll(s.first),
+            onSelectionChanged: _running ? null : (s) => selectAll(s.first),
           ),
         AnimatedSize(
           duration: DsMotion.switchDuration,
@@ -640,7 +658,8 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
           icon: Icons.info_outline,
           color: DsColors.primary,
           title: 'This PDF is already searchable',
-          details: 'All ${_plural(result.skippedPages.length, 'selected page')} '
+          details:
+              'All ${_plural(result.skippedPages.length, 'selected page')} '
               'already contain selectable text, so nothing was changed.',
           actions: [
             TextButton(
@@ -695,10 +714,7 @@ class _SearchablePdfScreenState extends State<SearchablePdfScreen> {
                 icon: const Icon(Icons.folder_open_outlined, size: 18),
                 label: const Text('Show in folder'),
               ),
-            TextButton(
-              onPressed: _save,
-              child: const Text('Save a copy…'),
-            ),
+            TextButton(onPressed: _save, child: const Text('Save a copy…')),
           ],
         ],
       ),

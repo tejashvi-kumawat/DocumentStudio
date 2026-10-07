@@ -221,11 +221,16 @@ class _DocumentWorkspaceScreenState
           );
     _ws.setBusy(true, message: 'Preparing PDF…', fraction: 0.05);
     try {
-      final out = await ref.read(pageOrganizeServiceProvider).exportWorkspace(
+      final out = await ref
+          .read(pageOrganizeServiceProvider)
+          .exportWorkspace(
             pages: pages,
-            suggestedName: selectionOnly ? '$base-selection.pdf' : '$base-new.pdf',
+            suggestedName: selectionOnly
+                ? '$base-selection.pdf'
+                : '$base-new.pdf',
             passwordsByPath: _passwordsByPath,
-            onProgress: (p) => _ws.setBusy(true, message: p.message, fraction: p.fraction),
+            onProgress: (p) =>
+                _ws.setBusy(true, message: p.message, fraction: p.fraction),
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -282,73 +287,73 @@ class _DocumentWorkspaceScreenState
   }
 
   List<WorkspaceDocumentToolItem> get _documentTools => [
-        WorkspaceDocumentToolItem(
-          id: 'watermark',
-          label: 'Watermark',
-          icon: Icons.branding_watermark_outlined,
-          onPressed: () => _openCurrent(tool: ViewerToolId.watermark),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'compress',
-          label: 'Compress',
-          icon: Icons.compress,
-          onPressed: () => _openCurrent(tool: ViewerToolId.compress),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'protect',
-          label: 'Encrypt',
-          icon: Icons.lock_outline,
-          onPressed: () => _openCurrent(tool: ViewerToolId.protect),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'unlock',
-          label: 'Decrypt',
-          icon: Icons.lock_open_outlined,
-          onPressed: () => _openCurrent(tool: ViewerToolId.unlock),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'sign',
-          label: 'Sign',
-          icon: Icons.draw_outlined,
-          onPressed: () => _openCurrent(tool: ViewerToolId.visualSign),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'place_image',
-          label: 'Image',
-          icon: Icons.image_outlined,
-          onPressed: () => _openCurrent(tool: ViewerToolId.placeImage),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'edit_text',
-          label: 'Text',
-          icon: Icons.text_fields,
-          onPressed: () => _openCurrent(tool: ViewerToolId.editText),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'ink',
-          label: 'Draw',
-          icon: Icons.gesture,
-          onPressed: () => _openCurrent(tool: ViewerToolId.ink),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'fill_form',
-          label: 'Fill form',
-          icon: Icons.checklist_outlined,
-          onPressed: () => _openCurrent(tool: ViewerToolId.fillForm),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'ocr',
-          label: 'OCR',
-          icon: Icons.document_scanner_outlined,
-          onPressed: () => _openCurrent(tool: ViewerToolId.searchablePdf),
-        ),
-        WorkspaceDocumentToolItem(
-          id: 'office_convert',
-          label: 'Office',
-          icon: Icons.swap_horiz,
-          onPressed: () => _openCurrent(tool: ViewerToolId.officeConvert),
-        ),
-      ];
+    WorkspaceDocumentToolItem(
+      id: 'watermark',
+      label: 'Watermark',
+      icon: Icons.branding_watermark_outlined,
+      onPressed: () => _openCurrent(tool: ViewerToolId.watermark),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'compress',
+      label: 'Compress',
+      icon: Icons.compress,
+      onPressed: () => _openCurrent(tool: ViewerToolId.compress),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'protect',
+      label: 'Encrypt',
+      icon: Icons.lock_outline,
+      onPressed: () => _openCurrent(tool: ViewerToolId.protect),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'unlock',
+      label: 'Decrypt',
+      icon: Icons.lock_open_outlined,
+      onPressed: () => _openCurrent(tool: ViewerToolId.unlock),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'sign',
+      label: 'Sign',
+      icon: Icons.draw_outlined,
+      onPressed: () => _openCurrent(tool: ViewerToolId.visualSign),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'place_image',
+      label: 'Image',
+      icon: Icons.image_outlined,
+      onPressed: () => _openCurrent(tool: ViewerToolId.placeImage),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'edit_text',
+      label: 'Text',
+      icon: Icons.text_fields,
+      onPressed: () => _openCurrent(tool: ViewerToolId.editText),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'ink',
+      label: 'Draw',
+      icon: Icons.gesture,
+      onPressed: () => _openCurrent(tool: ViewerToolId.ink),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'fill_form',
+      label: 'Fill form',
+      icon: Icons.checklist_outlined,
+      onPressed: () => _openCurrent(tool: ViewerToolId.fillForm),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'ocr',
+      label: 'OCR',
+      icon: Icons.document_scanner_outlined,
+      onPressed: () => _openCurrent(tool: ViewerToolId.searchablePdf),
+    ),
+    WorkspaceDocumentToolItem(
+      id: 'office_convert',
+      label: 'Office',
+      icon: Icons.swap_horiz,
+      onPressed: () => _openCurrent(tool: ViewerToolId.officeConvert),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -366,8 +371,8 @@ class _DocumentWorkspaceScreenState
     final docLabel = wsState.importedFiles.isEmpty
         ? 'Document workspace'
         : wsState.importedFiles.length == 1
-            ? wsState.importedFiles.first.displayName
-            : '${wsState.importedFiles.length} documents · ${wsState.pageCount} pages';
+        ? wsState.importedFiles.first.displayName
+        : '${wsState.importedFiles.length} documents · ${wsState.pageCount} pages';
 
     void handleBack() {
       if (compact && _compactPagesOpen) {
@@ -500,12 +505,8 @@ class _DocumentWorkspaceScreenState
                                         enabled: !wsState.busy,
                                         onShowAll: ws.clearHighlightSource,
                                         onSourceTap: (source) {
-                                          ws.toggleHighlightSource(
-                                            source.path,
-                                          );
-                                          ws.selectPagesFromSource(
-                                            source.path,
-                                          );
+                                          ws.toggleHighlightSource(source.path);
+                                          ws.selectPagesFromSource(source.path);
                                         },
                                       ),
                                     Expanded(
@@ -539,8 +540,7 @@ class _DocumentWorkspaceScreenState
                                               passwordsByPath: _passwordsByPath,
                                               showPagePreview: false,
                                               workspaceIndex1Based:
-                                                  wsState.focusPreviewIndex +
-                                                      1,
+                                                  wsState.focusPreviewIndex + 1,
                                               workspacePageCount:
                                                   wsState.pageCount,
                                               workspacePages: wsState.pages,
@@ -570,16 +570,17 @@ class _DocumentWorkspaceScreenState
                     ),
                   ]
                 : const [],
-            message: wsState.statusMessage ??
+            message:
+                wsState.statusMessage ??
                 (showCompactDocList
                     ? (wsState.importedFiles.isEmpty
-                        ? 'Add a PDF to begin'
-                        : 'Tap a document to see pages')
+                          ? 'Add a PDF to begin'
+                          : 'Tap a document to see pages')
                     : (hasPages
-                        ? (compact
-                            ? 'Tap a page to open the PDF'
-                            : 'Double-click a page to open it')
-                        : 'Add a PDF to begin')),
+                          ? (compact
+                                ? 'Tap a page to open the PDF'
+                                : 'Double-click a page to open it')
+                          : 'Add a PDF to begin')),
           ),
         ],
       ),
@@ -596,12 +597,12 @@ class _DocumentWorkspaceScreenState
         actions: {
           OpenCommandPaletteIntent:
               GuardedCallbackAction<OpenCommandPaletteIntent>(
-            allowWhileTyping: true,
-            onInvoke: (_) {
-              _openCommandPalette();
-              return null;
-            },
-          ),
+                allowWhileTyping: true,
+                onInvoke: (_) {
+                  _openCommandPalette();
+                  return null;
+                },
+              ),
         },
         child: Focus(
           autofocus: true,
@@ -617,8 +618,8 @@ class _DocumentWorkspaceScreenState
               children: [
                 SafeArea(child: scaffold),
                 OrganizeBusyOverlay(
-                  visible: wsState.busy ||
-                      (_loadingDoc && wsState.pages.isEmpty),
+                  visible:
+                      wsState.busy || (_loadingDoc && wsState.pages.isEmpty),
                   message: _loadingDoc && !wsState.busy
                       ? 'Opening PDF…'
                       : wsState.statusMessage,
@@ -648,10 +649,7 @@ class _DocumentWorkspaceScreenState
       enabled: !busy,
       onFilesDropped: (files) async {
         for (var i = 0; i < files.length; i++) {
-          await _importFile(
-            files[i],
-            replace: i == 0 && wsState.pages.isEmpty,
-          );
+          await _importFile(files[i], replace: i == 0 && wsState.pages.isEmpty);
         }
       },
       child: WorkspaceSidebar(

@@ -29,7 +29,7 @@ Future<void> runOrganizeExportResultActions({
   required int pageCount,
   Map<String, String>? passwordsByPath,
   required Future<void> Function(LocalFileRef file, int pageCount)
-      onReplaceInWorkspace,
+  onReplaceInWorkspace,
 }) async {
   final storage = ref.read(fileStorageProvider);
   final suggested = assembled.suggestedName.endsWith('.pdf')
@@ -60,10 +60,7 @@ Future<void> runOrganizeExportResultActions({
     await File(assembled.tempPath).delete();
   } catch (_) {}
 
-  final saved = LocalFileRef(
-    path: savePath,
-    displayName: p.basename(savePath),
-  );
+  final saved = LocalFileRef(path: savePath, displayName: p.basename(savePath));
   await ref.read(recentsProvider.notifier).addRecent(saved);
   if (!context.mounted) return;
   showDocumentSaveResultActions(

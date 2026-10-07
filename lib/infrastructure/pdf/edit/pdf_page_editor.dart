@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_content_builder.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_content_stream.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_edit_document.dart';
+import 'package:document_studio/infrastructure/pdf/edit/pdf_font_identity.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_objects.dart';
 import 'package:document_studio/infrastructure/pdf/edit/pdf_parser.dart';
 
@@ -233,6 +234,124 @@ Uint8List? moveLinksWithBlock(
   }
 }
 
+/// Same place on the page: overlap of at least half, or the same centre
+/// and size.
+bool _sameLinkRect(Rect a, Rect b) {
+  final inter = a.intersect(b);
+  if (inter.width > 0 && inter.height > 0) {
+    final area = inter.width * inter.height;
+    final union = a.width * a.height + b.width * b.height - area;
+    if (union > 0 && area / union >= 0.5) return true;
+  }
+  return (a.center.dx - b.center.dx).abs() <= 0.01 &&
+      (a.center.dy - b.center.dy).abs() <= 0.01 &&
+      (a.width - b.width).abs() <= 0.02 &&
+      (a.height - b.height).abs() <= 0.02;
+}
+
+/// Link annotations on [page1] whose place matches [norm] are dropped from
+/// the list; returns how many.
+int _dropLinksAt(
+  PdfEditDocument doc,
+  int page1,
+  Rect norm,
+  List<PdfObj> items,
+) {
+  var removed = 0;
+  items.removeWhere((it) {
+    final d = doc.dictOf(it);
+    final sub = d == null ? null : doc.resolve(d['Subtype']);
+    if (d == null || sub is! PdfName || sub.name != 'Link') return false;
+    final r = _annotRect(doc, d);
+    if (r == null) return false;
+    if (_sameLinkRect(_userToNorm(doc, page1, r), norm)) {
+      removed++;
+      return true;
+    }
+    return false;
+  });
+  return removed;
+}
+
+/// Adds a Link annotation (web address, or jump to [destPage1]) at [rect]
+/// (normalized display space), replacing the link at [replaceNorm] when
+/// given. Null when the page cannot be edited or the link to replace is
+/// gone.
+Uint8List? addPageLink(
+  Uint8List bytes,
+  int page1, {
+  required Rect rect,
+  String? uri,
+  int? destPage1,
+  bool visibleBorder = false,
+  Rect? replaceNorm,
+}) {
+  try {
+    final doc = PdfEditDocument.open(bytes);
+    final items = doc.pageAnnotItems(page1);
+    if (replaceNorm != null &&
+        _dropLinksAt(doc, page1, replaceNorm, items) == 0)
+      return null;
+    final PdfDict action;
+    if (uri != null) {
+      var u = uri.trim();
+      if (!u.contains('://') && !u.startsWith('mailto:') && !u.startsWith('#'))
+        u = 'https://$u';
+      action = PdfDict({
+        'S': const PdfName('URI'),
+        'URI': PdfString(Uint8List.fromList(u.codeUnits)),
+      });
+    } else if (destPage1 != null &&
+        destPage1 >= 1 &&
+        destPage1 <= doc.pageCount) {
+      action = PdfDict({
+        'S': const PdfName('GoTo'),
+        'D': PdfArray([doc.pageRef(destPage1), const PdfName('Fit')]),
+      });
+    } else {
+      return null;
+    }
+    final u = _normToUser(doc, page1, rect);
+    final box = [
+      math.min(u[0], u[2]),
+      math.min(u[1], u[3]),
+      math.max(u[0], u[2]),
+      math.max(u[1], u[3]),
+    ];
+    final annot = doc.addObject(
+      PdfDict({
+        'Type': const PdfName('Annot'),
+        'Subtype': const PdfName('Link'),
+        'Rect': PdfArray.nums(box),
+        'P': doc.pageRef(page1),
+        'F': const PdfNum(4),
+        'H': const PdfName('I'),
+        'Border': PdfArray.nums(visibleBorder ? [0, 0, 1] : [0, 0, 0]),
+        if (visibleBorder) 'C': PdfArray.nums([0, 0, 1]),
+        'A': action,
+      }),
+    );
+    items.add(annot);
+    doc.setPageAnnots(page1, items);
+    return doc.save();
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Removes the Link annotations at [norm] on [page1]; null when none match.
+Uint8List? removePageLinks(Uint8List bytes, int page1, Rect norm) {
+  try {
+    final doc = PdfEditDocument.open(bytes);
+    final items = doc.pageAnnotItems(page1);
+    if (_dropLinksAt(doc, page1, norm, items) == 0) return null;
+    doc.setPageAnnots(page1, items);
+    return doc.save();
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Moves / resizes the annotation at [index] to [newRect] (normalized). The
 /// appearance follows /Rect; point lists (ink, quads, vertices, line ends)
 /// are mapped too so other readers redraw it in the same place.
@@ -415,7 +534,12 @@ _Unit? _unit(PdfEditDocument doc, int page1, int form) {
 }
 
 /// Writes [content] back to where [u] came from.
-Uint8List _saveUnit(PdfEditDocument doc, int page1, _Unit u, Uint8List content) {
+Uint8List _saveUnit(
+  PdfEditDocument doc,
+  int page1,
+  _Unit u,
+  Uint8List content,
+) {
   if (u.form == 0) return _save(doc, page1, content);
   final d = u.stream!.dict.clone()
     ..remove('DecodeParms')
@@ -491,11 +615,11 @@ Mat? _relocate(Mat ctm, List<double> from, List<double> to) {
 }
 
 List<double> _sorted(List<double> r) => [
-      math.min(r[0], r[2]),
-      math.min(r[1], r[3]),
-      math.max(r[0], r[2]),
-      math.max(r[1], r[3]),
-    ];
+  math.min(r[0], r[2]),
+  math.min(r[1], r[3]),
+  math.max(r[0], r[2]),
+  math.max(r[1], r[3]),
+];
 
 /// Moves / resizes the image at [opStart] to [newRect] (normalized).
 Uint8List? transformPageImage(
@@ -566,8 +690,13 @@ Uint8List? replacePageImage(
       xo[name] = ref;
       res['XObject'] = xo;
       fdict['Resources'] = res;
-      final unit = _Unit(u.form, u.ref, PdfStream(fdict, u.stream!.data),
-          res, u.a);
+      final unit = _Unit(
+        u.form,
+        u.ref,
+        PdfStream(fdict, u.stream!.data),
+        res,
+        u.a,
+      );
       final out = applyRangeEdits(u.a.bytes, [
         (start: img.op.start, end: img.op.end, text: '/$name Do'),
       ]);
@@ -764,35 +893,47 @@ class TextFontHint {
     required this.origin,
     required this.baseFont,
     required this.sizePt,
+    this.evidence,
+    this.weight = 1,
   });
 
   /// Origin in normalized display space (0..1, top-left).
   final Offset origin;
   final String baseFont;
   final double sizePt;
+
+  /// Name, embedded family, flags and widths of the font (see
+  /// FontIdentifier).
+  final PdfFontEvidence? evidence;
+
+  /// How much text the operation shows (bytes); a block takes the font of
+  /// most of its text.
+  final int weight;
 }
 
-/// Fonts used by the text on [page1], with where each run starts. Never
-/// throws.
+/// Fonts used by the text on [page1] — including text inside form
+/// XObjects — with where each run starts. Never throws.
 List<TextFontHint> findPageTextFonts(Uint8List bytes, int page1) {
   try {
     final doc = PdfEditDocument.open(bytes);
-    final a = _analyze(doc, page1);
-    if (a == null) return const [];
-    final names = pageFontBaseNames(doc, page1);
     final g = doc.pageGeometry(page1);
     final out = <TextFontHint>[];
-    for (final t in a.texts) {
-      final base = names[t.fontKey];
-      if (base == null) continue;
-      final d = g.userToDisplay(Offset(t.x, t.y));
-      out.add(
-        TextFontHint(
-          origin: Offset(d.dx / g.displayWidth, d.dy / g.displayHeight),
-          baseFont: base,
-          sizePt: t.fontSize,
-        ),
-      );
+    for (final u in _units(doc, page1)) {
+      final fonts = readFontEvidence(doc, u.resources);
+      for (final t in u.a.texts) {
+        final ev = fonts[t.fontKey];
+        if (ev == null || t.renderMode == 3) continue; // invisible (OCR) text
+        final d = g.userToDisplay(Offset(t.x, t.y));
+        out.add(
+          TextFontHint(
+            origin: Offset(d.dx / g.displayWidth, d.dy / g.displayHeight),
+            baseFont: ev.name,
+            sizePt: t.fontSize,
+            evidence: ev,
+            weight: t.op.end - t.op.start,
+          ),
+        );
+      }
     }
     return out;
   } catch (_) {
@@ -807,7 +948,15 @@ class FontMatch {
     required this.bold,
     required this.italic,
     required this.original,
+    this.libraryFamily,
+    this.how,
   });
+
+  /// Bundled family that reproduces the font (font recognition), if any.
+  final String? libraryFamily;
+
+  /// How it was recognised (name, embedded, metrics, class).
+  final String? how;
 
   /// `sans`, `serif` or `mono` (see MarkupFontFamily).
   final String family;
@@ -1034,7 +1183,9 @@ Uint8List? deletePageShape(
       doc,
       page1,
       u,
-      applyRangeEdits(u.a.bytes, [(start: sh.opStart, end: sh.opEnd, text: '')]),
+      applyRangeEdits(u.a.bytes, [
+        (start: sh.opStart, end: sh.opEnd, text: ''),
+      ]),
     );
   } catch (_) {
     return null;

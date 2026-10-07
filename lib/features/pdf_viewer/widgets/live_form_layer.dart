@@ -74,23 +74,23 @@ class _LiveFormLayerState extends State<LiveFormLayer> {
   }
 
   TextEditingController _ctrlFor(PdfFormSpot spot) => _controllers.putIfAbsent(
-        spot.id,
-        () => TextEditingController(text: _live.formValues[spot.id] ?? ''),
-      );
+    spot.id,
+    () => TextEditingController(text: _live.formValues[spot.id] ?? ''),
+  );
 
   FocusNode _nodeFor(PdfFormSpot spot) => _nodes.putIfAbsent(spot.id, () {
-        final node = FocusNode(debugLabel: 'form_spot_${spot.id}');
-        node.onKeyEvent = _onKey;
-        node.addListener(() {
-          if (node.hasFocus && _live.activeFormSpotId != spot.id) {
-            if (_live.pageIndex1Based != _g.pageNumber) {
-              _live.focusPage(_g.pageNumber);
-            }
-            _live.focusFormSpot(spot.id);
-          }
-        });
-        return node;
-      });
+    final node = FocusNode(debugLabel: 'form_spot_${spot.id}');
+    node.onKeyEvent = _onKey;
+    node.addListener(() {
+      if (node.hasFocus && _live.activeFormSpotId != spot.id) {
+        if (_live.pageIndex1Based != _g.pageNumber) {
+          _live.focusPage(_g.pageNumber);
+        }
+        _live.focusFormSpot(spot.id);
+      }
+    });
+    return node;
+  });
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
@@ -98,7 +98,9 @@ class _LiveFormLayerState extends State<LiveFormLayer> {
     if (key == LogicalKeyboardKey.tab ||
         key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.numpadEnter) {
-      _live.focusNextFormSpot(reverse: HardwareKeyboard.instance.isShiftPressed);
+      _live.focusNextFormSpot(
+        reverse: HardwareKeyboard.instance.isShiftPressed,
+      );
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.escape) {
@@ -149,9 +151,7 @@ class _LiveFormLayerState extends State<LiveFormLayer> {
           alignment: Alignment.topCenter,
           child: Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: DsMotion.fadeRiseIn(
-              child: _EmptyBlankNotice(text: message),
-            ),
+            child: DsMotion.fadeRiseIn(child: _EmptyBlankNotice(text: message)),
           ),
         ),
       );
@@ -169,9 +169,12 @@ class _LiveFormLayerState extends State<LiveFormLayer> {
                 child: spots[i].kind == PdfFormSpotKind.checkbox
                     ? _CheckboxSpot(
                         focusNode: _nodeFor(spots[i]),
-                        checked: liveFormValueChecked(_live.formValues[spots[i].id]),
+                        checked: liveFormValueChecked(
+                          _live.formValues[spots[i].id],
+                        ),
                         active: _live.activeFormSpotId == spots[i].id,
-                        strokePx: formCheckStrokePt(
+                        strokePx:
+                            formCheckStrokePt(
                               spots[i].normRect.width * _g.pageWidthPt,
                               spots[i].normRect.height * _g.pageHeightPt,
                             ) *
@@ -354,7 +357,10 @@ class _TextSpot extends StatelessWidget {
                 controller: controller,
                 focusNode: focusNode,
                 maxLines: 1,
-                style: liveHelveticaStyle(fontPx: fontPx, color: const Color(0xFF111111)),
+                style: liveHelveticaStyle(
+                  fontPx: fontPx,
+                  color: const Color(0xFF111111),
+                ),
                 strutStyle: StrutStyle(
                   fontFamily: kHelveticaCompatibleFontFamily,
                   fontFamilyFallback: kHelveticaCompatibleFontFallback,

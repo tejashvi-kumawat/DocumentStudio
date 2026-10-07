@@ -40,8 +40,7 @@ class SavedStampStore {
       final list = jsonDecode(raw) as List<dynamic>;
       return [
         for (final e in list)
-          if (e is Map)
-            StampDesign.fromJson(Map<String, Object?>.from(e)),
+          if (e is Map) StampDesign.fromJson(Map<String, Object?>.from(e)),
       ];
     } catch (_) {
       return const [];
@@ -100,11 +99,9 @@ class SavedStampStore {
         if (id is! String || name is! String || path is! String) continue;
         final file = File(path);
         if (!await file.exists()) continue;
-        out.add(SavedImageStamp(
-          id: id,
-          name: name,
-          bytes: await file.readAsBytes(),
-        ));
+        out.add(
+          SavedImageStamp(id: id, name: name, bytes: await file.readAsBytes()),
+        );
       }
       return out;
     } catch (_) {

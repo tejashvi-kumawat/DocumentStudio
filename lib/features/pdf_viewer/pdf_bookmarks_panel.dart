@@ -82,7 +82,9 @@ class _PdfBookmarksPanelState extends State<PdfBookmarksPanel> {
       if (bytes.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Bookmarks cannot be edited on very large files.')),
+            const SnackBar(
+              content: Text('Bookmarks cannot be edited on very large files.'),
+            ),
           );
         }
         return;
@@ -91,7 +93,9 @@ class _PdfBookmarksPanelState extends State<PdfBookmarksPanel> {
       if (out == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('This document cannot store bookmarks.')),
+            const SnackBar(
+              content: Text('This document cannot store bookmarks.'),
+            ),
           );
         }
         return;
@@ -129,7 +133,10 @@ class _PdfBookmarksPanelState extends State<PdfBookmarksPanel> {
           onSubmitted: (v) => Navigator.pop(ctx, v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, ctrl.text),
             child: const Text('Save'),
@@ -194,7 +201,9 @@ class _PdfBookmarksPanelState extends State<PdfBookmarksPanel> {
     final dark = theme.brightness == Brightness.dark;
     final rows = _flatten(_tree).toList();
     return Material(
-      color: dark ? DsColors.surfaceContainerDark : DsColors.surfaceContainerLight,
+      color: dark
+          ? DsColors.surfaceContainerDark
+          : DsColors.surfaceContainerLight,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -219,102 +228,122 @@ class _PdfBookmarksPanelState extends State<PdfBookmarksPanel> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : rows.isEmpty
-                    ? Center(
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'No bookmarks yet',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 10),
+                          FilledButton.tonal(
+                            onPressed: _busy ? null : () => _add(),
+                            child: const Text('Add one for this page'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: rows.length,
+                    itemBuilder: (context, i) {
+                      final r = rows[i];
+                      return InkWell(
+                        onTap: () => widget.controller.isReady
+                            ? widget.controller.goToPage(
+                                pageNumber: r.entry.page.clamp(
+                                  1,
+                                  widget.controller.pageCount,
+                                ),
+                              )
+                            : null,
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                          padding: EdgeInsets.only(
+                            left: 10.0 + r.depth * 14,
+                            right: 0,
+                          ),
+                          child: Row(
                             children: [
-                              Text(
-                                'No bookmarks yet',
-                                style: theme.textTheme.bodySmall,
+                              Icon(
+                                Icons.bookmark_outline,
+                                size: 15,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
-                              const SizedBox(height: 10),
-                              FilledButton.tonal(
-                                onPressed: _busy ? null : () => _add(),
-                                child: const Text('Add one for this page'),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  child: Text(
+                                    r.entry.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${r.entry.page}',
+                                style: theme.textTheme.labelSmall,
+                              ),
+                              PopupMenuButton<String>(
+                                tooltip: 'Bookmark options',
+                                iconSize: 16,
+                                padding: EdgeInsets.zero,
+                                onSelected: (v) {
+                                  switch (v) {
+                                    case 'rename':
+                                      _rename(i);
+                                    case 'delete':
+                                      _delete(i);
+                                    case 'child':
+                                      _add(underFlat: i);
+                                    case 'up':
+                                      _move(i, -1);
+                                    case 'down':
+                                      _move(i, 1);
+                                    case 'here':
+                                      _setHere(i);
+                                  }
+                                },
+                                itemBuilder: (_) => const [
+                                  PopupMenuItem(
+                                    value: 'rename',
+                                    child: Text('Rename…'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'child',
+                                    child: Text('Add sub-bookmark here…'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'here',
+                                    child: Text('Point to current page'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'up',
+                                    child: Text('Move up'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'down',
+                                    child: Text('Move down'),
+                                  ),
+                                  PopupMenuDivider(),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: rows.length,
-                        itemBuilder: (context, i) {
-                          final r = rows[i];
-                          return InkWell(
-                            onTap: () => widget.controller.isReady
-                                ? widget.controller.goToPage(
-                                    pageNumber: r.entry.page.clamp(
-                                      1,
-                                      widget.controller.pageCount,
-                                    ),
-                                  )
-                                : null,
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                left: 10.0 + r.depth * 14,
-                                right: 0,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.bookmark_outline,
-                                    size: 15,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      child: Text(
-                                        r.entry.title,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodySmall,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '${r.entry.page}',
-                                    style: theme.textTheme.labelSmall,
-                                  ),
-                                  PopupMenuButton<String>(
-                                    tooltip: 'Bookmark options',
-                                    iconSize: 16,
-                                    padding: EdgeInsets.zero,
-                                    onSelected: (v) {
-                                      switch (v) {
-                                        case 'rename':
-                                          _rename(i);
-                                        case 'delete':
-                                          _delete(i);
-                                        case 'child':
-                                          _add(underFlat: i);
-                                        case 'up':
-                                          _move(i, -1);
-                                        case 'down':
-                                          _move(i, 1);
-                                        case 'here':
-                                          _setHere(i);
-                                      }
-                                    },
-                                    itemBuilder: (_) => const [
-                                      PopupMenuItem(value: 'rename', child: Text('Rename…')),
-                                      PopupMenuItem(value: 'child', child: Text('Add sub-bookmark here…')),
-                                      PopupMenuItem(value: 'here', child: Text('Point to current page')),
-                                      PopupMenuItem(value: 'up', child: Text('Move up')),
-                                      PopupMenuItem(value: 'down', child: Text('Move down')),
-                                      PopupMenuDivider(),
-                                      PopupMenuItem(value: 'delete', child: Text('Delete')),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

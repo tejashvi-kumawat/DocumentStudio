@@ -68,10 +68,7 @@ class _PdfGoToPageDialogState extends State<PdfGoToPageDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Go'),
-        ),
+        FilledButton(onPressed: _submit, child: const Text('Go')),
       ],
     );
   }
@@ -88,10 +85,8 @@ Future<void> showPdfGoToPageDialog({
 
   final result = await showDialog<int>(
     context: context,
-    builder: (ctx) => PdfGoToPageDialog(
-      pageCount: pageCount,
-      initialPage: current,
-    ),
+    builder: (ctx) =>
+        PdfGoToPageDialog(pageCount: pageCount, initialPage: current),
   );
 
   if (result == null || !context.mounted) return;

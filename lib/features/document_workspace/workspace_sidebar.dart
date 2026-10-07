@@ -5,9 +5,7 @@ import 'package:document_studio/domain/models/local_file_ref.dart';
 import 'package:document_studio/domain/organize/organize_page_ref.dart';
 import 'package:flutter/material.dart';
 
-enum WorkspaceSidebarAction {
-  addPdf,
-}
+enum WorkspaceSidebarAction { addPdf }
 
 /// Document list + document-level actions.
 ///
@@ -54,22 +52,22 @@ class WorkspaceSidebar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final border = isDark ? DsColors.borderDark : DsColors.borderLight;
-    final sizeClass =
-        dsWindowSizeClassForWidth(MediaQuery.sizeOf(context).width);
+    final sizeClass = dsWindowSizeClassForWidth(
+      MediaQuery.sizeOf(context).width,
+    );
     final dense = sizeClass != DsWindowSizeClass.expanded;
     final pad = fullWidth
         ? DsSpacing.pagePaddingCompact
         : (dense ? DsSpacing.md : 12.0);
-    final rowMin = fullWidth
-        ? DsSpacing.compactTouchTarget
-        : 36.0;
+    final rowMin = fullWidth ? DsSpacing.compactTouchTarget : 36.0;
 
     const docActions = <_Item>[
       _Item('Add PDF', Icons.add, WorkspaceSidebarAction.addPdf),
     ];
 
     final body = ListView(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.symmetric(
             vertical: fullWidth
                 ? DsSpacing.md
@@ -106,8 +104,9 @@ class WorkspaceSidebar extends StatelessWidget {
           for (final file in importedFiles)
             ListTile(
               dense: !fullWidth,
-              visualDensity:
-                  fullWidth ? VisualDensity.standard : VisualDensity.compact,
+              visualDensity: fullWidth
+                  ? VisualDensity.standard
+                  : VisualDensity.compact,
               minVerticalPadding: fullWidth ? 10 : 0,
               contentPadding: EdgeInsets.symmetric(horizontal: pad),
               minTileHeight: rowMin,
@@ -136,11 +135,11 @@ class WorkspaceSidebar extends StatelessWidget {
               ),
               trailing: onOpenDocument == null
                   ? (fullWidth
-                      ? Icon(
-                          Icons.chevron_right,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        )
-                      : null)
+                        ? Icon(
+                            Icons.chevron_right,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          )
+                        : null)
                   : IconButton(
                       tooltip: 'Open PDF',
                       icon: const Icon(Icons.menu_book_outlined),
@@ -212,8 +211,7 @@ class _SidebarTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       dense: !fullWidth,
-      visualDensity:
-          fullWidth ? VisualDensity.standard : VisualDensity.compact,
+      visualDensity: fullWidth ? VisualDensity.standard : VisualDensity.compact,
       enabled: enabled,
       contentPadding: horizontalPad == null
           ? null
@@ -246,9 +244,7 @@ class WorkspaceCompactMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
-      _Item('Add PDF', Icons.add, WorkspaceSidebarAction.addPdf),
-    ];
+    const items = [_Item('Add PDF', Icons.add, WorkspaceSidebarAction.addPdf)];
 
     return PopupMenuButton<WorkspaceSidebarAction>(
       tooltip: 'Documents',

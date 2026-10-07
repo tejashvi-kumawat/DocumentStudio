@@ -71,8 +71,12 @@ class _ThumbPainter extends CustomPainter {
       final len = 0.55 + rnd.nextDouble() * 0.45;
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(72 * scale, y * scale, (w - 144) * len * scale,
-              math.max(7 * scale, 1.5)),
+          Rect.fromLTWH(
+            72 * scale,
+            y * scale,
+            (w - 144) * len * scale,
+            math.max(7 * scale, 1.5),
+          ),
           Radius.circular(2 * scale),
         ),
         bar,
@@ -164,14 +168,17 @@ class _TemplateGalleryState extends State<_TemplateGallery> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.auto_awesome_mosaic_outlined,
-                        color: DsColors.primary),
+                    const Icon(
+                      Icons.auto_awesome_mosaic_outlined,
+                      color: DsColors.primary,
+                    ),
                     const SizedBox(width: DsSpacing.sm),
                     Expanded(
                       child: Text(
                         'Header & footer templates',
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -221,19 +228,21 @@ class _TemplateGalleryState extends State<_TemplateGallery> {
                   child: visible.isEmpty
                       ? Center(
                           key: const ValueKey('empty'),
-                          child: Text('No templates match',
-                              style: theme.textTheme.bodyMedium),
+                          child: Text(
+                            'No templates match',
+                            style: theme.textTheme.bodyMedium,
+                          ),
                         )
                       : GridView.builder(
                           key: ValueKey('$_category|$q|${_custom.length}'),
                           padding: const EdgeInsets.all(16),
                           gridDelegate:
                               const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 200,
-                            mainAxisExtent: 250,
-                            crossAxisSpacing: 14,
-                            mainAxisSpacing: 14,
-                          ),
+                                maxCrossAxisExtent: 200,
+                                mainAxisExtent: 250,
+                                crossAxisSpacing: 14,
+                                mainAxisSpacing: 14,
+                              ),
                           itemCount: visible.length,
                           itemBuilder: (context, i) => DsMotion.fadeRiseIn(
                             duration: Duration(
@@ -246,8 +255,9 @@ class _TemplateGalleryState extends State<_TemplateGallery> {
                               onDelete: visible[i].builtIn
                                   ? null
                                   : () async {
-                                      final next = await widget
-                                          .onDelete(visible[i].id);
+                                      final next = await widget.onDelete(
+                                        visible[i].id,
+                                      );
                                       if (mounted) {
                                         setState(() => _custom = next);
                                       }
@@ -310,8 +320,10 @@ class _GalleryCard extends StatelessWidget {
                     template.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge
-                        ?.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 if (onDelete != null)

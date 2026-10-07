@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 
 /// Bundled DS font that is metric-compatible with [font]'s standard-14 face.
 MarkupFontFamily markupFamilyFor(HfFont font) => switch (font.family) {
-      HfFontFamily.sans => MarkupFontFamily.sans,
-      HfFontFamily.serif => MarkupFontFamily.serif,
-      HfFontFamily.mono => MarkupFontFamily.mono,
-    };
+  HfFontFamily.sans => MarkupFontFamily.sans,
+  HfFontFamily.serif => MarkupFontFamily.serif,
+  HfFontFamily.mono => MarkupFontFamily.mono,
+};
 
 /// On-screen style for text the PDF writer sets in [font].
 TextStyle stampPreviewTextStyle(HfFont font, double sizePx, Color color) {
@@ -28,7 +28,10 @@ TextPainter stampTextPainter(
   Color color,
 ) {
   return TextPainter(
-    text: TextSpan(text: text, style: stampPreviewTextStyle(font, sizePx, color)),
+    text: TextSpan(
+      text: text,
+      style: stampPreviewTextStyle(font, sizePx, color),
+    ),
     textDirection: TextDirection.ltr,
     maxLines: 1,
   )..layout();

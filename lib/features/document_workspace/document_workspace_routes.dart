@@ -7,9 +7,7 @@ import 'package:go_router/go_router.dart';
 
 /// Parses `/workspace` route `extra` from viewer/home handoffs.
 ({List<LocalFileRef> files, Map<String, String> passwords, bool returnToViewer})
-    parseWorkspaceRouteExtra(
-  Object? extra,
-) {
+parseWorkspaceRouteExtra(Object? extra) {
   final files = <LocalFileRef>[];
   var passwords = <String, String>{};
   var returnToViewer = false;

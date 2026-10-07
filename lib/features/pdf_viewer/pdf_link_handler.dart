@@ -19,8 +19,7 @@ Future<void> handlePdfViewerLinkTap({
   if (uri == null) return;
   final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
   if (!ok && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Could not open link: $uri')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Could not open link: $uri')));
   }
 }

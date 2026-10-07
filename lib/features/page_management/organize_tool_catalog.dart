@@ -2,19 +2,10 @@ import 'package:flutter/material.dart';
 
 enum OrganizeToolAvailability { available, comingSoon }
 
-enum OrganizeToolGroup {
-  composition,
-  extraction,
-  arrangement,
-  format,
-}
+enum OrganizeToolGroup { composition, extraction, arrangement, format }
 
 /// iLovePDF-style hub sections (group several [OrganizeToolGroup] rows).
-enum OrganizeHubCategory {
-  mergeSplit,
-  organizePdf,
-  pageFormat,
-}
+enum OrganizeHubCategory { mergeSplit, organizePdf, pageFormat }
 
 class OrganizeToolDefinition {
   const OrganizeToolDefinition({
@@ -192,11 +183,11 @@ class OrganizeToolCatalog {
   ];
 
   static String groupTitle(OrganizeToolGroup g) => switch (g) {
-        OrganizeToolGroup.composition => 'Page composition',
-        OrganizeToolGroup.extraction => 'Extract & split',
-        OrganizeToolGroup.arrangement => 'Arrange pages',
-        OrganizeToolGroup.format => 'Page format',
-      };
+    OrganizeToolGroup.composition => 'Page composition',
+    OrganizeToolGroup.extraction => 'Extract & split',
+    OrganizeToolGroup.arrangement => 'Arrange pages',
+    OrganizeToolGroup.format => 'Page format',
+  };
 
   static List<OrganizeToolDefinition> forGroup(OrganizeToolGroup g) =>
       tools.where((t) => t.group == g).toList();
