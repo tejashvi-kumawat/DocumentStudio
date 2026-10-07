@@ -9,9 +9,9 @@
 class DocumentStudio < Formula
   desc "Offline PDF workspace with merge, OCR, encryption, and Office conversion"
   homepage "https://github.com/tejashvi-kumawat/DocumentStudio"
-  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/document-studio_1.1.0_amd64.deb"
-  sha256 "496194f336ad033e898f7ccf7315e926dea0f6c9d2eed53b24833fdeac2c0b83"
-  version "1.1.0"
+  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.2.0/document-studio_1.2.0_amd64.deb"
+  sha256 "c20fce706c2bdf9f6684e23fb18418c81d4afbc2334fc568b5e33896e64a3777"
+  version "1.2.0"
   license :cannot_represent
 
   depends_on :linux
@@ -134,6 +134,10 @@ class DocumentStudio < Formula
 
       macOS (cask):
         brew install --cask tejashvi-kumawat/tap/document-studio
+
+      Windows: Homebrew does not run natively on Windows. Use WSL (Ubuntu) and
+      the Linux command above, or install the Windows app from
+      https://github.com/tejashvi-kumawat/DocumentStudio/releases/latest
 
       Needs GTK 3 system libraries (e.g. libgtk-3-0 on Debian/Ubuntu).
     EOS

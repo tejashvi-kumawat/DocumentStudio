@@ -4,10 +4,10 @@
 # Install: brew tap tejashvi-kumawat/tap && brew install --cask document-studio
 
 cask "document-studio" do
-  version "1.1.0"
-  sha256 "9a6d6cdf3645d637587df1315bad4f32434e17ea0a1939a1937f7d4ebc839412"
+  version "1.2.0"
+  sha256 "f48e106c47827995b737801d11c1c3d6eb70d3098860f231c720448c0f61386e"
 
-  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.1.0/DocumentStudio-1.1.0-macos.dmg"
+  url "https://github.com/tejashvi-kumawat/DocumentStudio/releases/download/v1.2.0/DocumentStudio-1.2.0-macos.dmg"
   name "Document Studio"
   desc "Offline PDF workspace with merge, OCR, encryption, and Office conversion"
   homepage "https://github.com/tejashvi-kumawat/DocumentStudio"
@@ -22,10 +22,8 @@ cask "document-studio" do
   app "Document Studio.app"
 
   caveats <<~EOS
-    Until releases are notarized by Apple, macOS may say it cannot verify
-    Document Studio. Open it the first time with: Finder → Applications →
-    right-click Document Studio → Open → Open (or System Settings →
-    Privacy & Security → Open Anyway). Later launches open normally.
+    Document Studio is not notarized by Apple yet, so macOS may say the app
+    cannot be opened. Right-click the app and choose Open once to allow it.
   EOS
 
   zap trash: [
